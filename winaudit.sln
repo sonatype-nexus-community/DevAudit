@@ -5,6 +5,8 @@ VisualStudioVersion = 14.0.23107.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WinAudit.AuditLibrary", "WinAudit.AuditLibrary\WinAudit.AuditLibrary.csproj", "{DF8053F3-658B-41C3-8DBF-A8A9844BA384}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WinAudit.Tests", "WinAudit.Tests\WinAudit.Tests.csproj", "{E7C4728E-7E40-4C7E-8632-AE2409B0F6FB}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -15,6 +17,10 @@ Global
 		{DF8053F3-658B-41C3-8DBF-A8A9844BA384}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{DF8053F3-658B-41C3-8DBF-A8A9844BA384}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{DF8053F3-658B-41C3-8DBF-A8A9844BA384}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E7C4728E-7E40-4C7E-8632-AE2409B0F6FB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E7C4728E-7E40-4C7E-8632-AE2409B0F6FB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E7C4728E-7E40-4C7E-8632-AE2409B0F6FB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E7C4728E-7E40-4C7E-8632-AE2409B0F6FB}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
