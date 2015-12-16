@@ -42,6 +42,13 @@ namespace WinAudit.AuditLibrary
 {
     public class Audit
     {
+        public string ApiVersion { get; set; }
+
+        public Audit(string api_version)
+        {
+            this.ApiVersion = api_version;
+        }
+        
         //Get list of installed programs from 3 registry locations.
         public IEnumerable<OSSIndexQueryObject> GetMSIPackages()
         {
@@ -105,7 +112,7 @@ namespace WinAudit.AuditLibrary
                 client.DefaultRequestHeaders.Accept.Clear();
                 client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
                 client.DefaultRequestHeaders.Add("user-agent", "WinAudit");
-                HttpResponseMessage response = await client.GetAsync(@"v1.0/search/artifact/" +
+                HttpResponseMessage response = await client.GetAsync("v" + this.ApiVersion + "/search/artifact/" +
                     string.Format("{0}/{1}/{2}", package_manager, package.Name, package.Version, package.Vendor));
                 if (response.IsSuccessStatusCode)
                 {
@@ -127,7 +134,7 @@ namespace WinAudit.AuditLibrary
                 client.DefaultRequestHeaders.Accept.Clear();
                 client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
                 client.DefaultRequestHeaders.Add("user-agent", "WinAudit");
-                HttpResponseMessage response = await client.PostAsync(@"v1.0/search/artifact/" + package_manager,
+                HttpResponseMessage response = await client.PostAsync("v" + this.ApiVersion + "/search/artifact/" + package_manager,
                     new StringContent(JsonConvert.SerializeObject(packages),Encoding.UTF8, "application/json"));
                 if (response.IsSuccessStatusCode)
                 {
@@ -141,7 +148,7 @@ namespace WinAudit.AuditLibrary
                 }
             }
         }
-
+        
 
 
         public IEnumerable<OSSIndexProjectVulnerability> GetVulnerabilityForSCMId(string id)

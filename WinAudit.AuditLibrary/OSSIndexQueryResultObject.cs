@@ -14,10 +14,13 @@ namespace WinAudit.AuditLibrary
         public string PackageName { get; set; }
 
         [JsonProperty("version")]
-        public string PackageVersion { get; set; }
+        public string Version { get; set; }
+
+        [JsonProperty("project_id")]
+        public string ProjectId { get; set; }
 
         [JsonProperty("scm_id")]
-        public string PackageSCMId { get; set; }
+        public string SCMId { get; set; }
 
         public OSSIndexQueryResultObject() {}
 
