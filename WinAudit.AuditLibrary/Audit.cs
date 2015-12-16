@@ -57,7 +57,7 @@ namespace WinAudit.AuditLibrary
                         (string) k.OpenSubKey(sn).GetValue("DisplayVersion"), 
                         (string) k.OpenSubKey(sn).GetValue("Publisher"));
                 List<OSSIndexQueryObject> packages = packages_query
-                    .Where(p => !string.IsNullOrEmpty(p.ApplicationName))
+                    .Where(p => !string.IsNullOrEmpty(p.Name))
                     .ToList<OSSIndexQueryObject>();
 
                 perm = new RegistryPermission(RegistryPermissionAccess.Read, @"HKEY_LOCAL_MACHINE\SOFTWARE\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall");
@@ -67,7 +67,7 @@ namespace WinAudit.AuditLibrary
                     from sn in k.GetSubKeyNames()
                     select new OSSIndexQueryObject("msi", (string) k.OpenSubKey(sn).GetValue("DisplayName"),
                         (string) k.OpenSubKey(sn).GetValue("DisplayVersion"), (string) k.OpenSubKey(sn).GetValue("Publisher"));
-                packages.AddRange(packages_query.Where(p => !string.IsNullOrEmpty(p.ApplicationName)));
+                packages.AddRange(packages_query.Where(p => !string.IsNullOrEmpty(p.Name)));
 
                 perm = new RegistryPermission(RegistryPermissionAccess.Read, @"HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall");
                 perm.Demand();
@@ -76,7 +76,7 @@ namespace WinAudit.AuditLibrary
                     from sn in k.GetSubKeyNames()
                     select new OSSIndexQueryObject("msi", (string)k.OpenSubKey(sn).GetValue("DisplayName"),
                         (string)k.OpenSubKey(sn).GetValue("DisplayVersion"), (string)k.OpenSubKey(sn).GetValue("Publisher"));
-                packages.AddRange(packages_query.Where(p => !string.IsNullOrEmpty(p.ApplicationName)));
+                packages.AddRange(packages_query.Where(p => !string.IsNullOrEmpty(p.Name)));
                 return packages;
             }
 
@@ -97,7 +97,7 @@ namespace WinAudit.AuditLibrary
 
         }
 
-        public IEnumerable<OSSIndexQueryResultObject> QueryOSSIndex(IEnumerable<OSSIndexQueryObject> packages)
+        public async Task<IEnumerable<OSSIndexQueryResultObject>> SearchOSSIndex(string package_manager, OSSIndexQueryObject package)
         {
             using (HttpClient client = new HttpClient())
             {
@@ -105,12 +105,13 @@ namespace WinAudit.AuditLibrary
                 client.DefaultRequestHeaders.Accept.Clear();
                 client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
                 client.DefaultRequestHeaders.Add("user-agent", "WinAudit");
-                HttpResponseMessage response = client.PostAsync(@"v1.0/search/artifact/",
-                    new StringContent(JsonConvert.SerializeObject(packages),Encoding.UTF8, "application/json")).Result;
+                HttpResponseMessage response = await client.GetAsync(@"v1.0/search/artifact/" +
+                    string.Format("{0}/{1}/{2}", package_manager, package.Name, package.Version, package.Vendor));
                 if (response.IsSuccessStatusCode)
                 {
-                    string r = response.Content.ReadAsStringAsync().Result;
-                    return JsonConvert.DeserializeObject<IEnumerable<OSSIndexQueryResultObject>>(r);
+                    string r = await response.Content.ReadAsStringAsync();
+                    return await Task.Factory.StartNew<IEnumerable<OSSIndexQueryResultObject>>(() =>
+                    { return JsonConvert.DeserializeObject<IEnumerable<OSSIndexQueryResultObject>>(r); });
                 }
                 else
                 {
@@ -118,6 +119,30 @@ namespace WinAudit.AuditLibrary
                 }
             }
         }
+        public async Task<IEnumerable<OSSIndexQueryResultObject>> SearchOSSIndex(string package_manager, IEnumerable<OSSIndexQueryObject> packages)
+        {
+            using (HttpClient client = new HttpClient())
+            {
+                client.BaseAddress = new Uri(@"https://ossindex.net/");
+                client.DefaultRequestHeaders.Accept.Clear();
+                client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+                client.DefaultRequestHeaders.Add("user-agent", "WinAudit");
+                HttpResponseMessage response = await client.PostAsync(@"v1.0/search/artifact/" + package_manager,
+                    new StringContent(JsonConvert.SerializeObject(packages),Encoding.UTF8, "application/json"));
+                if (response.IsSuccessStatusCode)
+                {
+                    string r = await response.Content.ReadAsStringAsync();
+                    return await Task.Factory.StartNew<IEnumerable<OSSIndexQueryResultObject>>(()=>
+                    { return JsonConvert.DeserializeObject<IEnumerable<OSSIndexQueryResultObject>>(r); });
+                }
+                else
+                {
+                    throw new Exception("HTTP request did not return success.\nReason: " + response.ReasonPhrase);
+                }
+            }
+        }
+
+
 
         public IEnumerable<OSSIndexProjectVulnerability> GetVulnerabilityForSCMId(string id)
         {

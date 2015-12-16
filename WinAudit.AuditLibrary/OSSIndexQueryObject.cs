@@ -14,7 +14,7 @@ namespace WinAudit.AuditLibrary
         public string PackageManager { get; set; }
 
         [JsonProperty("name")]
-        public string ApplicationName { get; set; }
+        public string Name { get; set; }
 
         [JsonProperty("version")]
         public string Version { get; set; }
@@ -26,7 +26,7 @@ namespace WinAudit.AuditLibrary
         public OSSIndexQueryObject(string package_manager, string application_name, string version, string vendor)
         {
             this.PackageManager = package_manager;
-            this.ApplicationName = application_name;
+            this.Name = application_name;
             this.Version = version;
             this.Vendor = vendor;
         }
