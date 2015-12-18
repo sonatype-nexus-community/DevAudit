@@ -39,6 +39,7 @@ using System.Threading.Tasks;
 
 using Microsoft.Win32;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 
 namespace WinAudit.AuditLibrary
 {
@@ -102,13 +103,14 @@ namespace WinAudit.AuditLibrary
             {
                 k = null;
             }
-
-
         }
-        public IEnumerable<OSSIndexQueryObject> GetChocolateyPackages()
+
+        //run and parse output from choco list -lo command.
+        public IEnumerable<OSSIndexQueryObject> GetChocolateyPackages(string choco_command = "")
         {
+            if (string.IsNullOrEmpty(choco_command)) choco_command = @"C:\ProgramData\chocolatey\choco.exe";
             string process_output = "", process_error = "";
-            ProcessStartInfo psi = new ProcessStartInfo(@"C:\ProgramData\chocolatey\choco.exe");
+            ProcessStartInfo psi = new ProcessStartInfo(choco_command);
             psi.Arguments = @"list -lo";
             psi.CreateNoWindow = true;
             psi.RedirectStandardError = true;
@@ -158,6 +160,21 @@ namespace WinAudit.AuditLibrary
             p.Close();
             return packages;
         }
+
+        public IEnumerable<OSSIndexQueryObject> GetBowerPackages(string file_name=@".\bower.json")
+        {
+            if (!File.Exists(file_name)) file_name = @".\bower.json.example";
+            using (JsonTextReader r = new JsonTextReader(new StreamReader(
+                        file_name)))
+            {
+                JObject json = (JObject)JToken.ReadFrom(r);
+                JObject dependencies = (JObject)json["dependencies"];
+                return dependencies.Properties().Select(d => new OSSIndexQueryObject("bower", d.Name, d.Value.ToString(), ""));
+            }
+        }
+        
+
+        
         public async Task<IEnumerable<OSSIndexQueryResultObject>> SearchOSSIndex(string package_manager, OSSIndexQueryObject package)
         {
             using (HttpClient client = new HttpClient())

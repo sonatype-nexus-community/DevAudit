@@ -33,6 +33,13 @@ namespace WinAudit.Tests
         }
 
         [Fact]
+        public void CanGetBowerPackages()
+        {
+            IEnumerable<OSSIndexQueryObject> packages = audit.GetBowerPackages();
+            Assert.NotNull(packages);
+        }
+
+        [Fact]
         public async Task CanSearchOSSIndex()
         {
             OSSIndexQueryObject q1 = new OSSIndexQueryObject("msi", "Adobe Reader", "11.0.10", "");
