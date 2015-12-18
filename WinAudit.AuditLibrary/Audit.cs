@@ -24,6 +24,7 @@ USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Net.Http;
 using System.Net.Http.Headers;
@@ -33,6 +34,7 @@ using System.Linq;
 using System.Security;
 using System.Security.Permissions;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 using Microsoft.Win32;
@@ -103,7 +105,59 @@ namespace WinAudit.AuditLibrary
 
 
         }
+        public IEnumerable<OSSIndexQueryObject> GetChocolateyPackages()
+        {
+            string process_output = "", process_error = "";
+            ProcessStartInfo psi = new ProcessStartInfo(@"C:\ProgramData\chocolatey\choco.exe");
+            psi.Arguments = @"list -lo";
+            psi.CreateNoWindow = true;
+            psi.RedirectStandardError = true;
+            psi.RedirectStandardOutput = true;
+            psi.UseShellExecute = false;
+            Process p = new Process();
+            p.EnableRaisingEvents = true;
+            p.StartInfo = psi;
+            List<OSSIndexQueryObject> packages = new List<OSSIndexQueryObject>();
+            p.OutputDataReceived += (object sender, DataReceivedEventArgs e) =>
+            {
+                string first = @"(\d+)\s+packages installed";
+                if (!String.IsNullOrEmpty(e.Data))
+                {
+                    process_output += e.Data + Environment.NewLine;
+                    Match m = Regex.Match(e.Data.Trim(), first);
+                    if (m.Success)
+                    {
+                        return;
+                    }
+                    else
+                    {
+                        string[] output = e.Data.Trim().Split(' ');
+                        if ((output == null) || (output != null) && (output.Length != 2))
+                        {
+                            throw new Exception("Could not parse output from choco command: " + e.Data);
+                        }
+                        else
+                        {
+                            packages.Add(new OSSIndexQueryObject("chocolatey", output[0], output[1], ""));
+                        }
+                    }
 
+                };
+            };
+            p.ErrorDataReceived += (object sender, DataReceivedEventArgs e) =>
+            {
+                if (!String.IsNullOrEmpty(e.Data))
+                {
+                    process_error += e.Data + Environment.NewLine;
+                };
+            };
+            p.Start();
+            p.BeginErrorReadLine();
+            p.BeginOutputReadLine();
+            p.WaitForExit();
+            p.Close();
+            return packages;
+        }
         public async Task<IEnumerable<OSSIndexQueryResultObject>> SearchOSSIndex(string package_manager, OSSIndexQueryObject package)
         {
             using (HttpClient client = new HttpClient())
