@@ -24,6 +24,7 @@ USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using System.Net.Http;
@@ -184,7 +185,6 @@ namespace WinAudit.AuditLibrary
             name_col_length = 0, version_col_length = 0, provider_name_col_length = 0;
             p.OutputDataReceived += (object sender, DataReceivedEventArgs e) =>
             {
-                
              if (!String.IsNullOrEmpty(e.Data))
                 {
                     process_output += e.Data + Environment.NewLine;
@@ -235,9 +235,24 @@ namespace WinAudit.AuditLibrary
                 if (!String.IsNullOrEmpty(e.Data))
                 {
                     process_error += e.Data + Environment.NewLine;
+                    if (e.Data.Contains("Get-Package : The term 'Get-Package' is not recognized as the name of a cmdlet, function, script file, or operable"))
+                    {
+                        p.Kill();
+                        throw new Exception("Error running Get-Package Powershell command (OneGet may not be installed on this computer):" + e.Data);
+                    }
                 };
             };
-            p.Start();
+            try
+            {
+                p.Start();
+            }
+            catch (Win32Exception e)
+            {
+                if (e.Message == "The system cannot find the file specified")
+                {
+                    throw new Exception("Powershell is not installed on this computer or is not on the current PATH.", e);
+                }
+            }
             p.BeginErrorReadLine();
             p.BeginOutputReadLine();
             p.WaitForExit();
@@ -258,8 +273,6 @@ namespace WinAudit.AuditLibrary
                 return dependencies.Properties().Select(d => new OSSIndexQueryObject("bower", d.Name, d.Value.ToString(), ""));
             }
         }
-        
-
         
         public async Task<IEnumerable<OSSIndexQueryResultObject>> SearchOSSIndex(string package_manager, OSSIndexQueryObject package)
         {
