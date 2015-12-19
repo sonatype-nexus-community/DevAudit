@@ -33,10 +33,18 @@ namespace WinAudit.Tests
         }
 
         [Fact]
+        public void CanGetOneGetPackages()
+        {
+            IEnumerable<OSSIndexQueryObject> packages = audit.GetOneGetPackages();
+            Assert.NotEmpty(packages);
+            Assert.NotEmpty(packages.Where(p => p.PackageManager == "msi"));
+        }
+
+        [Fact]
         public void CanGetBowerPackages()
         {
             IEnumerable<OSSIndexQueryObject> packages = audit.GetBowerPackages();
-            Assert.NotNull(packages);
+            Assert.NotEmpty(packages);
         }
 
         [Fact]
