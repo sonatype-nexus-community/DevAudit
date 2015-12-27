@@ -70,6 +70,10 @@
       <Project>{df8053f3-658b-41c3-8dbf-a8a9844ba384}</Project>
       <Name>WinAudit.AuditLibrary</Name>
     </ProjectReference>
+    <ProjectReference Include="..\WinAudit.CommandLine\WinAudit.CommandLine.csproj">
+      <Project>{f1407df1-7be3-41df-88d3-8a752ae61bdc}</Project>
+      <Name>WinAudit.CommandLine</Name>
+    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
     <Service Include="{82A7F48D-3B50-4B1E-B82E-3ADA8210C358}" />
