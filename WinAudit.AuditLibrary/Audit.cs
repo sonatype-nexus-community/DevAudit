@@ -292,7 +292,7 @@ namespace WinAudit.AuditLibrary
                 }
                 else
                 {
-                    throw new Exception("HTTP request did not return success.\nReason: " + response.ReasonPhrase);
+                    throw new OSSIndexHttpException(package_manager, response.StatusCode, response.ReasonPhrase, response.RequestMessage);
                 }
             }
         }
@@ -314,7 +314,7 @@ namespace WinAudit.AuditLibrary
                 }
                 else
                 {
-                    throw new Exception("HTTP request did not return success.\nReason: " + response.ReasonPhrase);
+                    throw new OSSIndexHttpException(package_manager, response.StatusCode, response.ReasonPhrase, response.RequestMessage);
                 }
             }
         }
@@ -335,7 +335,7 @@ namespace WinAudit.AuditLibrary
                 }
                 else
                 {
-                    throw new Exception("HTTP request did not return success.\nReason: " + response.ReasonPhrase);
+                    throw new OSSIndexHttpException(id, response.StatusCode, response.ReasonPhrase, response.RequestMessage); 
                 }
             }
 

@@ -45,6 +45,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Audit.cs" />
+    <Compile Include="OSSIndexHttpException.cs" />
     <Compile Include="OSSIndexQueryObject.cs" />
     <Compile Include="OSSIndexQueryResultObject.cs" />
     <Compile Include="OSSIndexProjectVulnerability.cs" />

@@ -67,7 +67,7 @@ namespace WinAudit.Tests
         }
 
         [Fact]
-        public async Task CanGetPackagesAsync()
+        public async Task CanParalellGetPackages()
         {
             Task<IEnumerable<OSSIndexQueryObject>>[] t = 
             {
@@ -79,20 +79,30 @@ namespace WinAudit.Tests
             Assert.NotEmpty(results);
         }
 
-        public async Task CanSearchPackagesAsync()
+        [Fact]
+        public async Task CanParallelSearchPackages()
         {
-            List<Exception> errors = new List<Exception>();
+            List<OSSIndexHttpException> http_errors = new List<OSSIndexHttpException>();
             Task<IEnumerable<OSSIndexProjectVulnerability>>[] t =
             {audit.GetOSSIndexVulnerabilitiesForId("284089289"), audit.GetOSSIndexVulnerabilitiesForId("2840892") };
             try
             {
                 Task.WaitAll(t);
             }
-            catch (AggregateException ae)
+            catch (OSSIndexHttpException he)
             {
+                http_errors.Add(he);
+            }
+            catch(AggregateException ae)
+            {
+                http_errors.AddRange(ae.InnerExceptions
+                    .Where(i => i.GetType() == typeof(OSSIndexHttpException)).Cast<OSSIndexHttpException>());
                 
             }
-
+            List<IEnumerable<OSSIndexProjectVulnerability>> v = t.Where(s => s.Status == TaskStatus.RanToCompletion)
+                .Select(ts => ts.Result).ToList();
+            Assert.True(v.Count == 1);
+            
         }
     }
 }
