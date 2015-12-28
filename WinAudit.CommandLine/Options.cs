@@ -11,8 +11,14 @@ namespace WinAudit.CommandLine
 {
     class Options
     {
-        [Option('o', "oneget", Required = false, HelpText = "Audit OneGet packages.")]
+        [Option('o', "oneget", Required = false, MutuallyExclusiveSet = "PM", HelpText = "Audit OneGet packages.")]
         public bool AuditOneGet { get; set; }
+
+        [Option('m', "msi", Required = false, MutuallyExclusiveSet = "PM", HelpText = "Audit MSI packages.")]
+        public bool AuditMsi { get; set; }
+
+        [Option('b', "bower", Required = false, MutuallyExclusiveSet = "PM", HelpText = "Audit Bower packages.")]
+        public bool AuditBower { get; set; }
 
         [ParserState]
         public IParserState LastParserState { get; set; }

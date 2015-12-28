@@ -319,9 +319,7 @@ namespace WinAudit.AuditLibrary
             }
         }
         
-
-
-        public IEnumerable<OSSIndexProjectVulnerability> GetVulnerabilityForSCMId(string id)
+        public async Task<IEnumerable<OSSIndexProjectVulnerability>> GetOSSIndexVulnerabilitiesForId(string id)
         {
             using (HttpClient client = new HttpClient())
             {
@@ -329,7 +327,7 @@ namespace WinAudit.AuditLibrary
                 client.DefaultRequestHeaders.Accept.Clear();
                 client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
                 client.DefaultRequestHeaders.Add("user-agent", "WinAudit");
-                HttpResponseMessage response = client.GetAsync(string.Format("v1.0/scm/{0}/vulnerabilities", id)).Result;
+                HttpResponseMessage response = await client.GetAsync(string.Format("v" + this.ApiVersion + "/scm/{0}/vulnerabilities", id));
                 if (response.IsSuccessStatusCode)
                 {
                     string r = response.Content.ReadAsStringAsync().Result;

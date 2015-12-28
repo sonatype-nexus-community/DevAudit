@@ -14,7 +14,7 @@ namespace WinAudit.Tests
 
         public AuditLibraryTests()
         {
-            
+
         }
         [Fact]
         public void CanGetMSIPackages()
@@ -59,5 +59,40 @@ namespace WinAudit.Tests
             Assert.NotEmpty(r2);
         }
 
+        [Fact]
+        public async Task CanGetOSSIndexVulnerabilityForId()
+        {
+            IEnumerable<OSSIndexProjectVulnerability> v = await audit.GetOSSIndexVulnerabilitiesForId("284089289");
+            Assert.NotEmpty(v);
+        }
+
+        [Fact]
+        public async Task CanGetPackagesAsync()
+        {
+            Task<IEnumerable<OSSIndexQueryObject>>[] t = 
+            {
+              Task<IEnumerable<OSSIndexQueryObject>>.Factory.StartNew(() => audit.GetMSIPackages()),
+              Task<IEnumerable<OSSIndexQueryObject>>.Factory.StartNew(() => audit.GetOneGetPackages()),
+              Task<IEnumerable<OSSIndexQueryObject>>.Factory.StartNew(() => audit.GetChocolateyPackages())
+            };
+            IEnumerable<OSSIndexQueryObject>[] results = await Task.WhenAll(t);
+            Assert.NotEmpty(results);
+        }
+
+        public async Task CanSearchPackagesAsync()
+        {
+            List<Exception> errors = new List<Exception>();
+            Task<IEnumerable<OSSIndexProjectVulnerability>>[] t =
+            {audit.GetOSSIndexVulnerabilitiesForId("284089289"), audit.GetOSSIndexVulnerabilitiesForId("2840892") };
+            try
+            {
+                Task.WaitAll(t);
+            }
+            catch (AggregateException ae)
+            {
+                
+            }
+
+        }
     }
 }

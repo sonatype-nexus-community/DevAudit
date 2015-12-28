@@ -36,13 +36,20 @@ namespace WinAudit.CommandLine
             BPlusTree<string, OSSIndexQueryResultObject> cache = new BPlusTree<string, OSSIndexQueryResultObject>(cache_file_options);
             if (options.AuditOneGet)
             {
-                Console.WriteLine("Scanning OneGet packages...");
+                Console.Write("Scanning OneGet packages...");
+                Spinner spinner = new Spinner(100);
+                spinner.Start();
                 Audit audit = new Audit("1.1");
                 IEnumerable<OSSIndexQueryObject> packages = audit.GetOneGetPackages();
-                Console.WriteLine("Found {0} OneGet packages.", packages.Count());
+                spinner.Stop();
+                Console.WriteLine("\nFound {0} OneGet packages.", packages.Count());
+                if (packages.Count() == 0)
+                {
+                    Console.WriteLine("Nothing to do, exiting.");
+                    return 0;
+                }
+               // IEnumerable<OSSIndexQueryResultObject> msi_packages_results = await audit.SearchOSSIndex("msi", packages.Select(p => p.PackageManager == "msi"));
             }
-
-
             return 0;
         }
     }
