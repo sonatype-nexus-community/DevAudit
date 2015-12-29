@@ -60,10 +60,13 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="BsonSerializer.cs" />
+    <Compile Include="IPackagesAudit.cs" />
+    <Compile Include="PackagesAudit\MSIPackagesAudit.cs" />
     <Compile Include="Options.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Spinner.cs" />
+    <Compile Include="SubOptions.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />

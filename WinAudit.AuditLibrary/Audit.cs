@@ -296,7 +296,7 @@ namespace WinAudit.AuditLibrary
                 }
             }
         }
-        public async Task<IEnumerable<OSSIndexQueryResultObject>> SearchOSSIndex(string package_manager, IEnumerable<OSSIndexQueryObject> packages)
+        public async Task<IEnumerable<OSSIndexQueryResultObject>> SearchOSSIndexAsync(string package_manager, IEnumerable<OSSIndexQueryObject> packages)
         {
             using (HttpClient client = new HttpClient())
             {
@@ -318,6 +318,8 @@ namespace WinAudit.AuditLibrary
                 }
             }
         }
+
+
         
         public async Task<IEnumerable<OSSIndexProjectVulnerability>> GetOSSIndexVulnerabilitiesForId(string id)
         {

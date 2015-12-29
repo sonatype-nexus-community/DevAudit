@@ -5,24 +5,21 @@ using System.Text;
 using System.Threading.Tasks;
 
 using CommandLine;
+
 using CommandLine.Text;
 
 namespace WinAudit.CommandLine
 {
     class Options
     {
-        [Option('o', "oneget", Required = false, MutuallyExclusiveSet = "PM", HelpText = "Audit OneGet packages.")]
-        public bool AuditOneGet { get; set; }
+        public Options()
+        {            
+            
+        }
 
-        [Option('c', "choco", Required = false, MutuallyExclusiveSet = "PM", HelpText = "Audit Chocolatey packages.")]
-        public bool AuditChocolatey { get; set; }
-
-        [Option('m', "msi", Required = false, MutuallyExclusiveSet = "PM", HelpText = "Audit MSI packages.")]
-        public bool AuditMsi { get; set; }
-
-        [Option('b', "bower", Required = false, MutuallyExclusiveSet = "PM", HelpText = "Audit Bower packages.")]
-        public bool AuditBower { get; set; }
-
+        [VerbOption("msi", HelpText = "Audit MSI packages.")]
+        public SubOptions AuditMsi { get; set; }
+    
         [ParserState]
         public IParserState LastParserState { get; set; }
 
@@ -31,6 +28,12 @@ namespace WinAudit.CommandLine
         {
             return HelpText.AutoBuild(this,
               (HelpText current) => HelpText.DefaultParsingErrorsHandler(this, current));
+        }
+
+        [HelpVerbOption]
+        public string GetUsage(string verb)
+        {
+            return HelpText.AutoBuild(this, verb);
         }
     }
 }

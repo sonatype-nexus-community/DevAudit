@@ -55,7 +55,7 @@ namespace WinAudit.Tests
 
             IEnumerable<OSSIndexQueryResultObject> r1 = await audit.SearchOSSIndex("msi", q1);
             Assert.NotEmpty(r1);
-            IEnumerable<OSSIndexQueryResultObject> r2 = await audit.SearchOSSIndex("msi", new List<OSSIndexQueryObject>() { q1, q2 });
+            IEnumerable<OSSIndexQueryResultObject> r2 = await audit.SearchOSSIndexAsync("msi", new List<OSSIndexQueryObject>() { q1, q2 });
             Assert.NotEmpty(r2);
         }
 
