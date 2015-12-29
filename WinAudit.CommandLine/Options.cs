@@ -14,6 +14,9 @@ namespace WinAudit.CommandLine
         [Option('o', "oneget", Required = false, MutuallyExclusiveSet = "PM", HelpText = "Audit OneGet packages.")]
         public bool AuditOneGet { get; set; }
 
+        [Option('c', "choco", Required = false, MutuallyExclusiveSet = "PM", HelpText = "Audit Chocolatey packages.")]
+        public bool AuditChocolatey { get; set; }
+
         [Option('m', "msi", Required = false, MutuallyExclusiveSet = "PM", HelpText = "Audit MSI packages.")]
         public bool AuditMsi { get; set; }
 
