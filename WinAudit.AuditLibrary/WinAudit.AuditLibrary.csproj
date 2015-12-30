@@ -45,17 +45,17 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="OSSIndexHttpClient.cs" />
-    <Compile Include="IPackagesAudit.cs" />
+    <Compile Include="PackageSource.cs" />
     <Compile Include="OSSIndexHttpException.cs" />
     <Compile Include="OSSIndexProject.cs" />
     <Compile Include="OSSIndexQueryObject.cs" />
     <Compile Include="OSSIndexArtifact.cs" />
     <Compile Include="OSSIndexProjectVulnerability.cs" />
-    <Compile Include="PackagesAudit\NuGetPackagesAudit.cs" />
-    <Compile Include="PackagesAudit\ChocolateyPackagesAudit.cs" />
-    <Compile Include="PackagesAudit\BowerPackagesAudit.cs" />
-    <Compile Include="PackagesAudit\OneGetPackagesAudit.cs" />
-    <Compile Include="PackagesAudit\MSIPackagesAudit.cs" />
+    <Compile Include="PackagesAudit\NuGetPackageSource.cs" />
+    <Compile Include="PackagesAudit\ChocolateyPackageSource.cs" />
+    <Compile Include="PackagesAudit\BowerPackageSource.cs" />
+    <Compile Include="PackagesAudit\OneGetPackageSource.cs" />
+    <Compile Include="PackagesAudit\MSIPackageSource.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
