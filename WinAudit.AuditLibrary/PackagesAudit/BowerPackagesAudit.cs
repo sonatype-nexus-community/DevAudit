@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.Concurrent;
 using System.IO;
 using System.Linq;
 using System.Security;
@@ -17,8 +18,11 @@ namespace WinAudit.AuditLibrary
     public class BowerPackagesAudit : IPackagesAudit
     {
         public OSSIndexHttpClient HttpClient { get; set; }
+
         public string PackageManagerId { get { return "bower"; } }
+
         public string PackageManagerLabel { get { return "Bower"; } }
+
         public Task<IEnumerable<OSSIndexQueryObject>> GetPackagesTask
         { get
             {
@@ -31,7 +35,11 @@ namespace WinAudit.AuditLibrary
             }
         }
         public IEnumerable<OSSIndexQueryObject> Packages { get; set; }
+
         public IEnumerable<OSSIndexQueryResultObject> Projects { get; set; }
+
+        public ConcurrentDictionary<string, IEnumerable<OSSIndexProjectVulnerability>> Vulnerabilities { get; set; } = new System.Collections.Concurrent.ConcurrentDictionary<string, IEnumerable<OSSIndexProjectVulnerability>>();
+
         public Task<IEnumerable<OSSIndexQueryResultObject>> GetProjectsTask
         {
             get
@@ -47,6 +55,25 @@ namespace WinAudit.AuditLibrary
                 return _GetProjectsTask;
             }
         }
+
+        public Task<IEnumerable<OSSIndexProjectVulnerability>>[] GetVulnerabilitiesTask
+        {
+            get
+            {
+                if (_GetVulnerabilitiesTask == null)
+                {
+                    List<Task<IEnumerable<OSSIndexProjectVulnerability>>> tasks =
+                        new List<Task<IEnumerable<OSSIndexProjectVulnerability>>>(this.Projects.Count(p => !string.IsNullOrEmpty(p.ProjectId)));
+                    this.Projects.ToList().Where(p => !string.IsNullOrEmpty(p.ProjectId)).ToList()
+                        .ForEach(p => tasks.Add(Task<IEnumerable<OSSIndexProjectVulnerability>>
+                        .Run(async () => this.Vulnerabilities.AddOrUpdate(p.ProjectId, await this.HttpClient.GetVulnerabilitiesForIdAsync(p.ProjectId),
+                        (k, v) => v))));
+                    this._GetVulnerabilitiesTask = tasks.ToArray(); ;
+                }
+                return this._GetVulnerabilitiesTask;
+            }
+        }
+
         //Get bower packages from reading packages.json
         public IEnumerable<OSSIndexQueryObject> GetPackages(string file_name = @".\bower.json")
         {
@@ -70,6 +97,7 @@ namespace WinAudit.AuditLibrary
         #region Private fields
         private Task<IEnumerable<OSSIndexQueryResultObject>> _GetProjectsTask;
         private Task<IEnumerable<OSSIndexQueryObject>> _GetPackagesTask;
+        private Task<IEnumerable<OSSIndexProjectVulnerability>>[] _GetVulnerabilitiesTask;
         #endregion
 
     }

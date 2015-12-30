@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.Concurrent;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -22,6 +23,10 @@ namespace WinAudit.AuditLibrary
         Task<IEnumerable<OSSIndexQueryResultObject>> GetProjectsTask { get;}
 
         IEnumerable<OSSIndexQueryResultObject> Projects { get; set; }
+
+        Task<IEnumerable<OSSIndexProjectVulnerability>>[] GetVulnerabilitiesTask { get; }
+
+        ConcurrentDictionary<string, IEnumerable<OSSIndexProjectVulnerability>> Vulnerabilities { get; set; }
         #endregion
 
     }

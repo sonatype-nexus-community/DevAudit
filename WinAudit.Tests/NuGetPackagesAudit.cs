@@ -30,5 +30,15 @@ namespace WinAudit.Tests
             Task<IEnumerable<OSSIndexQueryResultObject>> projects_task = nuget_audit.GetProjectsTask;
             Assert.NotEmpty(projects_task.Result);
         }
+
+        [Fact]
+        public void CanGetVulnerabilitiesTask()
+        {
+            Assert.NotEmpty(nuget_audit.GetPackagesTask.Result);
+            Assert.NotEmpty(nuget_audit.GetProjectsTask.Result);            
+            var v = nuget_audit.GetVulnerabilitiesTask;
+            Task.WaitAll(v);
+            Assert.NotEmpty(nuget_audit.Vulnerabilities);
+        }
     }
 }
