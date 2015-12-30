@@ -23,8 +23,12 @@ namespace WinAudit.CommandLine
         [VerbOption("msi", HelpText = "Audit MSI packages.")]
         public Options AuditMsi { get; set; }
 
-        [Option('l', "list", Required = false, HelpText = "Only list the packages that will be audited.")]
-        public bool List { get; set; }
+        [Option('p', "list-packages", Required = false, HelpText = "Only list the local packages that will be audited.")]
+        public bool ListPackages { get; set; }
+
+        [Option('a', "list-artifacts", Required = false, HelpText = "Only list the artifacts corresponding to local packages found on OSS Index.")]
+        public bool ListArtifacts { get; set; }
+
 
         [ParserState]
         public IParserState LastParserState { get; set; }

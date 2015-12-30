@@ -81,9 +81,9 @@ namespace WinAudit.CommandLine
                 spinner = null;             
             }
             Console.WriteLine("\nFound {0} packages.", PackagesAudit.Packages.Count());
-            if (ProgramOptions.List)
+            if (ProgramOptions.ListPackages)
             {
-                int i = 0;
+                int i = 1;
                 foreach (OSSIndexQueryObject package in PackagesAudit.Packages)
                 {
                     Console.WriteLine("[{0}/{1}] {2} {3} {4}", i++, PackagesAudit.Packages.Count(), package.Name,
@@ -117,10 +117,61 @@ namespace WinAudit.CommandLine
                 spinner.Stop();
                 spinner = null;
             }
-            Console.WriteLine("\nFound Project data for {0} packages.", PackagesAudit.Artifacts.Count(r => !string.IsNullOrEmpty(r.ProjectId)));
-                        
-            //int i = 0;
+            Console.WriteLine("\nFound {0} artifacts.", PackagesAudit.Artifacts.Count());
+            if (ProgramOptions.ListArtifacts)
+            {
+                int i = 1;
+                foreach (OSSIndexArtifact artifact in PackagesAudit.Artifacts)
+                {
+                    Console.Write("[{0}/{1}] {2} {3} ", i++, PackagesAudit.Artifacts.Count(), artifact.PackageName,
+                        artifact.Version);
+                    if (!string.IsNullOrEmpty(artifact.ProjectId))
+                    {
+                        Console.ForegroundColor = ConsoleColor.Blue;
+                        Console.Write(artifact.ProjectId + "\n");
+                        Console.ResetColor();
+                    }
+                    else
+                    {
+                        Console.ForegroundColor = ConsoleColor.DarkRed;
+                        Console.Write("No project id found.\n");
+                        Console.ResetColor();
+
+                    }
+                }
+                Console.WriteLine("Found {0} projects.", PackagesAudit.Artifacts.Count(r => !string.IsNullOrEmpty(r.ProjectId)));
+                return 0;
+            }
+            Console.WriteLine("Searching OSS Index for vulnerabilities for {0} projects...", PackagesAudit.Artifacts.Count(r => !string.IsNullOrEmpty(r.ProjectId)));
+            spinner = new Spinner(100);
+            spinner.Start();
             int projects_count = PackagesAudit.Artifacts.Count(r => !string.IsNullOrEmpty(r.ProjectId));
+            int projects_processed = 0;
+            while (projects_processed < projects_count)
+            {
+                try
+                {
+                    int x = Task.WaitAny(PackagesAudit.GetVulnerabilitiesTask);
+                    Task<IEnumerable<OSSIndexProjectVulnerability>> completed = PackagesAudit.GetVulnerabilitiesTask[x];
+                    ++projects_processed;
+                }
+                catch (AggregateException ae)
+                {
+                    PrintErrorMessage("\nError encountered searching OSS Index for vulnerabilities for project id {0}: {1}", 
+                        ae.Message, ae.InnerException.Message);
+                    ++projects_processed;
+                }
+                finally
+                {
+                    
+                }
+                
+            }
+            spinner.Stop();
+            spinner = null;
+
+            //int i = 0;
+
             /*
             foreach (OSSIndexQueryResultObject r in PackagesAudit.Projects)
             {
