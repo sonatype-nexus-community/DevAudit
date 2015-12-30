@@ -12,7 +12,7 @@ using Microsoft.Win32;
 
 namespace WinAudit.AuditLibrary
 {
-    public class MSIPackagesAudit : PackageSource
+    public class MSIPackageSource : PackageSource
     {
         public override OSSIndexHttpClient HttpClient { get; } = new OSSIndexHttpClient("1.1");
 

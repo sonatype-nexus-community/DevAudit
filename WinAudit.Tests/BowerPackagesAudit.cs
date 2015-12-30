@@ -9,14 +9,14 @@ using WinAudit.AuditLibrary;
 
 namespace WinAudit.Tests
 {
-    public class BowerPackagesAuditTests
+    public class BowerPackageSourceTests
     {
-        protected PackageSource bower_audit = new BowerPackagesAudit();
+        protected PackageSource bower = new BowerPackagesSource();
 
         [Fact]
         public void CanGetBowerPackages()
         {
-            Task<IEnumerable<OSSIndexQueryObject>> packages_task = bower_audit.GetPackagesTask;
+            Task<IEnumerable<OSSIndexQueryObject>> packages_task = bower.GetPackagesTask;
             Assert.NotEmpty(packages_task.Result);
             Assert.NotEmpty(packages_task.Result.Where(p => p.PackageManager == "bower"));
         }

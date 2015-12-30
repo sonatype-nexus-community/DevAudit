@@ -8,11 +8,11 @@ using Xunit;
 using WinAudit.AuditLibrary;
 namespace WinAudit.Tests
 {
-    public class OSSIndexHttpClientTests
+    public class HttpClientv11Tests
     {
         protected OSSIndexHttpClient http_client = new OSSIndexHttpClient("1.1");
         
-        public OSSIndexHttpClientTests()
+        public HttpClientv11Tests()
         {
 
         }
@@ -59,24 +59,11 @@ namespace WinAudit.Tests
         }
 
         [Fact]
-        public void CanParallelGetPackages()
-        {
-            Task<IEnumerable<OSSIndexQueryObject>>[] t = 
-            {
-              //Task<IEnumerable<OSSIndexQueryObject>>.Factory.StartNew(() => http_client.GetMSIPackages()),
-              //Task<IEnumerable<OSSIndexQueryObject>>.Factory.StartNew(() => http_client.GetOneGetPackages()),
-              //Task<IEnumerable<OSSIndexQueryObject>>.Factory.StartNew(() => http_client.GetChocolateyPackages())
-            };
-            Task.WaitAll(t);
-            Assert.NotEmpty(t[0].Result);
-        }
-
-        [Fact]
-        public void CanParallelSearchPackages()
+        public void CanParallelGetProjects()
         {
             List<OSSIndexHttpException> http_errors = new List<OSSIndexHttpException>();
-            Task<IEnumerable<OSSIndexProjectVulnerability>>[] t =
-            {http_client.GetVulnerabilitiesForIdAsync("284089289"), http_client.GetVulnerabilitiesForIdAsync("2840892") };
+            Task<OSSIndexProject>[] t =
+            {http_client.GetProjectForIdAsync("284089289"), http_client.GetProjectForIdAsync("8322029565") };
             try
             {
                 Task.WaitAll(t);
@@ -86,7 +73,7 @@ namespace WinAudit.Tests
                 http_errors.AddRange(ae.InnerExceptions
                     .Where(i => i.GetType() == typeof(OSSIndexHttpException)).Cast<OSSIndexHttpException>());
             }
-            List<IEnumerable<OSSIndexProjectVulnerability>> v = t.Where(s => s.Status == TaskStatus.RanToCompletion)
+            List<OSSIndexProject> v = t.Where(s => s.Status == TaskStatus.RanToCompletion)
                 .Select(ts => ts.Result).ToList();
             Assert.True(v.Count == 1);
             Assert.True(http_errors.Count == 1);

@@ -15,7 +15,7 @@ using Microsoft.Win32;
 
 namespace WinAudit.AuditLibrary
 {
-    public class OneGetPackagesAudit : PackageSource
+    public class OneGetPackageSource : PackageSource
     {
         public override OSSIndexHttpClient HttpClient { get; } = new OSSIndexHttpClient("1.1");
 

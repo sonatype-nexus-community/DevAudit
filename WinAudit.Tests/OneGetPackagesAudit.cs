@@ -9,16 +9,16 @@ using WinAudit.AuditLibrary;
 
 namespace WinAudit.Tests
 {
-    public class OneGetPackagesAuditTests
+    public class OneGetPackageSourceTests
     {
-        protected PackageSource oneget_audit = new OneGetPackagesAudit();
+        protected PackageSource oneget = new OneGetPackageSource();
 
         [Fact]
         public void CanGetOneGetPackages()
         {
-            Task<IEnumerable<OSSIndexQueryObject>> packages_task = oneget_audit.GetPackagesTask;
+            Task<IEnumerable<OSSIndexQueryObject>> packages_task = oneget.GetPackagesTask;
             Assert.NotEmpty(packages_task.Result);
-            Assert.NotEmpty(packages_task.Result.Where(p => p.PackageManager == "oneget"));
+            Assert.NotEmpty(packages_task.Result.Where(p => p.PackageManager == "msu"));
         }
     }
 }

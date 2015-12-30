@@ -41,11 +41,11 @@ namespace WinAudit.CommandLine
             {
                 if (verb == "nuget")
                 {
-                    PackagesAudit = new NuGetPackagesAudit();
+                    PackagesAudit = new NuGetPackageSource();
                 }
                 else if (verb == "msi")
                 {
-                    PackagesAudit = new MSIPackagesAudit();                    
+                    PackagesAudit = new MSIPackageSource();                    
                 }                          
             });
 

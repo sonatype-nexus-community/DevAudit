@@ -9,14 +9,14 @@ using WinAudit.AuditLibrary;
 
 namespace WinAudit.Tests
 {
-    public class ChocolateyPackagesAuditTests
+    public class ChocolateyPackageSourceTests
     {
-        protected PackageSource chocolatey_audit = new ChocolateyPackagesAudit();
+        protected PackageSource chocolatey = new ChocolateyPackageSource();
 
         [Fact]
         public void CanGetOneGetPackages()
         {
-            Task<IEnumerable<OSSIndexQueryObject>> packages_task = chocolatey_audit.GetPackagesTask;
+            Task<IEnumerable<OSSIndexQueryObject>> packages_task = chocolatey.GetPackagesTask;
             Assert.NotEmpty(packages_task.Result);
             Assert.NotEmpty(packages_task.Result.Where(p => p.PackageManager == "chocolatey"));
         }

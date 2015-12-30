@@ -11,12 +11,12 @@ namespace WinAudit.Tests
 {
     public class NuGetPackagesAuditTests
     {
-        protected PackageSource nuget_audit = new NuGetPackagesAudit();
+        protected PackageSource nuget = new NuGetPackageSource();
         
         [Fact]
         public void CanGetNuGetPackagesTask()
         {
-            Task<IEnumerable<OSSIndexQueryObject>> packages_task = nuget_audit.GetPackagesTask;
+            Task<IEnumerable<OSSIndexQueryObject>> packages_task = nuget.GetPackagesTask;
             Assert.NotEmpty(packages_task.Result);
             Assert.NotEmpty(packages_task.Result.Where(p => p.PackageManager == "nuget"));
         }
@@ -43,52 +43,19 @@ namespace WinAudit.Tests
         }
 
         [Fact]
-        public async Task CanContinueWithNugetVulnerabilities()
+        public void CanGetArtifactsTask()
         {
-            OSSIndexHttpClient http_client = new OSSIndexHttpClient("1.0");
-            OSSIndexProject p1;
-            Task<OSSIndexProject> t1;
-            Task<IEnumerable<OSSIndexProjectVulnerability>> vt1;
-            IEnumerable<OSSIndexProjectVulnerability> v1;
-            Func<Task<IEnumerable<OSSIndexProjectVulnerability>>> getFunc = async () =>
-            {
-                OSSIndexProject p = await http_client.GetProjectForIdAsync("284089289");
-                return await http_client.GetVulnerabilitiesForIdAsync(p.Id.ToString());
-            };
-            try
-            {
-                t1 = Task<OSSIndexProject>.Run(async () => (p1 = await http_client.GetProjectForIdAsync("284089289")));
-                //vt1 = Task<IEnumerable<OSSIndexProjectVulnerability>>.Run(getFunc);
-                Task<IEnumerable<OSSIndexProjectVulnerability>> t2 = t1.ContinueWith(async (antecedent) => (v1 = await http_client.GetVulnerabilitiesForIdAsync(antecedent.Result.Id.ToString()))).Unwrap();
-                //vt1.Wait();
-                t2.Wait();
-                
-            }
-            catch (AggregateException e)
-            {
-
-            }
-            //List<OSSIndexProjectVulnerability> v1 = (await http_client.GetVulnerabilitiesForIdAsync("284089289")).ToList();
-            //Assert.NotNull(v1);
-            //Assert.Equal(v1[1].Title, "CVE-2015-4670] Improper Limitation of a Pathname to a Restricted Directory");
-        }
-
-
-        [Fact]
-        public async Task CanGetProjectsTask()
-        {
-            Task<IEnumerable<OSSIndexQueryObject>> packages_task = nuget_audit.GetPackagesTask;
-            await packages_task;
-            Task<IEnumerable<OSSIndexArtifact>> projects_task = nuget_audit.GetArtifactsTask;
-            Assert.NotEmpty(projects_task.Result);
+            nuget.GetPackagesTask.Wait();
+            Task<IEnumerable<OSSIndexArtifact>> artifacts_task = nuget.GetArtifactsTask;
+            Assert.NotEmpty(artifacts_task.Result);
         }
 
         [Fact]
         public void CanGetVulnerabilitiesTask()
         {
-            Assert.NotEmpty(nuget_audit.GetPackagesTask.Result);
-            Assert.NotEmpty(nuget_audit.GetArtifactsTask.Result);            
-            var v = nuget_audit.GetVulnerabilitiesTask;
+            Assert.NotEmpty(nuget.GetPackagesTask.Result);
+            Assert.NotEmpty(nuget.GetArtifactsTask.Result);            
+            var v = nuget.GetVulnerabilitiesTask;
             try
             {
                 Task.WaitAll(v);
@@ -97,7 +64,7 @@ namespace WinAudit.Tests
             {
                 Assert.Equal(ae.InnerExceptions.Count(), 1);
             }
-            Assert.NotEmpty(nuget_audit.Vulnerabilities);
+            Assert.NotEmpty(nuget.Vulnerabilities);
         }
     }
 }
