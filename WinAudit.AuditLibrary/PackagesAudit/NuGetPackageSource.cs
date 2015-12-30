@@ -16,7 +16,7 @@ using Newtonsoft.Json.Linq;
 
 namespace WinAudit.AuditLibrary
 {
-    public class NuGetPackagesAudit : IPackageSource
+    public class NuGetPackagesAudit : PackageSource
     {
         public override OSSIndexHttpClient HttpClient { get; } = new OSSIndexHttpClient("1.0");
 

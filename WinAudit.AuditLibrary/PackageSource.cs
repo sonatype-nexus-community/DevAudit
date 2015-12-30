@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace WinAudit.AuditLibrary
 {
-    public abstract class IPackageSource
+    public abstract class PackageSource
     {
         #region Public properties
         public abstract OSSIndexHttpClient HttpClient { get;  }

@@ -11,7 +11,7 @@ namespace WinAudit.Tests
 {
     public class NuGetPackagesAuditTests
     {
-        protected IPackageSource nuget_audit = new NuGetPackagesAudit();
+        protected PackageSource nuget_audit = new NuGetPackagesAudit();
         
         [Fact]
         public void CanGetNuGetPackagesTask()

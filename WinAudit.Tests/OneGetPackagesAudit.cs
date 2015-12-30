@@ -11,7 +11,7 @@ namespace WinAudit.Tests
 {
     public class OneGetPackagesAuditTests
     {
-        protected IPackageSource oneget_audit = new OneGetPackagesAudit();
+        protected PackageSource oneget_audit = new OneGetPackagesAudit();
 
         [Fact]
         public void CanGetOneGetPackages()

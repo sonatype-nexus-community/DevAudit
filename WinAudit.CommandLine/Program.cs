@@ -28,7 +28,7 @@ namespace WinAudit.CommandLine
 
         static Options ProgramOptions = new Options();
 
-        static IPackageSource PackagesAudit { get; set; }
+        static PackageSource PackagesAudit { get; set; }
 
         static int Main(string[] args)
         {

@@ -13,7 +13,7 @@ using Microsoft.Win32;
 
 namespace WinAudit.AuditLibrary
 {
-    public class ChocolateyPackagesAudit : IPackageSource
+    public class ChocolateyPackagesAudit : PackageSource
     {
         public override OSSIndexHttpClient HttpClient { get; } = new OSSIndexHttpClient("1.1");
 

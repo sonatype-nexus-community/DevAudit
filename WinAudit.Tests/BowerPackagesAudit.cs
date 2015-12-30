@@ -11,7 +11,7 @@ namespace WinAudit.Tests
 {
     public class BowerPackagesAuditTests
     {
-        protected IPackageSource bower_audit = new BowerPackagesAudit();
+        protected PackageSource bower_audit = new BowerPackagesAudit();
 
         [Fact]
         public void CanGetBowerPackages()
