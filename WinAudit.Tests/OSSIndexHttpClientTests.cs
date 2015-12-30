@@ -58,25 +58,5 @@ namespace WinAudit.Tests
             Assert.NotEmpty(v);
         }
 
-        [Fact]
-        public void CanParallelGetProjects()
-        {
-            List<OSSIndexHttpException> http_errors = new List<OSSIndexHttpException>();
-            Task<OSSIndexProject>[] t =
-            {http_client.GetProjectForIdAsync("284089289"), http_client.GetProjectForIdAsync("8322029565") };
-            try
-            {
-                Task.WaitAll(t);
-            }
-            catch(AggregateException ae)
-            {
-                http_errors.AddRange(ae.InnerExceptions
-                    .Where(i => i.GetType() == typeof(OSSIndexHttpException)).Cast<OSSIndexHttpException>());
-            }
-            List<OSSIndexProject> v = t.Where(s => s.Status == TaskStatus.RanToCompletion)
-                .Select(ts => ts.Result).ToList();
-            Assert.True(v.Count == 1);
-            Assert.True(http_errors.Count == 1);
-        }
     }
 }
