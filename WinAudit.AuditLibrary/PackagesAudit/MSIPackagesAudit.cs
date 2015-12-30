@@ -13,7 +13,7 @@ namespace WinAudit.AuditLibrary
 {
     public class MSIPackagesAudit : IPackagesAudit
     {
-        public OSSIndexHttpClient PackagesAudit { get; set; }
+        public OSSIndexHttpClient HttpClient { get; set; }
         public string PackageManagerId { get { return "msi"; } }
         public string PackageManagerLabel { get { return "MSI"; } }
         public Task<IEnumerable<OSSIndexQueryObject>> GetPackagesTask
@@ -39,7 +39,7 @@ namespace WinAudit.AuditLibrary
                     IEnumerable<IGrouping<int, OSSIndexQueryObject>> packages_groups = this.Packages.GroupBy(x => i++ / 10).ToArray();
                     IEnumerable<OSSIndexQueryObject> f = packages_groups.Where(g => g.Key == 1).SelectMany(g => g);
                         _GetProjectsTask = Task<IEnumerable<OSSIndexQueryResultObject>>.Run(async () =>
-                    this.Projects = await this.PackagesAudit.SearchOSSIndexAsync("nuget", f));
+                    this.Projects = await this.HttpClient.SearchAsync("msi", f));
                 }
                 return _GetProjectsTask;
             }
@@ -100,7 +100,7 @@ namespace WinAudit.AuditLibrary
         #region Constructors
         public MSIPackagesAudit()
         {
-            this.PackagesAudit = new OSSIndexHttpClient("1.1");            
+            this.HttpClient = new OSSIndexHttpClient("1.1");            
         }
         #endregion
 

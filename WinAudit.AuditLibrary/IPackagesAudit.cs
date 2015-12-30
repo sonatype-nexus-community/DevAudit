@@ -9,7 +9,7 @@ namespace WinAudit.AuditLibrary
     public interface IPackagesAudit
     {
         #region Public properties
-        OSSIndexHttpClient PackagesAudit { get;  }
+        OSSIndexHttpClient HttpClient { get;  }
 
         string PackageManagerId { get; }
 

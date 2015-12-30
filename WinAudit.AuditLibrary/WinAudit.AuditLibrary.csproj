@@ -50,6 +50,9 @@
     <Compile Include="OSSIndexQueryObject.cs" />
     <Compile Include="OSSIndexQueryResultObject.cs" />
     <Compile Include="OSSIndexProjectVulnerability.cs" />
+    <Compile Include="PackagesAudit\ChocolateyPackagesAudit.cs" />
+    <Compile Include="PackagesAudit\BowerPackagesAudit.cs" />
+    <Compile Include="PackagesAudit\OneGetPackagesAudit.cs" />
     <Compile Include="PackagesAudit\MSIPackagesAudit.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

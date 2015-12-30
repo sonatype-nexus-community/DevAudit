@@ -59,7 +59,11 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="AuditLibrary.cs" />
+    <Compile Include="ChocolateyPackagesAudit.cs" />
+    <Compile Include="MSIPackagesAudit.cs" />
+    <Compile Include="BowerPackagesAudit.cs" />
+    <Compile Include="OneGetPackagesAudit.cs" />
+    <Compile Include="OSSIndexHttpClient.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
