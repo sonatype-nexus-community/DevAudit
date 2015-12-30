@@ -20,9 +20,9 @@ namespace WinAudit.AuditLibrary
 
         IEnumerable<OSSIndexQueryObject> Packages { get; set; }
 
-        Task<IEnumerable<OSSIndexQueryResultObject>> GetProjectsTask { get;}
+        Task<IEnumerable<OSSIndexArtifact>> GetArtifactsTask { get;}
 
-        IEnumerable<OSSIndexQueryResultObject> Projects { get; set; }
+        IEnumerable<OSSIndexArtifact> Artifacts { get; set; }
 
         Task<IEnumerable<OSSIndexProjectVulnerability>>[] GetVulnerabilitiesTask { get; }
 

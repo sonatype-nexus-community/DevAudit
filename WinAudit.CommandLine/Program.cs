@@ -55,13 +55,13 @@ namespace WinAudit.CommandLine
                 return (int) ExitCodes.INVALID_ARGUMENTS;
 
             }
-            BPlusTree<string, OSSIndexQueryResultObject>.OptionsV2 cache_file_options = new BPlusTree<string, OSSIndexQueryResultObject>.OptionsV2(PrimitiveSerializer.String,
-                new BsonSerializer<OSSIndexQueryResultObject>());
+            BPlusTree<string, OSSIndexArtifact>.OptionsV2 cache_file_options = new BPlusTree<string, OSSIndexArtifact>.OptionsV2(PrimitiveSerializer.String,
+                new BsonSerializer<OSSIndexArtifact>());
             cache_file_options.CalcBTreeOrder(4, 128);
             cache_file_options.CreateFile = CreatePolicy.IfNeeded;
             cache_file_options.FileName = AppDomain.CurrentDomain.BaseDirectory + "winaudit-net.cache"; //Assembly.GetExecutingAssembly().Location
             cache_file_options.StoragePerformance = StoragePerformance.CommitToDisk;
-            BPlusTree<string, OSSIndexQueryResultObject> cache = new BPlusTree<string, OSSIndexQueryResultObject>(cache_file_options);                    
+            BPlusTree<string, OSSIndexArtifact> cache = new BPlusTree<string, OSSIndexArtifact>(cache_file_options);                    
             Console.Write("Scanning {0} packages...", PackagesAudit.PackageManagerLabel);
             Spinner spinner = new Spinner(100);
             spinner.Start();
@@ -104,7 +104,7 @@ namespace WinAudit.CommandLine
             spinner.Start();
             try
             {
-                PackagesAudit.GetProjectsTask.Wait();
+                PackagesAudit.GetArtifactsTask.Wait();
             }
             catch (AggregateException ae)
             {
@@ -117,10 +117,10 @@ namespace WinAudit.CommandLine
                 spinner.Stop();
                 spinner = null;
             }
-            Console.WriteLine("\nFound Project data for {0} packages.", PackagesAudit.Projects.Count(r => !string.IsNullOrEmpty(r.ProjectId)));
+            Console.WriteLine("\nFound Project data for {0} packages.", PackagesAudit.Artifacts.Count(r => !string.IsNullOrEmpty(r.ProjectId)));
                         
             //int i = 0;
-            int projects_count = PackagesAudit.Projects.Count(r => !string.IsNullOrEmpty(r.ProjectId));
+            int projects_count = PackagesAudit.Artifacts.Count(r => !string.IsNullOrEmpty(r.ProjectId));
             /*
             foreach (OSSIndexQueryResultObject r in PackagesAudit.Projects)
             {

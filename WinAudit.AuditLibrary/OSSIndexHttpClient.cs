@@ -29,7 +29,7 @@ namespace WinAudit.AuditLibrary
             this.ApiVersion = api_version;
         }
                              
-        public async Task<IEnumerable<OSSIndexQueryResultObject>> Search(string package_manager, OSSIndexQueryObject package)
+        public async Task<IEnumerable<OSSIndexArtifact>> Search(string package_manager, OSSIndexQueryObject package)
         {
             using (HttpClient client = new HttpClient())
             {
@@ -42,8 +42,8 @@ namespace WinAudit.AuditLibrary
                 if (response.IsSuccessStatusCode)
                 {
                     string r = await response.Content.ReadAsStringAsync();
-                    return await Task.Factory.StartNew<IEnumerable<OSSIndexQueryResultObject>>(() =>
-                    { return JsonConvert.DeserializeObject<IEnumerable<OSSIndexQueryResultObject>>(r); });
+                    return await Task.Factory.StartNew<IEnumerable<OSSIndexArtifact>>(() =>
+                    { return JsonConvert.DeserializeObject<IEnumerable<OSSIndexArtifact>>(r); });
                 }
                 else
                 {
@@ -52,7 +52,7 @@ namespace WinAudit.AuditLibrary
             }
         }
 
-        public async Task<IEnumerable<OSSIndexQueryResultObject>> SearchAsync(string package_manager, IEnumerable<OSSIndexQueryObject> packages)
+        public async Task<IEnumerable<OSSIndexArtifact>> SearchAsync(string package_manager, IEnumerable<OSSIndexQueryObject> packages)
         {
             using (HttpClient client = new HttpClient())
             {
@@ -65,7 +65,7 @@ namespace WinAudit.AuditLibrary
                 if (response.IsSuccessStatusCode)
                 {
                     string r = await response.Content.ReadAsStringAsync();
-                    List<OSSIndexQueryResultObject> results = JsonConvert.DeserializeObject<List<OSSIndexQueryResultObject>>(r);
+                    List<OSSIndexArtifact> results = JsonConvert.DeserializeObject<List<OSSIndexArtifact>>(r);
                     results.ForEach(result =>
                     {
                         if (!string.IsNullOrEmpty(result.ProjectId) && string.IsNullOrEmpty(result.SCMId))
@@ -121,7 +121,7 @@ namespace WinAudit.AuditLibrary
                 client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
                 client.DefaultRequestHeaders.Add("user-agent", "WinAudit");
                 HttpResponseMessage response = this.ApiVersion == "1.0" ?
-                    await client.GetAsync(string.Format("v" + this.ApiVersion + "/s/{0}/vulnerabilities", id)) : await client.GetAsync(string.Format("v" + this.ApiVersion + "/project/{0}/vulnerabilities", id)); if (response.IsSuccessStatusCode)
+                    await client.GetAsync(string.Format("v" + this.ApiVersion + "/scm/{0}/vulnerabilities", id)) : await client.GetAsync(string.Format("v" + this.ApiVersion + "/project/{0}/vulnerabilities", id)); if (response.IsSuccessStatusCode)
                 {
                     string r = response.Content.ReadAsStringAsync().Result;
                     return JsonConvert.DeserializeObject<IEnumerable<OSSIndexProjectVulnerability>>(r);

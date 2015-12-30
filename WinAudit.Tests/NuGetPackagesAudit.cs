@@ -79,7 +79,7 @@ namespace WinAudit.Tests
         {
             Task<IEnumerable<OSSIndexQueryObject>> packages_task = nuget_audit.GetPackagesTask;
             await packages_task;
-            Task<IEnumerable<OSSIndexQueryResultObject>> projects_task = nuget_audit.GetProjectsTask;
+            Task<IEnumerable<OSSIndexArtifact>> projects_task = nuget_audit.GetArtifactsTask;
             Assert.NotEmpty(projects_task.Result);
         }
 
@@ -87,9 +87,16 @@ namespace WinAudit.Tests
         public void CanGetVulnerabilitiesTask()
         {
             Assert.NotEmpty(nuget_audit.GetPackagesTask.Result);
-            Assert.NotEmpty(nuget_audit.GetProjectsTask.Result);            
+            Assert.NotEmpty(nuget_audit.GetArtifactsTask.Result);            
             var v = nuget_audit.GetVulnerabilitiesTask;
-            Task.WaitAll(v);
+            try
+            {
+                Task.WaitAll(v);
+            }
+            catch (AggregateException ae)
+            {
+                Assert.Equal(ae.InnerExceptions.Count(), 1);
+            }
             Assert.NotEmpty(nuget_audit.Vulnerabilities);
         }
     }

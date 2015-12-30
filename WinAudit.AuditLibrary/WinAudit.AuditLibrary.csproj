@@ -49,7 +49,7 @@
     <Compile Include="OSSIndexHttpException.cs" />
     <Compile Include="OSSIndexProject.cs" />
     <Compile Include="OSSIndexQueryObject.cs" />
-    <Compile Include="OSSIndexQueryResultObject.cs" />
+    <Compile Include="OSSIndexArtifact.cs" />
     <Compile Include="OSSIndexProjectVulnerability.cs" />
     <Compile Include="PackagesAudit\NuGetPackagesAudit.cs" />
     <Compile Include="PackagesAudit\ChocolateyPackagesAudit.cs" />

@@ -33,9 +33,9 @@ namespace WinAudit.AuditLibrary
         }
         public IEnumerable<OSSIndexQueryObject> Packages { get; set; }
 
-        public IEnumerable<OSSIndexQueryResultObject> Projects { get; set; }
+        public IEnumerable<OSSIndexArtifact> Artifacts { get; set; }
 
-        public Task<IEnumerable<OSSIndexQueryResultObject>> GetProjectsTask
+        public Task<IEnumerable<OSSIndexArtifact>> GetArtifactsTask
         {
             get
             {
@@ -44,8 +44,8 @@ namespace WinAudit.AuditLibrary
                     int i = 0;
                     IEnumerable<IGrouping<int, OSSIndexQueryObject>> packages_groups = this.Packages.GroupBy(x => i++ / 10).ToArray();
                     IEnumerable<OSSIndexQueryObject> f = packages_groups.Where(g => g.Key == 1).SelectMany(g => g);
-                        _GetProjectsTask = Task<IEnumerable<OSSIndexQueryResultObject>>.Run(async () =>
-                    this.Projects = await this.HttpClient.SearchAsync("msi", f));
+                        _GetProjectsTask = Task<IEnumerable<OSSIndexArtifact>>.Run(async () =>
+                    this.Artifacts = await this.HttpClient.SearchAsync("msi", f));
                 }
                 return _GetProjectsTask;
             }
@@ -60,8 +60,8 @@ namespace WinAudit.AuditLibrary
                 if (_GetVulnerabilitiesTask == null)
                 {
                     List<Task<IEnumerable<OSSIndexProjectVulnerability>>> tasks =
-                        new List<Task<IEnumerable<OSSIndexProjectVulnerability>>>(this.Projects.Count(p => !string.IsNullOrEmpty(p.ProjectId)));
-                    this.Projects.ToList().Where(p => !string.IsNullOrEmpty(p.ProjectId)).ToList()
+                        new List<Task<IEnumerable<OSSIndexProjectVulnerability>>>(this.Artifacts.Count(p => !string.IsNullOrEmpty(p.ProjectId)));
+                    this.Artifacts.ToList().Where(p => !string.IsNullOrEmpty(p.ProjectId)).ToList()
                         .ForEach(p => tasks.Add(Task<IEnumerable<OSSIndexProjectVulnerability>>
                         .Run(async () => this.Vulnerabilities.AddOrUpdate(p.ProjectId, await this.HttpClient.GetVulnerabilitiesForIdAsync(p.ProjectId),
                         (k, v) => v))));
@@ -132,7 +132,7 @@ namespace WinAudit.AuditLibrary
         #endregion
 
         #region Private fields
-        private Task<IEnumerable<OSSIndexQueryResultObject>> _GetProjectsTask;
+        private Task<IEnumerable<OSSIndexArtifact>> _GetProjectsTask;
         private Task<IEnumerable<OSSIndexQueryObject>> _GetPackagesTask;
         private Task<IEnumerable<OSSIndexProjectVulnerability>>[] _GetVulnerabilitiesTask;
         #endregion

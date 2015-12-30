@@ -23,9 +23,9 @@ namespace WinAudit.Tests
             OSSIndexQueryObject q1 = new OSSIndexQueryObject("msi", "Adobe Reader", "11.0.10", "");
             OSSIndexQueryObject q2 = new OSSIndexQueryObject("nuget", "Adobe Reader", "10.1.1", "");
 
-            IEnumerable<OSSIndexQueryResultObject> r1 = await http_client.Search("msi", q1);
+            IEnumerable<OSSIndexArtifact> r1 = await http_client.Search("msi", q1);
             Assert.NotEmpty(r1);
-            IEnumerable<OSSIndexQueryResultObject> r2 = await http_client.SearchAsync("msi", new List<OSSIndexQueryObject>() { q1, q2 });
+            IEnumerable<OSSIndexArtifact> r2 = await http_client.SearchAsync("msi", new List<OSSIndexQueryObject>() { q1, q2 });
             Assert.NotEmpty(r2);
             
         }
@@ -34,7 +34,7 @@ namespace WinAudit.Tests
         public async Task CanSearch2()
         {
             OSSIndexQueryObject q1 = new OSSIndexQueryObject("nuget", "AjaxControlToolkit", "7.1213.0", "");
-            IEnumerable<OSSIndexQueryResultObject> r1 = await http_client.Search("nuget", q1);
+            IEnumerable<OSSIndexArtifact> r1 = await http_client.Search("nuget", q1);
             Assert.NotEmpty(r1);
         }
 
@@ -42,7 +42,7 @@ namespace WinAudit.Tests
         public async Task CanGetProject()
         {
             OSSIndexQueryObject q1 = new OSSIndexQueryObject("msi", "Adobe Reader", "11.0.10", "");
-            IEnumerable<OSSIndexQueryResultObject> r1 = await http_client.Search("msi", q1);
+            IEnumerable<OSSIndexArtifact> r1 = await http_client.Search("msi", q1);
             Assert.True(r1.Count() == 1);
             OSSIndexProject p1 = await http_client.GetProjectForIdAsync(r1.First().ProjectId);
             Assert.NotNull(p1);

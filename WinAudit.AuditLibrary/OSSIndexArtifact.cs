@@ -8,7 +8,7 @@ using Newtonsoft.Json;
 
 namespace WinAudit.AuditLibrary
 {
-    public class OSSIndexQueryResultObject
+    public class OSSIndexArtifact
     {
         [JsonProperty("name")]
         public string PackageName { get; set; }
@@ -46,6 +46,6 @@ namespace WinAudit.AuditLibrary
         [JsonProperty()]
         public string Dependencies { get; set; }
 
-        public OSSIndexQueryResultObject() { }
+        public OSSIndexArtifact() { }
     }
 }
