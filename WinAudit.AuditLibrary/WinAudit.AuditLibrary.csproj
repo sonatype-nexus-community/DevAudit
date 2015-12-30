@@ -45,10 +45,12 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Audit.cs" />
+    <Compile Include="IPackagesAudit.cs" />
     <Compile Include="OSSIndexHttpException.cs" />
     <Compile Include="OSSIndexQueryObject.cs" />
     <Compile Include="OSSIndexQueryResultObject.cs" />
     <Compile Include="OSSIndexProjectVulnerability.cs" />
+    <Compile Include="PackagesAudit\MSIPackagesAudit.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

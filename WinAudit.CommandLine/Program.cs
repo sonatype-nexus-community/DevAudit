@@ -23,6 +23,7 @@ namespace WinAudit.CommandLine
             INVALID_ARGUMENTS = 1,
             NO_PACKAGE_MANAGER,
             ERROR_SCANNING_FOR_PACKAGES,
+            ERROR_SEARCHING_OSS_INDEX
         }
 
         static Options ProgramOptions = new Options();
@@ -54,14 +55,14 @@ namespace WinAudit.CommandLine
             Console.Write("Scanning {0} packages...", PackagesAudit.PackageManagerLabel);
             Spinner spinner = new Spinner(100);
             spinner.Start();
-            PackagesAudit.GetPackagesTask.Start();
             try
             {
                 PackagesAudit.GetPackagesTask.Wait();
             }
             catch (AggregateException ae)
             {
-                PrintErrorMessage("Error(s) encountered scanning for {0} packages: {1}", PackagesAudit.PackageManagerLabel, ae.InnerException);
+                spinner.Stop();
+                PrintErrorMessage("Error(s) encountered scanning for {0} packages: {1}", PackagesAudit.PackageManagerLabel, ae.InnerException.Message);
                 return (int)ExitCodes.ERROR_SCANNING_FOR_PACKAGES;
             }
             finally
@@ -78,18 +79,27 @@ namespace WinAudit.CommandLine
             }
             else
             {
-                Console.Write("\nSearching OSS Index for {0} MSI packages...", PackagesAudit.Packages.Count());
+                Console.Write("Searching OSS Index for {0} MSI packages...", PackagesAudit.Packages.Count());
             }
             spinner = new Spinner(100);
-            spinner.Start();            
+            spinner.Start();
+            /*
+            int i = 0;
+            IEnumerable<IGrouping<int, OSSIndexQueryObject>> packages_groups = PackagesAudit.Packages.GroupBy(x => i++ / 100).ToArray();
+            foreach (IGrouping<int, OSSIndexQueryObject> g in packages_groups)
+            {
+            }
+            */
+
             try
             {
                 PackagesAudit.GetProjectsTask.Wait();
             }
             catch (AggregateException ae)
             {
-                PrintErrorMessage("Error encountered searching OSS Index for {0} packages: {1}", PackagesAudit.PackageManagerLabel, ae.InnerException);
-                return (int)ExitCodes.ERROR_SCANNING_FOR_PACKAGES;
+                spinner.Stop();
+                PrintErrorMessage("\nError encountered searching OSS Index for {0} packages: {1}", PackagesAudit.PackageManagerLabel, ae.InnerException.Message);
+                return (int)ExitCodes.ERROR_SEARCHING_OSS_INDEX;
             }
             finally
             {

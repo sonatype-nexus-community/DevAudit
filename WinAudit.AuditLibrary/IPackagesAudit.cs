@@ -4,14 +4,12 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-using WinAudit.AuditLibrary;
-
-namespace WinAudit.CommandLine
+namespace WinAudit.AuditLibrary
 {
-    interface IPackagesAudit
+    public interface IPackagesAudit
     {
         #region Public properties
-        Audit PackagesAudit { get;  }
+        OSSIndexHttpClient PackagesAudit { get;  }
 
         string PackageManagerId { get; }
 

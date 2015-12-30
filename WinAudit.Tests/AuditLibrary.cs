@@ -10,7 +10,7 @@ namespace WinAudit.Tests
 {
     public class AuditLibraryTests
     {
-        protected Audit audit = new Audit("1.1");
+        protected OSSIndexHttpClient audit = new OSSIndexHttpClient("1.1");
 
         public AuditLibraryTests()
         {
