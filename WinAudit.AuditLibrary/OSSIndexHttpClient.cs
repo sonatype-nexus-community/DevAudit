@@ -120,8 +120,8 @@ namespace WinAudit.AuditLibrary
                 client.DefaultRequestHeaders.Accept.Clear();
                 client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
                 client.DefaultRequestHeaders.Add("user-agent", "WinAudit");
-                HttpResponseMessage response = await client.GetAsync(string.Format("v" + this.ApiVersion + "/project/{0}/vulnerabilities", id));
-                if (response.IsSuccessStatusCode)
+                HttpResponseMessage response = this.ApiVersion == "1.0" ?
+                    await client.GetAsync(string.Format("v" + this.ApiVersion + "/s/{0}/vulnerabilities", id)) : await client.GetAsync(string.Format("v" + this.ApiVersion + "/project/{0}/vulnerabilities", id)); if (response.IsSuccessStatusCode)
                 {
                     string r = response.Content.ReadAsStringAsync().Result;
                     return JsonConvert.DeserializeObject<IEnumerable<OSSIndexProjectVulnerability>>(r);
