@@ -64,7 +64,7 @@
     <Compile Include="BowerPackagesAudit.cs" />
     <Compile Include="NuGetPackagesAudit.cs" />
     <Compile Include="OneGetPackagesAudit.cs" />
-    <Compile Include="OSSIndexHttpClient.cs" />
+    <Compile Include="OSSIndexHttpClientTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
