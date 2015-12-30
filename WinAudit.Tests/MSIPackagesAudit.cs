@@ -11,7 +11,7 @@ namespace WinAudit.Tests
 {
     public class MSIPackagesAuditTests
     {
-        protected IPackagesAudit msi_audit = new MSIPackagesAudit();
+        protected IPackageSource msi_audit = new MSIPackagesAudit();
 
         [Fact]
         public void CanGetMSIPackages()

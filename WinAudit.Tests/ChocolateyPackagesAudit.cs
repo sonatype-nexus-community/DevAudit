@@ -11,7 +11,7 @@ namespace WinAudit.Tests
 {
     public class ChocolateyPackagesAuditTests
     {
-        protected IPackagesAudit chocolatey_audit = new ChocolateyPackagesAudit();
+        protected IPackageSource chocolatey_audit = new ChocolateyPackagesAudit();
 
         [Fact]
         public void CanGetOneGetPackages()
