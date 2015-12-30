@@ -9,20 +9,12 @@ using WinAudit.AuditLibrary;
 
 namespace WinAudit.Tests
 {
-    public class NuGetPackagesAuditTests
+    public class NuGetPackageSourceTests : PackageSourceTests
     {
-        protected PackageSource nuget = new NuGetPackageSource();
+        protected override PackageSource s {get; } = new NuGetPackageSource();
         
         [Fact]
-        public void CanGetNuGetPackagesTask()
-        {
-            Task<IEnumerable<OSSIndexQueryObject>> packages_task = nuget.GetPackagesTask;
-            Assert.NotEmpty(packages_task.Result);
-            Assert.NotEmpty(packages_task.Result.Where(p => p.PackageManager == "nuget"));
-        }
-
-        [Fact]
-        public async Task CanGetNugetProject()
+        public override async Task CanGetProjects()
         {
             OSSIndexHttpClient http_client = new OSSIndexHttpClient("1.0");
             OSSIndexProject p1 = await http_client.GetProjectForIdAsync("284089289");
@@ -34,7 +26,7 @@ namespace WinAudit.Tests
         }
 
         [Fact]
-        public async Task CanGetNugetVulnerabilities()
+        public override async Task CanGetVulnerabilities()
         {
             OSSIndexHttpClient http_client = new OSSIndexHttpClient("1.0");
             List<OSSIndexProjectVulnerability> v1 = (await http_client.GetVulnerabilitiesForIdAsync("284089289")).ToList();
@@ -43,28 +35,21 @@ namespace WinAudit.Tests
         }
 
         [Fact]
-        public void CanGetArtifactsTask()
+        public override void CanGetVulnerabilitiesTask()
         {
-            nuget.GetPackagesTask.Wait();
-            Task<IEnumerable<OSSIndexArtifact>> artifacts_task = nuget.GetArtifactsTask;
-            Assert.NotEmpty(artifacts_task.Result);
-        }
-
-        [Fact]
-        public void CanGetVulnerabilitiesTask()
-        {
-            Assert.NotEmpty(nuget.GetPackagesTask.Result);
-            Assert.NotEmpty(nuget.GetArtifactsTask.Result);            
-            var v = nuget.GetVulnerabilitiesTask;
+            s.GetPackagesTask.Wait();
+            s.GetArtifactsTask.Wait();
+            Assert.NotEmpty(s.Packages);
+            Assert.NotEmpty(s.Artifacts);            
             try
             {
-                Task.WaitAll(v);
+                Task.WaitAll(s.GetVulnerabilitiesTask);
             }
             catch (AggregateException ae)
             {
-                Assert.Equal(ae.InnerExceptions.Count(), 1);
+                Assert.True(ae.InnerExceptions.Count() >= 1);
             }
-            Assert.NotEmpty(nuget.Vulnerabilities);
+            Assert.True(s.Vulnerabilities.All(v => v.Value.Count() == 0));
         }
     }
 }

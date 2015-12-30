@@ -59,13 +59,14 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="ChocolateyPackagesAudit.cs" />
-    <Compile Include="MSIPackagesAudit.cs" />
-    <Compile Include="BowerPackagesAudit.cs" />
-    <Compile Include="NuGetPackagesAudit.cs" />
-    <Compile Include="OneGetPackagesAudit.cs" />
+    <Compile Include="ChocolateyPackageSourceTests.cs" />
+    <Compile Include="MSIPackageSourceTests.cs" />
+    <Compile Include="BowerPackageSourceTests.cs" />
+    <Compile Include="PackageSourceTests.cs" />
+    <Compile Include="NuGetPackagesSourceTests.cs" />
+    <Compile Include="OneGetPackageSourceTests.cs" />
     <Compile Include="HttpClientv10Tests.cs" />
-    <Compile Include="OSSIndexHttpClientTests.cs" />
+    <Compile Include="HttpClientv11Tests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

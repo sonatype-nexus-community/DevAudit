@@ -45,7 +45,7 @@ namespace WinAudit.Tests
         [Fact]
         public async Task CanGetVulnerabilityForId()
         {
-            IEnumerable<OSSIndexProjectVulnerability> v = await http_client.GetVulnerabilitiesForIdAsync("8396797903");
+            IEnumerable<OSSIndexProjectVulnerability> v = await http_client.GetVulnerabilitiesForIdAsync("284089289");
             Assert.NotEmpty(v);
         }
    
