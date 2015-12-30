@@ -51,11 +51,11 @@
     <Compile Include="OSSIndexQueryObject.cs" />
     <Compile Include="OSSIndexArtifact.cs" />
     <Compile Include="OSSIndexProjectVulnerability.cs" />
-    <Compile Include="PackagesAudit\NuGetPackageSource.cs" />
-    <Compile Include="PackagesAudit\ChocolateyPackageSource.cs" />
-    <Compile Include="PackagesAudit\BowerPackageSource.cs" />
-    <Compile Include="PackagesAudit\OneGetPackageSource.cs" />
-    <Compile Include="PackagesAudit\MSIPackageSource.cs" />
+    <Compile Include="PackageSource\NuGetPackageSource.cs" />
+    <Compile Include="PackageSource\ChocolateyPackageSource.cs" />
+    <Compile Include="PackageSource\BowerPackageSource.cs" />
+    <Compile Include="PackageSource\OneGetPackageSource.cs" />
+    <Compile Include="PackageSource\MSIPackageSource.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
