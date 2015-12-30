@@ -44,7 +44,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Audit.cs" />
+    <Compile Include="OSSIndexHttpClient.cs" />
     <Compile Include="IPackagesAudit.cs" />
     <Compile Include="OSSIndexHttpException.cs" />
     <Compile Include="OSSIndexQueryObject.cs" />
