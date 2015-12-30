@@ -62,6 +62,7 @@
     <Compile Include="ChocolateyPackagesAudit.cs" />
     <Compile Include="MSIPackagesAudit.cs" />
     <Compile Include="BowerPackagesAudit.cs" />
+    <Compile Include="NuGetPackagesAudit.cs" />
     <Compile Include="OneGetPackagesAudit.cs" />
     <Compile Include="OSSIndexHttpClient.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
