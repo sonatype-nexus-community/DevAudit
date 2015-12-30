@@ -77,7 +77,8 @@ namespace WinAudit.AuditLibrary
                             result.ProjectId = result.SCMId;
                         }
 
-                    });
+                    })
+                    ;
                     return results;
                 }
                 else
@@ -95,7 +96,8 @@ namespace WinAudit.AuditLibrary
                 client.DefaultRequestHeaders.Accept.Clear();
                 client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
                 client.DefaultRequestHeaders.Add("user-agent", "WinAudit");
-                HttpResponseMessage response = await client.GetAsync(string.Format("v" + this.ApiVersion + "/project/{0}", id));
+                HttpResponseMessage response = this.ApiVersion == "1.0" ? 
+                    await client.GetAsync(string.Format("v" + this.ApiVersion + "/scm/{0}", id)) : await client.GetAsync(string.Format("v" + this.ApiVersion + "/project/{0}", id));
                 if (response.IsSuccessStatusCode)
                 {
                     string r = await response.Content.ReadAsStringAsync();
