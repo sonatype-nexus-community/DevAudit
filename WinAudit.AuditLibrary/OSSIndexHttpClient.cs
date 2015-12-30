@@ -86,7 +86,30 @@ namespace WinAudit.AuditLibrary
                 }
             }
         }
-        
+
+        public async Task<OSSIndexProject> GetProjectForIdAsync(string id)
+        {
+            using (HttpClient client = new HttpClient())
+            {
+                client.BaseAddress = new Uri(@"https://ossindex.net/");
+                client.DefaultRequestHeaders.Accept.Clear();
+                client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+                client.DefaultRequestHeaders.Add("user-agent", "WinAudit");
+                HttpResponseMessage response = await client.GetAsync(string.Format("v" + this.ApiVersion + "/project/{0}", id));
+                if (response.IsSuccessStatusCode)
+                {
+                    string r = await response.Content.ReadAsStringAsync();
+                    return JsonConvert.DeserializeObject<List<OSSIndexProject>>(r).FirstOrDefault();
+                }
+                else
+                {
+                    throw new OSSIndexHttpException(id, response.StatusCode, response.ReasonPhrase, response.RequestMessage);
+                }
+            }
+
+
+        }
+    
         public async Task<IEnumerable<OSSIndexProjectVulnerability>> GetVulnerabilitiesForIdAsync(string id)
         {
             using (HttpClient client = new HttpClient())
@@ -95,7 +118,7 @@ namespace WinAudit.AuditLibrary
                 client.DefaultRequestHeaders.Accept.Clear();
                 client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
                 client.DefaultRequestHeaders.Add("user-agent", "WinAudit");
-                HttpResponseMessage response = await client.GetAsync(string.Format("v" + this.ApiVersion + "/scm/{0}/vulnerabilities", id));
+                HttpResponseMessage response = await client.GetAsync(string.Format("v" + this.ApiVersion + "/project/{0}/vulnerabilities", id));
                 if (response.IsSuccessStatusCode)
                 {
                     string r = response.Content.ReadAsStringAsync().Result;

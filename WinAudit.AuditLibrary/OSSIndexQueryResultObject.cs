@@ -16,13 +16,36 @@ namespace WinAudit.AuditLibrary
         [JsonProperty("version")]
         public string Version { get; set; }
 
+        [JsonProperty("description")]
+        public string Description { get; set; }
+
+        [JsonProperty("package_manager")]
+        public string PackageManager { get; set; }
+
+        [JsonProperty("package")]
+        public string Package { get; set; }
+
+        [JsonProperty("package_id")]
+        public string PackageId { get; set; }
+
+        [JsonProperty("project")]
+        public string Project { get; set; }
+
         [JsonProperty("project_id")]
         public string ProjectId { get; set; }
 
         [JsonProperty("scm_id")]
         public string SCMId { get; set; }
 
-        public OSSIndexQueryResultObject() {}
+        [JsonProperty("url")]
+        public string Url { get; set; }
 
+        [JsonProperty("details")]
+        public string Details { get; set; }
+
+        [JsonProperty()]
+        public string Dependencies { get; set; }
+
+        public OSSIndexQueryResultObject() { }
     }
 }
