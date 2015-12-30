@@ -17,23 +17,29 @@ namespace WinAudit.CommandLine
             
         }
 
+        [VerbOption("nuget", HelpText = "Audit NuGet packages.")]
+        public Options AuditNuGet { get; set; }
+
         [VerbOption("msi", HelpText = "Audit MSI packages.")]
-        public SubOptions AuditMsi { get; set; }
-    
+        public Options AuditMsi { get; set; }
+
+        [Option('l', "list", Required = false, HelpText = "Only list the packages that will be audited.")]
+        public bool List { get; set; }
+
         [ParserState]
         public IParserState LastParserState { get; set; }
-
+        
+        [HelpVerbOption]
+        public string GetUsage(string verb)
+        {
+            return HelpText.AutoBuild(this, verb);
+        }
+     
         [HelpOption]
         public string GetUsage()
         {
             return HelpText.AutoBuild(this,
               (HelpText current) => HelpText.DefaultParsingErrorsHandler(this, current));
-        }
-
-        [HelpVerbOption]
-        public string GetUsage(string verb)
-        {
-            return HelpText.AutoBuild(this, verb);
         }
     }
 }

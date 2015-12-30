@@ -39,12 +39,22 @@ namespace WinAudit.CommandLine
 
             CL.Parser.Default.ParseArguments(args, ProgramOptions, (verb, options) => 
             {
-                if (verb == "msi")
+                if (verb == "nuget")
+                {
+                    PackagesAudit = new NuGetPackagesAudit();
+                }
+                else if (verb == "msi")
                 {
                     PackagesAudit = new MSIPackagesAudit();                    
                 }                          
-            });                        
+            });
 
+            if (PackagesAudit == null)
+            {
+                Console.WriteLine("No package source specified.");
+                return (int) ExitCodes.INVALID_ARGUMENTS;
+
+            }
             BPlusTree<string, OSSIndexQueryResultObject>.OptionsV2 cache_file_options = new BPlusTree<string, OSSIndexQueryResultObject>.OptionsV2(PrimitiveSerializer.String,
                 new BsonSerializer<OSSIndexQueryResultObject>());
             cache_file_options.CalcBTreeOrder(4, 128);
@@ -62,16 +72,25 @@ namespace WinAudit.CommandLine
             catch (AggregateException ae)
             {
                 spinner.Stop();
-                PrintErrorMessage("Error(s) encountered scanning for {0} packages: {1}", PackagesAudit.PackageManagerLabel, ae.InnerException.Message);
+                PrintErrorMessage("\nError(s) encountered scanning for {0} packages: {1}", PackagesAudit.PackageManagerLabel, ae.InnerException.Message);
                 return (int)ExitCodes.ERROR_SCANNING_FOR_PACKAGES;
             }
             finally
             {
                 spinner.Stop();
-                spinner = null;
+                spinner = null;             
             }
-
             Console.WriteLine("\nFound {0} packages.", PackagesAudit.Packages.Count());
+            if (ProgramOptions.List)
+            {
+                int i = 0;
+                foreach (OSSIndexQueryObject package in PackagesAudit.Packages)
+                {
+                    Console.WriteLine("[{0}/{1}] {2} {3} {4}", i++, PackagesAudit.Packages.Count(), package.Name,
+                        package.Version, package.Vendor);
+                }
+                return 0;
+            }
             if (PackagesAudit.Packages.Count() == 0)
             {
                 Console.WriteLine("Nothing to do, exiting.");
@@ -79,18 +98,10 @@ namespace WinAudit.CommandLine
             }
             else
             {
-                Console.Write("Searching OSS Index for {0} MSI packages...", PackagesAudit.Packages.Count());
+                Console.Write("Searching OSS Index for {0} {1} packages...", PackagesAudit.Packages.Count(), PackagesAudit.PackageManagerLabel);
             }
             spinner = new Spinner(100);
             spinner.Start();
-            /*
-            int i = 0;
-            IEnumerable<IGrouping<int, OSSIndexQueryObject>> packages_groups = PackagesAudit.Packages.GroupBy(x => i++ / 100).ToArray();
-            foreach (IGrouping<int, OSSIndexQueryObject> g in packages_groups)
-            {
-            }
-            */
-
             try
             {
                 PackagesAudit.GetProjectsTask.Wait();
@@ -106,43 +117,55 @@ namespace WinAudit.CommandLine
                 spinner.Stop();
                 spinner = null;
             }
-            
+            Console.WriteLine("\nFound Project data for {0} packages.", PackagesAudit.Projects.Count(r => !string.IsNullOrEmpty(r.ProjectId)));
+                        
+            //int i = 0;
+            int projects_count = PackagesAudit.Projects.Count(r => !string.IsNullOrEmpty(r.ProjectId));
+            /*
+            foreach (OSSIndexQueryResultObject r in PackagesAudit.Projects)
+            {
+                i++;
+                Console.Write("[{0}/{1}] {2} {3} ", i, packages_count, r.PackageName, r.PackageVersion);
+                Console.ForegroundColor = ConsoleColor.Yellow;
+                Console.ResetColor();
+                if (!string.IsNullOrEmpty(r.PackageSCMId))
+                {
+                    Console.Write("SCM Id: {0} ", r.PackageSCMId);
+                    try
+                    {
+                        IEnumerable<OSSIndexSCMVulnerability> vulns = audit.GetVulnerabilityForSCMId(r.PackageSCMId);
+                        if (vulns.Count() == 0)
+                        {
+                            Console.ForegroundColor = ConsoleColor.Green;
+                            Console.Write("No known vulnerabilities.\n");
+                            Console.ResetColor();
+                        }
+                        else
+                        {
+                            Console.ForegroundColor = ConsoleColor.Gray;
+                            Console.Write("{0} known vulnerabilities.\n", vulns.Count());
+                            Console.ResetColor();
+                        }
+                    }
+                    catch (Exception e)
+                    {
+                        Console.ForegroundColor = ConsoleColor.DarkRed;
+                        Console.Write("Error retrieving vulnerabilities: {0}.\n", e.Message);
+                        Console.ResetColor();
+
+                    }
+                }
+                else
+                {
+                    Console.ForegroundColor = ConsoleColor.DarkYellow;
+                    Console.Write("No SCM Id found\n");
+                    Console.ResetColor();
+                }
+            }
+            */
             return 0;
         }
-
-        static Task<IEnumerable<OSSIndexQueryObject>> GetPackagesTaskForOptions()
-        {
-            Task<IEnumerable<OSSIndexQueryObject>> task = null;  
-           /* if (ProgramOptions.AuditMsi)
-            {
-                PackageManagerLabel = "MSI";
-                PackageManagerId = "msi";
-                task = Task<IEnumerable<OSSIndexQueryObject>>.Factory.StartNew(() => ProgramAudit.GetMSIPackages());
-            }
-            
-            if (ProgramOptions.AuditChocolatey)
-            {
-                PackageManagerLabel = "Chocolatey";
-                PackageManagerId = "choco";
-                task = Task<IEnumerable<OSSIndexQueryObject>>.Factory.StartNew(() => ProgramAudit.GetChocolateyPackages());
-            }
-            if (ProgramOptions.AuditOneGet)
-            {
-                PackageManagerLabel = "OneGet";
-                PackageManagerId = "oneget";
-                task = Task<IEnumerable<OSSIndexQueryObject>>.Factory.StartNew(() => ProgramAudit.GetOneGetPackages());
-            }*/
-            return task;
-        }
-
-        static List<Task<IEnumerable<OSSIndexQueryResultObject>>> GetSearchTasksForPackages()
-        {
-            return null;
-        }
-
-        //ivate static Task<Dictionary<OSSIndexQueryResultObject, IEnumerable<OSSIndexProjectVulnerability>>> GetVulnerabilitiesTasksForPackages
-
-        
+           
         static void PrintErrorMessage(string format, params object[] args)
         {
             Console.ForegroundColor = ConsoleColor.Red;

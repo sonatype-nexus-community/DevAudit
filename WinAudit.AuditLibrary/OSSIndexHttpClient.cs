@@ -65,8 +65,20 @@ namespace WinAudit.AuditLibrary
                 if (response.IsSuccessStatusCode)
                 {
                     string r = await response.Content.ReadAsStringAsync();
-                    return await Task.Factory.StartNew<IEnumerable<OSSIndexQueryResultObject>>(()=>
-                    { return JsonConvert.DeserializeObject<IEnumerable<OSSIndexQueryResultObject>>(r); });
+                    List<OSSIndexQueryResultObject> results = JsonConvert.DeserializeObject<List<OSSIndexQueryResultObject>>(r);
+                    results.ForEach(result =>
+                    {
+                        if (!string.IsNullOrEmpty(result.ProjectId) && string.IsNullOrEmpty(result.SCMId))
+                        {
+                            result.SCMId = result.ProjectId;
+                        }
+                        else if (string.IsNullOrEmpty(result.ProjectId) && !string.IsNullOrEmpty(result.SCMId))
+                        {
+                            result.ProjectId = result.SCMId;
+                        }
+
+                    });
+                    return results;
                 }
                 else
                 {

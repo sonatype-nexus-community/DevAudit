@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.Concurrent;
 using System.IO;
 using System.Linq;
 using System.Security;
@@ -18,8 +19,11 @@ namespace WinAudit.AuditLibrary
     public class NuGetPackagesAudit : IPackagesAudit
     {
         public OSSIndexHttpClient HttpClient { get; set; }
+
         public string PackageManagerId { get { return "nuget"; } }
+
         public string PackageManagerLabel { get { return "NuGet"; } }
+
         public Task<IEnumerable<OSSIndexQueryObject>> GetPackagesTask
         { get
             {
@@ -31,8 +35,13 @@ namespace WinAudit.AuditLibrary
                 return _GetPackagesTask;
             }
         }
+
         public IEnumerable<OSSIndexQueryObject> Packages { get; set; }
+
         public IEnumerable<OSSIndexQueryResultObject> Projects { get; set; }
+
+        public ConcurrentDictionary<string, IEnumerable<OSSIndexProjectVulnerability>> Vulnerabilities { get; set; }
+
         public Task<IEnumerable<OSSIndexQueryResultObject>> GetProjectsTask
         {
             get
@@ -40,15 +49,28 @@ namespace WinAudit.AuditLibrary
                 if (_GetProjectsTask == null)
                 {
                     int i = 0;
-                    IEnumerable<IGrouping<int, OSSIndexQueryObject>> packages_groups = this.Packages.GroupBy(x => i++ / 10).ToArray();
-                    IEnumerable<OSSIndexQueryObject> f = packages_groups.Where(g => g.Key == 1).SelectMany(g => g);
+                    IEnumerable<IGrouping<int, OSSIndexQueryObject>> packages_groups = this.Packages.GroupBy(x => i++ / 100).ToArray();
+                    IEnumerable<OSSIndexQueryObject> f = packages_groups.Where(g => g.Key == 0).SelectMany(g => g);
                         _GetProjectsTask = Task<IEnumerable<OSSIndexQueryResultObject>>.Run(async () =>
                     this.Projects = await this.HttpClient.SearchAsync("nuget", f));
                 }
                 return _GetProjectsTask;
             }
         }
-        //Get NuGet packages from reading packages.config
+
+        public Task<IEnumerable<OSSIndexProjectVulnerability>>[] GetVulnerabilitiesTask
+        {                       
+            get
+            {
+                List<Task<IEnumerable<OSSIndexProjectVulnerability>>> tasks = 
+                    new List<Task<IEnumerable<OSSIndexProjectVulnerability>>>(this.Projects.Count(p => !string.IsNullOrEmpty(p.ProjectId)));
+                this.Projects.ToList().Where(p => !string.IsNullOrEmpty(p.ProjectId)).ToList()
+                    .ForEach(p => tasks.Add(Task<IEnumerable<OSSIndexProjectVulnerability>>
+                    .Run(async () => await this.HttpClient.GetVulnerabilitiesForIdAsync(p.ProjectId) )));
+                return tasks.ToArray();
+            }
+        }
+            //Get NuGet packages from reading packages.config
         public IEnumerable<OSSIndexQueryObject> GetPackages(string packages_config_location = null)
         {
             string file = string.IsNullOrEmpty(packages_config_location) ? AppDomain.CurrentDomain.BaseDirectory + @"\packages.config.example" : packages_config_location;
