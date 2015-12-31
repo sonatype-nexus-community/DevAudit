@@ -24,8 +24,7 @@ namespace WinAudit.AuditLibrary
         //run and parse output from choco list -lo command.
         public override IEnumerable<OSSIndexQueryObject> GetPackages(params string[] o)
         {
-            string choco_command = "";
-            if (string.IsNullOrEmpty(choco_command)) choco_command = @"C:\ProgramData\chocolatey\choco.exe";
+            string choco_command = @"C:\ProgramData\chocolatey\choco.exe";
             string process_output = "", process_error = "";
             ProcessStartInfo psi = new ProcessStartInfo(choco_command);
             psi.Arguments = @"list -lo";

@@ -26,10 +26,17 @@ namespace WinAudit.AuditLibrary
         //Get bower packages from reading bower.json
         public override IEnumerable<OSSIndexQueryObject> GetPackages(params string[] o)
         {
-            string file_name = @".\bower.json";
-            if (!File.Exists(file_name)) file_name = @".\bower.json.example";
+            if (this.PackageSourceOptions.ContainsKey("File"))
+            {
+                this.PackageManagerConfigurationFile = (string)this.PackageSourceOptions["File"];
+            }
+            else
+            {
+                this.PackageManagerConfigurationFile = @".\bower.json";
+            }
+            if (!File.Exists(this.PackageManagerConfigurationFile)) throw new ArgumentException("Could not find the file " + this.PackageManagerConfigurationFile + ".");
             using (JsonTextReader r = new JsonTextReader(new StreamReader(
-                        file_name)))
+                        this.PackageManagerConfigurationFile)))
             {
                 JObject json = (JObject)JToken.ReadFrom(r);
                 JObject dependencies = (JObject)json["dependencies"];

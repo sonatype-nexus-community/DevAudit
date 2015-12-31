@@ -17,11 +17,17 @@ namespace WinAudit.CommandLine
             
         }
 
-        [VerbOption("nuget", HelpText = "Audit NuGet packages.")]
+        [VerbOption("nuget", HelpText = "Audit NuGet packages. Use the --file option to specify a particular packages.config file otherwise the one in the current directory will be used.")]
         public Options AuditNuGet { get; set; }
 
-        [VerbOption("msi", HelpText = "Audit MSI packages.")]
+        [VerbOption("msi", HelpText = "Audit MSI packages. Packages are scanned from the registry.")]
         public Options AuditMsi { get; set; }
+
+        [VerbOption("choco", HelpText = "Audit Chocolatey packages. Packages are scanned from C:\\ProgramData\\chocolatey.")]
+        public Options AuditChocolatey { get; set; }
+
+        [Option('f', "file", Required = false, HelpText = "Specifies the file (if any) containing the packages to be audited.")]
+        public string File { get; set; }
 
         [Option('p', "list-packages", Required = false, HelpText = "Only list the local packages that will be audited.")]
         public bool ListPackages { get; set; }

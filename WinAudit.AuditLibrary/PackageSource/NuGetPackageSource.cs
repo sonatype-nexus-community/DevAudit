@@ -27,13 +27,18 @@ namespace WinAudit.AuditLibrary
         //Get NuGet packages from reading packages.config
         public override IEnumerable<OSSIndexQueryObject> GetPackages(params string[] o)
         {
-            string packages_config_location = "";
-            string file = string.IsNullOrEmpty(packages_config_location) ? AppDomain.CurrentDomain.BaseDirectory + @"\packages.config.example" : packages_config_location;
-            if (!File.Exists(file))
-                throw new ArgumentException("Invalid file location or file not found: " + file);
+            if (this.PackageSourceOptions.ContainsKey("File"))
+            {
+                this.PackageManagerConfigurationFile = (string)this.PackageSourceOptions["File"]; 
+            }
+            else
+            {
+                this.PackageManagerConfigurationFile = @".\packages.config";
+            }
+            if (!File.Exists(this.PackageManagerConfigurationFile)) throw new ArgumentException("Could not find the file " + this.PackageManagerConfigurationFile + ".");
             try
             {
-                XElement root = XElement.Load(file);
+                XElement root = XElement.Load(this.PackageManagerConfigurationFile);
                 IEnumerable<OSSIndexQueryObject> packages =
                     from el in root.Elements("package")
                     select new OSSIndexQueryObject("nuget", el.Attribute("id").Value, el.Attribute("version").Value, "");
@@ -41,12 +46,12 @@ namespace WinAudit.AuditLibrary
             }
             catch (XmlException e)
             {
-                throw new Exception("XML exception thrown parsing file: " + file, e);
+                throw new Exception("XML exception thrown parsing file: " + this.PackageManagerConfigurationFile, e);
             }
             catch (Exception e)
             {
                 throw new Exception("Unknown exception thrown attempting to get packages from file: "
-                    + file, e);
+                    + this.PackageManagerConfigurationFile, e);
             }
 
         }

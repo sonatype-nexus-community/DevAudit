@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.Concurrent;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -15,6 +16,10 @@ namespace WinAudit.AuditLibrary
         public abstract string PackageManagerId { get; }
 
         public abstract string PackageManagerLabel { get; }
+
+        public string PackageManagerConfigurationFile { get; set; }
+
+        public Dictionary<string, object> PackageSourceOptions { get; set; } = new Dictionary<string, object>();
 
         public IEnumerable<OSSIndexQueryObject> Packages { get; set; }
 
@@ -81,6 +86,9 @@ namespace WinAudit.AuditLibrary
 
         #region Public abstract methods
         public abstract IEnumerable<OSSIndexQueryObject> GetPackages(params string[] o);
+        #endregion
+
+        #region Constructors
         #endregion
 
         #region Private fields

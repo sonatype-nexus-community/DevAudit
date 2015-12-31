@@ -32,12 +32,7 @@ namespace WinAudit.CommandLine
 
         static int Main(string[] args)
         {
-            if (!CL.Parser.Default.ParseArguments(args, ProgramOptions))
-            {
-                return (int) ExitCodes.INVALID_ARGUMENTS;
-            }
-
-            CL.Parser.Default.ParseArguments(args, ProgramOptions, (verb, options) => 
+            CL.Parser.Default.ParseArguments(args, ProgramOptions, (verb, options) =>
             {
                 if (verb == "nuget")
                 {
@@ -45,16 +40,39 @@ namespace WinAudit.CommandLine
                 }
                 else if (verb == "msi")
                 {
-                    PackagesAudit = new MSIPackageSource();                    
-                }                          
-            });
+                    PackagesAudit = new MSIPackageSource();
+                }
+                else if (verb == "choco")
+                {
+                    PackagesAudit = new ChocolateyPackageSource();
+                }
 
+            });
             if (PackagesAudit == null)
             {
                 Console.WriteLine("No package source specified.");
-                return (int) ExitCodes.INVALID_ARGUMENTS;
-
+                return (int)ExitCodes.INVALID_ARGUMENTS;
             }
+            if (!CL.Parser.Default.ParseArguments(args, ProgramOptions))
+            {
+                return (int)ExitCodes.INVALID_ARGUMENTS;
+            }
+            else
+            {
+                if (!string.IsNullOrEmpty(ProgramOptions.File))
+                {
+                    if (!File.Exists(ProgramOptions.File))
+                    {
+                        PrintErrorMessage("Error in parameter: Could not find file {0}", ProgramOptions.File);
+                        return (int)ExitCodes.INVALID_ARGUMENTS;
+                    }
+                    else
+                    {
+                        PackagesAudit.PackageSourceOptions.Add("File", ProgramOptions.File);
+                    }
+                }
+            }
+
             BPlusTree<string, OSSIndexArtifact>.OptionsV2 cache_file_options = new BPlusTree<string, OSSIndexArtifact>.OptionsV2(PrimitiveSerializer.String,
                 new BsonSerializer<OSSIndexArtifact>());
             cache_file_options.CalcBTreeOrder(4, 128);
@@ -152,8 +170,11 @@ namespace WinAudit.CommandLine
                 try
                 {
                     int x = Task.WaitAny(PackagesAudit.GetVulnerabilitiesTask);
+                    spinner.Stop();
                     Task<IEnumerable<OSSIndexProjectVulnerability>> completed = PackagesAudit.GetVulnerabilitiesTask[x];
-                    ++projects_processed;
+                    IEnumerable<OSSIndexProjectVulnerability> v = completed.Result;
+                    //Console.Write("\n[{0}/{1}] ", )
+                    //++projects_processed;
                 }
                 catch (AggregateException ae)
                 {
