@@ -98,8 +98,9 @@ namespace WinAudit.AuditLibrary
                     process_error += e.Data + Environment.NewLine;
                     if (e.Data.Contains("Get-Package : The term 'Get-Package' is not recognized as the name of a cmdlet, function, script file, or operable"))
                     {
-                        p.Kill();
-                        throw new Exception("Error running Get-Package Powershell command (OneGet may not be installed on this computer):" + e.Data);
+                        p.CancelOutputRead();
+                        p.CancelOutputRead();
+                        throw new Exception("Error running Get-Package Powershell command (OneGet is not installed on this computer).");
                     }
                 };
             };
@@ -116,7 +117,7 @@ namespace WinAudit.AuditLibrary
             }
             p.BeginErrorReadLine();
             p.BeginOutputReadLine();
-            p.WaitForExit();
+            p.WaitForExit();          
             p.Close();
             return packages;
         }

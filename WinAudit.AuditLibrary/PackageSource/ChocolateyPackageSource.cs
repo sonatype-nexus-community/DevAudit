@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.Concurrent;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.Linq;
 using System.Security;
@@ -69,11 +70,22 @@ namespace WinAudit.AuditLibrary
                     process_error += e.Data + Environment.NewLine;
                 };
             };
-            p.Start();
+            try
+            {
+                p.Start();
+            }
+            catch (Win32Exception e)
+            {
+                if (e.Message == "The system cannot find the file specified")
+                {
+                    throw new Exception("Chocolatey is not installed on this computer or is not on the current PATH.", e);
+                }
+            }
             p.BeginErrorReadLine();
-            p.BeginOutputReadLine();
-            p.WaitForExit();
-            p.Close();
+                p.BeginOutputReadLine();
+                p.WaitForExit();
+                p.Close();
+                        
             return packages;
         }
 
