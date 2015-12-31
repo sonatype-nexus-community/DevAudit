@@ -123,8 +123,10 @@ namespace WinAudit.AuditLibrary
                 HttpResponseMessage response = this.ApiVersion == "1.0" ?
                     await client.GetAsync(string.Format("v" + this.ApiVersion + "/scm/{0}/vulnerabilities", id)) : await client.GetAsync(string.Format("v" + this.ApiVersion + "/project/{0}/vulnerabilities", id)); if (response.IsSuccessStatusCode)
                 {
-                    string r = response.Content.ReadAsStringAsync().Result;
-                    return JsonConvert.DeserializeObject<IEnumerable<OSSIndexProjectVulnerability>>(r);
+                    string r = await response.Content.ReadAsStringAsync();
+                    List<OSSIndexProjectVulnerability> result = JsonConvert.DeserializeObject<List<OSSIndexProjectVulnerability>>(r);
+                    result.ForEach(v => v.ProjectId = id);
+                    return result;
                 }
                 else
                 {

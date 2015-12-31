@@ -54,8 +54,6 @@ namespace WinAudit.CommandLine
                 {
                     Source = new OneGetPackageSource();
                 }
-
-
             });
             if (Source == null)
             {
@@ -137,6 +135,7 @@ namespace WinAudit.CommandLine
             {
                 spinner.Stop();
                 PrintErrorMessage("\nError encountered searching OSS Index for {0} packages: {1}", Source.PackageManagerLabel, ae.InnerException.Message);
+                ae.InnerExceptions.ToList().ForEach(i => HandleOSSIndexHttpException(i));
                 return (int)ExitCodes.ERROR_SEARCHING_OSS_INDEX;
             }
             finally
@@ -166,7 +165,6 @@ namespace WinAudit.CommandLine
 
                     }
                 }
-                Console.WriteLine("Found {0} projects.", Source.Artifacts.Count(r => !string.IsNullOrEmpty(r.ProjectId)));
                 return 0;
             }
             Console.WriteLine("Searching OSS Index for vulnerabilities for {0} projects...", Source.Artifacts.Count(r => !string.IsNullOrEmpty(r.ProjectId)));
@@ -189,6 +187,7 @@ namespace WinAudit.CommandLine
                 {
                     PrintErrorMessage("\nError encountered searching OSS Index for vulnerabilities for project id {0}: {1}", 
                         ae.Message, ae.InnerException.Message);
+                    ae.InnerExceptions.ToList().ForEach(i => HandleOSSIndexHttpException(i));
                     ++projects_processed;
                 }
                 finally
@@ -252,6 +251,16 @@ namespace WinAudit.CommandLine
             Console.ForegroundColor = ConsoleColor.Red;
             Console.WriteLine(format, args);
             Console.ResetColor();
+        }
+
+        static void HandleOSSIndexHttpException(Exception e)
+        {
+            if (e.GetType() == typeof(OSSIndexHttpException))
+            {
+                OSSIndexHttpException oe = (OSSIndexHttpException) e;
+                PrintErrorMessage("HTTP error encountered searching OSS Index. HTTP status {0}: {1}", oe.StatusCode, oe.Request);
+            }
+
         }
 
 

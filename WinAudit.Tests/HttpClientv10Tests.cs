@@ -47,6 +47,7 @@ namespace WinAudit.Tests
         {
             IEnumerable<OSSIndexProjectVulnerability> v = await http_client.GetVulnerabilitiesForIdAsync("284089289");
             Assert.NotEmpty(v);
+            Assert.Equal(v.First().ProjectId, "284089289");
         }
    
     }

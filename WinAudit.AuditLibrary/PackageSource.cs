@@ -25,7 +25,7 @@ namespace WinAudit.AuditLibrary
 
         public IEnumerable<OSSIndexArtifact> Artifacts { get; set; }
 
-        public ConcurrentDictionary<string, IEnumerable<OSSIndexProjectVulnerability>> Vulnerabilities { get; set; } = new System.Collections.Concurrent.ConcurrentDictionary<string, IEnumerable<OSSIndexProjectVulnerability>>();
+        public ConcurrentDictionary<OSSIndexProject, IEnumerable<OSSIndexProjectVulnerability>> Vulnerabilities { get; set; } = new System.Collections.Concurrent.ConcurrentDictionary<OSSIndexProject, IEnumerable<OSSIndexProjectVulnerability>>();
 
         public Task<IEnumerable<OSSIndexQueryObject>> GetPackagesTask
         {
@@ -62,22 +62,23 @@ namespace WinAudit.AuditLibrary
             {
                 if (_GetVulnerabilitiesTask == null)
                 {
+                    /*
                     Func<Task<IEnumerable<OSSIndexProjectVulnerability>>> getFunc = async () =>
                     {
                         OSSIndexProject p = await this.HttpClient.GetProjectForIdAsync("284089289");
                         return this.Vulnerabilities.AddOrUpdate(p.Id.ToString(),
                             await this.HttpClient.GetVulnerabilitiesForIdAsync(p.Id.ToString()), (k, v) => v);
                     };
-
+                    */
                     List<Task<IEnumerable<OSSIndexProjectVulnerability>>> tasks =
                         new List<Task<IEnumerable<OSSIndexProjectVulnerability>>>(this.Artifacts.Count(p => !string.IsNullOrEmpty(p.ProjectId)));
-                    this.Artifacts.ToList().Where(p => !string.IsNullOrEmpty(p.ProjectId)).ToList()
+                        this.Artifacts.ToList().Where(p => !string.IsNullOrEmpty(p.ProjectId)).ToList()
                         .ForEach(p => tasks.Add(Task<IEnumerable<OSSIndexProject>>
                         .Run(async () => await this.HttpClient.GetProjectForIdAsync(p.ProjectId))
-                        .ContinueWith(async (antecedent) => (this.Vulnerabilities.AddOrUpdate(antecedent.Result.Id.ToString(),
-                            await this.HttpClient.GetVulnerabilitiesForIdAsync(antecedent.Result.Id.ToString()), (k, v) => v)), TaskContinuationOptions.OnlyOnRanToCompletion)
+                        .ContinueWith(async (antecedent) => (this.Vulnerabilities.AddOrUpdate(antecedent.Result,
+                            await this.HttpClient.GetVulnerabilitiesForIdAsync(antecedent.Result.Id.ToString()), (k, v) => v)), TaskContinuationOptions.NotOnFaulted)
                             .Unwrap()));
-                    this._GetVulnerabilitiesTask = tasks.ToArray(); ;
+                    this._GetVulnerabilitiesTask = tasks.ToArray(); 
                 }
                 return this._GetVulnerabilitiesTask;
             }

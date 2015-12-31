@@ -12,7 +12,11 @@ namespace WinAudit.Tests
     public class BowerPackageSourceTests
     {
         protected PackageSource bower = new BowerPackageSource();
-
+        
+        public BowerPackageSourceTests()
+        {
+            bower.PackageSourceOptions.Add("File", @".\bower.json.example");
+        }
         [Fact]
         public void CanGetBowerPackages()
         {
