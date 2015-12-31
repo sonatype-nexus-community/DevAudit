@@ -88,7 +88,7 @@ namespace WinAudit.CommandLine
             cache_file_options.StoragePerformance = StoragePerformance.CommitToDisk;
             BPlusTree<string, OSSIndexArtifact> cache = new BPlusTree<string, OSSIndexArtifact>(cache_file_options);                    
             Console.Write("Scanning {0} packages...", Source.PackageManagerLabel);
-            Spinner spinner = new Spinner(100);
+            Spinner spinner = new Spinner(50);
             spinner.Start();
             try
             {
@@ -125,7 +125,7 @@ namespace WinAudit.CommandLine
             {
                 Console.Write("Searching OSS Index for {0} {1} packages...", Source.Packages.Count(), Source.PackageManagerLabel);
             }
-            spinner = new Spinner(100);
+            spinner = new Spinner(50);
             spinner.Start();
             try
             {
@@ -144,6 +144,11 @@ namespace WinAudit.CommandLine
                 spinner = null;
             }
             Console.WriteLine("\nFound {0} artifacts.", Source.Artifacts.Count());
+            if (Source.Artifacts.Count() == 0)
+            {
+                Console.WriteLine("Nothing to do, exiting.");
+                return 0;
+            }
             if (ProgramOptions.ListArtifacts)
             {
                 int i = 1;
@@ -168,81 +173,46 @@ namespace WinAudit.CommandLine
                 return 0;
             }
             Console.WriteLine("Searching OSS Index for vulnerabilities for {0} projects...", Source.Artifacts.Count(r => !string.IsNullOrEmpty(r.ProjectId)));
-            spinner = new Spinner(100);
-            spinner.Start();
             int projects_count = Source.Artifacts.Count(r => !string.IsNullOrEmpty(r.ProjectId));
             int projects_processed = 0;
-            while (projects_processed < projects_count)
+            while (Source.GetVulnerabilitiesTask.Count() > 0)
             {
-                try
-                {
-                    int x = Task.WaitAny(Source.GetVulnerabilitiesTask);
-                    spinner.Stop();
-                    Task<IEnumerable<OSSIndexProjectVulnerability>> completed = Source.GetVulnerabilitiesTask[x];
-                    IEnumerable<OSSIndexProjectVulnerability> v = completed.Result;
-                    //Console.Write("\n[{0}/{1}] ", )
-                    //++projects_processed;
-                }
-                catch (AggregateException ae)
-                {
-                    PrintErrorMessage("\nError encountered searching OSS Index for vulnerabilities for project id {0}: {1}", 
-                        ae.Message, ae.InnerException.Message);
-                    ae.InnerExceptions.ToList().ForEach(i => HandleOSSIndexHttpException(i));
-                    ++projects_processed;
-                }
-                finally
-                {
-                    
-                }
-                
-            }
-            spinner.Stop();
-            spinner = null;
-
-            //int i = 0;
-
-            /*
-            foreach (OSSIndexQueryResultObject r in PackagesAudit.Projects)
-            {
-                i++;
-                Console.Write("[{0}/{1}] {2} {3} ", i, packages_count, r.PackageName, r.PackageVersion);
-                Console.ForegroundColor = ConsoleColor.Yellow;
-                Console.ResetColor();
-                if (!string.IsNullOrEmpty(r.PackageSCMId))
-                {
-                    Console.Write("SCM Id: {0} ", r.PackageSCMId);
-                    try
+                Task<IEnumerable<OSSIndexProjectVulnerability>>[] tasks = Source.GetVulnerabilitiesTask.ToArray();
+                int x = Task.WaitAny(tasks);
+                var task = Source.GetVulnerabilitiesTask.Find(t => t.Id == tasks[x].Id);
+                    if (task.IsCompleted && !task.IsFaulted && !task.IsCanceled)
                     {
-                        IEnumerable<OSSIndexSCMVulnerability> vulns = audit.GetVulnerabilityForSCMId(r.PackageSCMId);
-                        if (vulns.Count() == 0)
+                        IEnumerable<OSSIndexProjectVulnerability> v = task.Result;
+                        OSSIndexProject p = Source.Vulnerabilities.Where(sv => sv.Value == v).First().Key;
+                        OSSIndexArtifact a = Source.Artifacts.First(sa => sa.ProjectId == p.Id.ToString());
+                        Console.Write("[{0}/{1}] {2}", ++projects_processed, projects_count, a.PackageName);
+                        Console.ForegroundColor = ConsoleColor.Yellow;
+                        Console.Write(" {0} ", a.Version);
+                        if (v.Count() == 0)
                         {
-                            Console.ForegroundColor = ConsoleColor.Green;
-                            Console.Write("No known vulnerabilities.\n");
-                            Console.ResetColor();
+                            Console.ForegroundColor = ConsoleColor.DarkGray;
+                            Console.Write(" No known vulnerabilities. ");
+                        }
+                        Console.ResetColor();
+                        Console.Write("\n");
+                    }
+                    else
+                    {
+                        projects_processed++;
+                        if (task.Exception != null)
+                        {
+                            PrintErrorMessage("\nError encountered searching OSS Index for vulnerabilities: {0}.", task.Exception.Message);
+                            task.Exception.InnerExceptions.ToList().ForEach(i => HandleOSSIndexHttpException(i));
                         }
                         else
                         {
-                            Console.ForegroundColor = ConsoleColor.Gray;
-                            Console.Write("{0} known vulnerabilities.\n", vulns.Count());
-                            Console.ResetColor();
+                            PrintErrorMessage("Unknown error encountered searching OSS Index for vulnerabilities on task id {0} with task status {1}.", 
+                                task.Id, task.Status.ToString());
                         }
                     }
-                    catch (Exception e)
-                    {
-                        Console.ForegroundColor = ConsoleColor.DarkRed;
-                        Console.Write("Error retrieving vulnerabilities: {0}.\n", e.Message);
-                        Console.ResetColor();
-
-                    }
+                    Source.GetVulnerabilitiesTask.Remove(task);
                 }
-                else
-                {
-                    Console.ForegroundColor = ConsoleColor.DarkYellow;
-                    Console.Write("No SCM Id found\n");
-                    Console.ResetColor();
-                }
-            }
-            */
+            
             return 0;
         }
            

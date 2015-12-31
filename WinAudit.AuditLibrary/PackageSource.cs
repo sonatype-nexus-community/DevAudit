@@ -56,7 +56,7 @@ namespace WinAudit.AuditLibrary
             }
         }
 
-        public Task<IEnumerable<OSSIndexProjectVulnerability>>[] GetVulnerabilitiesTask
+        public List<Task<IEnumerable<OSSIndexProjectVulnerability>>> GetVulnerabilitiesTask
         {
             get
             {
@@ -70,15 +70,15 @@ namespace WinAudit.AuditLibrary
                             await this.HttpClient.GetVulnerabilitiesForIdAsync(p.Id.ToString()), (k, v) => v);
                     };
                     */
-                    List<Task<IEnumerable<OSSIndexProjectVulnerability>>> tasks =
+                    this._GetVulnerabilitiesTask =
                         new List<Task<IEnumerable<OSSIndexProjectVulnerability>>>(this.Artifacts.Count(p => !string.IsNullOrEmpty(p.ProjectId)));
                         this.Artifacts.ToList().Where(p => !string.IsNullOrEmpty(p.ProjectId)).ToList()
-                        .ForEach(p => tasks.Add(Task<IEnumerable<OSSIndexProject>>
+                        .ForEach(p => this._GetVulnerabilitiesTask.Add(Task<IEnumerable<OSSIndexProject>>
                         .Run(async () => await this.HttpClient.GetProjectForIdAsync(p.ProjectId))
                         .ContinueWith(async (antecedent) => (this.Vulnerabilities.AddOrUpdate(antecedent.Result,
                             await this.HttpClient.GetVulnerabilitiesForIdAsync(antecedent.Result.Id.ToString()), (k, v) => v)), TaskContinuationOptions.NotOnFaulted)
                             .Unwrap()));
-                    this._GetVulnerabilitiesTask = tasks.ToArray(); 
+                     
                 }
                 return this._GetVulnerabilitiesTask;
             }
@@ -95,7 +95,7 @@ namespace WinAudit.AuditLibrary
         #region Private fields
         private Task<IEnumerable<OSSIndexArtifact>> _GetProjectsTask;
         private Task<IEnumerable<OSSIndexQueryObject>> _GetPackagesTask;
-        private Task<IEnumerable<OSSIndexProjectVulnerability>>[] _GetVulnerabilitiesTask;
+        private List<Task<IEnumerable<OSSIndexProjectVulnerability>>> _GetVulnerabilitiesTask;
         #endregion
     }
 }

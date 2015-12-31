@@ -48,7 +48,7 @@ namespace WinAudit.Tests
             Assert.NotEmpty(s.Artifacts);            
             try
             {
-                Task.WaitAll(s.GetVulnerabilitiesTask);
+                Task.WaitAll(s.GetVulnerabilitiesTask.ToArray());
             }
             catch (AggregateException ae)
             {
