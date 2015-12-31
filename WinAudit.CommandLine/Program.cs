@@ -28,7 +28,7 @@ namespace WinAudit.CommandLine
 
         static Options ProgramOptions = new Options();
 
-        static PackageSource PackagesAudit { get; set; }
+        static PackageSource Source { get; set; }
 
         static int Main(string[] args)
         {
@@ -36,19 +36,28 @@ namespace WinAudit.CommandLine
             {
                 if (verb == "nuget")
                 {
-                    PackagesAudit = new NuGetPackageSource();
+                    Source = new NuGetPackageSource();
                 }
                 else if (verb == "msi")
                 {
-                    PackagesAudit = new MSIPackageSource();
+                    Source = new MSIPackageSource();
                 }
                 else if (verb == "choco")
                 {
-                    PackagesAudit = new ChocolateyPackageSource();
+                    Source = new ChocolateyPackageSource();
+                }
+                else if (verb == "bower")
+                {
+                    Source = new BowerPackageSource();
+                }
+                else if (verb == "oneget")
+                {
+                    Source = new OneGetPackageSource();
                 }
 
+
             });
-            if (PackagesAudit == null)
+            if (Source == null)
             {
                 Console.WriteLine("No package source specified.");
                 return (int)ExitCodes.INVALID_ARGUMENTS;
@@ -68,7 +77,7 @@ namespace WinAudit.CommandLine
                     }
                     else
                     {
-                        PackagesAudit.PackageSourceOptions.Add("File", ProgramOptions.File);
+                        Source.PackageSourceOptions.Add("File", ProgramOptions.File);
                     }
                 }
             }
@@ -80,17 +89,17 @@ namespace WinAudit.CommandLine
             cache_file_options.FileName = AppDomain.CurrentDomain.BaseDirectory + "winaudit-net.cache"; //Assembly.GetExecutingAssembly().Location
             cache_file_options.StoragePerformance = StoragePerformance.CommitToDisk;
             BPlusTree<string, OSSIndexArtifact> cache = new BPlusTree<string, OSSIndexArtifact>(cache_file_options);                    
-            Console.Write("Scanning {0} packages...", PackagesAudit.PackageManagerLabel);
+            Console.Write("Scanning {0} packages...", Source.PackageManagerLabel);
             Spinner spinner = new Spinner(100);
             spinner.Start();
             try
             {
-                PackagesAudit.GetPackagesTask.Wait();
+                Source.GetPackagesTask.Wait();
             }
             catch (AggregateException ae)
             {
                 spinner.Stop();
-                PrintErrorMessage("\nError(s) encountered scanning for {0} packages: {1}", PackagesAudit.PackageManagerLabel, ae.InnerException.Message);
+                PrintErrorMessage("\nError(s) encountered scanning for {0} packages: {1}", Source.PackageManagerLabel, ae.InnerException.Message);
                 return (int)ExitCodes.ERROR_SCANNING_FOR_PACKAGES;
             }
             finally
@@ -98,36 +107,36 @@ namespace WinAudit.CommandLine
                 spinner.Stop();
                 spinner = null;             
             }
-            Console.WriteLine("\nFound {0} packages.", PackagesAudit.Packages.Count());
+            Console.WriteLine("\nFound {0} packages.", Source.Packages.Count());
             if (ProgramOptions.ListPackages)
             {
                 int i = 1;
-                foreach (OSSIndexQueryObject package in PackagesAudit.Packages)
+                foreach (OSSIndexQueryObject package in Source.Packages)
                 {
-                    Console.WriteLine("[{0}/{1}] {2} {3} {4}", i++, PackagesAudit.Packages.Count(), package.Name,
+                    Console.WriteLine("[{0}/{1}] {2} {3} {4}", i++, Source.Packages.Count(), package.Name,
                         package.Version, package.Vendor);
                 }
                 return 0;
             }
-            if (PackagesAudit.Packages.Count() == 0)
+            if (Source.Packages.Count() == 0)
             {
                 Console.WriteLine("Nothing to do, exiting.");
                 return 0;
             }
             else
             {
-                Console.Write("Searching OSS Index for {0} {1} packages...", PackagesAudit.Packages.Count(), PackagesAudit.PackageManagerLabel);
+                Console.Write("Searching OSS Index for {0} {1} packages...", Source.Packages.Count(), Source.PackageManagerLabel);
             }
             spinner = new Spinner(100);
             spinner.Start();
             try
             {
-                PackagesAudit.GetArtifactsTask.Wait();
+                Source.GetArtifactsTask.Wait();
             }
             catch (AggregateException ae)
             {
                 spinner.Stop();
-                PrintErrorMessage("\nError encountered searching OSS Index for {0} packages: {1}", PackagesAudit.PackageManagerLabel, ae.InnerException.Message);
+                PrintErrorMessage("\nError encountered searching OSS Index for {0} packages: {1}", Source.PackageManagerLabel, ae.InnerException.Message);
                 return (int)ExitCodes.ERROR_SEARCHING_OSS_INDEX;
             }
             finally
@@ -135,13 +144,13 @@ namespace WinAudit.CommandLine
                 spinner.Stop();
                 spinner = null;
             }
-            Console.WriteLine("\nFound {0} artifacts.", PackagesAudit.Artifacts.Count());
+            Console.WriteLine("\nFound {0} artifacts.", Source.Artifacts.Count());
             if (ProgramOptions.ListArtifacts)
             {
                 int i = 1;
-                foreach (OSSIndexArtifact artifact in PackagesAudit.Artifacts)
+                foreach (OSSIndexArtifact artifact in Source.Artifacts)
                 {
-                    Console.Write("[{0}/{1}] {2} {3} ", i++, PackagesAudit.Artifacts.Count(), artifact.PackageName,
+                    Console.Write("[{0}/{1}] {2} {3} ", i++, Source.Artifacts.Count(), artifact.PackageName,
                         artifact.Version);
                     if (!string.IsNullOrEmpty(artifact.ProjectId))
                     {
@@ -157,21 +166,21 @@ namespace WinAudit.CommandLine
 
                     }
                 }
-                Console.WriteLine("Found {0} projects.", PackagesAudit.Artifacts.Count(r => !string.IsNullOrEmpty(r.ProjectId)));
+                Console.WriteLine("Found {0} projects.", Source.Artifacts.Count(r => !string.IsNullOrEmpty(r.ProjectId)));
                 return 0;
             }
-            Console.WriteLine("Searching OSS Index for vulnerabilities for {0} projects...", PackagesAudit.Artifacts.Count(r => !string.IsNullOrEmpty(r.ProjectId)));
+            Console.WriteLine("Searching OSS Index for vulnerabilities for {0} projects...", Source.Artifacts.Count(r => !string.IsNullOrEmpty(r.ProjectId)));
             spinner = new Spinner(100);
             spinner.Start();
-            int projects_count = PackagesAudit.Artifacts.Count(r => !string.IsNullOrEmpty(r.ProjectId));
+            int projects_count = Source.Artifacts.Count(r => !string.IsNullOrEmpty(r.ProjectId));
             int projects_processed = 0;
             while (projects_processed < projects_count)
             {
                 try
                 {
-                    int x = Task.WaitAny(PackagesAudit.GetVulnerabilitiesTask);
+                    int x = Task.WaitAny(Source.GetVulnerabilitiesTask);
                     spinner.Stop();
-                    Task<IEnumerable<OSSIndexProjectVulnerability>> completed = PackagesAudit.GetVulnerabilitiesTask[x];
+                    Task<IEnumerable<OSSIndexProjectVulnerability>> completed = Source.GetVulnerabilitiesTask[x];
                     IEnumerable<OSSIndexProjectVulnerability> v = completed.Result;
                     //Console.Write("\n[{0}/{1}] ", )
                     //++projects_processed;

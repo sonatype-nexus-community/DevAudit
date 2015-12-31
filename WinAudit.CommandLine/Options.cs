@@ -26,6 +26,12 @@ namespace WinAudit.CommandLine
         [VerbOption("choco", HelpText = "Audit Chocolatey packages. Packages are scanned from C:\\ProgramData\\chocolatey.")]
         public Options AuditChocolatey { get; set; }
 
+        [VerbOption("bower", HelpText = "Audit Bower packages. Use the --file option to specify a particular bower.json file otherwise the one in the current directory will be used.")]
+        public Options AuditBower { get; set; }
+
+        [VerbOption("oneget", HelpText = "Audit OneGet packages. Packages are scanned using from system OneGet repository.")]
+        public Options AuditOneGet { get; set; }
+
         [Option('f', "file", Required = false, HelpText = "Specifies the file (if any) containing the packages to be audited.")]
         public string File { get; set; }
 
