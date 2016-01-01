@@ -26,10 +26,30 @@ namespace WinAudit.Tests
         public void CanGetArtifactsTask()
         {
             s.GetPackagesTask.Wait();
-            s.GetArtifactsTask.Wait();
+            Task.WaitAll(s.GetArtifactsTask.ToArray());
             Assert.NotEmpty(s.Artifacts);
             Assert.NotEmpty(s.Artifacts.Where(a => a.PackageManager == s.PackageManagerId));
         }
+
+        [Fact]
+        public void CanGetVulnerabilitiesTask()
+        {
+            s.GetPackagesTask.Wait();
+            Assert.NotEmpty(s.Packages);
+            Task.WaitAll(s.GetArtifactsTask.ToArray());
+            Assert.NotEmpty(s.Artifacts);
+            try
+            {
+                Task.WaitAll(s.GetVulnerabilitiesTask.ToArray());
+            }
+            
+            catch (AggregateException ae)
+            {
+
+            }
+            Assert.NotEmpty(s.Vulnerabilities);
+        }
+
 
         [Fact]
         public abstract Task CanGetProjects();
@@ -37,7 +57,5 @@ namespace WinAudit.Tests
         [Fact]
         public abstract Task CanGetVulnerabilities();
 
-        [Fact]
-        public abstract void CanGetVulnerabilitiesTask();
     }
 }

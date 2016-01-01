@@ -4,6 +4,7 @@ using System.Collections.Concurrent;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace WinAudit.AuditLibrary
@@ -23,9 +24,29 @@ namespace WinAudit.AuditLibrary
 
         public IEnumerable<OSSIndexQueryObject> Packages { get; set; }
 
-        public IEnumerable<OSSIndexArtifact> Artifacts { get; set; }
+        public Dictionary<IEnumerable<OSSIndexQueryObject>, IEnumerable<OSSIndexArtifact>> ArtifactsForQuery
+        {
+            get
+            {
+                return _ArtifactsForQuery;
+            }
+        }
 
-        public ConcurrentDictionary<OSSIndexProject, IEnumerable<OSSIndexProjectVulnerability>> Vulnerabilities { get; set; } = new System.Collections.Concurrent.ConcurrentDictionary<OSSIndexProject, IEnumerable<OSSIndexProjectVulnerability>>();
+        public IEnumerable<OSSIndexArtifact> Artifacts
+        {
+            get
+            {
+                return this._ArtifactsForQuery.Values.SelectMany(a=> a);
+            }
+        }
+
+        public Dictionary<OSSIndexProject, IEnumerable<OSSIndexProjectVulnerability>> Vulnerabilities
+        {
+            get
+            {
+                return _VulnerabilitiesForProject;
+            }
+        }
 
         public Task<IEnumerable<OSSIndexQueryObject>> GetPackagesTask
         {
@@ -33,51 +54,59 @@ namespace WinAudit.AuditLibrary
             {
                 if (_GetPackagesTask == null)
                 {
-
-                    _GetPackagesTask = Task<IEnumerable<OSSIndexQueryObject>>.Run(() => this.Packages = this.GetPackages());
+                    _GetPackagesTask = Task<IEnumerable<OSSIndexQueryObject>>.Run(() => this.Packages = 
+                    this.GetPackages().GroupBy(x => new { x.Name, x.Version, x.Vendor }).Select(y => y.First()));
                 }
                 return _GetPackagesTask;
             }
         }
  
-        public Task<IEnumerable<OSSIndexArtifact>> GetArtifactsTask
+        public IEnumerable<Task<KeyValuePair<IEnumerable<OSSIndexQueryObject>, IEnumerable<OSSIndexArtifact>>>> GetArtifactsTask
         {
             get
             {
-                if (_GetProjectsTask == null)
+                if (_GetArtifactsTask == null)
                 {
                     int i = 0;
                     IEnumerable<IGrouping<int, OSSIndexQueryObject>> packages_groups = this.Packages.GroupBy(x => i++ / 100).ToArray();
-                    IEnumerable<OSSIndexQueryObject> f = packages_groups.Where(g => g.Key == 0).SelectMany(g => g);
-                    _GetProjectsTask = Task<IEnumerable<OSSIndexArtifact>>.Run(async () =>
-                this.Artifacts = await this.HttpClient.SearchAsync(this.PackageManagerId, f));
+                    _GetArtifactsTask = new List<Task<KeyValuePair<IEnumerable<OSSIndexQueryObject>, IEnumerable<OSSIndexArtifact>>>>(packages_groups.Count());
+                    for (int index = 0; index < packages_groups.Count(); index++)
+                    {
+                        IEnumerable<OSSIndexQueryObject> f = packages_groups.Where(g => g.Key == index).SelectMany(g => g).ToList();
+                        Task<KeyValuePair<IEnumerable<OSSIndexQueryObject>, IEnumerable<OSSIndexArtifact>>> t
+                            = Task<Task<KeyValuePair<IEnumerable<OSSIndexQueryObject>, IEnumerable<OSSIndexArtifact>>>>.Factory.StartNew(async (o) =>
+                            {
+                                IEnumerable<OSSIndexQueryObject> query = o as IEnumerable<OSSIndexQueryObject>;
+                                return AddArtifiact(query, await this.HttpClient.SearchAsync(this.PackageManagerId, query));
+                            }, f, CancellationToken.None, TaskCreationOptions.DenyChildAttach, TaskScheduler.Default).Unwrap();
+                        _GetArtifactsTask.Add(t);
+                        
+                    } 
                 }
-                return _GetProjectsTask;
+                return this._GetArtifactsTask;
             }
         }
 
-        public List<Task<IEnumerable<OSSIndexProjectVulnerability>>> GetVulnerabilitiesTask
+        public List<Task<KeyValuePair<OSSIndexProject, IEnumerable<OSSIndexProjectVulnerability>>>> GetVulnerabilitiesTask
         {
             get
             {
                 if (_GetVulnerabilitiesTask == null)
                 {
-                    /*
-                    Func<Task<IEnumerable<OSSIndexProjectVulnerability>>> getFunc = async () =>
-                    {
-                        OSSIndexProject p = await this.HttpClient.GetProjectForIdAsync("284089289");
-                        return this.Vulnerabilities.AddOrUpdate(p.Id.ToString(),
-                            await this.HttpClient.GetVulnerabilitiesForIdAsync(p.Id.ToString()), (k, v) => v);
-                    };
-                    */
                     this._GetVulnerabilitiesTask =
-                        new List<Task<IEnumerable<OSSIndexProjectVulnerability>>>(this.Artifacts.Count(p => !string.IsNullOrEmpty(p.ProjectId)));
-                        this.Artifacts.ToList().Where(p => !string.IsNullOrEmpty(p.ProjectId)).ToList()
-                        .ForEach(p => this._GetVulnerabilitiesTask.Add(Task<IEnumerable<OSSIndexProject>>
-                        .Run(async () => await this.HttpClient.GetProjectForIdAsync(p.ProjectId))
-                        .ContinueWith(async (antecedent) => (this.Vulnerabilities.AddOrUpdate(antecedent.Result,
-                            await this.HttpClient.GetVulnerabilitiesForIdAsync(antecedent.Result.Id.ToString()), (k, v) => v)), TaskContinuationOptions.NotOnFaulted)
-                            .Unwrap()));
+                        new List<Task<KeyValuePair<OSSIndexProject, IEnumerable<OSSIndexProjectVulnerability>>>>
+                            (this.Artifacts.Count(a => !string.IsNullOrEmpty(a.ProjectId)));
+                    this.Artifacts.ToList().Where(a => !string.IsNullOrEmpty(a.ProjectId)).ToList()
+                        .ForEach(p => this._GetVulnerabilitiesTask.Add(Task<Task<KeyValuePair<OSSIndexProject, IEnumerable<OSSIndexProjectVulnerability>>>>
+                            .Factory.StartNew(async (o) =>
+                                {
+                                    OSSIndexArtifact artifact = o as OSSIndexArtifact;
+                                    OSSIndexProject project = await this.HttpClient.GetProjectForIdAsync(artifact.ProjectId);
+                                    IEnumerable<OSSIndexProjectVulnerability> v = await this.HttpClient.GetVulnerabilitiesForIdAsync(project.Id.ToString());
+                                    return this.AddVulnerability(project, v);
+                                },
+                                p, CancellationToken.None, TaskCreationOptions.DenyChildAttach, TaskScheduler.Default).Unwrap()));
+                                
                      
                 }
                 return this._GetVulnerabilitiesTask;
@@ -93,9 +122,46 @@ namespace WinAudit.AuditLibrary
         #endregion
 
         #region Private fields
-        private Task<IEnumerable<OSSIndexArtifact>> _GetProjectsTask;
+        private readonly object artifacts_lock = new object(), vulnerabilities_lock = new object();
+        private Dictionary<IEnumerable<OSSIndexQueryObject>, IEnumerable<OSSIndexArtifact>> _ArtifactsForQuery = 
+            new Dictionary<IEnumerable<OSSIndexQueryObject>, IEnumerable<OSSIndexArtifact>>();
+        private List<Task<KeyValuePair<IEnumerable<OSSIndexQueryObject>, IEnumerable<OSSIndexArtifact>>>> _GetArtifactsTask;
         private Task<IEnumerable<OSSIndexQueryObject>> _GetPackagesTask;
-        private List<Task<IEnumerable<OSSIndexProjectVulnerability>>> _GetVulnerabilitiesTask;
+        private Dictionary<OSSIndexProject, IEnumerable<OSSIndexProjectVulnerability>> _VulnerabilitiesForProject =
+            new Dictionary<OSSIndexProject, IEnumerable<OSSIndexProjectVulnerability>>();
+        private List<Task<KeyValuePair<OSSIndexProject, IEnumerable<OSSIndexProjectVulnerability>>>> _GetVulnerabilitiesTask;
+        #endregion
+
+        #region Private methods
+        private async Task<KeyValuePair<IEnumerable<OSSIndexQueryObject>, IEnumerable<OSSIndexArtifact>>> AddArtifiactAsync(IEnumerable<OSSIndexQueryObject> query, Task<IEnumerable<OSSIndexArtifact>> artifact_task)
+        {
+            var artifact = await artifact_task;
+            lock (artifacts_lock)
+            { 
+                this._ArtifactsForQuery.Add(query, artifact);
+                return new KeyValuePair<IEnumerable<OSSIndexQueryObject>, IEnumerable<OSSIndexArtifact>>(query, artifact);
+            }
+        }
+
+        private KeyValuePair<IEnumerable<OSSIndexQueryObject>, IEnumerable<OSSIndexArtifact>> AddArtifiact(IEnumerable<OSSIndexQueryObject> query, IEnumerable<OSSIndexArtifact> artifact)
+        {
+            lock (artifacts_lock)
+            {
+                this._ArtifactsForQuery.Add(query, artifact);
+                return new KeyValuePair<IEnumerable<OSSIndexQueryObject>, IEnumerable<OSSIndexArtifact>>(query, artifact);
+            }
+        }
+
+        private KeyValuePair<OSSIndexProject, IEnumerable<OSSIndexProjectVulnerability>>
+            AddVulnerability(OSSIndexProject project, IEnumerable<OSSIndexProjectVulnerability> vulnerability)
+        {
+            lock (vulnerabilities_lock)
+            {
+                this._VulnerabilitiesForProject.Add(project, vulnerability);
+                return new KeyValuePair<OSSIndexProject, IEnumerable<OSSIndexProjectVulnerability>>(project, vulnerability);
+            }
+        }
+
         #endregion
     }
 }

@@ -8,9 +8,9 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyTitle("WinAudit.CommandLine")]
 [assembly: AssemblyDescription("WinAudit command-line front-end.")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("Vor Security")]
+[assembly: AssemblyCompany("Vör Security")]
 [assembly: AssemblyProduct("WinAudit")]
-[assembly: AssemblyCopyright("Copyright ©  2015")]
+[assembly: AssemblyCopyright("Copyright ©  2015 Vör Security")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 

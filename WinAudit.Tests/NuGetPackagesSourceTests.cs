@@ -39,22 +39,5 @@ namespace WinAudit.Tests
             Assert.Equal(v1[1].Title, "CVE-2015-4670] Improper Limitation of a Pathname to a Restricted Directory");
         }
 
-        [Fact]
-        public override void CanGetVulnerabilitiesTask()
-        {
-            s.GetPackagesTask.Wait();
-            s.GetArtifactsTask.Wait();
-            Assert.NotEmpty(s.Packages);
-            Assert.NotEmpty(s.Artifacts);            
-            try
-            {
-                Task.WaitAll(s.GetVulnerabilitiesTask.ToArray());
-            }
-            catch (AggregateException ae)
-            {
-                Assert.True(ae.InnerExceptions.Count() >= 1);
-            }
-            Assert.True(s.Vulnerabilities.All(v => v.Value.Count() == 0));
-        }
     }
 }

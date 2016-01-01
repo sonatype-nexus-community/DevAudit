@@ -105,7 +105,7 @@ namespace WinAudit.CommandLine
                 spinner.Stop();
                 spinner = null;             
             }
-            Console.WriteLine("\nFound {0} packages.", Source.Packages.Count());
+            Console.WriteLine("\nFound {0} distinct packages.", Source.Packages.Count());             
             if (ProgramOptions.ListPackages)
             {
                 int i = 1;
@@ -129,12 +129,12 @@ namespace WinAudit.CommandLine
             spinner.Start();
             try
             {
-                Source.GetArtifactsTask.Wait();
+                Task.WaitAll(Source.GetArtifactsTask.ToArray());
             }
             catch (AggregateException ae)
             {
                 spinner.Stop();
-                PrintErrorMessage("\nError encountered searching OSS Index for {0} packages: {1}", Source.PackageManagerLabel, ae.InnerException.Message);
+                PrintErrorMessage("\nError encountered searching OSS Index for {0} packages: {1}...", Source.PackageManagerLabel, ae.InnerException.Message);
                 ae.InnerExceptions.ToList().ForEach(i => HandleOSSIndexHttpException(i));
                 return (int)ExitCodes.ERROR_SEARCHING_OSS_INDEX;
             }
@@ -177,41 +177,48 @@ namespace WinAudit.CommandLine
             int projects_processed = 0;
             while (Source.GetVulnerabilitiesTask.Count() > 0)
             {
-                Task<IEnumerable<OSSIndexProjectVulnerability>>[] tasks = Source.GetVulnerabilitiesTask.ToArray();
-                int x = Task.WaitAny(tasks);
-                var task = Source.GetVulnerabilitiesTask.Find(t => t.Id == tasks[x].Id);
-                    if (task.IsCompleted && !task.IsFaulted && !task.IsCanceled)
+                Task<KeyValuePair<OSSIndexProject, IEnumerable<OSSIndexProjectVulnerability>>>[] tasks = Source.GetVulnerabilitiesTask.ToArray();
+                try
+                {
+                    int x = Task.WaitAny(tasks);
+                    var task = Source.GetVulnerabilitiesTask.Find(t => t.Id == tasks[x].Id);
+                    KeyValuePair<OSSIndexProject, IEnumerable<OSSIndexProjectVulnerability>> v = task.Result;
+                    OSSIndexProject p = v.Key;
+                    OSSIndexArtifact a = Source.Artifacts.First(sa => sa.ProjectId == p.Id.ToString());
+                    Console.Write("[{0}/{1}] {2}", ++projects_processed, projects_count, a.PackageName);
+                    Console.ForegroundColor = ConsoleColor.Yellow;
+                    Console.Write(" {0} ", a.Version);
+                    if (v.Value.Count() == 0)
                     {
-                        IEnumerable<OSSIndexProjectVulnerability> v = task.Result;
-                        OSSIndexProject p = Source.Vulnerabilities.Where(sv => sv.Value == v).First().Key;
-                        OSSIndexArtifact a = Source.Artifacts.First(sa => sa.ProjectId == p.Id.ToString());
-                        Console.Write("[{0}/{1}] {2}", ++projects_processed, projects_count, a.PackageName);
-                        Console.ForegroundColor = ConsoleColor.Yellow;
-                        Console.Write(" {0} ", a.Version);
-                        if (v.Count() == 0)
-                        {
-                            Console.ForegroundColor = ConsoleColor.DarkGray;
-                            Console.Write(" No known vulnerabilities. ");
-                        }
-                        Console.ResetColor();
-                        Console.Write("\n");
+                        Console.ForegroundColor = ConsoleColor.DarkGray;
+                        Console.Write(" No known vulnerabilities. ");
                     }
                     else
                     {
-                        projects_processed++;
-                        if (task.Exception != null)
-                        {
-                            PrintErrorMessage("\nError encountered searching OSS Index for vulnerabilities: {0}.", task.Exception.Message);
-                            task.Exception.InnerExceptions.ToList().ForEach(i => HandleOSSIndexHttpException(i));
-                        }
-                        else
-                        {
-                            PrintErrorMessage("Unknown error encountered searching OSS Index for vulnerabilities on task id {0} with task status {1}.", 
-                                task.Id, task.Status.ToString());
-                        }
+                        Console.ForegroundColor = ConsoleColor.White;
+                        Console.Write(" {0} known vulnerabilities. ", v.Value.Count());
+
                     }
+                    Console.ResetColor();
+                    Console.Write("\n");
                     Source.GetVulnerabilitiesTask.Remove(task);
                 }
+                catch (AggregateException ae)
+                {
+                    projects_processed++;
+                    if (ae.InnerException != null)
+                    {
+                        PrintErrorMessage("\nErrors encountered searching OSS Index for vulnerabilities: {0}...", ae.InnerException.Message);
+                        ae.InnerExceptions.ToList().ForEach(i => HandleOSSIndexHttpException(i));
+                    }
+                    else
+                    {
+                        PrintErrorMessage("Unknown error encountered searching OSS Index for vulnerabilities : {0}",
+                            ae.Message);
+                    }
+                    Source.GetVulnerabilitiesTask.RemoveAll(t => t.Status == TaskStatus.Faulted || t.Status == TaskStatus.Canceled);
+                }
+            }
             
             return 0;
         }
@@ -228,7 +235,8 @@ namespace WinAudit.CommandLine
             if (e.GetType() == typeof(OSSIndexHttpException))
             {
                 OSSIndexHttpException oe = (OSSIndexHttpException) e;
-                PrintErrorMessage("HTTP error encountered searching OSS Index. HTTP status {0}: {1}", oe.StatusCode, oe.Request);
+                PrintErrorMessage("HTTP error encountered searching OSS Index. \nHTTP status: {0} {1} \nReason: {2}\nRequest:\n\t{3}", 
+                    (int) oe.StatusCode, oe.StatusCode, oe.ReasonPhrase, oe.Request);
             }
 
         }
