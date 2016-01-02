@@ -18,11 +18,24 @@ namespace WinAudit.AuditLibrary
 {
     public class NuGetPackageSource : PackageSource
     {
-        public override OSSIndexHttpClient HttpClient { get; } = new OSSIndexHttpClient("1.0");
+        public override OSSIndexHttpClient HttpClient { get; } = new OSSIndexHttpClient("1.1");
 
         public override string PackageManagerId { get { return "nuget"; } }
 
         public override string PackageManagerLabel { get { return "NuGet"; } }
+
+        public override Func<List<OSSIndexArtifact>, List<OSSIndexArtifact>> ArtifactsTransform
+        {
+            get
+            {
+                /* return (list) =>
+                 {
+                     list.ForEach(a => { if (a.ProjectId == null) a.ProjectId = a.SCMId; });
+                     return list;
+                 }; */
+                return null;
+            }
+        }
 
         //Get NuGet packages from reading packages.config
         public override IEnumerable<OSSIndexQueryObject> GetPackages(params string[] o)

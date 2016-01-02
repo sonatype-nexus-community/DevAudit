@@ -29,7 +29,7 @@ namespace WinAudit.AuditLibrary
             this.ApiVersion = api_version;
         }
                              
-        public async Task<IEnumerable<OSSIndexArtifact>> Search(string package_manager, OSSIndexQueryObject package)
+        public async Task<IEnumerable<OSSIndexArtifact>> SearchAsync(string package_manager, OSSIndexQueryObject package)
         {
             using (HttpClient client = new HttpClient())
             {
@@ -52,7 +52,8 @@ namespace WinAudit.AuditLibrary
             }
         }
 
-        public async Task<IEnumerable<OSSIndexArtifact>> SearchAsync(string package_manager, IEnumerable<OSSIndexQueryObject> packages)
+        public async Task<IEnumerable<OSSIndexArtifact>> SearchAsync(string package_manager, IEnumerable<OSSIndexQueryObject> packages, 
+            Func<List<OSSIndexArtifact>, List<OSSIndexArtifact>> transform = null)
         {
             using (HttpClient client = new HttpClient())
             {
@@ -66,20 +67,14 @@ namespace WinAudit.AuditLibrary
                 {
                     string r = await response.Content.ReadAsStringAsync();
                     List<OSSIndexArtifact> results = JsonConvert.DeserializeObject<List<OSSIndexArtifact>>(r);
-                    results.ForEach(result =>
+                    if (transform == null)
                     {
-                        if (!string.IsNullOrEmpty(result.ProjectId) && string.IsNullOrEmpty(result.SCMId))
-                        {
-                            result.SCMId = result.ProjectId;
-                        }
-                        else if (string.IsNullOrEmpty(result.ProjectId) && !string.IsNullOrEmpty(result.SCMId))
-                        {
-                            result.ProjectId = result.SCMId;
-                        }
-
-                    })
-                    ;
-                    return results;
+                        return results;
+                    }
+                    else
+                    {
+                        return transform(results);
+                    }
                 }
                 else
                 {

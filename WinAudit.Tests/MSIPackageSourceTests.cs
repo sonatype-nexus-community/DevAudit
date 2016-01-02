@@ -16,7 +16,7 @@ namespace WinAudit.Tests
         [Fact]
         public void CanGetMSIPackages()
         {
-            Task<IEnumerable<OSSIndexQueryObject>> packages_task = msi.GetPackagesTask;
+            Task<IEnumerable<OSSIndexQueryObject>> packages_task = msi.PackagesTask;
             Assert.NotEmpty(packages_task.Result);
             Assert.NotEmpty(packages_task.Result.Where(p => p.PackageManager == "msi"));
             Assert.NotEmpty(packages_task.Result.Where(p => !string.IsNullOrEmpty(p.Vendor) && p.Vendor.StartsWith("Microsoft")));

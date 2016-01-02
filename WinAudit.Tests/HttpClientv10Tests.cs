@@ -16,7 +16,7 @@ namespace WinAudit.Tests
         public async Task CanSearch()
         {
             OSSIndexQueryObject q1 = new OSSIndexQueryObject("nuget", "AjaxControlToolkit", "7.1213.0", "");
-            IEnumerable<OSSIndexArtifact> r1 = await http_client.Search("nuget", q1);
+            IEnumerable<OSSIndexArtifact> r1 = await http_client.SearchAsync("nuget", q1);
             Assert.NotEmpty(r1);
         }
 

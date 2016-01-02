@@ -16,7 +16,7 @@ namespace WinAudit.Tests
         [Fact]
         public void CanGetOneGetPackages()
         {
-            Task<IEnumerable<OSSIndexQueryObject>> packages_task = oneget.GetPackagesTask;
+            Task<IEnumerable<OSSIndexQueryObject>> packages_task = oneget.PackagesTask;
             Assert.NotEmpty(packages_task.Result);
             Assert.NotEmpty(packages_task.Result.Where(p => p.PackageManager == "msu"));
         }

@@ -20,7 +20,7 @@ namespace WinAudit.Tests
         [Fact]
         public void CanGetBowerPackages()
         {
-            Task<IEnumerable<OSSIndexQueryObject>> packages_task = bower.GetPackagesTask;
+            Task<IEnumerable<OSSIndexQueryObject>> packages_task = bower.PackagesTask;
             Assert.NotEmpty(packages_task.Result);
             Assert.NotEmpty(packages_task.Result.Where(p => p.PackageManager == "bower"));
         }

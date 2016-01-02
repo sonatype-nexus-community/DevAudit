@@ -89,5 +89,7 @@ namespace WinAudit.AuditLibrary
             return packages;
         }
 
+        public override Func<List<OSSIndexArtifact>, List<OSSIndexArtifact>> ArtifactsTransform { get; } = null;
+
     }
 }

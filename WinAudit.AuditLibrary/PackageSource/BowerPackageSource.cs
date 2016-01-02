@@ -44,5 +44,7 @@ namespace WinAudit.AuditLibrary
             }
         }
 
+        public override Func<List<OSSIndexArtifact>, List<OSSIndexArtifact>> ArtifactsTransform { get; } = null;
+
     }
 }
