@@ -118,7 +118,7 @@ namespace WinAudit.AuditLibrary
                                 {
                                     OSSIndexArtifact artifact = o as OSSIndexArtifact;
                                     OSSIndexProject project = await this.HttpClient.GetProjectForIdAsync(artifact.ProjectId);
-                                    project.Package = this.Packages.Where(pk => pk.Name == artifact.PackageName && pk.Version == artifact.Version).First();
+                                    project.Package = this.Packages.Where(pk => pk.Name == artifact.PackageName/* && pk.Version == artifact.Version*/).First();
                                     IEnumerable<OSSIndexProjectVulnerability> v = await this.HttpClient.GetVulnerabilitiesForIdAsync(project.Id.ToString());
                                     return this.AddVulnerability(project, v);
                                 },

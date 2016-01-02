@@ -23,7 +23,7 @@ namespace WinAudit.AuditLibrary
         public string PackageManager { get; set; }
 
         [JsonProperty("package")]
-        public string Package { get; set; }
+        public string PackageUrl { get; set; }
 
         [JsonProperty("package_id")]
         public string PackageId { get; set; }

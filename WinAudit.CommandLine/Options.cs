@@ -41,6 +41,8 @@ namespace WinAudit.CommandLine
         [Option('a', "list-artifacts", Required = false, HelpText = "Only list the artifacts corresponding to local packages found on OSS Index.")]
         public bool ListArtifacts { get; set; }
 
+        [Option('n', "non-interact", Required = false, HelpText = "Disable any interctive console output (for redirecting console output to other devices.)")]
+        public bool NonInteractive { get; set; }
 
         [ParserState]
         public IParserState LastParserState { get; set; }

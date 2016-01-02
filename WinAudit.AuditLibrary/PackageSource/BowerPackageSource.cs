@@ -80,12 +80,25 @@ namespace WinAudit.AuditLibrary
             }
             switch (op)
             {
+                case "":
+                    return compare_to_range_version == range_version;
                 case "<":
                     return compare_to_range_version < range_version;
                 case "<=":
                     return compare_to_range_version < range_version;
+                case ">":
+                    return compare_to_range_version > range_version;
+                case ">=":
+                    return compare_to_range_version >= range_version;
+                    //case "~":
+                    //if (range_version.Major != compare_to_range_version.Major) return false;
+                    //major matches
+                    //else if (range_version.Minor == 0 && compare_to_range_version > 0) return true;
+                    
+                    //else if (range_version.Minor == 0 && range_version.Patch == 0 && compare_to_range_version.Patch > 0) return true;
+                    //else if (range_version.Patch == )
                 default:
-                    return compare_to_range_version == range_version;
+                    throw new Exception("Unimplemented range operator: " + op + ".");
             }
         };
     }

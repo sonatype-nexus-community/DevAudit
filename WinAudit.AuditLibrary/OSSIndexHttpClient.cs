@@ -67,7 +67,8 @@ namespace WinAudit.AuditLibrary
                 {
                     string r = await response.Content.ReadAsStringAsync();
                     List<OSSIndexArtifact> results = JsonConvert.DeserializeObject<List<OSSIndexArtifact>>(r);
-                    if (transform == null)
+                    
+                    if (results.Count() == 0 || transform == null)
                     {
                         return results;
                     }
