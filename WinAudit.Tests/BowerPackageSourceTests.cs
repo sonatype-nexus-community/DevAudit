@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 using Xunit;
@@ -23,6 +24,31 @@ namespace WinAudit.Tests
             Task<IEnumerable<OSSIndexQueryObject>> packages_task = bower.PackagesTask;
             Assert.NotEmpty(packages_task.Result);
             Assert.NotEmpty(packages_task.Result.Where(p => p.PackageManager == "bower"));
+        }
+
+        [Fact]
+        public void CanParsePackageVersions()
+        {
+            
+            Regex parse = new Regex(@"^(~+|<+=?|>+=?)(.*)", RegexOptions.Compiled);
+            Regex parse_ex = new Regex(@"^(?<range>~+|<+=?|>+=?)" +
+                @"(?<ver>(\d+)" +
+                @"(\.(\d+))?" +
+                @"(\.(\d+))?" +
+                @"(\-([0-9A-Za-z\-\.]+))?" +
+                @"(\+([0-9A-Za-z\-\.]+))?)$",
+                RegexOptions.CultureInvariant | RegexOptions.Compiled | RegexOptions.ExplicitCapture);
+            Match m = parse_ex.Match("~1.2.3");
+            Assert.True(m.Success);
+            Assert.Equal(m.Groups[1].Value, "~");
+            m = parse.Match("<=1.2.3");
+            Assert.True(m.Success);
+            Assert.Equal(m.Groups[1].Value, "<=");
+            m = parse.Match("<1.2.3");
+            Assert.True(m.Success);
+            Assert.Equal(m.Groups[1].Value, "<");
+            Assert.True(bower.PackageVersionInRange("1.2.2", "1.2.2"));
+            Assert.True(bower.PackageVersionInRange("<1.2.2", "1.2.1"));
         }
     }
 }

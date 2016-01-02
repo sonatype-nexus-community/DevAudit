@@ -37,6 +37,8 @@ namespace WinAudit.AuditLibrary
             }
         }
 
+        public override Func<string, string, bool> PackageVersionInRange { get; } = null;
+
         //Get NuGet packages from reading packages.config
         public override IEnumerable<OSSIndexQueryObject> GetPackages(params string[] o)
         {

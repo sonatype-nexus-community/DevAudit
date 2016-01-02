@@ -123,5 +123,7 @@ namespace WinAudit.AuditLibrary
         }
 
         public override Func<List<OSSIndexArtifact>, List<OSSIndexArtifact>> ArtifactsTransform { get; } = null;
+
+        public override Func<string, string, bool> PackageVersionInRange { get; } = null;
     }
 }

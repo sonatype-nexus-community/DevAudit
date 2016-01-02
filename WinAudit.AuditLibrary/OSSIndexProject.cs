@@ -27,6 +27,9 @@ namespace WinAudit.AuditLibrary
 
         [JsonProperty("vulnerabilities")]
         public string Vulnerabilities { get; set; }
+
+        [JsonIgnore]
+        public OSSIndexQueryObject Package { get; set; }
     }
 
 }
