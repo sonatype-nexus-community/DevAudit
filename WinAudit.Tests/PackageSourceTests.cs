@@ -43,7 +43,7 @@ namespace WinAudit.Tests
                 Task.WaitAll(s.VulnerabilitiesTask.ToArray());
             }
             
-            catch (AggregateException ae)
+            catch (AggregateException)
             {
 
             }

@@ -43,9 +43,13 @@ namespace WinAudit.AuditLibrary
         [JsonProperty("details")]
         public string Details { get; set; }
 
-        [JsonProperty()]
-        public string Dependencies { get; set; }
+        [JsonProperty("dependencies")]
+        public string DependenciesUrl { get; set; }
 
-        public OSSIndexArtifact() { }
+        [JsonProperty("search")]
+        public List<string> Search { get; set; }
+
+        [JsonIgnore]
+        public OSSIndexQueryObject Package { get; set; }
     }
 }

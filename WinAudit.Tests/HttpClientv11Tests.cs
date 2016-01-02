@@ -20,9 +20,10 @@ namespace WinAudit.Tests
 
             IEnumerable<OSSIndexArtifact> r1 = await http_client.SearchAsync("msi", q1);
             Assert.NotEmpty(r1);
+            Assert.True(r1.All(r => r.Package != null && !string.IsNullOrEmpty(r.Package.Name) && !string.IsNullOrEmpty(r.Package.Version)));
             IEnumerable<OSSIndexArtifact> r2 = await http_client.SearchAsync("msi", new List<OSSIndexQueryObject>() { q1, q2 });
             Assert.NotEmpty(r2);
-            
+            Assert.True(r2.All(r => r.Package != null && !string.IsNullOrEmpty(r.Package.Name) && !string.IsNullOrEmpty(r.Package.Version)));
         }
 
         [Fact]

@@ -18,6 +18,7 @@ namespace WinAudit.Tests
             OSSIndexQueryObject q1 = new OSSIndexQueryObject("nuget", "AjaxControlToolkit", "7.1213.0", "");
             IEnumerable<OSSIndexArtifact> r1 = await http_client.SearchAsync("nuget", q1);
             Assert.NotEmpty(r1);
+            Assert.NotNull(r1.First().Package);
         }
 
         [Fact]

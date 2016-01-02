@@ -47,7 +47,7 @@ namespace WinAudit.Tests
             m = parse.Match("<1.2.3");
             Assert.True(m.Success);
             Assert.Equal(m.Groups[1].Value, "<");
-            Assert.True(bower.PackageVersionInRange("1.2.2", "1.2"));
+            Assert.True(bower.PackageVersionInRange(">1.2", "1.2.2"));
             Assert.True(bower.PackageVersionInRange("<=4.3", "4.2"));
             Assert.True(bower.PackageVersionInRange("<1.2.2", "1.2.1"));
             Assert.True(bower.PackageVersionInRange(">12.2.2", "20.0.0"));

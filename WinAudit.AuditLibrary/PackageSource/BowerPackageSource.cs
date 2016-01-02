@@ -85,7 +85,7 @@ namespace WinAudit.AuditLibrary
                 case "<":
                     return compare_to_range_version < range_version;
                 case "<=":
-                    return compare_to_range_version < range_version;
+                    return compare_to_range_version <= range_version;
                 case ">":
                     return compare_to_range_version > range_version;
                 case ">=":

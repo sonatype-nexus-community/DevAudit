@@ -70,7 +70,7 @@ namespace WinAudit.CommandLine
                 {
                     if (!File.Exists(ProgramOptions.File))
                     {
-                        PrintErrorMessage("Error in parameter: Could not find file {0}", ProgramOptions.File);
+                        PrintErrorMessage("Error in parameter: Could not find file {0}.", ProgramOptions.File);
                         return (int)ExitCodes.INVALID_ARGUMENTS;
                     }
                     else
@@ -202,7 +202,7 @@ namespace WinAudit.CommandLine
                     }
                     projects_successful++;
                     OSSIndexProject p = vulnerabilities.Key;
-                    OSSIndexArtifact a = Source.Artifacts.First(sa => sa.ProjectId == p.Id.ToString());
+                    OSSIndexArtifact a = Source.Artifacts.First(sa => sa.Package.Name == p.Package.Name && sa.Package.Version == p.Package.Version);
                     Console.ForegroundColor = ConsoleColor.White;
                     Console.Write("[{0}/{1}] {2}", projects_processed, projects_count, a.PackageName);
                     Console.ForegroundColor = ConsoleColor.Yellow;

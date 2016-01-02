@@ -42,8 +42,13 @@ namespace WinAudit.AuditLibrary
                 if (response.IsSuccessStatusCode)
                 {
                     string r = await response.Content.ReadAsStringAsync();
-                    return await Task.Factory.StartNew<IEnumerable<OSSIndexArtifact>>(() =>
-                    { return JsonConvert.DeserializeObject<IEnumerable<OSSIndexArtifact>>(r); });
+                    List<OSSIndexArtifact> artifacts = JsonConvert.DeserializeObject<List<OSSIndexArtifact>>(r);
+                    artifacts.ForEach(a =>
+                    {
+                        if (a.Search == null || a.Search.Count() != 4) throw new Exception("Did not receive expected Search field properties for artifact.");
+                        a.Package = new OSSIndexQueryObject(a.Search[0], a.Search[1], a.Search[3], "");
+                    });
+                    return artifacts;
                 }
                 else
                 {
@@ -66,15 +71,22 @@ namespace WinAudit.AuditLibrary
                 if (response.IsSuccessStatusCode)
                 {
                     string r = await response.Content.ReadAsStringAsync();
-                    List<OSSIndexArtifact> results = JsonConvert.DeserializeObject<List<OSSIndexArtifact>>(r);
-                    
-                    if (results.Count() == 0 || transform == null)
+                    List<OSSIndexArtifact> artifacts = JsonConvert.DeserializeObject<List<OSSIndexArtifact>>(r);
+                    artifacts.Where(a => !string.IsNullOrEmpty(a.ProjectId)).ToList().ForEach(a =>
                     {
-                        return results;
+                        if (a.Search == null || a.Search.Count() != 4)
+                            throw new Exception("Did not receive expected Search field properties for artifact name: " + a.PackageName + " id: " + 
+                                a.PackageId + " project id: " + a.ProjectId + ".");
+                        a.Package = new OSSIndexQueryObject(a.Search[0], a.Search[1], a.Search[3], "");
+                    });
+
+                    if (artifacts.Count() == 0 || transform == null)
+                    {
+                        return artifacts;
                     }
                     else
                     {
-                        return transform(results);
+                        return transform(artifacts);
                     }
                 }
                 else
