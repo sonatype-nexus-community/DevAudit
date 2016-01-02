@@ -21,22 +21,21 @@ namespace WinAudit.Tests
         [Fact]
         public override async Task CanGetProjects()
         {
-            OSSIndexHttpClient http_client = new OSSIndexHttpClient("1.0");
-            OSSIndexProject p1 = await http_client.GetProjectForIdAsync("284089289");
+            OSSIndexHttpClient http_client = new OSSIndexHttpClient("1.1");
+            OSSIndexProject p1 = await http_client.GetProjectForIdAsync("8396831047");
             Assert.NotNull(p1);
-            Assert.Equal(p1.Id, 284089289);
-            Assert.Equal(p1.Name, "ajaxcontroltoolkit");
-            Assert.Equal(p1.HasVulnerability, true);
-            Assert.Equal(p1.Vulnerabilities, "https://ossindex.net/v1.0/scm/284089289/vulnerabilities");
+            Assert.Equal(p1.Id, 8396831047);
+            Assert.Equal(p1.Name, "Modernizr");
+            Assert.Equal(p1.HasVulnerability, false);
         }
 
         [Fact]
         public override async Task CanGetVulnerabilities()
         {
-            OSSIndexHttpClient http_client = new OSSIndexHttpClient("1.0");
-            List<OSSIndexProjectVulnerability> v1 = (await http_client.GetVulnerabilitiesForIdAsync("284089289")).ToList();
+            OSSIndexHttpClient http_client = new OSSIndexHttpClient("1.1");
+            List<OSSIndexProjectVulnerability> v1 = (await http_client.GetVulnerabilitiesForIdAsync("8396559329")).ToList();
             Assert.NotNull(v1);
-            Assert.Equal(v1[1].Title, "CVE-2015-4670] Improper Limitation of a Pathname to a Restricted Directory");
+            Assert.True(v1.Any(v => v.Uri == "cve:/CVE-2011-4969"));
         }
 
     }

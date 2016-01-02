@@ -10,20 +10,34 @@ using WinAudit.AuditLibrary;
 
 namespace WinAudit.Tests
 {
-    public class BowerPackageSourceTests
+    public class BowerPackageSourceTests : PackageSourceTests
     {
-        protected PackageSource bower = new BowerPackageSource();
+        protected override PackageSource s { get; } = new BowerPackageSource();
         
         public BowerPackageSourceTests()
         {
-            bower.PackageSourceOptions.Add("File", @".\bower.json.example");
+            s.PackageSourceOptions.Add("File", @".\bower.json.example");
         }
+
         [Fact]
-        public void CanGetBowerPackages()
+        public override async Task CanGetProjects()
         {
-            Task<IEnumerable<OSSIndexQueryObject>> packages_task = bower.PackagesTask;
-            Assert.NotEmpty(packages_task.Result);
-            Assert.NotEmpty(packages_task.Result.Where(p => p.PackageManager == "bower"));
+            OSSIndexHttpClient http_client = new OSSIndexHttpClient("1.1");
+            OSSIndexProject p1 = await http_client.GetProjectForIdAsync("8396559329");
+            Assert.NotNull(p1);
+            Assert.Equal(p1.Id, 8396559329);
+            Assert.Equal(p1.Name, "JQuery");
+            Assert.Equal(p1.HasVulnerability, true);
+            Assert.Equal(p1.Vulnerabilities, "https://ossindex.net/v1.1/project/8396559329/vulnerabilities");
+        }
+
+        [Fact]
+        public override async Task CanGetVulnerabilities()
+        {
+            OSSIndexHttpClient http_client = new OSSIndexHttpClient("1.0");
+            List<OSSIndexProjectVulnerability> v1 = (await http_client.GetVulnerabilitiesForIdAsync("284089289")).ToList();
+            Assert.NotNull(v1);
+            Assert.Equal(v1[1].Title, "CVE-2015-4670] Improper Limitation of a Pathname to a Restricted Directory");
         }
 
         [Fact]
@@ -47,10 +61,10 @@ namespace WinAudit.Tests
             m = parse.Match("<1.2.3");
             Assert.True(m.Success);
             Assert.Equal(m.Groups[1].Value, "<");
-            Assert.True(bower.PackageVersionInRange(">1.2", "1.2.2"));
-            Assert.True(bower.PackageVersionInRange("<=4.3", "4.2"));
-            Assert.True(bower.PackageVersionInRange("<1.2.2", "1.2.1"));
-            Assert.True(bower.PackageVersionInRange(">12.2.2", "20.0.0"));
+            Assert.True(s.PackageVersionInRange(">1.2", "1.2.2"));
+            Assert.True(s.PackageVersionInRange("<=4.3", "4.2"));
+            Assert.True(s.PackageVersionInRange("<1.2.2", "1.2.1"));
+            Assert.True(s.PackageVersionInRange(">12.2.2", "20.0.0"));
         }
     }
 }

@@ -29,7 +29,7 @@ namespace WinAudit.AuditLibrary
             this.ApiVersion = api_version;
         }
                              
-        public async Task<IEnumerable<OSSIndexArtifact>> SearchAsync(string package_manager, OSSIndexQueryObject package)
+        public async Task<IEnumerable<OSSIndexArtifact>> SearchAsync(string package_manager, OSSIndexQueryObject package, Func<List<OSSIndexArtifact>, List<OSSIndexArtifact>> transform = null)
         {
             using (HttpClient client = new HttpClient())
             {
@@ -43,12 +43,14 @@ namespace WinAudit.AuditLibrary
                 {
                     string r = await response.Content.ReadAsStringAsync();
                     List<OSSIndexArtifact> artifacts = JsonConvert.DeserializeObject<List<OSSIndexArtifact>>(r);
-                    artifacts.ForEach(a =>
+                    if (artifacts.Count() == 0 || transform == null)
                     {
-                        if (a.Search == null || a.Search.Count() != 4) throw new Exception("Did not receive expected Search field properties for artifact.");
-                        a.Package = new OSSIndexQueryObject(a.Search[0], a.Search[1], a.Search[3], "");
-                    });
-                    return artifacts;
+                        return artifacts;
+                    }
+                    else
+                    {
+                        return transform(artifacts);
+                    }
                 }
                 else
                 {
@@ -72,14 +74,6 @@ namespace WinAudit.AuditLibrary
                 {
                     string r = await response.Content.ReadAsStringAsync();
                     List<OSSIndexArtifact> artifacts = JsonConvert.DeserializeObject<List<OSSIndexArtifact>>(r);
-                    artifacts.Where(a => !string.IsNullOrEmpty(a.ProjectId)).ToList().ForEach(a =>
-                    {
-                        if (a.Search == null || a.Search.Count() != 4)
-                            throw new Exception("Did not receive expected Search field properties for artifact name: " + a.PackageName + " id: " + 
-                                a.PackageId + " project id: " + a.ProjectId + ".");
-                        a.Package = new OSSIndexQueryObject(a.Search[0], a.Search[1], a.Search[3], "");
-                    });
-
                     if (artifacts.Count() == 0 || transform == null)
                     {
                         return artifacts;

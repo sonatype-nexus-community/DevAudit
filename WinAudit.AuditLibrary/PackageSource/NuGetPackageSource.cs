@@ -27,18 +27,20 @@ namespace WinAudit.AuditLibrary
 
         public override string PackageManagerLabel { get { return "NuGet"; } }
 
-        public override Func<List<OSSIndexArtifact>, List<OSSIndexArtifact>> ArtifactsTransform
+        public override Func<List<OSSIndexArtifact>, List<OSSIndexArtifact>> ArtifactsTransform { get; } = (artifacts) =>
         {
-            get
+            artifacts.Where(a => !string.IsNullOrEmpty(a.ProjectId)).ToList().ForEach(a =>
             {
-                /* return (list) =>
-                 {
-                     list.ForEach(a => { if (a.ProjectId == null) a.ProjectId = a.SCMId; });
-                     return list;
-                 }; */
-                return null;
-            }
-        }
+                if (a.Search == null || a.Search.Count() != 4)
+                {
+                    //throw new Exception("Did not receive expected Search field properties for artifact name: " + a.PackageName + " id: " +
+                    //    a.PackageId + " project id: " + a.ProjectId + ".");
+                    a.Package = new OSSIndexQueryObject(a.PackageManager, a.PackageName, "", "");
+                }
+                else a.Package = new OSSIndexQueryObject(a.Search[0], a.Search[1], a.Search[3], "");
+            });
+            return artifacts;
+        };
 
         public override Func<string, string, bool> PackageVersionInRange { get; } = (range, compare_to_range) =>
         {

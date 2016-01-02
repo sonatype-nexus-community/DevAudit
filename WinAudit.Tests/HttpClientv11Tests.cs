@@ -8,26 +8,39 @@ using Xunit;
 using WinAudit.AuditLibrary;
 namespace WinAudit.Tests
 {
-    public class HttpClientv11Tests
+    public class HttpClientv11Tests : HttpClientTests
     {
-        protected OSSIndexHttpClient http_client = new OSSIndexHttpClient("1.1");
+        protected override OSSIndexHttpClient http_client { get; } = new OSSIndexHttpClient("1.1");
     
         [Fact]
-        public async Task CanSearch()
+        public override async Task CanSearch()
         {
             OSSIndexQueryObject q1 = new OSSIndexQueryObject("msi", "Adobe Reader", "11.0.10", "");
             OSSIndexQueryObject q2 = new OSSIndexQueryObject("msi", "Adobe Reader", "10.1.1", "");
-
-            IEnumerable<OSSIndexArtifact> r1 = await http_client.SearchAsync("msi", q1);
+            Func<List<OSSIndexArtifact>, List<OSSIndexArtifact>> transform = (artifacts) =>
+            {
+                artifacts.Where(a => !string.IsNullOrEmpty(a.ProjectId)).ToList().ForEach(a =>
+                {
+                    if (a.Search == null || a.Search.Count() != 4)
+                    {
+                        //throw new Exception("Did not receive expected Search field properties for artifact name: " + a.PackageName + " id: " +
+                        //    a.PackageId + " project id: " + a.ProjectId + ".");
+                        a.Package = new OSSIndexQueryObject(a.PackageManager, a.PackageName, "", "");
+                    }
+                    else a.Package = new OSSIndexQueryObject(a.Search[0], a.Search[1], a.Search[3], "");
+                });
+                return artifacts;
+            };
+            IEnumerable<OSSIndexArtifact> r1 = await http_client.SearchAsync("msi", q1, transform);
             Assert.NotEmpty(r1);
             Assert.True(r1.All(r => r.Package != null && !string.IsNullOrEmpty(r.Package.Name) && !string.IsNullOrEmpty(r.Package.Version)));
-            IEnumerable<OSSIndexArtifact> r2 = await http_client.SearchAsync("msi", new List<OSSIndexQueryObject>() { q1, q2 });
+            IEnumerable<OSSIndexArtifact> r2 = await http_client.SearchAsync("msi", new List<OSSIndexQueryObject>() { q1, q2 }, transform);
             Assert.NotEmpty(r2);
             Assert.True(r2.All(r => r.Package != null && !string.IsNullOrEmpty(r.Package.Name) && !string.IsNullOrEmpty(r.Package.Version)));
         }
 
         [Fact]
-        public async Task CanGetProject()
+        public override async Task CanGetProject()
         {
             OSSIndexQueryObject q1 = new OSSIndexQueryObject("msi", "Adobe Reader", "11.0.10", "");
             IEnumerable<OSSIndexArtifact> r1 = await http_client.SearchAsync("msi", q1);
@@ -40,7 +53,7 @@ namespace WinAudit.Tests
         }
 
         [Fact]
-        public async Task CanGetVulnerabilityForId()
+        public override async Task CanGetVulnerabilityForId()
         {
             IEnumerable<OSSIndexProjectVulnerability> v = await http_client.GetVulnerabilitiesForIdAsync("8396797903");
             Assert.NotEmpty(v);

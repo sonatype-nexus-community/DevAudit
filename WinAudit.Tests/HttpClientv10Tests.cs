@@ -6,23 +6,39 @@ using System.Threading.Tasks;
 
 using Xunit;
 using WinAudit.AuditLibrary;
+
 namespace WinAudit.Tests
 {
-    public class HttpClientv10Tests
+    public class HttpClientv10Tests : HttpClientTests
     {
-        protected OSSIndexHttpClient http_client = new OSSIndexHttpClient("1.0");
+        protected override OSSIndexHttpClient http_client { get; } = new OSSIndexHttpClient("1.0");
 
         [Fact]
-        public async Task CanSearch()
+        public override async Task CanSearch()
         {
             OSSIndexQueryObject q1 = new OSSIndexQueryObject("nuget", "AjaxControlToolkit", "7.1213.0", "");
-            IEnumerable<OSSIndexArtifact> r1 = await http_client.SearchAsync("nuget", q1);
+            Func<List<OSSIndexArtifact>, List<OSSIndexArtifact>> transform = (artifacts) =>
+            {
+                artifacts.Where(a => !string.IsNullOrEmpty(a.SCMId)).ToList().ForEach(a =>
+                {
+                    if (a.Search == null || a.Search.Count() != 4)
+                    {
+                        //throw new Exception("Did not receive expected Search field properties for artifact name: " + a.PackageName + " id: " +
+                        //    a.PackageId + " project id: " + a.ProjectId + ".");
+                        a.Package = new OSSIndexQueryObject(a.PackageManager, a.PackageName, "", "");
+                    }
+                    else a.Package = new OSSIndexQueryObject(a.Search[0], a.Search[1], a.Search[3], "");
+                });
+                return artifacts;
+            };
+
+            IEnumerable<OSSIndexArtifact> r1 = await http_client.SearchAsync("nuget", q1, transform);
             Assert.NotEmpty(r1);
             Assert.NotNull(r1.First().Package);
         }
 
         [Fact]
-        public async Task CanParallelGetProjects()
+        public override async Task CanGetProject()
         {
             List<OSSIndexHttpException> http_errors = new List<OSSIndexHttpException>();
             Task<OSSIndexProject>[] t =
@@ -44,7 +60,7 @@ namespace WinAudit.Tests
         }
 
         [Fact]
-        public async Task CanGetVulnerabilityForId()
+        public async override Task CanGetVulnerabilityForId()
         {
             IEnumerable<OSSIndexProjectVulnerability> v = await http_client.GetVulnerabilitiesForIdAsync("284089289");
             Assert.NotEmpty(v);
