@@ -29,7 +29,7 @@ namespace WinAudit.AuditLibrary
             this.ApiVersion = api_version;
         }
                              
-        public async Task<IEnumerable<OSSIndexArtifact>> SearchAsync(string package_manager, OSSIndexQueryObject package, Func<List<OSSIndexArtifact>, List<OSSIndexArtifact>> transform = null)
+        public async Task<IEnumerable<OSSIndexArtifact>> SearchAsync(string package_manager, OSSIndexQueryObject package, Func<List<OSSIndexArtifact>, List<OSSIndexArtifact>> transform)
         {
             using (HttpClient client = new HttpClient())
             {
@@ -92,6 +92,7 @@ namespace WinAudit.AuditLibrary
 
         public async Task<OSSIndexProject> GetProjectForIdAsync(string id)
         {
+            if (string.IsNullOrEmpty(id))throw new ArgumentNullException("Project id is null or empty.");
             using (HttpClient client = new HttpClient())
             {
                 client.BaseAddress = new Uri(@"https://ossindex.net/");
@@ -110,10 +111,8 @@ namespace WinAudit.AuditLibrary
                     throw new OSSIndexHttpException(id, response.StatusCode, response.ReasonPhrase, response.RequestMessage);
                 }
             }
-
-
         }
-    
+
         public async Task<IEnumerable<OSSIndexProjectVulnerability>> GetVulnerabilitiesForIdAsync(string id)
         {
             using (HttpClient client = new HttpClient())

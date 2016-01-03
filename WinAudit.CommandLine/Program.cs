@@ -179,9 +179,14 @@ namespace WinAudit.CommandLine
                         Console.ForegroundColor = ConsoleColor.DarkRed;
                         Console.Write("No project id found.\n");
                         Console.ResetColor();
-
                     }
                 }
+                return 0;
+            }
+            if (Source.Artifacts.Count(r => !string.IsNullOrEmpty(r.ProjectId)) == 0)
+            {
+                Console.WriteLine("No found artifacts have associated projects.");
+                Console.WriteLine("No vulnerability data for you packages currently exists in OSS Index, exiting.");
                 return 0;
             }
             Console.WriteLine("Searching OSS Index for vulnerabilities for {0} projects...", Source.Artifacts.Count(r => !string.IsNullOrEmpty(r.ProjectId)));
@@ -202,7 +207,7 @@ namespace WinAudit.CommandLine
                     }
                     projects_successful++;
                     OSSIndexProject p = vulnerabilities.Key;
-                    OSSIndexArtifact a = Source.Artifacts.First(sa => sa.PackageName == p.Package.Name);
+                    OSSIndexArtifact a = Source.Artifacts.First(sa => sa.Package.Name == p.Package.Name && sa.Package.Version == p.Package.Version);
                     Console.ForegroundColor = ConsoleColor.White;
                     Console.Write("[{0}/{1}] {2}", projects_processed, projects_count, a.PackageName);
                     Console.ForegroundColor = ConsoleColor.Yellow;
@@ -273,7 +278,6 @@ namespace WinAudit.CommandLine
                     Source.VulnerabilitiesTask.RemoveAll(t => t.Status == TaskStatus.Faulted || t.Status == TaskStatus.Canceled);
                 }
             }
-            
             return 0;
         }
            

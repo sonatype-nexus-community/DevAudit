@@ -112,6 +112,7 @@ namespace WinAudit.AuditLibrary
                                     project.Package = artifact.Package;
                                     IEnumerable<OSSIndexProjectVulnerability> v = await this.HttpClient.GetVulnerabilitiesForIdAsync(project.Id.ToString());
                                     return this.AddVulnerability(project, v);
+                                    
                                 },
                                 p, CancellationToken.None, TaskCreationOptions.DenyChildAttach, TaskScheduler.Default).Unwrap()));
                                 
