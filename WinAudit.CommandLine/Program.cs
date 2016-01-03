@@ -202,7 +202,7 @@ namespace WinAudit.CommandLine
                     }
                     projects_successful++;
                     OSSIndexProject p = vulnerabilities.Key;
-                    OSSIndexArtifact a = Source.Artifacts.First(sa => sa.Package.Name == p.Package.Name && sa.Package.Version == p.Package.Version);
+                    OSSIndexArtifact a = Source.Artifacts.First(sa => sa.PackageName == p.Package.Name);
                     Console.ForegroundColor = ConsoleColor.White;
                     Console.Write("[{0}/{1}] {2}", projects_processed, projects_count, a.PackageName);
                     Console.ForegroundColor = ConsoleColor.Yellow;
@@ -216,20 +216,22 @@ namespace WinAudit.CommandLine
                     else
                     {
                         List<OSSIndexProjectVulnerability> found_vulnerabilities = new List<OSSIndexProjectVulnerability>(vulnerabilities.Value.Count());
-                        foreach (OSSIndexProjectVulnerability vulnerability in vulnerabilities.Value)
+                        foreach (OSSIndexProjectVulnerability vulnerability in vulnerabilities.Value.GroupBy(v => new { v.CVEId, v.Uri, v.Title, v.Summary }).SelectMany(v => v).ToList())
                         {
                             if (vulnerability.Versions.Any(v => Source.PackageVersionInRange(p.Package.Version, v)))
                             {
                                 found_vulnerabilities.Add(vulnerability);
                             }
                         }
+                        //found_vulnerabilities = found_vulnerabilities.GroupBy(v => new { v.CVEId, v.Uri, v.Title, v.Summary }).SelectMany(v => v).ToList();
                         if (found_vulnerabilities.Count() > 0)
                         {
                             Console.ForegroundColor = ConsoleColor.Red;
                             Console.WriteLine("[VULNERABLE]");
                         }
                         Console.ForegroundColor = ConsoleColor.DarkGray;
-                        Console.Write("{0} known vulnerabilities, ", vulnerabilities.Value.Count());
+                        Console.Write("{0} distinct ({1} total) known vulnerabilities, ", vulnerabilities.Value.GroupBy(v => new { v.CVEId, v.Uri, v.Title, v.Summary }).SelectMany(v => v).Count(),
+                            vulnerabilities.Value.Count());
                         Console.WriteLine("{0} affecting installed version.", found_vulnerabilities.Count());
                         found_vulnerabilities.ForEach(v =>
                         {

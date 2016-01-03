@@ -60,7 +60,7 @@ namespace WinAudit.AuditLibrary
         }
 
         public async Task<IEnumerable<OSSIndexArtifact>> SearchAsync(string package_manager, IEnumerable<OSSIndexQueryObject> packages, 
-            Func<List<OSSIndexArtifact>, List<OSSIndexArtifact>> transform = null)
+            Func<List<OSSIndexArtifact>, List<OSSIndexArtifact>> transform)
         {
             using (HttpClient client = new HttpClient())
             {
