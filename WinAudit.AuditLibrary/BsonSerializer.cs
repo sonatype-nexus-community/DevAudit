@@ -9,7 +9,7 @@ using CSharpTest.Net.Serialization;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Bson;
 
-namespace WinAudit.CommandLine
+namespace WinAudit.AuditLibrary
 {
     public class BsonSerializer<T> : ISerializer<T>
     {

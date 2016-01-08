@@ -27,6 +27,12 @@ namespace WinAudit.AuditLibrary
 
         public override string PackageManagerLabel { get { return "NuGet"; } }
 
+        public NuGetPackageSource() : base() { }
+        public NuGetPackageSource(Dictionary<string, object> package_source_options) : base(package_source_options)
+        {
+            if (string.IsNullOrEmpty(this.PackageManagerConfigurationFile)) this.PackageManagerConfigurationFile = @".\packages.config";
+        }
+
         public override Func<List<OSSIndexArtifact>, List<OSSIndexArtifact>> ArtifactsTransform { get; } = (artifacts) =>
         {
             List<OSSIndexArtifact> o = artifacts.ToList(); 
@@ -103,15 +109,6 @@ namespace WinAudit.AuditLibrary
         //Get NuGet packages from reading packages.config
         public override IEnumerable<OSSIndexQueryObject> GetPackages(params string[] o)
         {
-            if (this.PackageSourceOptions.ContainsKey("File"))
-            {
-                this.PackageManagerConfigurationFile = (string)this.PackageSourceOptions["File"]; 
-            }
-            else
-            {
-                this.PackageManagerConfigurationFile = @".\packages.config";
-            }
-            if (!File.Exists(this.PackageManagerConfigurationFile)) throw new ArgumentException("Could not find the file " + this.PackageManagerConfigurationFile + ".");
             try
             {
                 XElement root = XElement.Load(this.PackageManagerConfigurationFile);

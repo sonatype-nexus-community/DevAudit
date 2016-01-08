@@ -118,10 +118,14 @@ namespace WinAudit.AuditLibrary
             }
             p.BeginErrorReadLine();
             p.BeginOutputReadLine();
-            p.WaitForExit();          
+            p.WaitForExit();
             p.Close();
             return packages;
         }
+
+        public OneGetPackageSource(Dictionary<string, object> package_source_options) : base(package_source_options) { }
+
+        public OneGetPackageSource() : base() { }
 
         public override Func<List<OSSIndexArtifact>, List<OSSIndexArtifact>> ArtifactsTransform { get; } = (artifacts) =>
         {

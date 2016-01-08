@@ -167,6 +167,9 @@ namespace WinAudit.AuditLibrary
             return (range == compare_to_range);
         };
 
+        public ChocolateyPackageSource() : base() { }
+        public ChocolateyPackageSource(Dictionary<string, object> package_source_options) : base(package_source_options) {}
+
 
     }
 }

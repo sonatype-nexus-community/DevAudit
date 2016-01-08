@@ -76,6 +76,9 @@ namespace WinAudit.AuditLibrary
             }
         }
 
+        public MSIPackageSource() : base() { }
+        public MSIPackageSource(Dictionary<string, object> package_source_options) : base(package_source_options) { }
+
         public override Func<List<OSSIndexArtifact>, List<OSSIndexArtifact>> ArtifactsTransform { get; } = (artifacts) =>
         {
             List<OSSIndexArtifact> o = artifacts.ToList();

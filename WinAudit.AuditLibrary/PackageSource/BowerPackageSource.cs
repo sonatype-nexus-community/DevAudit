@@ -28,15 +28,6 @@ namespace WinAudit.AuditLibrary
         //Get bower packages from reading bower.json
         public override IEnumerable<OSSIndexQueryObject> GetPackages(params string[] o)
         {
-            if (this.PackageSourceOptions.ContainsKey("File"))
-            {
-                this.PackageManagerConfigurationFile = (string)this.PackageSourceOptions["File"];
-            }
-            else
-            {
-                this.PackageManagerConfigurationFile = @".\bower.json";
-            }
-            if (!File.Exists(this.PackageManagerConfigurationFile)) throw new ArgumentException("Could not find the file " + this.PackageManagerConfigurationFile + ".");
             using (JsonTextReader r = new JsonTextReader(new StreamReader(
                         this.PackageManagerConfigurationFile)))
             {
@@ -108,16 +99,25 @@ namespace WinAudit.AuditLibrary
                     return compare_to_range_version > range_version;
                 case ">=":
                     return compare_to_range_version >= range_version;
-                    //case "~":
-                    //if (range_version.Major != compare_to_range_version.Major) return false;
-                    //major matches
-                    //else if (range_version.Minor == 0 && compare_to_range_version > 0) return true;
-                    
-                    //else if (range_version.Minor == 0 && range_version.Patch == 0 && compare_to_range_version.Patch > 0) return true;
-                    //else if (range_version.Patch == )
+                //case "~":
+                //if (range_version.Major != compare_to_range_version.Major) return false;
+                //major matches
+                //else if (range_version.Minor == 0 && compare_to_range_version > 0) return true;
+
+                //else if (range_version.Minor == 0 && range_version.Patch == 0 && compare_to_range_version.Patch > 0) return true;
+                //else if (range_version.Patch == )
                 default:
                     throw new Exception("Unimplemented range operator: " + op + ".");
             }
         };
+
+        public BowerPackageSource() : base() {}
+        public BowerPackageSource(Dictionary<string, object> package_source_options) : base(package_source_options)
+        {
+            if (string.IsNullOrEmpty(this.PackageManagerConfigurationFile))
+            {
+                this.PackageManagerConfigurationFile = @".\bower.json";
+            }
+        }
     }
 }
