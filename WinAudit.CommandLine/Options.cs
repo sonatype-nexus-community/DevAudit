@@ -44,6 +44,12 @@ namespace WinAudit.CommandLine
         [Option('n', "non-interact", Required = false, HelpText = "Disable any interctive console output (for redirecting console output to other devices.)")]
         public bool NonInteractive { get; set; }
 
+        [Option('c', "cache", Required = false, HelpText = "Cache results from querying OSS Index. Projects and vulnerabilities will be cached by default for 180 minutes or the duration specified by the --cache-ttl parameter.")]
+        public bool Cache { get; set; }
+
+        [Option('t', "cache-ttl", Required = false, HelpText = "Cache TTL - projects and vulnearabilities will be cached for the number of minutes specified here.")]
+        public string CacheTTL { get; set; }
+
         [ParserState]
         public IParserState LastParserState { get; set; }
         

@@ -6,6 +6,7 @@ using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 using Xunit;
+
 using WinAudit.AuditLibrary;
 
 namespace WinAudit.Tests
@@ -41,6 +42,15 @@ namespace WinAudit.Tests
         }
 
         [Fact]
+        public void CanTestVulnerabilityVersionInPackageVersionRange()
+        {
+            Assert.True(s.IsVulnerabilityVersionInPackageVersionRange(">1.2", "<1.5.2"));
+            Assert.True(s.IsVulnerabilityVersionInPackageVersionRange("<=4.3", "<4.2"));
+            Assert.True(s.IsVulnerabilityVersionInPackageVersionRange(">=1.2.2", ">1.2.0-alpha.0"));
+            Assert.True(s.IsVulnerabilityVersionInPackageVersionRange(">12.2.2", "<=20.0.0"));
+
+        }
+        /*
         public void CanTestPackageVersionInRange()
         {
             
@@ -65,6 +75,7 @@ namespace WinAudit.Tests
             Assert.True(s.PackageVersionInRange("<=4.3", "4.2"));
             Assert.True(s.PackageVersionInRange("<1.2.2", "1.2.1"));
             Assert.True(s.PackageVersionInRange(">12.2.2", "20.0.0"));
-        }
+            */
+    
     }
 }

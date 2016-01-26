@@ -9,7 +9,15 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WinAudit.Tests", "WinAudit.
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WinAudit.CommandLine", "WinAudit.CommandLine\WinAudit.CommandLine.csproj", "{F1407DF1-7BE3-41DF-88D3-8A752AE61BDC}"
 EndProject
+Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "SemverSharp.Shared", "..\SemverSharp\SemverSharp.Shared\SemverSharp.Shared.shproj", "{0E5684F0-3AAE-4E41-A885-F51C0528C645}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SemverSharp.Parser", "SemverSharp.Parser\SemverSharp.Parser.csproj", "{5C7F1679-B2E8-477C-885E-42225369791B}"
+EndProject
 Global
+	GlobalSection(SharedMSBuildProjectFiles) = preSolution
+		..\SemverSharp\SemverSharp.Shared\SemverSharp.Shared.projitems*{5c7f1679-b2e8-477c-885e-42225369791b}*SharedItemsImports = 4
+		..\SemverSharp\SemverSharp.Shared\SemverSharp.Shared.projitems*{0e5684f0-3aae-4e41-a885-f51c0528c645}*SharedItemsImports = 13
+	EndGlobalSection
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
 		Release|Any CPU = Release|Any CPU
@@ -27,6 +35,10 @@ Global
 		{F1407DF1-7BE3-41DF-88D3-8A752AE61BDC}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{F1407DF1-7BE3-41DF-88D3-8A752AE61BDC}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{F1407DF1-7BE3-41DF-88D3-8A752AE61BDC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5C7F1679-B2E8-477C-885E-42225369791B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5C7F1679-B2E8-477C-885E-42225369791B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5C7F1679-B2E8-477C-885E-42225369791B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5C7F1679-B2E8-477C-885E-42225369791B}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

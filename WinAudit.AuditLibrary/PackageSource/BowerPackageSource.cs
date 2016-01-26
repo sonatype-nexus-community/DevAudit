@@ -13,7 +13,9 @@ using Microsoft.Win32;
 
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-using Semver;
+
+using SemverSharp;
+
 
 namespace WinAudit.AuditLibrary
 {
@@ -37,6 +39,11 @@ namespace WinAudit.AuditLibrary
             }
         }
 
+        public override bool IsVulnerabilityVersionInPackageVersionRange(string vulnerability_version, string package_version)
+        {
+            return SemanticVersion.RangeIntersect(vulnerability_version, package_version);
+        }
+
         public override Func<List<OSSIndexArtifact>, List<OSSIndexArtifact>> ArtifactsTransform { get; } = (artifacts) =>
         {
             List<OSSIndexArtifact> o = artifacts.ToList();
@@ -56,7 +63,7 @@ namespace WinAudit.AuditLibrary
             return o;
         };
 
-
+        /*
         public override Func<string, string, bool> PackageVersionInRange { get; } = (range, compare_to_range) =>
         {
             Regex parse_ex = new Regex(@"^(?<range>~+|<+=?|>+=?)?" +
@@ -110,7 +117,7 @@ namespace WinAudit.AuditLibrary
                     throw new Exception("Unimplemented range operator: " + op + ".");
             }
         };
-
+        */
         public BowerPackageSource() : base() {}
         public BowerPackageSource(Dictionary<string, object> package_source_options) : base(package_source_options)
         {

@@ -8,8 +8,6 @@ using System.Threading.Tasks;
 
 using CL = CommandLine; //Avoid type name conflict with external CommandLine library
 using CommandLine.Text;
-using CSharpTest.Net.Collections;
-using CSharpTest.Net.Serialization;
 using Newtonsoft.Json;
 
 using WinAudit.AuditLibrary;
@@ -32,34 +30,8 @@ namespace WinAudit.CommandLine
 
         static int Main(string[] args)
         {
-            CL.Parser.Default.ParseArguments(args, ProgramOptions, (verb, options) =>
-            {
-                if (verb == "nuget")
-                {
-                    Source = new NuGetPackageSource();
-                }
-                else if (verb == "msi")
-                {
-                    Source = new MSIPackageSource();
-                }
-                else if (verb == "choco")
-                {
-                    Source = new ChocolateyPackageSource();
-                }
-                else if (verb == "bower")
-                {
-                    Source = new BowerPackageSource();
-                }
-                else if (verb == "oneget")
-                {
-                    Source = new OneGetPackageSource();
-                }
-            });
-            if (Source == null)
-            {
-                Console.WriteLine("No package source specified.");
-                return (int)ExitCodes.INVALID_ARGUMENTS;
-            }
+            #region Handle command line options
+            Dictionary<string, object> package_source_options = new Dictionary<string, object>();
             if (!CL.Parser.Default.ParseArguments(args, ProgramOptions))
             {
                 return (int)ExitCodes.INVALID_ARGUMENTS;
@@ -75,18 +47,54 @@ namespace WinAudit.CommandLine
                     }
                     else
                     {
-                        Source.PackageSourceOptions.Add("File", ProgramOptions.File);
+                        package_source_options.Add("File", ProgramOptions.File);
                     }
                 }
+                if (ProgramOptions.Cache)
+                {
+                   package_source_options.Add("Cache", true);
+                }
+
+                if (!string.IsNullOrEmpty(ProgramOptions.CacheTTL))
+                {
+                    package_source_options.Add("CacheTTL", ProgramOptions.CacheTTL);
+                }
+
+            }        
+            #endregion
+
+            #region Handle command line verbs
+            CL.Parser.Default.ParseArguments(args, ProgramOptions, (verb, options) =>
+            {
+                if (verb == "nuget")
+                {
+                    Source = new NuGetPackageSource(package_source_options);
+                }
+                else if (verb == "msi")
+                {
+                    Source = new MSIPackageSource();
+                }
+                else if (verb == "choco")
+                {
+                    Source = new ChocolateyPackageSource();
+                }
+                else if (verb == "bower")
+                {
+                    Source = new BowerPackageSource(package_source_options);
+                }
+                else if (verb == "oneget")
+                {
+                    Source = new OneGetPackageSource();
+                }
+            });
+            if (Source == null)
+            {
+                Console.WriteLine("No package source specified.");
+                return (int)ExitCodes.INVALID_ARGUMENTS;
             }
+            #endregion
+
             Spinner spinner = null;
-            BPlusTree<string, OSSIndexArtifact>.OptionsV2 cache_file_options = new BPlusTree<string, OSSIndexArtifact>.OptionsV2(PrimitiveSerializer.String,
-                new BsonSerializer<OSSIndexArtifact>());
-            cache_file_options.CalcBTreeOrder(4, 128);
-            cache_file_options.CreateFile = CreatePolicy.IfNeeded;
-            cache_file_options.FileName = AppDomain.CurrentDomain.BaseDirectory + "winaudit-net.cache"; //Assembly.GetExecutingAssembly().Location
-            cache_file_options.StoragePerformance = StoragePerformance.CommitToDisk;
-            BPlusTree<string, OSSIndexArtifact> cache = new BPlusTree<string, OSSIndexArtifact>(cache_file_options);                    
             Console.Write("Scanning {0} packages...", Source.PackageManagerLabel);
             if (!ProgramOptions.NonInteractive)
             {
@@ -189,6 +197,11 @@ namespace WinAudit.CommandLine
                 Console.WriteLine("No vulnerability data for you packages currently exists in OSS Index, exiting.");
                 return 0;
             }
+            if (ProgramOptions.Cache)
+            {
+                Console.WriteLine("{0} artifacts have cached values.", Source.ProjectVulnerabilitiesCacheItems.Count());
+
+            }
             Console.WriteLine("Searching OSS Index for vulnerabilities for {0} projects...", Source.Artifacts.Count(r => !string.IsNullOrEmpty(r.ProjectId)));
             int projects_count = Source.Artifacts.Count(r => !string.IsNullOrEmpty(r.ProjectId));
             int projects_processed = 0;
@@ -196,6 +209,7 @@ namespace WinAudit.CommandLine
             while (Source.VulnerabilitiesTask.Count() > 0)
             {
                 Task<KeyValuePair<OSSIndexProject, IEnumerable<OSSIndexProjectVulnerability>>>[] tasks = Source.VulnerabilitiesTask.ToArray();
+                    //.Where(WToArray();
                 try
                 {
                     int x = Task.WaitAny(tasks);
@@ -223,7 +237,7 @@ namespace WinAudit.CommandLine
                         List<OSSIndexProjectVulnerability> found_vulnerabilities = new List<OSSIndexProjectVulnerability>(vulnerabilities.Value.Count());
                         foreach (OSSIndexProjectVulnerability vulnerability in vulnerabilities.Value.GroupBy(v => new { v.CVEId, v.Uri, v.Title, v.Summary }).SelectMany(v => v).ToList())
                         {
-                            if (vulnerability.Versions.Any(v => Source.PackageVersionInRange(p.Package.Version, v)))
+                            if (vulnerability.Versions.Any(v => !string.IsNullOrEmpty(v) && Source.IsVulnerabilityVersionInPackageVersionRange(p.Package.Version, v)))
                             {
                                 found_vulnerabilities.Add(vulnerability);
                             }

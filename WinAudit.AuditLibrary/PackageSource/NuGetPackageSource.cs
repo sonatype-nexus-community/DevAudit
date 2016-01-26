@@ -15,7 +15,7 @@ using Microsoft.Win32;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
-using Semver;
+using SemverSharp;
 
 namespace WinAudit.AuditLibrary
 {
@@ -52,6 +52,7 @@ namespace WinAudit.AuditLibrary
             return o;
         };
 
+        /*
         public override Func<string, string, bool> PackageVersionInRange { get; } = (range, compare_to_range) =>
         {
             Regex parse_ex = new Regex(@"^(?<range>~+|<+=?|>+=?)?" +
@@ -105,7 +106,7 @@ namespace WinAudit.AuditLibrary
                     throw new Exception("Unimplemented range operator: " + op + ".");
             }
         };
-
+        */
         //Get NuGet packages from reading packages.config
         public override IEnumerable<OSSIndexQueryObject> GetPackages(params string[] o)
         {
@@ -127,6 +128,11 @@ namespace WinAudit.AuditLibrary
                     + this.PackageManagerConfigurationFile, e);
             }
 
+        }
+
+        public override bool IsVulnerabilityVersionInPackageVersionRange(string vulnerability_version, string package_version)
+        {
+            return SemanticVersion.RangeIntersect(vulnerability_version, package_version);
         }
     }
 }

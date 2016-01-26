@@ -11,8 +11,6 @@ using System.Threading.Tasks;
 using CSharpTest.Net.Collections;
 using CSharpTest.Net.Serialization;
 
-using Semver;
-
 namespace WinAudit.AuditLibrary
 {
     public abstract class PackageSource
@@ -26,15 +24,25 @@ namespace WinAudit.AuditLibrary
 
         public string PackageManagerConfigurationFile { get; set; }
 
-        public bool PackageManagerCacheEnabled { get; set; }
+        public bool ProjectVulnerabilitiesCacheEnabled { get; set; }
+
+        public TimeSpan ProjectVulnerabilitiesCacheTTL { get; set; }
 
         public IEnumerable<Tuple<OSSIndexProject, IEnumerable<OSSIndexProjectVulnerability>>> ProjectVulnerabilitiesCacheItems
         {
             get
             {
-                if (this.PackageSourceOptions.ContainsKey("Cache") && (bool)this.PackageSourceOptions["Cache"] == true)
+                if (ProjectVulnerabilitiesCacheEnabled)
                 {
-                    return this.ProjectVulnerabilitiesCache.Values;
+                    IEnumerable<string> cache_keys = ProjectVulnerabilitiesCache
+                        .Keys
+                        .Where(k => DateTime.UtcNow.Subtract(GetProjectVulnerabilitiesCacheEntry(k).Item2) > this.ProjectVulnerabilitiesCacheTTL);
+                    
+                    return 
+                        from pvc in this.ProjectVulnerabilitiesCache
+                        join k in cache_keys
+                        on pvc.Key equals k
+                        select pvc.Value;
                 }
                 else
                 {
@@ -42,7 +50,7 @@ namespace WinAudit.AuditLibrary
                 }
             }
         }
-
+        
         public Dictionary<string, object> PackageSourceOptions { get; set; } = new Dictionary<string, object>();
 
         public IEnumerable<OSSIndexQueryObject> Packages { get; set; }
@@ -141,13 +149,12 @@ namespace WinAudit.AuditLibrary
                 }
                 return this._VulnerabilitiesTask;
             }
-        }
-
-        public abstract Func<string, string, bool> PackageVersionInRange { get; }
+        }        
         #endregion
 
         #region Public abstract methods
         public abstract IEnumerable<OSSIndexQueryObject> GetPackages(params string[] o);
+        public abstract bool IsVulnerabilityVersionInPackageVersionRange(string vulnerability_version, string package_version);
         #endregion
 
         #region Private properties
@@ -190,7 +197,7 @@ namespace WinAudit.AuditLibrary
 
             if (this.PackageSourceOptions.ContainsKey("Cache") && (bool) this.PackageSourceOptions["Cache"] == true)
             {
-                this.PackageManagerCacheEnabled = true;
+                this.ProjectVulnerabilitiesCacheEnabled = true;
                 if (this.PackageSourceOptions.ContainsKey("CacheFile") && !string.IsNullOrEmpty((string) this.PackageSourceOptions["CacheFile"]))
                 {
                     this.ProjectVulnerabilitiesCacheFile = (string) this.PackageSourceOptions["CacheFile"];
@@ -199,6 +206,19 @@ namespace WinAudit.AuditLibrary
                 {
                     this.ProjectVulnerabilitiesCacheFile = AppDomain.CurrentDomain.BaseDirectory + "winaudit-net.cache";
                 }
+                if (this.PackageSourceOptions.ContainsKey("CacheTTL") && !string.IsNullOrEmpty((string)this.PackageSourceOptions["CacheTTL"]))
+
+                {
+                    int cache_ttl;
+                    if (Int32.TryParse((string)this.PackageSourceOptions["CacheTTL"], out cache_ttl))
+                    {
+                        if (cache_ttl > 60 * 24 * 30) throw new ArgumentOutOfRangeException("The value for the cache ttl is too large: " + this.PackageSourceOptions["CacheTTL"] + ".");
+                        this.ProjectVulnerabilitiesCacheTTL = TimeSpan.FromMinutes(cache_ttl);
+                    }
+                    else
+                        throw new ArgumentOutOfRangeException("The value for the cache ttl is not an integer: " + (string)this.PackageSourceOptions["CacheTTL"] + ".");
+                }
+
                 this.ProjectVulnerabilitiesCacheInitialiseTask =
                     Task<BPlusTree<string, Tuple<OSSIndexProject, IEnumerable<OSSIndexProjectVulnerability>>>>.Run(() =>
                     {
@@ -207,7 +227,7 @@ namespace WinAudit.AuditLibrary
             }
             else
             {
-                this.PackageManagerCacheEnabled = false;
+                this.ProjectVulnerabilitiesCacheEnabled = false;
             }
         }
         #endregion
@@ -251,7 +271,7 @@ namespace WinAudit.AuditLibrary
             lock (vulnerabilities_lock)
             {
                 this._VulnerabilitiesForProject.Add(project, vulnerability);
-                if (this.PackageManagerCacheEnabled)
+                if (this.ProjectVulnerabilitiesCacheEnabled)
                 {
                     this.ProjectVulnerabilitiesCache[GetProjectVulnerabilitiesCacheKey(project.Id)] = new Tuple<OSSIndexProject, IEnumerable<OSSIndexProjectVulnerability>>
                         (project, vulnerability);
