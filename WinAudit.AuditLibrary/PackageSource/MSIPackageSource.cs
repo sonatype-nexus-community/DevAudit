@@ -76,7 +76,7 @@ namespace WinAudit.AuditLibrary
 
         public override bool IsVulnerabilityVersionInPackageVersionRange(string vulnerability_version, string package_version)
         {
-            throw new NotImplementedException();
+            return vulnerability_version == package_version;
         }
 
         public MSIPackageSource() : base() { }
