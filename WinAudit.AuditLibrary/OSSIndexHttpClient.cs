@@ -5,6 +5,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Net.Http;
 using System.Net.Http.Headers;
+using System.Web;
 using System.Xml;
 using System.Xml.Linq;
 using System.Linq;
@@ -126,7 +127,11 @@ namespace WinAudit.AuditLibrary
                 {
                     string r = await response.Content.ReadAsStringAsync();
                     List<OSSIndexProjectVulnerability> result = JsonConvert.DeserializeObject<List<OSSIndexProjectVulnerability>>(r);
-                    result.ForEach(v => v.ProjectId = id);
+                    result.ForEach(v => 
+                    { v.ProjectId = id;
+                      v.Summary = HttpUtility.HtmlDecode(v.Summary);
+                    }); ;
+                    
                     return result;
                 }
                 else

@@ -50,6 +50,9 @@ namespace WinAudit.Tests
             Assert.NotEmpty(s.Vulnerabilities);
         }
 
+        [Fact]
+        public void CanCacheProjectVulnerabilities() { }
+
 
         [Fact]
         public abstract Task CanGetProjects();
