@@ -11,12 +11,8 @@ namespace WinAudit.Tests
 {
     public class NuGetPackageSourceTests : PackageSourceTests
     {
-        protected override PackageSource s {get; } = new NuGetPackageSource();
-
-        public NuGetPackageSourceTests()
-        {
-            s.PackageSourceOptions.Add("File", @".\packages.config.example");
-        }
+        protected override PackageSource s {get; } = new NuGetPackageSource(new Dictionary<string, object>()
+        { {"File", @".\packages.config.example" } });
 
         [Fact]
         public override async Task CanGetProjects()

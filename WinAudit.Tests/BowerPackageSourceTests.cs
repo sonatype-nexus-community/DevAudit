@@ -13,13 +13,9 @@ namespace WinAudit.Tests
 {
     public class BowerPackageSourceTests : PackageSourceTests
     {
-        protected override PackageSource s { get; } = new BowerPackageSource();
+        protected override PackageSource s { get; } = new BowerPackageSource(new Dictionary<string, object>()
+        { {"File", @".\bower.json.example" } });
         
-        public BowerPackageSourceTests()
-        {
-            s.PackageSourceOptions.Add("File", @".\bower.json.example");
-        }
-
         [Fact]
         public override async Task CanGetProjects()
         {
