@@ -87,12 +87,7 @@ namespace WinAudit.AuditLibrary
             List<OSSIndexArtifact> o = artifacts.ToList();
             foreach (OSSIndexArtifact a in o)
             {
-                a.GetProjectId = () =>
-                {
-                    string project_id = a.ProjectId;
-                    return project_id;
-                };
-                if (a.Search == null || a.Search.Count() != 4)
+               if (a.Search == null || a.Search.Count() != 4)
                 {
                     throw new Exception("Did not receive expected Search field properties for artifact name: " + a.PackageName + " id: " +
                         a.PackageId + " project id: " + a.ProjectId + ".");

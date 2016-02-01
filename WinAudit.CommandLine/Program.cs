@@ -183,10 +183,10 @@ namespace WinAudit.CommandLine
                 {
                     Console.Write("[{0}/{1}] {2} ({3}) ", i++, Source.Artifacts.Count(), artifact.PackageName,
                         !string.IsNullOrEmpty(artifact.Version) ? artifact.Version : "No version found");
-                    if (!string.IsNullOrEmpty(artifact.GetProjectId()))
+                    if (!string.IsNullOrEmpty(artifact.ProjectId))
                     {
                         Console.ForegroundColor = ConsoleColor.Blue;
-                        Console.Write(artifact.GetProjectId() + "\n");
+                        Console.Write(artifact.ProjectId + "\n");
                         Console.ResetColor();
                     }
                     else
@@ -240,7 +240,7 @@ namespace WinAudit.CommandLine
                     if (projects_processed++ ==0 ) Console.WriteLine("\nAudit Results\n=============");                    
                     OSSIndexProject p = c.Item1;
                     IEnumerable<OSSIndexProjectVulnerability> vulnerabilities = c.Item2;                                        
-                    OSSIndexArtifact a = Source.Artifacts.First(artifact => artifact.GetProjectId() == p.Id.ToString());
+                    OSSIndexArtifact a = Source.Artifacts.First(artifact => artifact.ProjectId == p.Id.ToString());
                     Console.ForegroundColor = ConsoleColor.White;
                     Console.Write("[{0}/{1}] {2}", projects_processed, projects_count, a.PackageName);
                     Console.ForegroundColor = ConsoleColor.DarkCyan;
@@ -293,8 +293,7 @@ namespace WinAudit.CommandLine
             
             while (Source.VulnerabilitiesTask.Count() > 0)
             {
-                Task<KeyValuePair<OSSIndexProject, IEnumerable<OSSIndexProjectVulnerability>>>[] tasks = Source.VulnerabilitiesTask.ToArray();
-                    //.Where(WToArray();
+                Task<KeyValuePair<OSSIndexProject, IEnumerable<OSSIndexProjectVulnerability>>>[] tasks = Source.VulnerabilitiesTask.ToArray();                                
                 try
                 {
                     int x = Task.WaitAny(tasks);
@@ -362,7 +361,7 @@ namespace WinAudit.CommandLine
                     if (ae.InnerException != null && ae.InnerException is OSSIndexHttpException)
                     {
                         OSSIndexHttpException oe = ae.InnerException as OSSIndexHttpException;
-                        OSSIndexArtifact artifact = Source.Artifacts.First(a => a.GetProjectId() == oe.RequestParameter);
+                        OSSIndexArtifact artifact = Source.Artifacts.First(a => a.ProjectId == oe.RequestParameter);
                         Console.Write("[{0}/{1}] {2} ", projects_processed, projects_count, artifact.PackageName, artifact.Version);
                         Console.ForegroundColor = ConsoleColor.DarkRed;
                         Console.WriteLine("{0} HTTP Error searching OSS Index...", artifact.Version);
@@ -374,6 +373,7 @@ namespace WinAudit.CommandLine
                         PrintErrorMessage("Unknown error encountered searching OSS Index for vulnerabilities : {0}",
                             ae.Message);
                     }
+                    projects_processed += Source.VulnerabilitiesTask.Count(t => t.Status == TaskStatus.Faulted || t.Status == TaskStatus.Canceled) - 1;
                     Source.VulnerabilitiesTask.RemoveAll(t => t.Status == TaskStatus.Faulted || t.Status == TaskStatus.Canceled);
                 }
             }

@@ -103,7 +103,7 @@ namespace WinAudit.AuditLibrary
         {
             get
             {
-                return this.Artifacts.Where(a => !string.IsNullOrEmpty(a.GetProjectId())).ToList();                    
+                return this.Artifacts.Where(a => !string.IsNullOrEmpty(a.ProjectId)).ToList();                    
             }
         }
 
@@ -174,7 +174,7 @@ namespace WinAudit.AuditLibrary
                         .Factory.StartNew(async (o) =>
                             {
                                 OSSIndexArtifact artifact = o as OSSIndexArtifact;
-                                OSSIndexProject project = await this.HttpClient.GetProjectForIdAsync(artifact.GetProjectId());
+                                OSSIndexProject project = await this.HttpClient.GetProjectForIdAsync(artifact.ProjectId);
                                 project.Package = artifact.Package;
                                 IEnumerable<OSSIndexProjectVulnerability> v = await this.HttpClient.GetVulnerabilitiesForIdAsync(project.Id.ToString());
                                 if (this.ProjectVulnerabilitiesCacheEnabled)

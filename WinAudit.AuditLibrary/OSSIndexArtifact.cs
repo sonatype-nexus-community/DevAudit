@@ -50,9 +50,6 @@ namespace WinAudit.AuditLibrary
         public List<string> Search { get; set; }
 
         [JsonIgnore]
-        public OSSIndexQueryObject Package { get; set; }
-
-        [JsonIgnore]
-        public Func<string> GetProjectId { get; set; }
+        public OSSIndexQueryObject Package { get; set; }        
     }
 }
