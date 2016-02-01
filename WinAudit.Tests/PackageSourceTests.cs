@@ -51,9 +51,8 @@ namespace WinAudit.Tests
         }
 
         [Fact]
-        public void CanCacheProjectVulnerabilities() { }
-
-
+        public abstract void CanCacheProjectVulnerabilities();
+               
         [Fact]
         public abstract Task CanGetProjects();
 

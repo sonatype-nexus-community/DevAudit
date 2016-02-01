@@ -61,6 +61,7 @@
     <Compile Include="OSSIndexQueryObject.cs" />
     <Compile Include="OSSIndexArtifact.cs" />
     <Compile Include="OSSIndexProjectVulnerability.cs" />
+    <Compile Include="PackageSource\ComposerPackageSource.cs" />
     <Compile Include="PackageSource\NuGetPackageSource.cs" />
     <Compile Include="PackageSource\ChocolateyPackageSource.cs" />
     <Compile Include="PackageSource\BowerPackageSource.cs" />
@@ -72,6 +73,12 @@
   <ItemGroup>
     <None Include="bower.json.example">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="composer.json.example.1">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="composer.json.example.2">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Include="packages.config" />
     <None Include="packages.config.example">

@@ -32,6 +32,9 @@ namespace WinAudit.CommandLine
         [VerbOption("oneget", HelpText = "Audit OneGet packages. Packages are scanned from the system OneGet repository.")]
         public Options AuditOneGet { get; set; }
 
+        [VerbOption("composer", HelpText = "Audit PHP Composer packages. Use the --file option to specify a particular composer.json file otherwise the one in the current directory will be used.")]
+        public Options AuditComposer { get; set; }
+
         [Option('f', "file", Required = false, HelpText = "Specifies the file (if any) containing the packages to be audited.")]
         public string File { get; set; }
 
@@ -49,6 +52,10 @@ namespace WinAudit.CommandLine
 
         [Option('t', "cache-ttl", Required = false, HelpText = "Cache TTL - projects and vulnearabilities will be cached for the number of minutes specified here.")]
         public string CacheTTL { get; set; }
+
+        [Option('k', "cache-dump", Required = false, HelpText = "Cache Dump - projects and vulnearabilities will be cached for the number of minutes specified here.")]
+        public bool CacheDump { get; set; }
+
 
         [ParserState]
         public IParserState LastParserState { get; set; }

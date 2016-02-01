@@ -13,7 +13,7 @@ using CSharpTest.Net.Serialization;
 
 namespace WinAudit.AuditLibrary
 {
-    public abstract class PackageSource
+    public abstract class PackageSource : IDisposable
     {
         #region Public properties
         public abstract OSSIndexHttpClient HttpClient { get; }
@@ -27,20 +27,22 @@ namespace WinAudit.AuditLibrary
         public bool ProjectVulnerabilitiesCacheEnabled { get; set; }
 
         public TimeSpan ProjectVulnerabilitiesCacheTTL { get; set; }
-
+        
         public IEnumerable<Tuple<OSSIndexProject, IEnumerable<OSSIndexProjectVulnerability>>> ProjectVulnerabilitiesCacheItems
         {
             get
             {
                 if (ProjectVulnerabilitiesCacheEnabled)
                 {
-                    IEnumerable<string> cache_keys = ProjectVulnerabilitiesCache
-                        .Keys
-                        .Where(k => DateTime.UtcNow.Subtract(GetProjectVulnerabilitiesCacheEntry(k).Item2) > this.ProjectVulnerabilitiesCacheTTL);
-                    
-                    return 
+                    IEnumerable<string> alive_cache_keys =
+                        from cache_key in ProjectVulnerabilitiesCache.Keys
+                        where DateTime.UtcNow.Subtract(GetProjectVulnerabilitiesCacheEntry(cache_key).Item2) < this.ProjectVulnerabilitiesCacheTTL
+                        join artifact in ArtifactProjects
+                        on GetProjectVulnerabilitiesCacheEntry(cache_key).Item1 equals artifact.ProjectId
+                        select cache_key;                    
+                    return
                         from pvc in this.ProjectVulnerabilitiesCache
-                        join k in cache_keys
+                        join k in alive_cache_keys
                         on pvc.Key equals k
                         select pvc.Value;
                 }
@@ -50,7 +52,31 @@ namespace WinAudit.AuditLibrary
                 }
             }
         }
-        
+
+        public bool ProjectVulnerabilitiesCacheDump { get; set; }
+
+        public IEnumerable<string> ProjectVulnerabilitiesCacheKeys
+        {
+            get
+            {
+                return this.ProjectVulnerabilitiesCache.Keys;
+            }
+        }
+        public IEnumerable<string> ProjectVulnerabilitiesExpiredCacheKeys { get; set; }
+                    
+        public IEnumerable<OSSIndexArtifact> CachedArtifacts
+        {
+            get
+            {
+                return
+                   from cache_key in ProjectVulnerabilitiesCache.Keys
+                   where DateTime.UtcNow.Subtract(GetProjectVulnerabilitiesCacheEntry(cache_key).Item2) < this.ProjectVulnerabilitiesCacheTTL
+                   join artifact in ArtifactProjects
+                   on GetProjectVulnerabilitiesCacheEntry(cache_key).Item1 equals artifact.ProjectId
+                   select artifact;
+            }
+        }
+      
         public Dictionary<string, object> PackageSourceOptions { get; set; } = new Dictionary<string, object>();
 
         public IEnumerable<OSSIndexQueryObject> Packages { get; set; }
@@ -72,6 +98,16 @@ namespace WinAudit.AuditLibrary
         }
 
         public abstract Func<List<OSSIndexArtifact>, List<OSSIndexArtifact>> ArtifactsTransform { get; }
+
+        public List<OSSIndexArtifact> ArtifactProjects
+        {
+            get
+            {
+                return this.Artifacts.Where(a => !string.IsNullOrEmpty(a.GetProjectId())).ToList();                    
+            }
+        }
+
+       
 
         public Dictionary<OSSIndexProject, IEnumerable<OSSIndexProjectVulnerability>> Vulnerabilities
         {
@@ -129,20 +165,30 @@ namespace WinAudit.AuditLibrary
             {
                 if (_VulnerabilitiesTask == null)
                 {
+                    List<OSSIndexArtifact> artifacts_to_query = this.ProjectVulnerabilitiesCacheEnabled ?
+                        this.ArtifactProjects.Except(this.CachedArtifacts).ToList() : this.ArtifactProjects;
                     this._VulnerabilitiesTask =
                         new List<Task<KeyValuePair<OSSIndexProject, IEnumerable<OSSIndexProjectVulnerability>>>>
-                            (this.Artifacts.Count(a => !string.IsNullOrEmpty(a.ProjectId)));
-                    this.Artifacts.ToList().Where(a => !string.IsNullOrEmpty(a.ProjectId)).ToList()
-                        .ForEach(p => this._VulnerabilitiesTask.Add(Task<Task<KeyValuePair<OSSIndexProject, IEnumerable<OSSIndexProjectVulnerability>>>>
-                            .Factory.StartNew(async (o) =>
+                            (artifacts_to_query.Count());
+                    artifacts_to_query.ForEach(p => this._VulnerabilitiesTask.Add(Task<Task<KeyValuePair<OSSIndexProject, IEnumerable<OSSIndexProjectVulnerability>>>>
+                        .Factory.StartNew(async (o) =>
+                            {
+                                OSSIndexArtifact artifact = o as OSSIndexArtifact;
+                                OSSIndexProject project = await this.HttpClient.GetProjectForIdAsync(artifact.GetProjectId());
+                                project.Package = artifact.Package;
+                                IEnumerable<OSSIndexProjectVulnerability> v = await this.HttpClient.GetVulnerabilitiesForIdAsync(project.Id.ToString());
+                                if (this.ProjectVulnerabilitiesCacheEnabled)
                                 {
-                                    OSSIndexArtifact artifact = o as OSSIndexArtifact;
-                                    OSSIndexProject project = await this.HttpClient.GetProjectForIdAsync(artifact.ProjectId);
-                                    project.Package = artifact.Package;
-                                    IEnumerable<OSSIndexProjectVulnerability> v = await this.HttpClient.GetVulnerabilitiesForIdAsync(project.Id.ToString());
-                                    return this.AddVulnerability(project, v);
-
-                                },
+                                    IEnumerable<string> expired_keys = this.ProjectVulnerabilitiesCache.Keys.Where(k => k.StartsWith(project.Id.ToString()));
+                                    foreach (string ek in expired_keys)
+                                    {
+                                        this.ProjectVulnerabilitiesCache.Remove(ek);
+                                    }
+                                    this.ProjectVulnerabilitiesCache[GetProjectVulnerabilitiesCacheKey(project.Id)] = new Tuple<OSSIndexProject, IEnumerable<OSSIndexProjectVulnerability>>
+                                        (project, v);
+                                }
+                                return this.AddVulnerability(project, v);
+                            },
                                 p, CancellationToken.None, TaskCreationOptions.DenyChildAttach, TaskScheduler.Default).Unwrap()));
 
 
@@ -156,28 +202,7 @@ namespace WinAudit.AuditLibrary
         public abstract IEnumerable<OSSIndexQueryObject> GetPackages(params string[] o);
         public abstract bool IsVulnerabilityVersionInPackageVersionRange(string vulnerability_version, string package_version);
         #endregion
-
-        #region Private properties
-
-        private string ProjectVulnerabilitiesCacheFile { get; set; }
-
-        private Task<BPlusTree<string, Tuple<OSSIndexProject, IEnumerable<OSSIndexProjectVulnerability>>>> ProjectVulnerabilitiesCacheInitialiseTask { get; set; }
-
-        private BPlusTree<string, Tuple<OSSIndexProject, IEnumerable<OSSIndexProjectVulnerability>>> ProjectVulnerabilitiesCache
-        {
-            get
-            {
-                if (this._ProjectVulnerabilitiesCache == null)
-                {
-                    this.ProjectVulnerabilitiesCacheInitialiseTask.Wait();
-                    this._ProjectVulnerabilitiesCache = this.ProjectVulnerabilitiesCacheInitialiseTask.Result;
-
-                }
-                return this._ProjectVulnerabilitiesCache;
-            }
-        }
-        #endregion
-
+        
         #region Constructors
         public PackageSource() { }
 
@@ -218,7 +243,18 @@ namespace WinAudit.AuditLibrary
                     else
                         throw new ArgumentOutOfRangeException("The value for the cache ttl is not an integer: " + (string)this.PackageSourceOptions["CacheTTL"] + ".");
                 }
-
+                else
+                {
+                    this.ProjectVulnerabilitiesCacheTTL = TimeSpan.FromMinutes(180);
+                }
+                if (this.PackageSourceOptions.ContainsKey("CacheDump"))
+                {
+                    this.ProjectVulnerabilitiesCacheDump = true;
+                }
+                else
+                {
+                    this.ProjectVulnerabilitiesCacheDump = false;
+                }
                 this.ProjectVulnerabilitiesCacheInitialiseTask =
                     Task<BPlusTree<string, Tuple<OSSIndexProject, IEnumerable<OSSIndexProjectVulnerability>>>>.Run(() =>
                     {
@@ -228,6 +264,27 @@ namespace WinAudit.AuditLibrary
             else
             {
                 this.ProjectVulnerabilitiesCacheEnabled = false;
+            }
+        }
+        #endregion
+
+        #region Private properties
+
+        private string ProjectVulnerabilitiesCacheFile { get; set; }
+
+        private Task<BPlusTree<string, Tuple<OSSIndexProject, IEnumerable<OSSIndexProjectVulnerability>>>> ProjectVulnerabilitiesCacheInitialiseTask { get; set; }
+
+        private BPlusTree<string, Tuple<OSSIndexProject, IEnumerable<OSSIndexProjectVulnerability>>> ProjectVulnerabilitiesCache
+        {
+            get
+            {
+                if (this._ProjectVulnerabilitiesCache == null)
+                {
+                    this.ProjectVulnerabilitiesCacheInitialiseTask.Wait();
+                    this._ProjectVulnerabilitiesCache = this.ProjectVulnerabilitiesCacheInitialiseTask.Result;
+
+                }
+                return this._ProjectVulnerabilitiesCache;
             }
         }
         #endregion
@@ -244,7 +301,7 @@ namespace WinAudit.AuditLibrary
             new Dictionary<OSSIndexProject, IEnumerable<OSSIndexProjectVulnerability>>();
         private List<Task<KeyValuePair<OSSIndexProject, IEnumerable<OSSIndexProjectVulnerability>>>> _VulnerabilitiesTask;
         #endregion
-
+     
         #region Private methods
         private async Task<KeyValuePair<IEnumerable<OSSIndexQueryObject>, IEnumerable<OSSIndexArtifact>>> AddArtifiactAsync(IEnumerable<OSSIndexQueryObject> query, Task<IEnumerable<OSSIndexArtifact>> artifact_task)
         {
@@ -271,11 +328,6 @@ namespace WinAudit.AuditLibrary
             lock (vulnerabilities_lock)
             {
                 this._VulnerabilitiesForProject.Add(project, vulnerability);
-                if (this.ProjectVulnerabilitiesCacheEnabled)
-                {
-                    this.ProjectVulnerabilitiesCache[GetProjectVulnerabilitiesCacheKey(project.Id)] = new Tuple<OSSIndexProject, IEnumerable<OSSIndexProjectVulnerability>>
-                        (project, vulnerability);
-                }
                 return new KeyValuePair<OSSIndexProject, IEnumerable<OSSIndexProjectVulnerability>>(project, vulnerability);
             }
         }
@@ -293,6 +345,17 @@ namespace WinAudit.AuditLibrary
                 cache_file_options.StoragePerformance = StoragePerformance.CommitToDisk;
                 var c = new BPlusTree<string, Tuple<OSSIndexProject, IEnumerable<OSSIndexProjectVulnerability>>>(cache_file_options);
                 c.EnableCount();
+                IEnumerable<string> expired_cache_keys =
+                    from cache_key in c.Keys
+                    where DateTime.UtcNow.Subtract(GetProjectVulnerabilitiesCacheEntry(cache_key).Item2) >= this.ProjectVulnerabilitiesCacheTTL
+                    join artifact in ArtifactProjects
+                    on GetProjectVulnerabilitiesCacheEntry(cache_key).Item1 equals artifact.ProjectId
+                    select cache_key;
+                this.ProjectVulnerabilitiesExpiredCacheKeys = expired_cache_keys;
+                foreach (string k in expired_cache_keys)
+                {
+                    if (!c.Remove(k)) throw new Exception("Error removing expired cache item with key: " + k + ".");
+                }
                 return c;
             }
                         
@@ -313,6 +376,117 @@ namespace WinAudit.AuditLibrary
             if (ticks == 0) throw new ArgumentException("Invalid cache key: could not parse ticks value " + result[1] + ".");
             return new Tuple<string, DateTime>(id, new DateTime(ticks));
         }
+
+        private int DeleteProjectVulnerabilitiesExpired()
+        {
+            if (ProjectVulnerabilitiesCacheEnabled)
+            {
+                IEnumerable<string> expired_cache_keys =
+                    from cache_key in ProjectVulnerabilitiesCache.Keys
+                    where DateTime.UtcNow.Subtract(GetProjectVulnerabilitiesCacheEntry(cache_key).Item2) >= this.ProjectVulnerabilitiesCacheTTL
+                    join artifact in ArtifactProjects
+                    on GetProjectVulnerabilitiesCacheEntry(cache_key).Item1 equals artifact.ProjectId
+                    select cache_key;
+                this.ProjectVulnerabilitiesExpiredCacheKeys = expired_cache_keys;
+                foreach (string k in expired_cache_keys)
+                {
+                    if (!ProjectVulnerabilitiesCache.Remove(k)) throw new Exception("Error removing expired cache item with key: " + k + ".");
+                }
+                return expired_cache_keys.Count();
+                    
+            }
+            else
+            {
+                throw new Exception("Project vulnerabilities cache is not enabled.");
+            }
+
+        }
         #endregion
+
+        #region Disposer
+        private bool IsDisposed { get; set; }
+        /// <summary> 
+        /// /// Implementation of Dispose according to .NET Framework Design Guidelines. 
+        /// /// </summary> 
+        /// /// <remarks>Do not make this method virtual. 
+        /// /// A derived class should not be able to override this method. 
+        /// /// </remarks>         
+        public void Dispose()
+        {
+            Dispose(true); // This object will be cleaned up by the Dispose method. // Therefore, you should call GC.SupressFinalize to // take this object off the finalization queue // and prevent finalization code for this object // from executing a second time. // Always use SuppressFinalize() in case a subclass // of this type implements a finalizer. GC.SuppressFinalize(this); }
+            GC.SuppressFinalize(this);
+        }
+
+        protected virtual void Dispose(bool isDisposing)
+        {
+            // TODO If you need thread safety, use a lock around these 
+            // operations, as well as in your methods that use the resource. 
+            try
+            {
+                if (!this.IsDisposed)
+                {
+                    // Explicitly set root references to null to expressly tell the GarbageCollector 
+                    // that the resources have been disposed of and its ok to release the memory 
+                    // allocated for them. 
+                    if (isDisposing)
+                    {
+                        // Release all managed resources here 
+                        // Need to unregister/detach yourself from the events. Always make sure 
+                        // the object is not null first before trying to unregister/detach them! 
+                        // Failure to unregister can be a BIG source of memory leaks 
+                        //if (someDisposableObjectWithAnEventHandler != null)
+                        //{ someDisposableObjectWithAnEventHandler.SomeEvent -= someDelegate; 
+                        //someDisposableObjectWithAnEventHandler.Dispose(); 
+                        //someDisposableObjectWithAnEventHandler = null; } 
+                        // If this is a WinForm/UI control, uncomment this code 
+                        //if (components != null) //{ // components.Dispose(); //} } 
+                        // Release all unmanaged resources here 
+                        // (example) if (someComObject != null && Marshal.IsComObject(someComObject)) { Marshal.FinalReleaseComObject(someComObject); someComObject = null; 
+
+                        if (PackagesTask.Status == TaskStatus.RanToCompletion ||
+                            PackagesTask.Status == TaskStatus.Faulted || PackagesTask.Status == TaskStatus.Canceled)
+                        {
+
+                            PackagesTask.Dispose();
+                        }
+                        if (_ArtifactsTask != null)
+                        {
+                            foreach (Task t in this._ArtifactsTask.Where(t => t.Status == TaskStatus.RanToCompletion ||
+                            t.Status == TaskStatus.Faulted || t.Status == TaskStatus.Canceled))
+                            {
+                                t.Dispose();
+                            }
+                            this._ArtifactsTask = null;
+                        }
+
+                        if (_VulnerabilitiesTask != null)
+                        {
+                            foreach (Task t in this._VulnerabilitiesTask.Where(t => t.Status == TaskStatus.RanToCompletion ||
+                         t.Status == TaskStatus.Faulted || t.Status == TaskStatus.Canceled))
+                            {
+                                t.Dispose();
+                            }
+                            this._VulnerabilitiesTask = null;
+                        }
+                        if (this.ProjectVulnerabilitiesCacheInitialiseTask != null)
+                        {
+                            this.ProjectVulnerabilitiesCacheInitialiseTask.Dispose();
+                            this.ProjectVulnerabilitiesCacheInitialiseTask = null;
+                        }
+                        if (this._ProjectVulnerabilitiesCache != null)
+                        {
+                            this.ProjectVulnerabilitiesCache.Dispose();
+                            this._ProjectVulnerabilitiesCache = null;
+                        }
+                    }
+                }
+            }
+            finally
+            {
+                this.IsDisposed = true;
+            }
+        }
+        #endregion
+
     }
 }

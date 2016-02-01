@@ -86,6 +86,11 @@ namespace WinAudit.CommandLine
                 {
                     Source = new OneGetPackageSource();
                 }
+                else if (verb == "composer")
+                {
+                    Source = new ComposerPackageSource(package_source_options);
+                }
+
             });
             if (Source == null)
             {
@@ -93,6 +98,8 @@ namespace WinAudit.CommandLine
                 return (int)ExitCodes.INVALID_ARGUMENTS;
             }
             #endregion
+
+            
 
             Spinner spinner = null;
             Console.Write("Scanning {0} packages...", Source.PackageManagerLabel);
@@ -163,7 +170,7 @@ namespace WinAudit.CommandLine
                     spinner = null;
                 }
             }
-            Console.WriteLine("\nFound {0} artifacts, {1} with an OSS Index project id.", Source.Artifacts.Count(), Source.Artifacts.Count(r => !string.IsNullOrEmpty(r.ProjectId)));
+            Console.WriteLine("\nFound {0} artifacts, {1} with an OSS Index project id.", Source.Artifacts.Count(), Source.ArtifactProjects.Count);
             if (Source.Artifacts.Count() == 0)
             {
                 Console.WriteLine("Nothing to do, exiting.");
@@ -176,10 +183,10 @@ namespace WinAudit.CommandLine
                 {
                     Console.Write("[{0}/{1}] {2} ({3}) ", i++, Source.Artifacts.Count(), artifact.PackageName,
                         !string.IsNullOrEmpty(artifact.Version) ? artifact.Version : "No version found");
-                    if (!string.IsNullOrEmpty(artifact.ProjectId))
+                    if (!string.IsNullOrEmpty(artifact.GetProjectId()))
                     {
                         Console.ForegroundColor = ConsoleColor.Blue;
-                        Console.Write(artifact.ProjectId + "\n");
+                        Console.Write(artifact.GetProjectId() + "\n");
                         Console.ResetColor();
                     }
                     else
@@ -191,21 +198,99 @@ namespace WinAudit.CommandLine
                 }
                 return 0;
             }
-            if (Source.Artifacts.Count(r => !string.IsNullOrEmpty(r.ProjectId)) == 0)
+            if (ProgramOptions.CacheDump)
+            {
+                Console.WriteLine("Dumping cache...");
+                Console.WriteLine("\nCurrently Cached Items\n===========");
+                int i = 0;
+                foreach (var v in Source.ProjectVulnerabilitiesCacheItems)
+                {
+                    Console.WriteLine("{0} {1} {2}", i++, v.Item1.Id, v.Item1.Name);
+
+                }
+                int k = 0;
+                Console.WriteLine("\nCache Keys\n==========");
+                foreach (var v in Source.ProjectVulnerabilitiesCacheKeys)
+                {
+                    Console.WriteLine("{0} {1}", k++, v);
+
+                }
+                Source.Dispose();
+                return 0;
+            }
+            if (Source.ArtifactProjects.Count == 0)
             {
                 Console.WriteLine("No found artifacts have associated projects.");
                 Console.WriteLine("No vulnerability data for you packages currently exists in OSS Index, exiting.");
                 return 0;
             }
             if (ProgramOptions.Cache)
-            {
-                Console.WriteLine("{0} artifacts have cached values.", Source.ProjectVulnerabilitiesCacheItems.Count());
-
+            {                
+                Console.WriteLine("{0} projects have cached values.", Source.CachedArtifacts.Count());
+                Console.WriteLine("{0} cached project entries are stale and will be removed from cache.", Source.ProjectVulnerabilitiesExpiredCacheKeys.Count());
             }
-            Console.WriteLine("Searching OSS Index for vulnerabilities for {0} projects...", Source.Artifacts.Count(r => !string.IsNullOrEmpty(r.ProjectId)));
-            int projects_count = Source.Artifacts.Count(r => !string.IsNullOrEmpty(r.ProjectId));
+            Console.WriteLine("Searching OSS Index for vulnerabilities for {0} projects...", Source.VulnerabilitiesTask.Count());
+            int projects_count = Source.ArtifactProjects.Count;
             int projects_processed = 0;
             int projects_successful = 0;
+            if (Source.ProjectVulnerabilitiesCacheEnabled)
+            {                
+                foreach (Tuple<OSSIndexProject, IEnumerable<OSSIndexProjectVulnerability>> c in Source.ProjectVulnerabilitiesCacheItems)
+                {
+                    if (projects_processed++ ==0 ) Console.WriteLine("\nAudit Results\n=============");                    
+                    OSSIndexProject p = c.Item1;
+                    IEnumerable<OSSIndexProjectVulnerability> vulnerabilities = c.Item2;                                        
+                    OSSIndexArtifact a = Source.Artifacts.First(artifact => artifact.GetProjectId() == p.Id.ToString());
+                    Console.ForegroundColor = ConsoleColor.White;
+                    Console.Write("[{0}/{1}] {2}", projects_processed, projects_count, a.PackageName);
+                    Console.ForegroundColor = ConsoleColor.DarkCyan;
+                    Console.Write("[CACHED]");
+                    Console.ForegroundColor = ConsoleColor.Yellow;
+                    Console.ResetColor();
+                    Console.Write(" {0} ", a.Version);
+                    if (vulnerabilities.Count() == 0)
+                    {
+                        Console.ForegroundColor = ConsoleColor.DarkGray;
+                        Console.WriteLine("No known vulnerabilities.");
+                    }
+                    else
+                    {
+                        List<OSSIndexProjectVulnerability> found_vulnerabilities = new List<OSSIndexProjectVulnerability>(vulnerabilities.Count());
+                        foreach (OSSIndexProjectVulnerability vulnerability in vulnerabilities.GroupBy(v => new { v.CVEId, v.Uri, v.Title, v.Summary }).SelectMany(v => v).ToList())
+                        {
+                            if (vulnerability.Versions.Any(v => !string.IsNullOrEmpty(v) && Source.IsVulnerabilityVersionInPackageVersionRange(a.Package.Version, v)))
+                            {
+                                found_vulnerabilities.Add(vulnerability);
+                            }
+                        }
+                        //found_vulnerabilities = found_vulnerabilities.GroupBy(v => new { v.CVEId, v.Uri, v.Title, v.Summary }).SelectMany(v => v).ToList();
+                        if (found_vulnerabilities.Count() > 0)
+                        {
+                            Console.ForegroundColor = ConsoleColor.Red;
+                            Console.WriteLine("[VULNERABLE]");
+                        }
+                        Console.ForegroundColor = ConsoleColor.DarkGray;
+                        Console.Write("{0} distinct ({1} total) known vulnerabilities, ", vulnerabilities.GroupBy(v => new { v.CVEId, v.Uri, v.Title, v.Summary }).SelectMany(v => v).Count(),
+                            vulnerabilities.Count());
+                        Console.WriteLine("{0} affecting installed version.", found_vulnerabilities.Count());
+                        found_vulnerabilities.ForEach(v =>
+                        {
+                            Console.ForegroundColor = ConsoleColor.Red;
+                            if (!string.IsNullOrEmpty(v.CVEId)) Console.Write("{0} ", v.CVEId);
+                            Console.WriteLine(v.Title);
+                            Console.ResetColor();
+                            Console.WriteLine(v.Summary);
+                            Console.ForegroundColor = ConsoleColor.DarkGray;
+                            Console.Write("\nAffected versions: ");
+                            Console.ForegroundColor = ConsoleColor.White;
+                            Console.WriteLine(string.Join(", ", v.Versions.ToArray()));
+                        });
+                    }
+                    Console.ResetColor();
+                    projects_successful++;
+                }
+            }
+            
             while (Source.VulnerabilitiesTask.Count() > 0)
             {
                 Task<KeyValuePair<OSSIndexProject, IEnumerable<OSSIndexProjectVulnerability>>>[] tasks = Source.VulnerabilitiesTask.ToArray();
@@ -277,7 +362,7 @@ namespace WinAudit.CommandLine
                     if (ae.InnerException != null && ae.InnerException is OSSIndexHttpException)
                     {
                         OSSIndexHttpException oe = ae.InnerException as OSSIndexHttpException;
-                        OSSIndexArtifact artifact = Source.Artifacts.First(a => a.ProjectId == oe.RequestParameter);
+                        OSSIndexArtifact artifact = Source.Artifacts.First(a => a.GetProjectId() == oe.RequestParameter);
                         Console.Write("[{0}/{1}] {2} ", projects_processed, projects_count, artifact.PackageName, artifact.Version);
                         Console.ForegroundColor = ConsoleColor.DarkRed;
                         Console.WriteLine("{0} HTTP Error searching OSS Index...", artifact.Version);
@@ -292,6 +377,7 @@ namespace WinAudit.CommandLine
                     Source.VulnerabilitiesTask.RemoveAll(t => t.Status == TaskStatus.Faulted || t.Status == TaskStatus.Canceled);
                 }
             }
+            Source.Dispose();
             return 0;
         }
            

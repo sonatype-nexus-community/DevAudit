@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 using Xunit;
@@ -11,30 +10,30 @@ using WinAudit.AuditLibrary;
 
 namespace WinAudit.Tests
 {
-    public class BowerPackageSourceTests : PackageSourceTests
+    public class ComposerPackageSourceTests : PackageSourceTests
     {
-        protected override PackageSource s { get; } = new BowerPackageSource(new Dictionary<string, object>()
-        { {"File", @".\bower.json.example" } });
-        
+        protected override PackageSource s { get; } = new ComposerPackageSource(new Dictionary<string, object>()
+        { {"File", @".\composer.json.example.1" } });
+
         [Fact]
         public override async Task CanGetProjects()
         {
             OSSIndexHttpClient http_client = new OSSIndexHttpClient("1.1");
-            OSSIndexProject p1 = await http_client.GetProjectForIdAsync("8396559329");
+            OSSIndexProject p1 = await http_client.GetProjectForIdAsync("8396615975");
             Assert.NotNull(p1);
-            Assert.Equal(p1.Id, 8396559329);
-            Assert.Equal(p1.Name, "JQuery");
+            Assert.Equal(p1.Id, 8396615975);
+            Assert.Equal(p1.Name, "Cakephp");
             Assert.Equal(p1.HasVulnerability, true);
-            Assert.Equal(p1.Vulnerabilities, "https://ossindex.net/v1.1/project/8396559329/vulnerabilities");
+            Assert.Equal(p1.Vulnerabilities, "https://ossindex.net/v1.1/project/8396615975/vulnerabilities");
         }
 
         [Fact]
         public override async Task CanGetVulnerabilities()
         {
-            OSSIndexHttpClient http_client = new OSSIndexHttpClient("1.0");
-            List<OSSIndexProjectVulnerability> v1 = (await http_client.GetVulnerabilitiesForIdAsync("284089289")).ToList();
+            OSSIndexHttpClient http_client = new OSSIndexHttpClient("1.1");
+            List<OSSIndexProjectVulnerability> v1 = (await http_client.GetVulnerabilitiesForIdAsync("8396615975")).ToList();
             Assert.NotNull(v1);
-            Assert.Equal(v1[1].Title, "CVE-2015-4670] Improper Limitation of a Pathname to a Restricted Directory");
+            Assert.Equal(v1[0].Title, "[CVE-2006-4067] Improper Neutralization of Input During Web Page Generation (\"Cross-site Scripting\")");
         }
 
         [Fact]
@@ -52,6 +51,5 @@ namespace WinAudit.Tests
         {
             //throw new NotImplementedException();
         }
-           
     }
 }
