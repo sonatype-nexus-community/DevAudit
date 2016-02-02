@@ -35,6 +35,10 @@
   <ItemGroup>
     <Reference Include="System" />
     <Reference Include="System.Core" />
+    <Reference Include="System.Management.Automation, Version=3.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\..\Program Files (x86)\Reference Assemblies\Microsoft\WindowsPowerShell\3.0\System.Management.Automation.dll</HintPath>
+    </Reference>
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
@@ -69,6 +73,7 @@
     <Compile Include="OneGetPackageSourceTests.cs" />
     <Compile Include="HttpClientv10Tests.cs" />
     <Compile Include="HttpClientv11Tests.cs" />
+    <Compile Include="PowerShellTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -82,6 +87,10 @@
     <ProjectReference Include="..\WinAudit.CommandLine\WinAudit.CommandLine.csproj">
       <Project>{f1407df1-7be3-41df-88d3-8a752ae61bdc}</Project>
       <Name>WinAudit.CommandLine</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\WinAudit.PowerShell\WinAudit.PowerShell.csproj">
+      <Project>{0aab38e7-ee71-40fa-9545-c0f0b3dc4191}</Project>
+      <Name>WinAudit.PowerShell</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
