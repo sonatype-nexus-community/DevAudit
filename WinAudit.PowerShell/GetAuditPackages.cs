@@ -11,7 +11,7 @@ using WinAudit.AuditLibrary;
 namespace WinAudit.PowerShell
 {
     [Cmdlet(VerbsCommon.Get, "AuditPackages")]
-    [OutputType(typeof(WinAudit.AuditLibrary.OSSIndexQueryObject))]
+    [OutputType(typeof(OSSIndexQueryObject))]
     public class GetAuditPackages : WinAuditCmdlet
     {
 
@@ -34,8 +34,15 @@ namespace WinAudit.PowerShell
         }
 
         protected override void ProcessRecord()
-        {            
-            WriteObject(this.PackageSource.Packages);
+        {
+            int i = 1;
+            foreach (OSSIndexQueryObject package in this.PackageSource.Packages)
+            {
+                
+                WriteInformation(string.Format("[{0}/{1}] {2} {3} {4}", i++, this.PackageSource.Packages.Count(), package.Name,
+                        package.Version, package.Vendor), new string[] {"Audit"});
+                WriteObject(package);
+            }
         }
         
     }

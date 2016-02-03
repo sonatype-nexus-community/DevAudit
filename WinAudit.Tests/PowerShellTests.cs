@@ -16,23 +16,22 @@ namespace WinAudit.Tests
     public class PowerShellTests
     {
         [Fact]
-        public void CanGetPackaages()
+        public void CanGetPackages()
         {            
             InitialSessionState s = InitialSessionState.CreateDefault();
             s.ImportPSModule(new[] { @".\WinAudit.PowerShell.dll" });
             Runspace r = RunspaceFactory.CreateRunspace(s);
             r.Open();            
             Pipeline pipeline = r.CreatePipeline();
-            Command c = new Command("Audit-Packages");
+            Command c = new Command("Get-AuditPackages");
             c.Parameters.Add("Source", "msi");
             pipeline.Commands.Add(c);                        
-            Collection<PSObject> results = pipeline.Invoke();
-            foreach(PSObject result in results)
-            {
-                
-            }
-            
+            Collection<PSObject> results = pipeline.Invoke();                        
             r.Close();
+            IEnumerable<OSSIndexQueryObject> packages = (IEnumerable<OSSIndexQueryObject>)results.First().BaseObject;
+            Assert.NotEmpty(packages);
+            Assert.NotEmpty(packages.Where(p => p.PackageManager == "msi"));
+            Assert.NotEmpty(packages.Where(p => p.Name.Contains("Microsoft")));
         }
     }
 }

@@ -10,9 +10,9 @@ using WinAudit.AuditLibrary;
 
 namespace WinAudit.PowerShell
 {
-    [Cmdlet(VerbsCommon.Get, "AuditArtifacts")]
-    [OutputType(typeof(OSSIndexArtifact))]
-    public class GetAuditArtifacts : WinAuditCmdlet
+    [Cmdlet(VerbsCommon.Get, "AuditVulnerabilities")]
+    [OutputType(typeof(IEnumerable<OSSIndexArtifact>))]
+    public class GetAuditVulnerabillities : WinAuditCmdlet
     {
 
         protected override void BeginProcessing()
@@ -45,16 +45,8 @@ namespace WinAudit.PowerShell
         }
 
         protected override void ProcessRecord()
-        {
-            int i = 1;
-            foreach (OSSIndexArtifact artifact in this.PackageSource.Artifacts)
-            {
-                WriteObject(artifact);
-                WriteInformation(string.Format("[{0}/{1}] {2} ({3}) {4} ", i++, this.PackageSource.Artifacts.Count(), artifact.PackageName,
-                    !string.IsNullOrEmpty(artifact.Version) ? artifact.Version : "No version found", 
-                    !string.IsNullOrEmpty(artifact.ProjectId) ? artifact.ProjectId : "No project id found."), new string[] { "Audit" });                
-            }
-            
+        {            
+            WriteObject(this.PackageSource.Artifacts);
         }
         
     }

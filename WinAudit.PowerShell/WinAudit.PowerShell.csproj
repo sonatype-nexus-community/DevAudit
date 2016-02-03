@@ -44,6 +44,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="GetAuditVulnerabilities.cs" />
     <Compile Include="GetAuditArtifacts.cs" />
     <Compile Include="WinAuditCmdlet.cs" />
     <Compile Include="GetAuditPackages.cs" />
