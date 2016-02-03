@@ -113,31 +113,7 @@ namespace WinAudit.AuditLibrary
                 }
             }
         }
-
-        public async Task<OSSIndexProject> GetProjectForArtifactAsync(OSSIndexArtifact artifact)
-        {
-            if (ReferenceEquals(artifact, null)) throw new ArgumentNullException("artifact.");
-            using (HttpClient client = new HttpClient())
-            {
-                client.BaseAddress = new Uri(@"https://ossindex.net/");
-                client.DefaultRequestHeaders.Accept.Clear();
-                client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-                client.DefaultRequestHeaders.Add("user-agent", "WinAudit");
-                HttpResponseMessage response = this.ApiVersion == "1.0" ?
-                    await client.GetAsync(string.Format("v" + this.ApiVersion + "/scm/{0}", artifact.SCMId)) : await client.GetAsync(string.Format("v" + this.ApiVersion + "/project/{0}", artifact.ProjectId));
-                if (response.IsSuccessStatusCode)
-                {
-                    string r = await response.Content.ReadAsStringAsync();
-                    return JsonConvert.DeserializeObject<List<OSSIndexProject>>(r).FirstOrDefault();
-                }
-                else
-                {
-                    throw new OSSIndexHttpException(this.ApiVersion == "1.0" ? artifact.SCMId : artifact.ProjectId, 
-                        response.StatusCode, response.ReasonPhrase, response.RequestMessage);
-                }
-            }
-        }
-
+      
         public async Task<IEnumerable<OSSIndexProjectVulnerability>> GetVulnerabilitiesForIdAsync(string id)
         {
             using (HttpClient client = new HttpClient())

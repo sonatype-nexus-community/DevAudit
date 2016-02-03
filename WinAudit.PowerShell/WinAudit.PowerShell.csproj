@@ -46,7 +46,7 @@
   <ItemGroup>
     <Compile Include="GetAuditArtifacts.cs" />
     <Compile Include="WinAuditCmdlet.cs" />
-    <Compile Include="GetPackagesToAudit.cs" />
+    <Compile Include="GetAuditPackages.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

@@ -10,9 +10,9 @@ using WinAudit.AuditLibrary;
 
 namespace WinAudit.PowerShell
 {
-    [Cmdlet(VerbsCommon.Get, "PackagesToAudit")]
+    [Cmdlet(VerbsCommon.Get, "AuditPackages")]
     [OutputType(typeof(WinAudit.AuditLibrary.OSSIndexQueryObject))]
-    public class GetPackagesToAudit : WinAuditCmdlet
+    public class GetAuditPackages : WinAuditCmdlet
     {
 
         protected override void BeginProcessing()
@@ -22,6 +22,7 @@ namespace WinAudit.PowerShell
             try
             {
                 base.PackageSource.PackagesTask.Wait();
+                WriteVerbose(string.Format("\nFound {0} distinct packages.", base.PackageSource.Packages.Count()));
             }
             catch (AggregateException ae)
             {
