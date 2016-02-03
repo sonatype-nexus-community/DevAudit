@@ -52,7 +52,7 @@ namespace WinAudit.PowerShell
                 WriteObject(artifact);
                 WriteInformation(string.Format("[{0}/{1}] {2} ({3}) {4} ", i++, this.PackageSource.Artifacts.Count(), artifact.PackageName,
                     !string.IsNullOrEmpty(artifact.Version) ? artifact.Version : "No version found", 
-                    !string.IsNullOrEmpty(artifact.ProjectId) ? artifact.ProjectId : "No project id found."), new string[] { "Audit" });                
+                    !string.IsNullOrEmpty(artifact.ProjectId) ? artifact.ProjectId : "No project id found."), new string[] { "Audit", "Artifact" });                
             }
             
         }

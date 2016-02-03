@@ -28,7 +28,7 @@ namespace WinAudit.Tests
             pipeline.Commands.Add(c);                        
             Collection<PSObject> results = pipeline.Invoke();                        
             r.Close();
-            IEnumerable<OSSIndexQueryObject> packages = (IEnumerable<OSSIndexQueryObject>)results.First().BaseObject;
+            IEnumerable<OSSIndexQueryObject> packages = results.Select(result => (OSSIndexQueryObject) result.BaseObject);
             Assert.NotEmpty(packages);
             Assert.NotEmpty(packages.Where(p => p.PackageManager == "msi"));
             Assert.NotEmpty(packages.Where(p => p.Name.Contains("Microsoft")));

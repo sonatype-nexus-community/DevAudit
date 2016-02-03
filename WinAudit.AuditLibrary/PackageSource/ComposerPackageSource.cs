@@ -69,7 +69,7 @@ namespace WinAudit.AuditLibrary
             }
             if (!File.Exists(this.PackageManagerConfigurationFile))
             {
-                throw new Exception("Package manager configuration file must be specified for this package source.");
+                throw new Exception("Package manager configuration file not found.");
             }
         }
     }

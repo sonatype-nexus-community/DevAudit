@@ -10,7 +10,7 @@ using WinAudit.AuditLibrary;
 
 namespace WinAudit.PowerShell
 {
-    public class WinAuditCmdlet : Cmdlet
+    public class WinAuditCmdlet : Cmdlet, IDisposable
     {
         #region Public properties
         [Parameter(
@@ -136,7 +136,7 @@ namespace WinAudit.PowerShell
             {
                 OSSIndexHttpException oe = (OSSIndexHttpException)e;
                 WriteError(new ErrorRecord(new Exception(string.Format("HTTP status: {0} {1} \nReason: {2}\nRequest:\n{3}",
-                    (int)oe.StatusCode, oe.StatusCode, oe.ReasonPhrase, oe.Request)), "OSSIndexHttpException", ErrorCategory.InvalidData, null));
+                    (int)oe.StatusCode, oe.StatusCode, oe.ReasonPhrase, oe.Request)), "OSSIndexHttpException", ErrorCategory.InvalidOperation, null));
             }
 
         }
@@ -147,5 +147,56 @@ namespace WinAudit.PowerShell
 
         protected Dictionary<string, object> PackageSourceOptions { get; set; } = new Dictionary<string, object>();
         #endregion
+
+        #region Disposer
+        private bool IsDisposed { get; set; }
+        /// <summary> 
+        /// /// Implementation of Dispose according to .NET Framework Design Guidelines. 
+        /// /// </summary> 
+        /// /// <remarks>Do not make this method virtual. 
+        /// /// A derived class should not be able to override this method. 
+        /// /// </remarks>         
+        public void Dispose()
+        {
+            Dispose(true); // This object will be cleaned up by the Dispose method. // Therefore, you should call GC.SupressFinalize to // take this object off the finalization queue // and prevent finalization code for this object // from executing a second time. // Always use SuppressFinalize() in case a subclass // of this type implements a finalizer. GC.SuppressFinalize(this); }
+            GC.SuppressFinalize(this);
+        }
+
+        protected virtual void Dispose(bool isDisposing)
+        {
+            // TODO If you need thread safety, use a lock around these 
+            // operations, as well as in your methods that use the resource. 
+            try
+            {
+                if (!this.IsDisposed)
+                {
+                    // Explicitly set root references to null to expressly tell the GarbageCollector 
+                    // that the resources have been disposed of and its ok to release the memory 
+                    // allocated for them. 
+                    if (isDisposing)
+                    {
+                        // Release all managed resources here 
+                        // Need to unregister/detach yourself from the events. Always make sure 
+                        // the object is not null first before trying to unregister/detach them! 
+                        // Failure to unregister can be a BIG source of memory leaks 
+                        //if (someDisposableObjectWithAnEventHandler != null)
+                        //{ someDisposableObjectWithAnEventHandler.SomeEvent -= someDelegate; 
+                        //someDisposableObjectWithAnEventHandler.Dispose(); 
+                        //someDisposableObjectWithAnEventHandler = null; } 
+                        // If this is a WinForm/UI control, uncomment this code 
+                        //if (components != null) //{ // components.Dispose(); //} } 
+                        // Release all unmanaged resources here 
+                        // (example) if (someComObject != null && Marshal.IsComObject(someComObject)) { Marshal.FinalReleaseComObject(someComObject); someComObject = null; 
+                        this.PackageSource.Dispose();
+                    }
+                }
+            }
+            finally
+            {
+                this.IsDisposed = true;
+            }
+        }
+        #endregion
+
     }
 }

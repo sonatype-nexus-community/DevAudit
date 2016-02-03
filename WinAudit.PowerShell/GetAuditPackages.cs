@@ -22,7 +22,7 @@ namespace WinAudit.PowerShell
             try
             {
                 base.PackageSource.PackagesTask.Wait();
-                WriteVerbose(string.Format("\nFound {0} distinct packages.", base.PackageSource.Packages.Count()));
+                WriteVerbose(string.Format("Found {0} distinct packages.", base.PackageSource.Packages.Count()));
             }
             catch (AggregateException ae)
             {
@@ -40,7 +40,7 @@ namespace WinAudit.PowerShell
             {
                 
                 WriteInformation(string.Format("[{0}/{1}] {2} {3} {4}", i++, this.PackageSource.Packages.Count(), package.Name,
-                        package.Version, package.Vendor), new string[] {"Audit"});
+                        package.Version, package.Vendor), new string[] {"Audit", "Package"});
                 WriteObject(package);
             }
         }
