@@ -66,6 +66,7 @@ namespace WinAudit.PowerShell
                     if (vulnerabilities.Value.Count() == 0)
                     {
                         info += string.Format("No known vulnerabilities.");
+                        WriteInformation(info, new string[] { "Audit", "Vulnerabilities" });                        
                     }
                     else
                     {
@@ -85,19 +86,23 @@ namespace WinAudit.PowerShell
 
                         info += string.Format("{0} distinct ({1} total) known vulnerabilities, ", vulnerabilities.Value.GroupBy(v => new { v.CVEId, v.Uri, v.Title, v.Summary }).SelectMany(v => v).Count(),
                             vulnerabilities.Value.Count());
-                        info += string.Format("{0} affecting installed version.\n", found_vulnerabilities.Count());
+                        info += string.Format("{0} affecting installed version.", found_vulnerabilities.Count());
                         WriteInformation(info, new string[] { "Audit", "Vulnerabilities" });
-                        info = "";
-                        found_vulnerabilities.ForEach(v =>
-                        {                            
-                            if (!string.IsNullOrEmpty(v.CVEId)) info += string.Format("{0} ", v.CVEId);
-                            info += string.Format(v.Title) + "\n";
-                            info += string.Format(v.Summary) + "\n";
-                            info += string.Format("Affected versions: ");
-                            info += string.Format(string.Join(", ", v.Versions.ToArray()));
-                        });
-                        WriteInformation(info, new string[] { "Audit", "Vulnerabilities" });
-                        WriteObject(found_vulnerabilities);
+                        if (found_vulnerabilities.Count() > 0)
+                        {
+                            info = "";
+                            found_vulnerabilities.ForEach(v =>
+                            {
+                                v.Project = p;
+                                if (!string.IsNullOrEmpty(v.CVEId)) info += string.Format("{0} ", v.CVEId);
+                                info += string.Format(v.Title);
+                                info += string.Format(v.Summary);
+                                info += string.Format("Affected versions: ");
+                                info += string.Format(string.Join(", ", v.Versions.ToArray()));
+                            });
+                            WriteInformation(info, new string[] { "Audit", "Vulnerabilities" });                            
+                            WriteObject(found_vulnerabilities);
+                        }
                     }                    
                     this.PackageSource.VulnerabilitiesTask.Remove(task);
                 }
