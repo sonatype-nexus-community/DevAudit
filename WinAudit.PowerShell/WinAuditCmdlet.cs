@@ -188,6 +188,7 @@ namespace WinAudit.PowerShell
                         // Release all unmanaged resources here 
                         // (example) if (someComObject != null && Marshal.IsComObject(someComObject)) { Marshal.FinalReleaseComObject(someComObject); someComObject = null; 
                         this.PackageSource.Dispose();
+                        this.PackageSource = null;
                     }
                 }
             }
