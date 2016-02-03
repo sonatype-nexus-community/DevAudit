@@ -12,6 +12,7 @@ namespace WinAudit.PowerShell
 {
     public class WinAuditCmdlet : Cmdlet
     {
+        #region Public properties
         [Parameter(
             Mandatory = true,
             ValueFromPipelineByPropertyName = true,
@@ -30,7 +31,9 @@ namespace WinAudit.PowerShell
             HelpMessage = "Package manager configuration file."
         )]
         public string File { get; set; }
+        #endregion
 
+        #region Overriden methods
         protected override void BeginProcessing()
         {
             base.BeginProcessing();
@@ -124,8 +127,25 @@ namespace WinAudit.PowerShell
             this.PackageSource.Dispose();
         }
 
+        #endregion
+
+        #region Protected methods
+        protected void HandleOSSIndexHttpException(Exception e)
+        {
+            if (e.GetType() == typeof(OSSIndexHttpException))
+            {
+                OSSIndexHttpException oe = (OSSIndexHttpException)e;
+                WriteError(new ErrorRecord(new Exception(string.Format("HTTP status: {0} {1} \nReason: {2}\nRequest:\n{3}",
+                    (int)oe.StatusCode, oe.StatusCode, oe.ReasonPhrase, oe.Request)), "OSSIndexHttpException", ErrorCategory.InvalidData, null));
+            }
+
+        }
+        #endregion
+
+        #region Protected properties
         protected PackageSource PackageSource { get; set; }
 
         protected Dictionary<string, object> PackageSourceOptions { get; set; } = new Dictionary<string, object>();
+        #endregion
     }
 }
