@@ -65,7 +65,7 @@ namespace WinAudit.PowerShell
                 case "bower":
                     if (string.IsNullOrEmpty(this.File))
                     {
-                        this.File = "bower.json.example";
+                        this.File = "bower.json";
                         WriteVerbose("File parameter not specified, using bower.json.example by default.");
                     }
                     if (!System.IO.File.Exists(this.File))
@@ -83,7 +83,7 @@ namespace WinAudit.PowerShell
                 case "composer":
                     if (string.IsNullOrEmpty(this.File))
                     {                        
-                        this.File = "composer.json.example";
+                        this.File = "composer.json";
                         WriteVerbose("File parameter not specified, using composer.json.example by default.");
                     }
                     if (!System.IO.File.Exists(this.File))

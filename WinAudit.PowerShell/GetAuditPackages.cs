@@ -37,8 +37,7 @@ namespace WinAudit.PowerShell
         {
             int i = 1;
             foreach (OSSIndexQueryObject package in this.PackageSource.Packages)
-            {
-                
+            {          
                 WriteInformation(string.Format("[{0}/{1}] {2} {3} {4}", i++, this.PackageSource.Packages.Count(), package.Name,
                         package.Version, package.Vendor), new string[] {"Audit", "Package"});
                 WriteObject(package);
