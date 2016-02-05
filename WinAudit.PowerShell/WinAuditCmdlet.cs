@@ -114,19 +114,7 @@ namespace WinAudit.PowerShell
 
             }
         }
-
-        protected override void EndProcessing()
-        {
-            base.EndProcessing();
-            this.PackageSource.Dispose();
-        }
-
-        protected override void StopProcessing()
-        {
-            base.StopProcessing();
-            this.PackageSource.Dispose();
-        }
-
+        
         #endregion
 
         #region Protected methods
