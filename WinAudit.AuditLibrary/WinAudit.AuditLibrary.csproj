@@ -53,8 +53,10 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Applications\DrupalApplication.cs" />
     <Compile Include="BsonSerializer.cs" />
     <Compile Include="OSSIndexHttpClient.cs" />
+    <Compile Include="Application.cs" />
     <Compile Include="PackageSource.cs" />
     <Compile Include="OSSIndexHttpException.cs" />
     <Compile Include="OSSIndexProject.cs" />
@@ -78,6 +80,15 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Include="composer.json.example.2">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Examples\Drupal\core\composer.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Examples\Drupal\core\core.services.yml">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Examples\Drupal\web.config">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Include="packages.config" />

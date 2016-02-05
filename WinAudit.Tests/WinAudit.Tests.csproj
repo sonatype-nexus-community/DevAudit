@@ -65,6 +65,7 @@
   <ItemGroup>
     <Compile Include="ChocolateyPackageSourceTests.cs" />
     <Compile Include="ComposerPackageSourceTests.cs" />
+    <Compile Include="DrupalApplicationTests.cs" />
     <Compile Include="HttpClientTests.cs" />
     <Compile Include="MSIPackageSourceTests.cs" />
     <Compile Include="BowerPackageSourceTests.cs" />
