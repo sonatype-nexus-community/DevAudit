@@ -1,9 +1,9 @@
 # DevAudit
-Identify known vulnerabilities in MSWin packages (MSI, Chocolatey, OneGet, Bower)
+Identify known vulnerabilities in development packages and applications (NuGet, MSI, Chocolatey, OneGet, Bower, Drupal)
 
 #### Usage
 
-win-audit package-source --file [file] [--packages] [--artifacts]
+devaudit package-source --file [file] [--packages] [--artifacts]
 
 package-source is one of nuget, msi, chocolatey, bower, oneget.
 --file is a optional file parameter that is used by package sources like NuGet and Bower.
