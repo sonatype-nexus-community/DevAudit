@@ -1,0 +1,54 @@
+{
+    "name": "sanpi/spore",
+    "description": "Quickly create your next awesome PHP project based on silex, pomm, bootstrap, atoum and behat",
+    "keywords": ["silex", "pomm", "bootstrap", "atoum", "behat", "skeleton"],
+    "license": "MIT",
+    "require": {
+        "silex/silex": "~1.2",
+        "pomm-project/pomm-service-provider": "dev-silex-1",
+        "twig/twig": "~1.18",
+        "symfony/yaml": "~2.6",
+        "incenteev/composer-parameter-handler": "~2.1",
+        "sanpi/twitter-bootstrap-installer": "~1.1",
+        "symfony/http-kernel" : "<3.0"
+    },
+    "require-dev": {
+        "silex/web-profiler": "~1.0",
+        "pomm-project/cli": "~2.0",
+        "pomm-project/pomm-symfony-bridge": "~2.0",
+        "pomm-project/pomm-profiler-service-provider": "dev-silex-1",
+        "atoum/atoum": "~1.0",
+        "behatch/contexts": "~2.0",
+        "behat/mink-extension": "~2.0",
+        "behat/mink-goutte-driver": "*"
+    },
+    "suggest": {
+        "FortAwesome/Font-Awesome": "The iconic font designed for use with Twitter Bootstrap"
+    },
+    "scripts": {
+        "post-install-cmd": [
+            "Sanpi\\TwitterBootstrap\\Composer\\ScriptHandler::postInstall",
+            "Incenteev\\ParameterHandler\\ScriptHandler::buildParameters"
+        ],
+        "post-update-cmd": [
+            "Sanpi\\TwitterBootstrap\\Composer\\ScriptHandler::postUpdate",
+            "Incenteev\\ParameterHandler\\ScriptHandler::buildParameters"
+        ]
+    },
+    "config": {
+        "bin-dir": "bin"
+    },
+    "autoload": {
+        "psr-0": { "": "src/" }
+    },
+    "autoload-dev": {
+        "psr-4": { "Test\\": "tests" },
+        "files": ["tests/Features/bootstrap/FeatureContext.php"]
+    },
+    "extra": {
+        "symfony-web-dir": "web",
+        "incenteev-parameters": {
+            "file": "src/config/parameters.yml"
+        }
+    }
+}

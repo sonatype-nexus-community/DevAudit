@@ -13,7 +13,7 @@ namespace DevAudit.Tests
     public class NuGetPackageSourceTests : PackageSourceTests
     {
         protected override PackageSource s {get; } = new NuGetPackageSource(new Dictionary<string, object>()
-        { {"File", @".\packages.config.example" } });
+        { {"File", @".\Examples\packages.config.example" } });
 
         
         public override async Task CanGetProjects()
@@ -44,7 +44,7 @@ namespace DevAudit.Tests
             }
             PackageSource cs =  new NuGetPackageSource(new Dictionary<string, object>()
             {
-                { "File", @".\packages.config.example" },
+                { "File", @".\Examples\packages.config.example" },
                 { "Cache", true },
                 { "CacheFile", cache_file_name }
             });
@@ -69,7 +69,7 @@ namespace DevAudit.Tests
             cs = null;
             cs = new NuGetPackageSource(new Dictionary<string, object>()
             {
-                { "File", @".\packages.config.example" },
+                { "File", @".\Examples\packages.config.example" },
                 { "Cache", true },
                 { "CacheFile", cache_file_name }
             });            

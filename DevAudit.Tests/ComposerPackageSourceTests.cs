@@ -13,7 +13,7 @@ namespace DevAudit.Tests
     public class ComposerPackageSourceTests : PackageSourceTests
     {
         protected override PackageSource s { get; } = new ComposerPackageSource(new Dictionary<string, object>()
-        { {"File", @".\composer.json.example.1" } });
+        { {"File", @".\Examples\composer.json.example.1" } });
 
         [Fact]
         public override async Task CanGetProjects()
