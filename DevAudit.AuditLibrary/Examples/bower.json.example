@@ -1,0 +1,10 @@
+{
+  "name": "ASP.NET",
+  "private": true,
+  "dependencies": {
+    "jquery": "1.6.1",
+    "jquery-validation": "1.14.0",
+    "jquery-validation-unobtrusive": "3.2.4",
+    "semantic-ui": "~2.1.6"
+  }
+}

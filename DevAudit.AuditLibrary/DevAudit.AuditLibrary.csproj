@@ -1,0 +1,121 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{36F663F6-4B5C-441F-B11A-9CC556D1C1FE}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>DevAudit.AuditLibrary</RootNamespace>
+    <AssemblyName>DevAudit.AuditLibrary</AssemblyName>
+    <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="CSharpTest.Net.BPlusTree, Version=2.14.126.467, Culture=neutral, PublicKeyToken=06aee00cce822474, processorArchitecture=MSIL">
+      <HintPath>..\packages\CSharpTest.Net.BPlusTree.2.14.126.467\lib\net45\CSharpTest.Net.BPlusTree.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="CSharpTest.Net.Library, Version=2.14.126.467, Culture=neutral, PublicKeyToken=06aee00cce822474, processorArchitecture=MSIL">
+      <HintPath>..\packages\CSharpTest.Net.Library.2.14.126.467\lib\net45\CSharpTest.Net.Library.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="Newtonsoft.Json, Version=8.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+      <HintPath>..\packages\Newtonsoft.Json.8.0.2\lib\net45\Newtonsoft.Json.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Web" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Net.Http" />
+    <Reference Include="System.Xml" />
+    <Reference Include="YamlDotNet, Version=3.8.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\YamlDotNet.3.8.0\lib\net35\YamlDotNet.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Application.cs" />
+    <Compile Include="Applications\DrupalApplication.cs" />
+    <Compile Include="Applications\DrupalModuleInfo.cs" />
+    <Compile Include="BsonSerializer.cs" />
+    <Compile Include="OSSIndexArtifact.cs" />
+    <Compile Include="OSSIndexHttpClient.cs" />
+    <Compile Include="OSSIndexHttpException.cs" />
+    <Compile Include="OSSIndexProject.cs" />
+    <Compile Include="OSSIndexProjectVulnerability.cs" />
+    <Compile Include="OSSIndexQueryObject.cs" />
+    <Compile Include="PackageSource.cs" />
+    <Compile Include="PackageSource\BowerPackageSource.cs" />
+    <Compile Include="PackageSource\ChocolateyPackageSource.cs" />
+    <Compile Include="PackageSource\ComposerPackageSource.cs" />
+    <Compile Include="PackageSource\MSIPackageSource.cs" />
+    <Compile Include="PackageSource\NuGetPackageSource.cs" />
+    <Compile Include="PackageSource\OneGetPackageSource.cs" />
+    <Compile Include="ProjectVulnerabilitiesCacheItem.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Examples\bower.json.example">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Examples\composer.json.example.1">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Examples\composer.json.example.2">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Examples\Drupal\core\composer.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Examples\Drupal\core\core.services.yml">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Examples\Drupal\web.config">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Examples\packages.config.example">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Examples\Drupal\core\modules\" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\SemverSharp\SemverSharp.Parser\SemverSharp.Parser.csproj">
+      <Project>{97958544-e970-4877-af36-b4543b60415d}</Project>
+      <Name>SemverSharp.Parser</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>

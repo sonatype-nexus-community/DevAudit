@@ -1,0 +1,52 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 14
+VisualStudioVersion = 14.0.23107.0
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DevAudit.AuditLibrary", "DevAudit.AuditLibrary\DevAudit.AuditLibrary.csproj", "{36F663F6-4B5C-441F-B11A-9CC556D1C1FE}"
+EndProject
+Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "SemverSharp.Shared", "..\SemverSharp\SemverSharp.Shared\SemverSharp.Shared.shproj", "{0E5684F0-3AAE-4E41-A885-F51C0528C645}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SemverSharp.Parser", "..\SemverSharp\SemverSharp.Parser\SemverSharp.Parser.csproj", "{97958544-E970-4877-AF36-B4543B60415D}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DevAudit.Tests", "DevAudit.Tests\DevAudit.Tests.csproj", "{55B89480-3482-4E8F-BD46-6FB07DC155AD}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DevAudit.CommandLine", "DevAudit.CommandLine\DevAudit.CommandLine.csproj", "{86EE75FC-D05D-42BC-B2C2-B80CF3734332}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DevAudit.PowerShell", "DevAudit.PowerShell\DevAudit.PowerShell.csproj", "{019B92FA-B3B4-418B-B069-AC9B87992EB7}"
+EndProject
+Global
+	GlobalSection(SharedMSBuildProjectFiles) = preSolution
+		..\SemverSharp\SemverSharp.Shared\SemverSharp.Shared.projitems*{0e5684f0-3aae-4e41-a885-f51c0528c645}*SharedItemsImports = 13
+		..\SemverSharp\SemverSharp.Shared\SemverSharp.Shared.projitems*{97958544-e970-4877-af36-b4543b60415d}*SharedItemsImports = 4
+	EndGlobalSection
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{36F663F6-4B5C-441F-B11A-9CC556D1C1FE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{36F663F6-4B5C-441F-B11A-9CC556D1C1FE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{36F663F6-4B5C-441F-B11A-9CC556D1C1FE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{36F663F6-4B5C-441F-B11A-9CC556D1C1FE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{97958544-E970-4877-AF36-B4543B60415D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{97958544-E970-4877-AF36-B4543B60415D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{97958544-E970-4877-AF36-B4543B60415D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{97958544-E970-4877-AF36-B4543B60415D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{55B89480-3482-4E8F-BD46-6FB07DC155AD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{55B89480-3482-4E8F-BD46-6FB07DC155AD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{55B89480-3482-4E8F-BD46-6FB07DC155AD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{55B89480-3482-4E8F-BD46-6FB07DC155AD}.Release|Any CPU.Build.0 = Release|Any CPU
+		{86EE75FC-D05D-42BC-B2C2-B80CF3734332}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{86EE75FC-D05D-42BC-B2C2-B80CF3734332}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{86EE75FC-D05D-42BC-B2C2-B80CF3734332}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{86EE75FC-D05D-42BC-B2C2-B80CF3734332}.Release|Any CPU.Build.0 = Release|Any CPU
+		{019B92FA-B3B4-418B-B069-AC9B87992EB7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{019B92FA-B3B4-418B-B069-AC9B87992EB7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{019B92FA-B3B4-418B-B069-AC9B87992EB7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{019B92FA-B3B4-418B-B069-AC9B87992EB7}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
