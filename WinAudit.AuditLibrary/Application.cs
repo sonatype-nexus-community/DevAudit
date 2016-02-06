@@ -27,7 +27,7 @@ namespace WinAudit.AuditLibrary
         #endregion
 
         #region Public abstract methods
-        public abstract Dictionary<string, PackageSource> GetModules();
+        public abstract Dictionary<string, IEnumerable<OSSIndexQueryObject>> GetModules();
         #endregion
 
         #region Public properties
@@ -198,7 +198,7 @@ namespace WinAudit.AuditLibrary
 
                             ModulesTask.Dispose();
                             ModulesTask = null;
-                        }
+                        }                        
                     }
                 }
             }

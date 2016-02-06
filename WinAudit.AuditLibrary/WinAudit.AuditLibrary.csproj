@@ -51,9 +51,14 @@
     <Reference Include="System.Data" />
     <Reference Include="System.Net.Http" />
     <Reference Include="System.Xml" />
+    <Reference Include="YamlDotNet, Version=3.8.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\YamlDotNet.3.8.0\lib\net35\YamlDotNet.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Applications\DrupalApplication.cs" />
+    <Compile Include="Applications\DrupalModuleInfo.cs" />
     <Compile Include="BsonSerializer.cs" />
     <Compile Include="OSSIndexHttpClient.cs" />
     <Compile Include="Application.cs" />
@@ -101,6 +106,9 @@
       <Project>{5c7f1679-b2e8-477c-885e-42225369791b}</Project>
       <Name>SemverSharp.Parser</Name>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Examples\Drupal\core\modules\" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

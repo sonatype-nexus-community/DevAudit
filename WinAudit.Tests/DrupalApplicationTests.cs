@@ -12,7 +12,7 @@ namespace WinAudit.Tests
     public class DrupalApplicationTests
     {
         protected DrupalApplication d { get; } = new DrupalApplication(new Dictionary<string, object>()
-        { {"RootDirectory", Application.CombinePaths("Examples", "Drupal") }          
+        { {"RootDirectory", @"C:\Users\Allister\Sites\devdesktop\drupal802" /*Application.CombinePaths("Examples", "Drupal")*/ }          
         });
 
         [Fact]
@@ -20,6 +20,9 @@ namespace WinAudit.Tests
         {
             Assert.True(d.ApplicationFileSystemMap.ContainsKey("RootDirectory"));
             Assert.NotNull(d.CorePackagesFile);
+            Assert.NotNull(d.CoreModulesDirectory);
+            Dictionary<string, IEnumerable<OSSIndexQueryObject>> modules = d.GetModules();
+            Assert.NotEmpty(modules["core"]);
         }
     }
 }
