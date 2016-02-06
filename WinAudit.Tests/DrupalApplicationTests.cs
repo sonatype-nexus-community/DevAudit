@@ -11,7 +11,7 @@ namespace WinAudit.Tests
 {
     public class DrupalApplicationTests
     {
-        protected Application d { get; } = new DrupalApplication(new Dictionary<string, object>()
+        protected DrupalApplication d { get; } = new DrupalApplication(new Dictionary<string, object>()
         { {"RootDirectory", Application.CombinePaths("Examples", "Drupal") }          
         });
 
@@ -19,6 +19,7 @@ namespace WinAudit.Tests
         public void CanConstruct()
         {
             Assert.True(d.ApplicationFileSystemMap.ContainsKey("RootDirectory"));
+            Assert.NotNull(d.CorePackagesFile);
         }
     }
 }

@@ -16,21 +16,27 @@ namespace WinAudit.AuditLibrary
 
         public override OSSIndexHttpClient HttpClient { get; } = new OSSIndexHttpClient("1.1");
 
-        public override Dictionary<string, FileSystemInfo> ApplicationFileSystemMap { get; } = 
-            new Dictionary<string, FileSystemInfo>()
-            { 
-                {"CorePackagesFile", new FileInfo("core" + Path.DirectorySeparatorChar + "composer.json") }
-            };
+        public override Dictionary<string, string> RequiredDirectoryLocations { get; } = new Dictionary<string, string>();
 
-        public override List<string> RequiredDirectoryLocations { get; } = new List<string>()
+        public override Dictionary<string, string> RequiredFileLocations { get; } = new Dictionary<string, string>()
         {
-            "RootDirectory",
+            { "CorePackagesFile", Path.Combine("core", "composer.json") }
         };
 
-        public override List<string> RequiredFileLocations { get; } = new List<string>()
+        #endregion
+
+        #region Public properties
+
+        
+
+        public FileInfo CorePackagesFile
         {
-            "CorePackagesFile"
-        };
+            get
+            {
+                return (FileInfo) this.ApplicationFileSystemMap["CorePackagesFile"];
+            }
+        }
+
 
         #endregion
 
@@ -48,8 +54,16 @@ namespace WinAudit.AuditLibrary
         #region Constructors
         public DrupalApplication(Dictionary<string, object> application_options) : base(application_options)
         {
-
+            
+                
+                
+                
+            
         }
+        #endregion
+
+        #region Private fields
+        
         #endregion
 
     }

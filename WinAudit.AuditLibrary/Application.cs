@@ -18,13 +18,11 @@ namespace WinAudit.AuditLibrary
 
         public abstract string ApplicationLabel { get; }
 
-        public abstract OSSIndexHttpClient HttpClient { get; }
+        public abstract OSSIndexHttpClient HttpClient { get; }        
 
-        public abstract Dictionary<string, FileSystemInfo> ApplicationFileSystemMap { get; }
+        public abstract Dictionary<string, string> RequiredFileLocations { get; }
 
-        public abstract List<string> RequiredFileLocations { get; }
-
-        public abstract List<string> RequiredDirectoryLocations { get; }
+        public abstract Dictionary<string, string> RequiredDirectoryLocations { get; }
         
         #endregion
 
@@ -33,7 +31,17 @@ namespace WinAudit.AuditLibrary
         #endregion
 
         #region Public properties
-      
+
+        public Dictionary<string, FileSystemInfo> ApplicationFileSystemMap { get; } = new Dictionary<string, FileSystemInfo>();
+
+        public DirectoryInfo RootDirectory
+        {
+            get
+            {
+                return (DirectoryInfo)this.ApplicationFileSystemMap["RootDirectory"];
+            }
+        }
+
         public Dictionary<string, PackageSource> Modules { get; set; } 
 
         public Task<Dictionary<string, IEnumerable<OSSIndexQueryObject>>> ModulesTask;
@@ -50,40 +58,88 @@ namespace WinAudit.AuditLibrary
         {
             if (ReferenceEquals(application_options, null)) throw new ArgumentNullException("application_options");
             this.ApplicationOptions = application_options;
-            foreach (string f in RequiredFileLocations.Where(s => s.EndsWith("File")).Except(this.ApplicationFileSystemMap.Keys))
+            if (!this.ApplicationOptions.ContainsKey("RootDirectory"))
+            {
+                throw new ArgumentException(string.Format("The root application directory was not specified."), "application_options");
+            }
+            else if (!Directory.Exists((string) this.ApplicationOptions["RootDirectory"]))
+            {
+                throw new ArgumentException(string.Format("The root application directory {0} was not found.", this.ApplicationOptions["RootDirectory"]), "application_options");
+            }
+            else
+            {
+                this.ApplicationFileSystemMap.Add("RootDirectory", new DirectoryInfo((string)this.ApplicationOptions["RootDirectory"]));
+            }
+
+            foreach (string f in RequiredFileLocations.Keys)
             {
                 if (!this.ApplicationOptions.ContainsKey(f))
                 {
-                    throw new ArgumentException(string.Format("The required application file {0} was not specified.", f), "application_options");
+                    if (string.IsNullOrEmpty(RequiredFileLocations[f]))
+                    {
+                        throw new ArgumentException(string.Format("The required application file {0} was not specified and no default path exists.", f), "application_options");
+                    }
+                    else
+                    {
+                        if (this.RootDirectory.GetFiles(RequiredFileLocations[f]).FirstOrDefault() == null)
+                        {
+                            throw new ArgumentException(string.Format("The default path {0} for required application file {1} does not exist.",
+                                RequiredFileLocations[f], f), "RequiredFileLocations");
+                        }
+                        else
+                        {
+                            this.ApplicationFileSystemMap.Add(f, this.RootDirectory.GetFiles(RequiredFileLocations[f]).First());
+                        }
+                    }
+
                 }
-                else if (!File.Exists((string) ApplicationOptions[f]))
+                else if (this.RootDirectory.GetFiles((string) ApplicationOptions[f]).FirstOrDefault() == null)
                 {
                     throw new ArgumentException(string.Format("The required application file {0} was not found.", f), "application_options");
                 }
                 else
                 {
-                    this.ApplicationFileSystemMap.Add(f, new FileInfo((string) this.ApplicationOptions[f]));
+                    this.ApplicationFileSystemMap.Add(f, this.RootDirectory.GetFiles((string) ApplicationOptions[f]).First());
                 }
 
 
             }
 
-            foreach (string d in RequiredDirectoryLocations.Where(s => s.EndsWith("Directory")).Except(this.ApplicationFileSystemMap.Keys))
+            foreach (string d in RequiredDirectoryLocations.Keys)
             {
                 if (!this.ApplicationOptions.ContainsKey(d))
                 {
-                    throw new ArgumentException(string.Format("The required application directory {0} was not specified.", d), "application_options");
+                    if (string.IsNullOrEmpty(RequiredDirectoryLocations[d]))
+                    {
+                        throw new ArgumentException(string.Format("The required application Directory {0} was not specified and no default path exists.", d), "application_options");
+                    }
+                    else
+                    {
+                        if (this.RootDirectory.GetDirectories(RequiredDirectoryLocations[d]).FirstOrDefault() == null)
+                        {
+                            throw new ArgumentException(string.Format("The default path {0} for required application directory {1} does not exist.",
+                                RequiredDirectoryLocations[d], d), "RequiredDirectoryLocations");
+                        }
+                        else
+                        {
+                            this.ApplicationFileSystemMap.Add(d, this.RootDirectory.GetDirectories(RequiredDirectoryLocations[d]).First());
+                        }
+                    }
+
                 }
-                else if (!Directory.Exists((string) ApplicationOptions[d]))
+                else if (this.RootDirectory.GetDirectories((string)ApplicationOptions[d]).FirstOrDefault() == null)
                 {
-                    throw new ArgumentException(string.Format("The required application directory {0} was not found.", d), "application_options");
+                    throw new ArgumentException(string.Format("The required application Directory {0} was not found.", d), "application_options");
                 }
                 else
                 {
-                    this.ApplicationFileSystemMap.Add(d, new DirectoryInfo((string)this.ApplicationOptions[d]));
+                    this.ApplicationFileSystemMap.Add(d, this.RootDirectory.GetDirectories((string)ApplicationOptions[d]).First());
                 }
 
+
             }
+
+
 
         }
         #endregion
@@ -107,7 +163,6 @@ namespace WinAudit.AuditLibrary
 
         #region Private methods
         #endregion
-
 
         #region Disposer
         private bool IsDisposed { get; set; }
