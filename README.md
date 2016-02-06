@@ -1,4 +1,4 @@
-# WinAudit
+# DevAudit
 Identify known vulnerabilities in MSWin packages (MSI, Chocolatey, OneGet, Bower)
 
 #### Usage
