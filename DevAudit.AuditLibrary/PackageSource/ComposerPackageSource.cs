@@ -65,7 +65,7 @@ namespace DevAudit.AuditLibrary
         {            
             if (string.IsNullOrEmpty(this.PackageManagerConfigurationFile))
             {
-                this.PackageManagerConfigurationFile = @".\composer.json";
+                this.PackageManagerConfigurationFile = @"composer.json";
             }
             if (!File.Exists(this.PackageManagerConfigurationFile))
             {
