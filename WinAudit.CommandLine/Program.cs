@@ -31,7 +31,8 @@ namespace WinAudit.CommandLine
         static int Main(string[] args)
         {
             #region Handle command line options
-            Dictionary<string, object> package_source_options = new Dictionary<string, object>();
+            Dictionary<string, object> audit_options = new Dictionary<string, object>();
+            
             if (!CL.Parser.Default.ParseArguments(args, ProgramOptions))
             {
                 return (int)ExitCodes.INVALID_ARGUMENTS;
@@ -47,20 +48,25 @@ namespace WinAudit.CommandLine
                     }
                     else
                     {
-                        package_source_options.Add("File", ProgramOptions.File);
+                        audit_options.Add("File", ProgramOptions.File);
                     }
                 }
                 if (ProgramOptions.Cache)
                 {
-                   package_source_options.Add("Cache", true);
+                   audit_options.Add("Cache", true);
                 }
 
                 if (!string.IsNullOrEmpty(ProgramOptions.CacheTTL))
                 {
-                    package_source_options.Add("CacheTTL", ProgramOptions.CacheTTL);
+                    audit_options.Add("CacheTTL", ProgramOptions.CacheTTL);
                 }
 
-            }        
+                if (!string.IsNullOrEmpty(ProgramOptions.RootDirectory))
+                {
+                    audit_options.Add("RootDirectory", ProgramOptions.RootDirectory);
+                }
+
+            }
             #endregion
 
             #region Handle command line verbs
@@ -68,7 +74,7 @@ namespace WinAudit.CommandLine
             {
                 if (verb == "nuget")
                 {
-                    Source = new NuGetPackageSource(package_source_options);
+                    Source = new NuGetPackageSource(audit_options);
                 }
                 else if (verb == "msi")
                 {
@@ -80,7 +86,7 @@ namespace WinAudit.CommandLine
                 }
                 else if (verb == "bower")
                 {
-                    Source = new BowerPackageSource(package_source_options);
+                    Source = new BowerPackageSource(audit_options);
                 }
                 else if (verb == "oneget")
                 {
@@ -88,7 +94,11 @@ namespace WinAudit.CommandLine
                 }
                 else if (verb == "composer")
                 {
-                    Source = new ComposerPackageSource(package_source_options);
+                    Source = new ComposerPackageSource(audit_options);
+                }
+                else if (verb == "drupal")
+                {
+                    Source = new DrupalApplication(audit_options);
                 }
 
             });

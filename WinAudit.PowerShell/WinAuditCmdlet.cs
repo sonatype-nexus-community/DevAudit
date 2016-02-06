@@ -20,7 +20,7 @@ namespace WinAudit.PowerShell
             Position = 0,
             HelpMessage = "Package source to audit."
         )]
-        [ValidatePattern("^nuget|msi|bower|oneget|chocolatey|composer$")]
+        [ValidatePattern("^nuget|msi|bower|oneget|chocolatey|composer|drupal$")]
         public string Source { get; set; }
 
         [Parameter(
@@ -31,6 +31,15 @@ namespace WinAudit.PowerShell
             HelpMessage = "Package manager configuration file."
         )]
         public string File { get; set; }
+
+        [Parameter(
+            Mandatory = false,
+            ValueFromPipelineByPropertyName = true,
+            ValueFromPipeline = true,
+            Position = 2,
+            HelpMessage = "Root directory of application instance."
+        )]
+        public string RootDirectory { get; set; }
         #endregion
 
         #region Overriden methods
@@ -106,6 +115,23 @@ namespace WinAudit.PowerShell
                 case "choco":
                     this.PackageSource = new ChocolateyPackageSource(this.PackageSourceOptions);
                     WriteVerbose(string.Format("Using package source {0}.", this.PackageSource.PackageManagerLabel));
+                    break;
+
+                case "drupal":
+                    if (string.IsNullOrEmpty(this.RootDirectory))
+                    {                        
+                        WriteVerbose("Root directory parameter not specified, using current directory by default.");
+                    }
+                    else if (!System.IO.Directory.Exists(this.RootDirectory))
+                    {
+                        this.ThrowTerminatingError(new ErrorRecord(new ArgumentException("Directory not found: " + RootDirectory + "."), "RootDirectoryParameter", ErrorCategory.InvalidArgument, null));
+                    }
+                    else
+                    {
+                        this.PackageSourceOptions.Add("RootDirectory", RootDirectory);
+                    }
+                    this.PackageSource = new DrupalApplication(this.PackageSourceOptions);
+                    WriteVerbose(string.Format("Using application {0}.", this.PackageSource.PackageManagerLabel));
                     break;
 
                 default:
@@ -186,6 +212,5 @@ namespace WinAudit.PowerShell
             }
         }
         #endregion
-
     }
 }

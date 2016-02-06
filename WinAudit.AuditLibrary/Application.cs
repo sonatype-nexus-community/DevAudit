@@ -10,16 +10,14 @@ using CSharpTest.Net.Serialization;
 
 namespace WinAudit.AuditLibrary
 {
-    public abstract class Application : IDisposable
+    public abstract class Application : PackageSource
     {
         #region Public abstract properties
 
         public abstract string ApplicationId { get; }
 
         public abstract string ApplicationLabel { get; }
-
-        public abstract OSSIndexHttpClient HttpClient { get; }        
-
+        
         public abstract Dictionary<string, string> RequiredFileLocations { get; }
 
         public abstract Dictionary<string, string> RequiredDirectoryLocations { get; }
@@ -60,7 +58,8 @@ namespace WinAudit.AuditLibrary
             this.ApplicationOptions = application_options;
             if (!this.ApplicationOptions.ContainsKey("RootDirectory"))
             {
-                throw new ArgumentException(string.Format("The root application directory was not specified."), "application_options");
+                this.ApplicationFileSystemMap.Add("RootDirectory", new DirectoryInfo("."));
+                //throw new ArgumentException(string.Format("The root application directory was not specified."), "application_options");
             }
             else if (!Directory.Exists((string) this.ApplicationOptions["RootDirectory"]))
             {
@@ -163,51 +162,6 @@ namespace WinAudit.AuditLibrary
 
         #region Private methods
         #endregion
-
-        #region Disposer
-        private bool IsDisposed { get; set; }
-        /// <summary> 
-        /// /// Implementation of Dispose according to .NET Framework Design Guidelines. 
-        /// /// </summary> 
-        /// /// <remarks>Do not make this method virtual. 
-        /// /// A derived class should not be able to override this method. 
-        /// /// </remarks>         
-        public void Dispose()
-        {
-            Dispose(true); // This object will be cleaned up by the Dispose method. // Therefore, you should call GC.SupressFinalize to // take this object off the finalization queue // and prevent finalization code for this object // from executing a second time. // Always use SuppressFinalize() in case a subclass // of this type implements a finalizer. GC.SuppressFinalize(this); }
-            GC.SuppressFinalize(this);
-        }
-
-        protected virtual void Dispose(bool isDisposing)
-        {
-            // TODO If you need thread safety, use a lock around these 
-            // operations, as well as in your methods that use the resource. 
-            try
-            {
-                if (!this.IsDisposed)
-                {
-                    // Explicitly set root references to null to expressly tell the GarbageCollector 
-                    // that the resources have been disposed of and its ok to release the memory 
-                    // allocated for them. 
-                    if (isDisposing)
-                    {
-
-                        if (ModulesTask.Status == TaskStatus.RanToCompletion ||
-                            ModulesTask.Status == TaskStatus.Faulted || ModulesTask.Status == TaskStatus.Canceled)
-                        {
-
-                            ModulesTask.Dispose();
-                            ModulesTask = null;
-                        }                        
-                    }
-                }
-            }
-            finally
-            {
-                this.IsDisposed = true;
-            }
-        }
-        #endregion
-
+        
     }
 }

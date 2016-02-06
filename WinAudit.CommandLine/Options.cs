@@ -35,6 +35,9 @@ namespace WinAudit.CommandLine
         [VerbOption("composer", HelpText = "Audit PHP Composer packages. Use the --file option to specify a particular composer.json file otherwise the one in the current directory will be used.")]
         public Options AuditComposer { get; set; }
 
+        [VerbOption("drupal", HelpText = "Audit a Drupal application instance. Use the --root option to specify the root directory of the Drupal instance, otherwise the current directory will be used.")]
+        public Options AuditDrupal { get; set; }
+
         [Option('f', "file", Required = false, HelpText = "Specifies the file (if any) containing the packages to be audited.")]
         public string File { get; set; }
 
@@ -55,6 +58,9 @@ namespace WinAudit.CommandLine
 
         [Option('k', "cache-dump", Required = false, HelpText = "Cache Dump - projects and vulnearabilities will be cached for the number of minutes specified here.")]
         public bool CacheDump { get; set; }
+
+        [Option('r', "root", Required = false, HelpText = "The root directory of the application instance to audit.")]
+        public string RootDirectory { get; set; }
 
 
         [ParserState]
