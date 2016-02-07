@@ -73,7 +73,7 @@ namespace DevAudit.AuditLibrary
                     {
                         DrupalModuleInfo m = yaml_deserializer.Deserialize<DrupalModuleInfo>(r);
                         m.ShortName = f.Name.Split('.')[0];
-                        core_modules.Add(new OSSIndexQueryObject("drupal", m.ShortName, m.Version, "", ""));
+                        core_modules.Add(new OSSIndexQueryObject("drupal", m.ShortName, m.Version, "", m.Project));
                     }
                 }                               
             }
