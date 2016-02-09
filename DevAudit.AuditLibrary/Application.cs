@@ -58,8 +58,8 @@ namespace DevAudit.AuditLibrary
             this.ApplicationOptions = application_options;
             if (!this.ApplicationOptions.ContainsKey("RootDirectory"))
             {
-                this.ApplicationFileSystemMap.Add("RootDirectory", new DirectoryInfo("."));
-                //throw new ArgumentException(string.Format("The root application directory was not specified."), "application_options");
+                //.ApplicationFileSystemMap.Add("RootDirectory", new DirectoryInfo(Directory.GetCurrentDirectory()));
+                throw new ArgumentException(string.Format("The root application directory was not specified."), "application_options");
             }
             else if (!Directory.Exists((string) this.ApplicationOptions["RootDirectory"]))
             {

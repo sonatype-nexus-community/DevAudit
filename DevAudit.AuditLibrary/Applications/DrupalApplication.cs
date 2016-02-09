@@ -63,7 +63,8 @@ namespace DevAudit.AuditLibrary
             Dictionary<string, IEnumerable<OSSIndexQueryObject>> modules = new Dictionary<string, IEnumerable<OSSIndexQueryObject>>();            
             List<FileSystemInfo> core_module_files = this.CoreModulesDirectory.GetFileSystemInfos("*.info.yml", SearchOption.AllDirectories)
                 .Where(f => !f.Name.Contains("_test")).ToList();
-            List<OSSIndexQueryObject> core_modules = new List<OSSIndexQueryObject>(core_module_files.Count);
+            List<OSSIndexQueryObject> core_modules = new List<OSSIndexQueryObject>(core_module_files.Count + 1);
+            core_modules.Add(new OSSIndexQueryObject("drupal", "drupal_core", "8.x"));
             Deserializer yaml_deserializer = new Deserializer(namingConvention: new CamelCaseNamingConvention(), ignoreUnmatched: true);
             foreach (FileInfo f in core_module_files)
             {

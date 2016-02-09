@@ -25,13 +25,12 @@ namespace DevAudit.AuditLibrary
         [JsonProperty("vendor")]
         public string Vendor { get; set; }
 
-
-        public OSSIndexQueryObject(string package_manager, string application_name, string version, string vendor, string group = null)
+        public OSSIndexQueryObject(string package_manager, string application_name, string version, string vendor = null, string group = null)
         {
             this.PackageManager = package_manager;
             this.Name = application_name;
             this.Version = version;
-            this.Vendor = vendor;
+            if (!string.IsNullOrEmpty(vendor)) this.Vendor = vendor;
             if (!string.IsNullOrEmpty(group)) this.Group = group;
         }
     }

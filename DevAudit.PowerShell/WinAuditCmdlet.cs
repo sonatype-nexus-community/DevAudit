@@ -121,6 +121,7 @@ namespace DevAudit.PowerShell
                     if (string.IsNullOrEmpty(this.RootDirectory))
                     {                        
                         WriteVerbose("Root directory parameter not specified, using current directory by default.");
+                        this.RootDirectory = Directory.GetCurrentDirectory();
                     }
                     else if (!System.IO.Directory.Exists(this.RootDirectory))
                     {
