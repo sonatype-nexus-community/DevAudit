@@ -93,6 +93,10 @@ namespace DevAudit.CommandLine
                 {
                     Source = new ComposerPackageSource(audit_options);
                 }
+				else if (verb == "dpkg")
+				{
+					Source = new DpkgPackageSource(audit_options);
+				}
                 else if (verb == "drupal")
                 {
                     Source = new DrupalApplication(audit_options);
