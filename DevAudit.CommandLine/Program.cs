@@ -58,11 +58,6 @@ namespace DevAudit.CommandLine
                     audit_options.Add("CacheTTL", ProgramOptions.CacheTTL);
                 }
 
-                if (!string.IsNullOrEmpty(ProgramOptions.RootDirectory))
-                {
-                    audit_options.Add("RootDirectory", ProgramOptions.RootDirectory);
-                }
-
             }
             #endregion
 

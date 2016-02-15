@@ -80,6 +80,7 @@
     <Compile Include="PackageSource\BowerPackageSource.cs" />
     <Compile Include="PackageSource\ChocolateyPackageSource.cs" />
     <Compile Include="PackageSource\ComposerPackageSource.cs" />
+    <Compile Include="PackageSource\DpkgPackageSource.cs" />
     <Compile Include="PackageSource\MSIPackageSource.cs" />
     <Compile Include="PackageSource\NuGetPackageSource.cs" />
     <Compile Include="PackageSource\OneGetPackageSource.cs" />
