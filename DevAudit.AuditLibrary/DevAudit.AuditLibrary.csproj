@@ -70,7 +70,6 @@
     <Compile Include="Applications\DrupalApplication.cs" />
     <Compile Include="Applications\DrupalModuleInfo.cs" />
     <Compile Include="BsonSerializer.cs" />
-    <Compile Include="DpkgPackageSource.cs" />
     <Compile Include="OSSIndexArtifact.cs" />
     <Compile Include="OSSIndexHttpClient.cs" />
     <Compile Include="OSSIndexHttpException.cs" />
@@ -81,6 +80,7 @@
     <Compile Include="PackageSource\BowerPackageSource.cs" />
     <Compile Include="PackageSource\ChocolateyPackageSource.cs" />
     <Compile Include="PackageSource\ComposerPackageSource.cs" />
+    <Compile Include="PackageSource\DpkgPackageSource.cs" />
     <Compile Include="PackageSource\MSIPackageSource.cs" />
     <Compile Include="PackageSource\NuGetPackageSource.cs" />
     <Compile Include="PackageSource\OneGetPackageSource.cs" />
