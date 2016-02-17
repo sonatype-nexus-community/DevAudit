@@ -93,10 +93,10 @@ namespace DevAudit.CommandLine
                 {
                     Source = new ComposerPackageSource(audit_options);
                 }
-				else if (verb == "dpkg")
-				{
-					Source = new DpkgPackageSource(audit_options);
-				}
+                else if (verb == "dpkg")
+                {
+                    Source = new DpkgPackageSource(audit_options);
+                }
                 else if (verb == "drupal")
                 {
                     Source = new DrupalApplication(audit_options);
@@ -193,7 +193,7 @@ namespace DevAudit.CommandLine
                 foreach (OSSIndexArtifact artifact in Source.Artifacts)
                 {
                     Console.Write("[{0}/{1}] {2} ({3}) ", i++, Source.Artifacts.Count(), artifact.PackageName,
-                        !string.IsNullOrEmpty(artifact.Version) ? artifact.Version : "No version found");
+                        !string.IsNullOrEmpty(artifact.Version) ? artifact.Version : string.Format("No version reported for package version {0}", artifact.Package.Version));
                     if (!string.IsNullOrEmpty(artifact.ProjectId))
                     {
                         Console.ForegroundColor = ConsoleColor.Blue;
@@ -321,7 +321,7 @@ namespace DevAudit.CommandLine
                     Console.Write("[{0}/{1}] {2}", projects_processed, projects_count, a.PackageName);
                     Console.ForegroundColor = ConsoleColor.Yellow;
                     Console.ResetColor();
-                    Console.Write(" {0} ", a.Version);
+                    Console.Write(" {0} ", string.IsNullOrEmpty(a.Version) ? string.Format("[{0}]", a.Package.Version) : a.Version);
                     if (vulnerabilities.Value.Count() == 0)
                     {
                         Console.ForegroundColor = ConsoleColor.DarkGray;
@@ -343,21 +343,20 @@ namespace DevAudit.CommandLine
                             Console.ForegroundColor = ConsoleColor.Red;
                             Console.WriteLine("[VULNERABLE]");
                         }
-                        Console.ForegroundColor = ConsoleColor.DarkGray;
-                        Console.Write("{0} distinct ({1} total) known vulnerabilities, ", vulnerabilities.Value.GroupBy(v => new { v.CVEId, v.Uri, v.Title, v.Summary }).SelectMany(v => v).Count(),
-                            vulnerabilities.Value.Count());
+                        Console.ForegroundColor = ConsoleColor.Magenta;
+                        Console.Write("{0} known vulnerabilities, ", vulnerabilities.Value.Count()); //vulnerabilities.Value.GroupBy(v => new { v.CVEId, v.Uri, v.Title, v.Summary }).SelectMany(v => v).Count(),
                         Console.WriteLine("{0} affecting installed version.", found_vulnerabilities.Count());
                         found_vulnerabilities.ForEach(v =>
                         {
                             Console.ForegroundColor = ConsoleColor.Red;
-                            if (!string.IsNullOrEmpty(v.CVEId)) Console.Write("{0} ", v.CVEId);
-                            Console.WriteLine(v.Title);
+                            Console.WriteLine("{0} {1}", v.CVEId, v.Title);                            
                             Console.ResetColor();
                             Console.WriteLine(v.Summary);
-                            Console.ForegroundColor = ConsoleColor.DarkGray;
-                            Console.Write("\nAffected versions: ");
+                            Console.ForegroundColor = ConsoleColor.Red;
+                            Console.Write("Affected versions: ");
                             Console.ForegroundColor = ConsoleColor.White;
                             Console.WriteLine(string.Join(", ", v.Versions.ToArray()));
+                            Console.WriteLine("");
                         });
                     }
                     Console.ResetColor();
