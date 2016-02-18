@@ -322,7 +322,9 @@ namespace DevAudit.CommandLine
                     if (vulnerabilities.Value.Count() == 0)
                     {
                         Console.ForegroundColor = ConsoleColor.DarkGray;
-                        Console.WriteLine("no known vulnerabilities.");
+                        Console.ResetColor();
+                        Console.Write("no known vulnerabilities. ");
+                        Console.Write("[{0} {1}]\n", p.Package.Name, p.Package.Version);
                     }
                     else
                     {
