@@ -317,11 +317,12 @@ namespace DevAudit.CommandLine
                     OSSIndexProject p = vulnerabilities.Key;
                     OSSIndexArtifact a = Source.Artifacts.First(sa => sa.Package.Name == p.Package.Name && sa.Package.Version == p.Package.Version && sa.Package.Vendor == p.Package.Vendor);
                     Console.ForegroundColor = ConsoleColor.White;
-                    Console.Write("[{0}/{1}] {2} ({3}) ", projects_processed, projects_count, a.PackageName, string.IsNullOrEmpty(a.Version) ? "No version reported" : a.Version);
+                    Console.Write("[{0}/{1}] {2} {3}", projects_processed, projects_count, a.PackageName, string.IsNullOrEmpty(a.Version) ? "" : 
+                        string.Format("({0}) ", a.Version));
                     if (vulnerabilities.Value.Count() == 0)
                     {
                         Console.ForegroundColor = ConsoleColor.DarkGray;
-                        Console.WriteLine("No known vulnerabilities.");
+                        Console.WriteLine("no known vulnerabilities.");
                     }
                     else
                     {
