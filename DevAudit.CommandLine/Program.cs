@@ -256,8 +256,7 @@ namespace DevAudit.CommandLine
                     Console.Write("[{0}/{1}] {2}", projects_processed, projects_count, a.PackageName);
                     Console.ForegroundColor = ConsoleColor.DarkCyan;
                     Console.Write("[CACHED]");
-                    Console.ForegroundColor = ConsoleColor.Yellow;
-                    Console.ResetColor();
+                    Console.ForegroundColor = ConsoleColor.White;
                     Console.Write(" {0} ", a.Version);
                     if (vulnerabilities.Count() == 0)
                     {
@@ -316,12 +315,9 @@ namespace DevAudit.CommandLine
                     }
                     projects_successful++;
                     OSSIndexProject p = vulnerabilities.Key;
-                    OSSIndexArtifact a = Source.Artifacts.First(sa => sa.Package.Name == p.Package.Name && sa.Package.Version == p.Package.Version);
+                    OSSIndexArtifact a = Source.Artifacts.First(sa => sa.Package.Name == p.Package.Name && sa.Package.Version == p.Package.Version && sa.Package.Vendor == p.Package.Vendor);
                     Console.ForegroundColor = ConsoleColor.White;
-                    Console.Write("[{0}/{1}] {2}", projects_processed, projects_count, a.PackageName);
-                    Console.ForegroundColor = ConsoleColor.Yellow;
-                    Console.ResetColor();
-                    Console.Write(" {0} ", string.IsNullOrEmpty(a.Version) ? string.Format("[{0}]", a.Package.Version) : a.Version);
+                    Console.Write("[{0}/{1}] {2} ({3}) ", projects_processed, projects_count, a.PackageName, string.IsNullOrEmpty(a.Version) ? "No version reported" : a.Version);
                     if (vulnerabilities.Value.Count() == 0)
                     {
                         Console.ForegroundColor = ConsoleColor.DarkGray;
@@ -345,7 +341,9 @@ namespace DevAudit.CommandLine
                         }
                         Console.ForegroundColor = ConsoleColor.Magenta;
                         Console.Write("{0} known vulnerabilities, ", vulnerabilities.Value.Count()); //vulnerabilities.Value.GroupBy(v => new { v.CVEId, v.Uri, v.Title, v.Summary }).SelectMany(v => v).Count(),
-                        Console.WriteLine("{0} affecting installed version.", found_vulnerabilities.Count());
+                        Console.Write("{0} affecting installed version. ", found_vulnerabilities.Count());
+                        Console.ResetColor();
+                        Console.Write("[{0} {1}]\n", p.Package.Name, p.Package.Version);
                         found_vulnerabilities.ForEach(v =>
                         {
                             Console.ForegroundColor = ConsoleColor.Red;
