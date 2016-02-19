@@ -18,6 +18,10 @@ namespace DevAudit.AuditLibrary
         public override IEnumerable<OSSIndexQueryObject> GetPackages(params string[] o)
         {
             string ps_command = @"dpkg-query";
+            if (this.UseDockerContainer)
+            {
+                ps_command = string.Format("docker exec {0} ", this.DockerContainerId) + ps_command
+            }
             string process_error = "";
             string[] process_output;
             int process_output_lines = 0;

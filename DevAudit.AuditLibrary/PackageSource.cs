@@ -54,7 +54,7 @@ namespace DevAudit.AuditLibrary
         }
 
         public bool ProjectVulnerabilitiesCacheDump { get; set; }
-
+        
         public IEnumerable<string> ProjectVulnerabilitiesCacheKeys
         {
             get
@@ -76,6 +76,10 @@ namespace DevAudit.AuditLibrary
                    select artifact;
             }
         }
+
+        public bool UseDockerContainer { get; set; }
+
+        public string DockerContainerId { get; set; }
       
         public Dictionary<string, object> PackageSourceOptions { get; set; } = new Dictionary<string, object>();
 
@@ -220,6 +224,7 @@ namespace DevAudit.AuditLibrary
                 this.PackageManagerConfigurationFile = "";
             }
 
+            #region Cache option
             if (this.PackageSourceOptions.ContainsKey("Cache") && (bool) this.PackageSourceOptions["Cache"] == true)
             {
                 this.ProjectVulnerabilitiesCacheEnabled = true;
@@ -264,6 +269,18 @@ namespace DevAudit.AuditLibrary
             else
             {
                 this.ProjectVulnerabilitiesCacheEnabled = false;
+            }
+            #endregion
+
+            #region Docker cont
+            if (this.PackageSourceOptions.ContainsKey("DockerContainerId"))
+            {
+                this.UseDockerContainer = true;
+                this.DockerContainerId = (string)this.PackageSourceOptions["DockerContainerId"];
+            }
+            else
+            {
+                this.UseDockerContainer = false;
             }
         }
         #endregion
@@ -399,7 +416,7 @@ namespace DevAudit.AuditLibrary
             {
                 throw new Exception("Project vulnerabilities cache is not enabled.");
             }
-
+            
         }
         #endregion
 

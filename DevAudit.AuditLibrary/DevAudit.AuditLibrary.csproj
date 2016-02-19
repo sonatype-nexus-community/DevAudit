@@ -70,6 +70,7 @@
     <Compile Include="Applications\DrupalApplication.cs" />
     <Compile Include="Applications\DrupalModuleInfo.cs" />
     <Compile Include="BsonSerializer.cs" />
+    <Compile Include="Docker.cs" />
     <Compile Include="OSSIndexArtifact.cs" />
     <Compile Include="OSSIndexHttpClient.cs" />
     <Compile Include="OSSIndexHttpException.cs" />
