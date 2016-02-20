@@ -26,7 +26,7 @@ Pre-built DevAudit binaries may be installed in one of three ways:
 
 1. MSI Installer
 2. Zip file
-3. [Soon] Chocolatey
+3. Chocolatey
  
 ### MSI Installer
 
