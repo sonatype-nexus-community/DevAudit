@@ -55,7 +55,7 @@ The Zip install requires that [.NET framework version 4.5](https://www.microsoft
  
 ### Chocolatey
 
-DevAudit will soon be available on [Chocolatey](https://chocolatey.org)
+DevAudit is available available on [Chocolatey](https://chocolatey.org/packages/devaudit/1.0.1)
 
 1. Install [Chocolatey](https://chocolatey.org)
 2. Open an admin console or powershell window
