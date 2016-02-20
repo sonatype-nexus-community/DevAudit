@@ -65,6 +65,8 @@ namespace DevAudit.CommandLine
         [Option('r', "root", Required = false, HelpText = "The root directory of the application instance to audit.")]
         public string RootDirectory { get; set; }
 
+        [Option('d', "docker-container", Required = false, HelpText = "Run the audit on a docker container with this id. The command line docker tools are used to execute the required commands on the docker container.")]
+        public string DockerContainerId { get; set; }
 
         [ParserState]
         public IParserState LastParserState { get; set; }

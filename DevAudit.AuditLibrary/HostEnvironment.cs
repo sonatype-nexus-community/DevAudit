@@ -1,44 +1,29 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.ComponentModel;
 using System.Diagnostics;
+using System.ComponentModel;
+using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
 namespace DevAudit.AuditLibrary
 {
-    public class Docker
+    public class HostEnvironment
     {
         public enum ProcessStatus
         {
-            DockerNotInstalled = -1,
+            FileNotFound = -1,
             Success = 0,
             Error = 1
         }
 
-        public static string InspectCommand { get; set; } = "inspect {0}"; 
-
- 
-
-        public static bool GetContainer(string container_id, out ProcessStatus process_status, out string process_output, out string process_error)
-        {
-            return Execute(string.Format(InspectCommand, container_id), out process_status, out process_output, out process_error);
-        }
-
-        public static bool ExecuteInContainer(string container_id, string command, out ProcessStatus process_status, out string process_output, out string process_error)
-        {
-            return Execute(string.Format("exec {0} {1}", container_id, command), out process_status, out process_output, out process_error);
-        }
-
-
-
-        public static bool Execute(string arguments, out ProcessStatus process_status, out string process_output, out string process_error)
+        public static bool Execute(string command, string arguments, 
+            out ProcessStatus process_status, out string process_output, out string process_error, Action<string> OutputDataReceived = null, Action<string> OutputErrorReceived = null)
         {
             int? process_exit_code = null;
             string process_out = "";
             string process_err = "";
-            ProcessStartInfo psi = new ProcessStartInfo("docker");
+            ProcessStartInfo psi = new ProcessStartInfo(command);
             psi.Arguments = arguments;
             psi.CreateNoWindow = true;
             psi.RedirectStandardError = true;
@@ -52,6 +37,7 @@ namespace DevAudit.AuditLibrary
                 if (!String.IsNullOrEmpty(e.Data))
                 {
                     process_out += e.Data + Environment.NewLine;
+                    if (OutputDataReceived != null) OutputDataReceived(e.Data);
                 }
             };
             p.ErrorDataReceived += (object sender, DataReceivedEventArgs e) =>
@@ -59,6 +45,7 @@ namespace DevAudit.AuditLibrary
                 if (!String.IsNullOrEmpty(e.Data))
                 {
                     process_err += e.Data + Environment.NewLine;
+                    if (OutputErrorReceived != null) OutputErrorReceived(e.Data);
                 }
 
             };
@@ -75,7 +62,7 @@ namespace DevAudit.AuditLibrary
             {
                 if (e.Message == "The system cannot find the file specified")
                 {
-                    process_status = ProcessStatus.DockerNotInstalled;
+                    process_status = ProcessStatus.FileNotFound;
                     process_error = e.Message;
                     process_output = "";
                     return false;

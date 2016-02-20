@@ -75,6 +75,7 @@
     <Compile Include="BowerPackageSourceTests.cs" />
     <Compile Include="ChocolateyPackageSourceTests.cs" />
     <Compile Include="ComposerPackageSourceTests.cs" />
+    <Compile Include="DockerTests.cs" />
     <Compile Include="DrupalApplicationTests.cs" />
     <Compile Include="HttpClientTests.cs" />
     <Compile Include="HttpClientv10Tests.cs" />
