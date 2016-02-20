@@ -8,7 +8,14 @@ Usage
 devaudit <package-source> [--file <file>]
 
 package-source is one of nuget, msi, chocolatey, bower, oneget.
---file is a optional file parameter that is used by package sources like NuGet and Bower.
+--file <file>
+    For use with **nuget** and **bower** package sources. The file argument
+    specifies the dependency file to be processed. For NuGet this would be
+    "packages.config" and for bower a "bower.json" file.
+
+-n, --non-interact
+    Run in non-interactive mode. Useful for when running with a script or
+    redirecting output to a file
 ```
 
 Installation
@@ -68,10 +75,11 @@ where **package-source** is one of
 * bower
 
 **Options**:
+
 --file <file>
     For use with **nuget** and **bower** package sources. The file argument specifies the dependency file to be processed. For NuGet this would be "packages.config" and for bower a "bower.json" file.
 
--m, --non-interact
+-n, --non-interact
     Run in non-interactive mode. Useful for when running with a script or redirecting output to a file
 
 Examples
