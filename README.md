@@ -113,4 +113,42 @@ Microsoft Windows XP SP2 and SP3, Windows Server 2003 SP2, Windows Vista SP2, Wi
 [139/139] Google Chrome  1210 distinct (1210 total) known vulnerabilities, 0 affecting installed version.
 ```
 
+### devaudit nuget -n --file DevAudit.CommandLine\Examples\packages.config.example
+```
+Scanning NuGet packages...
+Found 28 distinct packages.
+Searching OSS Index for 28 NuGet packages...
+Found 34 artifacts, 16 with an OSS Index project id.
+Searching OSS Index for vulnerabilities for 16 projects...
+
+Audit Results
+=============
+[1/16] EntityFramework 6.1.2 No known vulnerabilities.
+[2/16] EntityFramework 6.1.2 No known vulnerabilities.
+[3/16] EntityFramework 6.1.2 No known vulnerabilities.
+[4/16] WebGrease 1.6.0 No known vulnerabilities.
+[5/16] Respond 1.2.0 No known vulnerabilities.
+[6/16] Microsoft.AspNet.Razor 3.2.2 No known vulnerabilities.
+[7/16] Antlr 3.5.0.2 No known vulnerabilities.
+[8/16] Microsoft.AspNet.Razor 3.2.2 No known vulnerabilities.
+[9/16] Twitter.Typeahead 0.10.5 No known vulnerabilities.
+[10/16] Modernizr 2.8.3 No known vulnerabilities.
+[11/16] Newtonsoft.Json 6.0.7 No known vulnerabilities.
+[12/16] Microsoft.Data.Edm 5.6.3 1 distinct (1 total) known vulnerabilities, 0 affecting installed version.
+[13/16] bootstrap 3.0.0 1 distinct (1 total) known vulnerabilities, 0 affecting installed version.
+[14/16] jQuery 1.6.1 [VULNERABLE]
+3 distinct (3 total) known vulnerabilities, 2 affecting installed version.
+[CVE-2011-4969]Cross-site scripting (XSS) vulnerability in jQuery before 1.6.3, when using loca...
+Cross-site scripting (XSS) vulnerability in jQuery before 1.6.3, when using location.hash to select elements, allows remote attackers to inject arbitrary web script or HTML via a crafted tag.
+
+Affected versions: 1.6, 1.6.1, 1.6.2
+Selector interpreted as HTML
+&num;9521 and &num;6429 and probably others identify specific instances of a general problem: jQuery( strInput ) cannot reliably differentiate selectors from HTML.
+?http://jsfiddle.net/C8dgG/
+Looking for "<" past the first character creates vulnerabilities and confusing behavior on complex input.
+quickExpr should be abandoned in favor of a simpler "parse as HTML if and only if there is a leading less-than" rule, with intentional parsing handled by the jQuery( "<div/>" ).html( strHtml ).contents() pattern.
+
+Affected versions: <1.9.0
+[15/16] Microsoft.Data.OData 5.6.3 1 distinct (1 total) known vulnerabilities, 0 affecting installed version.
+[16/16] Microsoft.Data.Services.Client 5.6.3 1 distinct (1 total) known vulnerabilities, 0 affecting installed version.
 ```
