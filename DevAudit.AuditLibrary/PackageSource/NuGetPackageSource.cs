@@ -1,21 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Collections.Concurrent;
 using System.IO;
 using System.Linq;
-using System.Security;
-using System.Security.Permissions;
-using System.Text;
-using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 using System.Xml;
 using System.Xml.Linq;
-using Microsoft.Win32;
-
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 
 using SemverSharp;
+using Sprache;
 
 namespace DevAudit.AuditLibrary
 {
@@ -85,7 +76,14 @@ namespace DevAudit.AuditLibrary
 
         public override bool IsVulnerabilityVersionInPackageVersionRange(string vulnerability_version, string package_version)
         {
-            return SemanticVersion.RangeIntersect(vulnerability_version, package_version);
+            try
+            {
+                return SemanticVersion.RangeIntersect(vulnerability_version, package_version);
+            }
+            catch (ParseException e)
+            {
+                throw new Exception(e.Message);
+            }
         }
     }
 }

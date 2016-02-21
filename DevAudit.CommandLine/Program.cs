@@ -6,7 +6,6 @@ using System.Threading.Tasks;
 
 using CL = CommandLine; //Avoid type name conflict with external CommandLine library
 
-
 using DevAudit.AuditLibrary;
 
 namespace DevAudit.CommandLine
@@ -274,9 +273,17 @@ namespace DevAudit.CommandLine
                         List<OSSIndexProjectVulnerability> found_vulnerabilities = new List<OSSIndexProjectVulnerability>(vulnerabilities.Count());
                         foreach (OSSIndexProjectVulnerability vulnerability in vulnerabilities.GroupBy(v => new { v.CVEId, v.Uri, v.Title, v.Summary }).SelectMany(v => v).ToList())
                         {
-                            if (vulnerability.Versions.Any(v => !string.IsNullOrEmpty(v) && Source.IsVulnerabilityVersionInPackageVersionRange(a.Package.Version, v)))
+                            try
                             {
-                                found_vulnerabilities.Add(vulnerability);
+                                if (vulnerability.Versions.Any(v => !string.IsNullOrEmpty(v) && Source.IsVulnerabilityVersionInPackageVersionRange(v, a.Package.Version)))
+                                {
+                                    found_vulnerabilities.Add(vulnerability);
+                                }
+                            }
+                            catch (Exception e)
+                            {
+                                PrintErrorMessage("Error determining vulnerability version range {0} in package version range {1}: {2}.",
+                                    vulnerability.Versions.Aggregate((f, s) => { return f + "," + s; }), a.Package.Version, e.Message);
                             }
                         }
                         //found_vulnerabilities = found_vulnerabilities.GroupBy(v => new { v.CVEId, v.Uri, v.Title, v.Summary }).SelectMany(v => v).ToList();
@@ -337,9 +344,18 @@ namespace DevAudit.CommandLine
                         List<OSSIndexProjectVulnerability> found_vulnerabilities = new List<OSSIndexProjectVulnerability>(vulnerabilities.Value.Count());
                         foreach (OSSIndexProjectVulnerability vulnerability in vulnerabilities.Value.GroupBy(v => new { v.CVEId, v.Uri, v.Title, v.Summary }).SelectMany(v => v).ToList())
                         {
-                            if (vulnerability.Versions.Any(v => !string.IsNullOrEmpty(v) && Source.IsVulnerabilityVersionInPackageVersionRange(p.Package.Version, v)))
+
+                            try
                             {
-                                found_vulnerabilities.Add(vulnerability);
+                                if (vulnerability.Versions.Any(v => !string.IsNullOrEmpty(v) && Source.IsVulnerabilityVersionInPackageVersionRange(v, p.Package.Version)))
+                                {
+                                    found_vulnerabilities.Add(vulnerability);
+                                }
+                            }
+                            catch (Exception e)
+                            {
+                                PrintErrorMessage("Error determining vulnerability version range {0} in package version range {1}: {2}.",
+                                    vulnerability.Versions.Aggregate((f, s) => { return f + "," + s; }), a.Package.Version, e.Message);
                             }
                         }
                         //found_vulnerabilities = found_vulnerabilities.GroupBy(v => new { v.CVEId, v.Uri, v.Title, v.Summary }).SelectMany(v => v).ToList();
