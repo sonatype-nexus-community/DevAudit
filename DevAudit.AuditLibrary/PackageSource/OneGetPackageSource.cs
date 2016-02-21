@@ -127,7 +127,7 @@ namespace DevAudit.AuditLibrary
 
         public override Func<List<OSSIndexArtifact>, List<OSSIndexArtifact>> ArtifactsTransform { get; } = (artifacts) =>
         {
-            List<OSSIndexArtifact> o = artifacts.ToList();
+            List<OSSIndexArtifact> o = artifacts.GroupBy(a => new { a.PackageName, a.Version }).SelectMany(p => p).ToList();
             foreach (OSSIndexArtifact a in o)
             {
                 if (a.Search == null || a.Search.Count() != 4)

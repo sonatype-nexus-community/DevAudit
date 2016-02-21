@@ -72,75 +72,6 @@ namespace DevAudit.AuditLibrary
                 return packages;
 
             }
-            /*
-            string process_error = "";
-            string[] process_output;
-            int process_output_lines = 0;
-            ProcessStartInfo psi = new ProcessStartInfo(ps_command);
-            psi.Arguments = 
-            psi.CreateNoWindow = true;
-            psi.RedirectStandardError = true;
-            psi.RedirectStandardOutput = true;
-            psi.UseShellExecute = false;
-            Process p = new Process();
-            p.EnableRaisingEvents = true;
-            p.StartInfo = psi;
-            
-            Regex process_output_pattern = new Regex(@"^(\S+)\s(\S+)$", RegexOptions.Compiled);
-            p.OutputDataReceived += (object sender, DataReceivedEventArgs e) =>
-            {
-                if (!String.IsNullOrEmpty(e.Data))
-                {
-                    process_output = e.Data.Split("\n".ToCharArray());
-                    process_output_lines += process_output.Count();
-                    for (int i = 0; i < process_output.Count(); i++)
-                    {
-                        Match m = process_output_pattern.Match(process_output[i].TrimStart());
-                        if (!m.Success)
-                        {
-                            throw new Exception("Could not parse dpkg command output row: " + process_output_lines.ToString()
-                                + "\n" + process_output[i]);
-                        }
-                        else
-                        {
-                            packages.Add(new OSSIndexQueryObject("dpkg", m.Groups[1].Value, m.Groups[2].Value, ""));
-                        }
-                    }
-                };
-            };
-            p.ErrorDataReceived += (object sender, DataReceivedEventArgs e) =>
-            {
-                if (!String.IsNullOrEmpty(e.Data))
-                {
-                    process_error += e.Data + Environment.NewLine;
-                    p.CancelOutputRead();
-                    p.CancelOutputRead();
-                    throw new Exception(string.Format("dpkg-query wrote to stderror:{0}.", e.Data));
-                }
-
-            };
-            try
-            {
-                p.Start();
-            }
-            catch (Win32Exception e)
-            {
-                if (e.Message == "The system cannot find the file specified")
-                {
-                    throw new Exception("dpkg is not installed.", e);
-                }
-
-            }
-            finally
-            {
-                p.Dispose();
-            }
-            p.BeginErrorReadLine();
-            p.BeginOutputReadLine();
-            p.WaitForExit();
-            p.Close();
-            return packages;
-            */
         }
 
         public DpkgPackageSource(Dictionary<string, object> package_source_options) : base(package_source_options) { }
@@ -149,7 +80,7 @@ namespace DevAudit.AuditLibrary
 
         public override Func<List<OSSIndexArtifact>, List<OSSIndexArtifact>> ArtifactsTransform { get; } = (artifacts) =>
         {
-            List<OSSIndexArtifact> o = artifacts.ToList();
+            List<OSSIndexArtifact> o = artifacts.GroupBy(a => new { a.PackageName, a.Version }).SelectMany(p => p).ToList();
             foreach (OSSIndexArtifact a in o)
             {
                 if (a.Search == null || a.Search.Count() != 4)

@@ -332,11 +332,12 @@ namespace DevAudit.CommandLine
                     Console.ForegroundColor = ConsoleColor.White;
                     Console.Write("[{0}/{1}] {2} {3}", projects_processed, projects_count, a.PackageName, string.IsNullOrEmpty(a.Version) ? "" : 
                         string.Format("({0}) ", a.Version));
+                    Console.ResetColor();
                     if (vulnerabilities.Value.Count() == 0)
                     {
                         Console.ForegroundColor = ConsoleColor.DarkGray;
-                        Console.ResetColor();
                         Console.Write("no known vulnerabilities. ");
+                        Console.ResetColor();
                         Console.Write("[{0} {1}]\n", p.Package.Name, p.Package.Version);
                     }
                     else
