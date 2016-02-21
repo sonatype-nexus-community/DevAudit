@@ -22,13 +22,13 @@ namespace DevAudit.AuditLibrary
             {
                 Docker.ProcessStatus process_status;
                 string process_output, process_error;
-                if (Docker.ExecuteInContainer(this.DockerContainerId, @"dpkg-query -W -f ${Package}'${Version}\n", out process_status, out process_output, out process_error))
+				if (Docker.ExecuteInContainer(this.DockerContainerId, @"dpkg-query -W -f ${Package}|${Version}\n", out process_status, out process_output, out process_error))
                 {
                     string[] p = process_output.Split(Environment.NewLine.ToCharArray(), StringSplitOptions.RemoveEmptyEntries);
                     
                     for (int i = 0; i < p.Count(); i++)
                     {
-                        string[] k = p[i].Split("'".ToCharArray());
+						string[] k = p[i].Split("|".ToCharArray());
                         packages.Add(new OSSIndexQueryObject("dpkg", k[0], k[1]));
                     }
                 }

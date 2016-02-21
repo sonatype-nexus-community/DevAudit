@@ -90,6 +90,8 @@
     <Compile Include="ProjectVulnerabilitiesCacheItem.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="PackageSource\DpkgPackageSource.cs" />
+    <Compile Include="Docker.cs" />
+    <Compile Include="HostEnvironment.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Examples\bower.json.example">
