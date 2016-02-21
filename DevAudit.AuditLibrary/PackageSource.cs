@@ -98,7 +98,7 @@ namespace DevAudit.AuditLibrary
         {
             get
             {
-                return this._ArtifactsForQuery.Values.SelectMany(a => a).Where(a => a.Package.Version == a.Version);//.GroupBy(a => new { a.PackageName}).Select(d => d.First());
+                return this._ArtifactsForQuery.Values.SelectMany(a => a).Where(a => string.IsNullOrEmpty(a.Version) || (!string.IsNullOrEmpty(a.Version) && a.Package.Version == a.Version));//.GroupBy(a => new { a.PackageName}).Select(d => d.First());
             }
         }
 
