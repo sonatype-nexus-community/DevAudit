@@ -32,24 +32,7 @@ namespace DevAudit.AuditLibrary
             }      
         }
 
-        public override Func<List<OSSIndexArtifact>, List<OSSIndexArtifact>> ArtifactsTransform { get; } = (artifacts) =>
-        {
-            List<OSSIndexArtifact> o = artifacts.GroupBy(a => new { a.PackageName, a.Version }).SelectMany(p => p).ToList(); 
-            foreach (OSSIndexArtifact a in o)
-            {
-                if (a.Search == null || a.Search.Count() != 4)
-                {
-                    throw new Exception("Did not receive expected Search field properties for artifact name: " + a.PackageName + " id: " +
-                        a.PackageId + " project id: " + a.ProjectId + ".");
-                }
-                else
-                {
-                    OSSIndexQueryObject package = new OSSIndexQueryObject(a.Search[0], a.Search[1], a.Search[3], "");
-                    a.Package = package;
-                }
-            }
-            return o;
-        };
+       
 
         //Get NuGet packages from reading packages.config
         public override IEnumerable<OSSIndexQueryObject> GetPackages(params string[] o)

@@ -98,11 +98,28 @@ namespace DevAudit.AuditLibrary
         {
             get
             {
-                return this._ArtifactsForQuery.Values.SelectMany(a => a);
+                return this._ArtifactsForQuery.Values.SelectMany(a => a).Where(a => a.Package.Version == a.Version);//.GroupBy(a => new { a.PackageName}).Select(d => d.First());
             }
         }
 
-        public abstract Func<List<OSSIndexArtifact>, List<OSSIndexArtifact>> ArtifactsTransform { get; }
+        public virtual Func<List<OSSIndexArtifact>, List<OSSIndexArtifact>> ArtifactsTransform { get; } = (artifacts) =>
+        {
+            List<OSSIndexArtifact> o = artifacts;
+            foreach (OSSIndexArtifact a in o)
+            {
+                if (a.Search == null || a.Search.Count() != 4)
+                {
+                    throw new Exception("Did not receive expected Search field properties for artifact name: " + a.PackageName + " id: " +
+                        a.PackageId + " project id: " + a.ProjectId + ".");
+                }
+                else
+                {
+                    OSSIndexQueryObject package = new OSSIndexQueryObject(a.Search[0], a.Search[1], a.Search[3], "");
+                    a.Package = package;
+                }
+            }
+            return o.ToList();
+        };
 
         public List<OSSIndexArtifact> ArtifactProjects
         {
@@ -180,6 +197,7 @@ namespace DevAudit.AuditLibrary
                             {
                                 OSSIndexArtifact artifact = o as OSSIndexArtifact;
                                 OSSIndexProject project = await this.HttpClient.GetProjectForIdAsync(artifact.ProjectId);
+                                project.Artifact = artifact;
                                 project.Package = artifact.Package;
                                 IEnumerable<OSSIndexProjectVulnerability> v = await this.HttpClient.GetVulnerabilitiesForIdAsync(project.Id.ToString());
                                 if (this.ProjectVulnerabilitiesCacheEnabled)

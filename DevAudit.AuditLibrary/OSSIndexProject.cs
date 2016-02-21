@@ -29,6 +29,9 @@ namespace DevAudit.AuditLibrary
         public string Vulnerabilities { get; set; }
 
         [JsonIgnore]
+        public OSSIndexArtifact Artifact { get; set; }
+
+        [JsonIgnore]
         public OSSIndexQueryObject Package { get; set; }
     }
 

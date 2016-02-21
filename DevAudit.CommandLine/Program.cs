@@ -255,8 +255,8 @@ namespace DevAudit.CommandLine
                 {
                     if (projects_processed++ ==0 ) Console.WriteLine("\nAudit Results\n=============");                    
                     OSSIndexProject p = c.Item1;
-                    IEnumerable<OSSIndexProjectVulnerability> vulnerabilities = c.Item2;                                        
-                    OSSIndexArtifact a = Source.Artifacts.First(artifact => artifact.ProjectId == p.Id.ToString());
+                    IEnumerable<OSSIndexProjectVulnerability> vulnerabilities = c.Item2;
+                    OSSIndexArtifact a = p.Artifact;
                     Console.ForegroundColor = ConsoleColor.White;
                     Console.Write("[{0}/{1}] {2}", projects_processed, projects_count, a.PackageName);
                     Console.ForegroundColor = ConsoleColor.DarkCyan;
@@ -328,7 +328,7 @@ namespace DevAudit.CommandLine
                     }
                     projects_successful++;
                     OSSIndexProject p = vulnerabilities.Key;
-                    OSSIndexArtifact a = Source.Artifacts.First(sa => sa.Package.Name == p.Package.Name && sa.Package.Version == p.Package.Version && sa.Package.Vendor == p.Package.Vendor);
+                    OSSIndexArtifact a = p.Artifact;
                     Console.ForegroundColor = ConsoleColor.White;
                     Console.Write("[{0}/{1}] {2} {3}", projects_processed, projects_count, a.PackageName, string.IsNullOrEmpty(a.Version) ? "" : 
                         string.Format("({0}) ", a.Version));

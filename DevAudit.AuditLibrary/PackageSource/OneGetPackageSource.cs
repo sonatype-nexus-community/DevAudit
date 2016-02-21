@@ -125,25 +125,6 @@ namespace DevAudit.AuditLibrary
 
         public OneGetPackageSource() : base() { }
 
-        public override Func<List<OSSIndexArtifact>, List<OSSIndexArtifact>> ArtifactsTransform { get; } = (artifacts) =>
-        {
-            List<OSSIndexArtifact> o = artifacts.GroupBy(a => new { a.PackageName, a.Version }).SelectMany(p => p).ToList();
-            foreach (OSSIndexArtifact a in o)
-            {
-                if (a.Search == null || a.Search.Count() != 4)
-                {
-                    throw new Exception("Did not receive expected Search field properties for artifact name: " + a.PackageName + " id: " +
-                        a.PackageId + " project id: " + a.ProjectId + ".");
-                }
-                else
-                {
-                    OSSIndexQueryObject package = new OSSIndexQueryObject(a.PackageManager, a.Search[1], a.Search[3], "");
-                    a.Package = package;
-                }
-            }
-            return o;
-        };
-
         public override bool IsVulnerabilityVersionInPackageVersionRange(string vulnerability_version, string package_version)
         {
             return vulnerability_version == package_version;
