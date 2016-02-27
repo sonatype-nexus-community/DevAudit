@@ -63,10 +63,10 @@
       <HintPath>..\packages\YamlDotNet.3.8.0\lib\net35\YamlDotNet.dll</HintPath>
     </Reference>
     <Reference Include="Sprache">
-      <HintPath>..\packages\Sprache.2.0.0.50\lib\portable-net4+netcore45+win8+wp8+sl5+MonoAndroid+Xamarin.iOS10+MonoTouch\Sprache.dll</HintPath>
+      <HintPath>..\packages\Sprache.2.0.0.51\lib\portable-net4+netcore45+win8+wp8+sl5+MonoAndroid+Xamarin.iOS10+MonoTouch\Sprache.dll</HintPath>
     </Reference>
     <Reference Include="SemverSharp.Parser">
-      <HintPath>..\packages\SemverSharp.0.1.1.0\lib\net45\SemverSharp.Parser.dll</HintPath>
+      <HintPath>..\packages\SemverSharp.0.1.1.2\lib\net45\SemverSharp.Parser.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>
