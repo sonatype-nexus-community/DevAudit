@@ -92,6 +92,7 @@
     <Compile Include="PackageSource\DpkgPackageSource.cs" />
     <Compile Include="Docker.cs" />
     <Compile Include="HostEnvironment.cs" />
+    <Compile Include="PackageSource\YumPackageSource.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Examples\bower.json.example">
@@ -116,6 +117,9 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Include="packages.config" />
+    <None Include="Examples\packages.config.example.2">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Examples\Drupal\core\modules\" />
