@@ -2,11 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
-
-using CSharpTest.Net.Collections;
-using CSharpTest.Net.Serialization;
 
 namespace DevAudit.AuditLibrary
 {
@@ -100,8 +96,6 @@ namespace DevAudit.AuditLibrary
                 {
                     this.ApplicationFileSystemMap.Add(f, this.RootDirectory.GetFiles((string) ApplicationOptions[f]).First());
                 }
-
-
             }
 
             foreach (string d in RequiredDirectoryLocations.Keys)
@@ -134,12 +128,7 @@ namespace DevAudit.AuditLibrary
                 {
                     this.ApplicationFileSystemMap.Add(d, this.RootDirectory.GetDirectories((string)ApplicationOptions[d]).First());
                 }
-
-
             }
-
-
-
         }
         #endregion
 

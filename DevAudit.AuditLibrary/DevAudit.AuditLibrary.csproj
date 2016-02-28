@@ -122,10 +122,12 @@
     </None>
     <None Include="Examples\packages.config.example.2">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <SubType>Designer</SubType>
     </None>
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
+    <Folder Include="Configurations\" />
     <Folder Include="Examples\Drupal\core\modules\" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

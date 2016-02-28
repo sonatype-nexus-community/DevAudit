@@ -26,7 +26,9 @@ namespace DevAudit.AuditLibrary
        
         public override Dictionary<string, string> RequiredDirectoryLocations { get; } = new Dictionary<string, string>()
         {
-            { "CoreModulesDirectory", Path.Combine("core", "modules") }
+            { "CoreModulesDirectory", Path.Combine("core", "modules") },
+            { "ContribModulesDirectory", "modules" },
+            { "DefaultSiteDirectory", Path.Combine("sites", "default") },
         };
 
         public override Dictionary<string, string> RequiredFileLocations { get; } = new Dictionary<string, string>()
@@ -46,6 +48,22 @@ namespace DevAudit.AuditLibrary
             }
         }
 
+        public DirectoryInfo ContribModulesDirectory
+        {
+            get
+            {
+                return (DirectoryInfo)this.ApplicationFileSystemMap["ContribModulesDirectory"];
+            }
+        }
+
+        public DirectoryInfo SitesAllModulesDirectory
+        {
+            get
+            {
+                return this.RootDirectory.GetDirectories(Path.Combine("sites", "all", "modules")).FirstOrDefault();
+            }
+        }
+
         public FileInfo CorePackagesFile
         {
             get
@@ -62,8 +80,12 @@ namespace DevAudit.AuditLibrary
         {
             Dictionary<string, IEnumerable<OSSIndexQueryObject>> modules = new Dictionary<string, IEnumerable<OSSIndexQueryObject>>();            
             List<FileSystemInfo> core_module_files = this.CoreModulesDirectory.GetFileSystemInfos("*.info.yml", SearchOption.AllDirectories)
-                .Where(f => !f.Name.Contains("_test")).ToList();
+                .Where(f => !f.Name.Contains("_test") && !f.Name.Contains("test_")).ToList();
+            List<FileSystemInfo> contrib_module_files = this.ContribModulesDirectory.GetFileSystemInfos("*.info.yml", SearchOption.AllDirectories)
+                .Where(f => !f.Name.Contains("_test") && !f.Name.Contains("test_")).ToList();
             List<OSSIndexQueryObject> core_modules = new List<OSSIndexQueryObject>(core_module_files.Count + 1);
+            List<OSSIndexQueryObject> contrib_modules = new List<OSSIndexQueryObject>(contrib_module_files.Count);
+            List<OSSIndexQueryObject> all_modules = new List<OSSIndexQueryObject>(core_module_files.Count + 1);
             core_modules.Add(new OSSIndexQueryObject("drupal", "drupal_core", "8.x"));
             Deserializer yaml_deserializer = new Deserializer(namingConvention: new CamelCaseNamingConvention(), ignoreUnmatched: true);
             foreach (FileInfo f in core_module_files)
@@ -79,13 +101,57 @@ namespace DevAudit.AuditLibrary
                 }                               
             }
             modules.Add("core", core_modules);
-
+            all_modules.AddRange(core_modules);
+            foreach (FileInfo f in contrib_module_files)
+            {
+                using (FileStream fs = f.OpenRead())
+                {
+                    using (StreamReader r = new StreamReader(f.OpenRead()))
+                    {
+                        DrupalModuleInfo m = yaml_deserializer.Deserialize<DrupalModuleInfo>(r);
+                        m.ShortName = f.Name.Split('.')[0];
+                        contrib_modules.Add(new OSSIndexQueryObject("drupal", m.ShortName, m.Version, "", m.Project));
+                    }
+                }
+            }
+            if (contrib_modules.Count > 0)
+            {
+                modules.Add("contrib", contrib_modules);
+                all_modules.AddRange(contrib_modules);
+            }
+            if (this.SitesAllModulesDirectory != null)
+            {
+                List<FileSystemInfo> sites_all_contrib_modules_files = this.SitesAllModulesDirectory.GetFileSystemInfos("*.info.yml", SearchOption.AllDirectories)
+                    .Where(f => !f.Name.Contains("_test") && !f.Name.Contains("test_")).ToList();
+                if (sites_all_contrib_modules_files.Count > 0)
+                {
+                    List<OSSIndexQueryObject> sites_all_contrib_modules = new List<OSSIndexQueryObject>(sites_all_contrib_modules_files.Count + 1);
+                    foreach (FileInfo f in sites_all_contrib_modules_files)
+                    {
+                        using (FileStream fs = f.OpenRead())
+                        {
+                            using (StreamReader r = new StreamReader(f.OpenRead()))
+                            {
+                                DrupalModuleInfo m = yaml_deserializer.Deserialize<DrupalModuleInfo>(r);
+                                m.ShortName = f.Name.Split('.')[0];
+                                sites_all_contrib_modules.Add(new OSSIndexQueryObject("drupal", m.ShortName, m.Version, "", m.Project));
+                            }
+                        }
+                    }
+                    if (sites_all_contrib_modules.Count > 0)
+                    {
+                        modules.Add("sites_all_contrib", sites_all_contrib_modules);
+                        all_modules.AddRange(sites_all_contrib_modules);
+                    }
+                }
+            }
+            modules.Add("all", all_modules);
             return modules;
         }
 
         public override IEnumerable<OSSIndexQueryObject> GetPackages(params string[] o)
         {
-            return this.GetModules()["core"];
+            return this.GetModules()["all"];
         }
 
         public override Func<List<OSSIndexArtifact>, List<OSSIndexArtifact>> ArtifactsTransform { get; } = (artifacts) =>
@@ -117,8 +183,7 @@ namespace DevAudit.AuditLibrary
         #region Constructors
         public DrupalApplication(Dictionary<string, object> application_options) : base(application_options)
         {
-                                                            
-            
+                                                               
         }
         #endregion
 

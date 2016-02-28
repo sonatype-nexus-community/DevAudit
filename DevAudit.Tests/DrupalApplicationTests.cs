@@ -12,11 +12,11 @@ namespace DevAudit.Tests
     public class DrupalApplicationTests : PackageSourceTests
     {
         protected DrupalApplication d { get; } = new DrupalApplication(new Dictionary<string, object>()
-        { {"RootDirectory", @"C:\Users\Allister\Sites\devdesktop\drupal802" /*Application.CombinePaths("Examples", "Drupal")*/ }          
+        { {"RootDirectory", @"C:\Bitnami\wampstack-5.6.18-0\apps\drupal\htdocs" /*Application.CombinePaths("Examples", "Drupal")*/ }          
         });
 
         protected override PackageSource s { get; } = new DrupalApplication(new Dictionary<string, object>()
-        { {"RootDirectory", @"C:\Users\Allister\Sites\devdesktop\drupal802" /*Application.CombinePaths("Examples", "Drupal")*/ }
+        { {"RootDirectory", @"C:\Bitnami\wampstack-5.6.18-0\apps\drupal\htdocs" /*Application.CombinePaths("Examples", "Drupal")*/ }
         });
 
 
@@ -28,6 +28,10 @@ namespace DevAudit.Tests
             Assert.NotNull(d.CoreModulesDirectory);
             Dictionary<string, IEnumerable<OSSIndexQueryObject>> modules = d.GetModules();
             Assert.NotEmpty(modules["core"]);
+            Assert.NotEmpty(modules["contrib"]);
+            Assert.NotEmpty(modules["sites_all_contrib"]);
+            Assert.NotEmpty(modules["all"]);
+            Assert.True(modules["all"].Count() == modules["core"].Count() + modules["contrib"].Count() + modules["sites_all_contrib"].Count());
         }
 
         public override Task CanGetVulnerabilities()
