@@ -60,7 +60,12 @@ namespace DevAudit.AuditLibrary
         {
             get
             {
-                return this.RootDirectory.GetDirectories(Path.Combine("sites", "all", "modules")).FirstOrDefault();
+                DirectoryInfo sites_all;
+                if ((sites_all = this.RootDirectory.GetDirectories(Path.Combine("sites", "all")).FirstOrDefault()) != null)
+                {
+                    return sites_all.GetDirectories(Path.Combine("modules")).FirstOrDefault();
+                }
+                else return null;
             }
         }
 
