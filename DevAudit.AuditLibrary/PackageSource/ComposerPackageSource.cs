@@ -31,8 +31,15 @@ namespace DevAudit.AuditLibrary
                 JObject json = (JObject)JToken.ReadFrom(r);
                 JObject require = (JObject)json["require"];
                 JObject require_dev = (JObject)json["require-dev"];
-                return require.Properties().Select(d => new OSSIndexQueryObject("composer", d.Name.Split('/').First(), d.Value.ToString(), "", d.Name.Split('/').Last()))
-                    .Concat(require_dev.Properties().Select(d => new OSSIndexQueryObject("composer", d.Name.Split('/').First(), d.Value.ToString(), "", d.Name.Split('/').Last())));
+                if (require_dev != null)
+                {
+                    return require.Properties().Select(d => new OSSIndexQueryObject("composer", d.Name.Split('/').First(), d.Value.ToString(), "", d.Name.Split('/').Last()))
+                        .Concat(require_dev.Properties().Select(d => new OSSIndexQueryObject("composer", d.Name.Split('/').First(), d.Value.ToString(), "", d.Name.Split('/').Last())));
+                }
+                else
+                {
+                    return require.Properties().Select(d => new OSSIndexQueryObject("composer", d.Name.Split('/').First(), d.Value.ToString(), "", d.Name.Split('/').Last()));
+                }
             }
         }
 

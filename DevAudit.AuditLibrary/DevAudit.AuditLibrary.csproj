@@ -102,6 +102,9 @@
     <None Include="Examples\bower.json.example">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+    <None Include="Examples\composer.json.example.3">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Include="Examples\composer.json.example.1">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
