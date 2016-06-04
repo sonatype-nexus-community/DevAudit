@@ -28,4 +28,6 @@
   <package id="WebGrease" version="1.6.0" targetFramework="net45" />
   <package id="windowsazure.mediaservices" version="3.2.0.0" targetFramework="net45" />
   <package id="WindowsAzure.Storage" version="4.3.0" targetFramework="net45" />
+  <package id="DevAudit" version="1.1.0" targetFramework="net45" />
+
 </packages>

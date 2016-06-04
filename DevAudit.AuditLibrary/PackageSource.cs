@@ -129,7 +129,13 @@ namespace DevAudit.AuditLibrary
             }
         }
 
-       
+        public Dictionary<OSSIndexQueryObject, IEnumerable<OSSIndexPackageVulnerability>> PackageVulnerabilities
+        {
+            get
+            {
+                return _VulnerabilitiesForPackage;
+            }
+        }
 
         public Dictionary<OSSIndexProject, IEnumerable<OSSIndexProjectVulnerability>> Vulnerabilities
         {
@@ -146,7 +152,7 @@ namespace DevAudit.AuditLibrary
                 if (_PackagesTask == null)
                 {
                     _PackagesTask = Task<IEnumerable<OSSIndexQueryObject>>.Run(() => this.Packages =
-                    this.GetPackages().GroupBy(x => new { x.Name, x.Version, x.Vendor }).Select(y => y.First()));
+                        this.GetPackages().GroupBy(x => new { x.Name, x.Version, x.Vendor }).Select(y => y.First()));
                 }
                 return _PackagesTask;
             }
@@ -189,13 +195,13 @@ namespace DevAudit.AuditLibrary
                 {
                     List<OSSIndexArtifact> artifacts_to_query = this.ProjectVulnerabilitiesCacheEnabled ?
                         this.ArtifactProjects.Except(this.CachedArtifacts).ToList() : this.ArtifactProjects;
-                    this._VulnerabilitiesTask =
-                        new List<Task<KeyValuePair<OSSIndexProject, IEnumerable<OSSIndexProjectVulnerability>>>>
+                    this._VulnerabilitiesTask = new List<Task<KeyValuePair<OSSIndexProject, IEnumerable<OSSIndexProjectVulnerability>>>>
                             (artifacts_to_query.Count());
                     artifacts_to_query.ForEach(p => this._VulnerabilitiesTask.Add(Task<Task<KeyValuePair<OSSIndexProject, IEnumerable<OSSIndexProjectVulnerability>>>>
                         .Factory.StartNew(async (o) =>
-                            {
+                            {   
                                 OSSIndexArtifact artifact = o as OSSIndexArtifact;
+                                List<OSSIndexPackageVulnerability> package_vulnerabilities = await this.HttpClient.GetPackageVulnerabilitiesAsync(artifact.PackageId);
                                 OSSIndexProject project = await this.HttpClient.GetProjectForIdAsync(artifact.ProjectId);
                                 project.Artifact = artifact;
                                 project.Package = artifact.Package;
@@ -210,11 +216,9 @@ namespace DevAudit.AuditLibrary
                                     this.ProjectVulnerabilitiesCache[GetProjectVulnerabilitiesCacheKey(project.Id)] = new Tuple<OSSIndexProject, IEnumerable<OSSIndexProjectVulnerability>>
                                         (project, v);
                                 }
-                                return this.AddVulnerability(project, v);
-                            },
-                                p, CancellationToken.None, TaskCreationOptions.DenyChildAttach, TaskScheduler.Default).Unwrap()));
-
-
+                                this.AddPackageVulnerability(artifact.Package, package_vulnerabilities);
+                                return this.AddProjectVulnerability(project, v);
+                            }, p, CancellationToken.None, TaskCreationOptions.DenyChildAttach, TaskScheduler.Default).Unwrap()));
                 }
                 return this._VulnerabilitiesTask;
             }
@@ -352,6 +356,8 @@ namespace DevAudit.AuditLibrary
             new Dictionary<IEnumerable<OSSIndexQueryObject>, IEnumerable<OSSIndexArtifact>>();
         private List<Task<KeyValuePair<IEnumerable<OSSIndexQueryObject>, IEnumerable<OSSIndexArtifact>>>> _ArtifactsTask;
         private Task<IEnumerable<OSSIndexQueryObject>> _PackagesTask;
+        private Dictionary<OSSIndexQueryObject, IEnumerable<OSSIndexPackageVulnerability>> _VulnerabilitiesForPackage =
+            new Dictionary<OSSIndexQueryObject, IEnumerable<OSSIndexPackageVulnerability>>();
         private Dictionary<OSSIndexProject, IEnumerable<OSSIndexProjectVulnerability>> _VulnerabilitiesForProject =
             new Dictionary<OSSIndexProject, IEnumerable<OSSIndexProjectVulnerability>>();
         private List<Task<KeyValuePair<OSSIndexProject, IEnumerable<OSSIndexProjectVulnerability>>>> _VulnerabilitiesTask;
@@ -377,12 +383,23 @@ namespace DevAudit.AuditLibrary
             }
         }
 
+        private KeyValuePair<OSSIndexQueryObject, IEnumerable<OSSIndexPackageVulnerability>>
+           AddPackageVulnerability(OSSIndexQueryObject package, IEnumerable<OSSIndexPackageVulnerability> vulnerability)
+        {
+            lock (vulnerabilities_lock)
+            {
+                this._VulnerabilitiesForPackage.Add(package, vulnerability);
+                return new KeyValuePair<OSSIndexQueryObject, IEnumerable<OSSIndexPackageVulnerability>>(package, vulnerability);
+            }
+        }
+
         private KeyValuePair<OSSIndexProject, IEnumerable<OSSIndexProjectVulnerability>>
-            AddVulnerability(OSSIndexProject project, IEnumerable<OSSIndexProjectVulnerability> vulnerability)
+            AddProjectVulnerability(OSSIndexProject project, IEnumerable<OSSIndexProjectVulnerability> vulnerability)
         {
             lock (vulnerabilities_lock)
             {
                 this._VulnerabilitiesForProject.Add(project, vulnerability);
+                
                 return new KeyValuePair<OSSIndexProject, IEnumerable<OSSIndexProjectVulnerability>>(project, vulnerability);
             }
         }

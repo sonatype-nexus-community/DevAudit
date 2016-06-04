@@ -84,6 +84,7 @@
     <Compile Include="OSSIndexArtifact.cs" />
     <Compile Include="OSSIndexHttpClient.cs" />
     <Compile Include="OSSIndexHttpException.cs" />
+    <Compile Include="OSSIndexPackageVulnerability.cs" />
     <Compile Include="OSSIndexProject.cs" />
     <Compile Include="OSSIndexProjectVulnerability.cs" />
     <Compile Include="OSSIndexQueryObject.cs" />

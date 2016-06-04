@@ -56,6 +56,16 @@ namespace DevAudit.Tests
             Assert.Equal(p1.HasVulnerability, true);
             Assert.Equal(p1.Vulnerabilities, "http://ossindex.net:8080/v1.1/project/8396559329/vulnerabilities");
         }
+        
+        [Fact]
+        public async Task CanGetPackageVulnerability()
+        {
+            OSSIndexQueryObject q1 = new OSSIndexQueryObject("nuget", "DevAudit", "", "");
+            IEnumerable<OSSIndexArtifact> r1 = await http_client.SearchAsync("nuget", q1, transform);
+            Assert.True(r1.Count() > 0);
+            List<OSSIndexPackageVulnerability> pv = await http_client.GetPackageVulnerabilitiesAsync(r1.First().PackageId);
+            Assert.True(pv.Count > 0);
+        }
 
         [Fact]
         public override async Task CanGetVulnerabilityForId()

@@ -113,7 +113,31 @@ namespace DevAudit.AuditLibrary
                 }
             }
         }
-      
+
+        public async Task<List<OSSIndexPackageVulnerability>> GetPackageVulnerabilitiesAsync(string id)
+        {
+            if (string.IsNullOrEmpty(id)) throw new ArgumentNullException("Package id.");
+            using (HttpClient client = new HttpClient())
+            {
+                client.BaseAddress = new Uri(@"https://ossindex.net/");
+                client.DefaultRequestHeaders.Accept.Clear();
+                client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+                client.DefaultRequestHeaders.Add("user-agent", "DevAudit");
+                HttpResponseMessage response = await client.GetAsync(string.Format("v" + this.ApiVersion + "/package/{0}/vulnerabilities", id)); 
+                    
+                if (response.IsSuccessStatusCode)
+                {
+                    string r = await response.Content.ReadAsStringAsync();
+                    return JsonConvert.DeserializeObject<List<OSSIndexPackageVulnerability>>(r);
+                }
+                else
+                {
+                    throw new OSSIndexHttpException(id, response.StatusCode, response.ReasonPhrase, response.RequestMessage);
+                }
+            }
+
+        }
+
         public async Task<IEnumerable<OSSIndexProjectVulnerability>> GetVulnerabilitiesForIdAsync(string id)
         {
             using (HttpClient client = new HttpClient())
