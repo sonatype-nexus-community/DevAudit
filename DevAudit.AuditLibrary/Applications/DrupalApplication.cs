@@ -84,10 +84,12 @@ namespace DevAudit.AuditLibrary
         public override Dictionary<string, IEnumerable<OSSIndexQueryObject>> GetModules()
         {
             Dictionary<string, IEnumerable<OSSIndexQueryObject>> modules = new Dictionary<string, IEnumerable<OSSIndexQueryObject>>();            
-            List<FileSystemInfo> core_module_files = this.CoreModulesDirectory.GetFileSystemInfos("*.info.yml", SearchOption.AllDirectories)
-                .Where(f => !f.Name.Contains("_test") && !f.Name.Contains("test_")).ToList();
-            List<FileSystemInfo> contrib_module_files = this.ContribModulesDirectory.GetFileSystemInfos("*.info.yml", SearchOption.AllDirectories)
-                .Where(f => !f.Name.Contains("_test") && !f.Name.Contains("test_")).ToList();
+            List<FileInfo> core_module_files = RecursiveFolderScan(this.CoreModulesDirectory, "*.info.yml").Where(f => !f.Name.Contains("_test") && !f.Name.Contains("test_")).ToList();
+            List<FileInfo> contrib_module_files = RecursiveFolderScan(this.ContribModulesDirectory, "*.info.yml").Where(f => !f.Name.Contains("_test") && !f.Name.Contains("test_")).ToList();
+            //this.CoreModulesDirectory.GetFileSystemInfos("*.info.yml", SearchOption.AllDirectories)
+            //.Where(f => !f.Name.Contains("_test") && !f.Name.Contains("test_")).ToList();
+            //List<FileSystemInfo> contrib_module_files = this.ContribModulesDirectory.GetFileSystemInfos("*.info.yml", SearchOption.AllDirectories)
+            //    .Where(f => !f.Name.Contains("_test") && !f.Name.Contains("test_")).ToList();
             List<OSSIndexQueryObject> core_modules = new List<OSSIndexQueryObject>(core_module_files.Count + 1);
             List<OSSIndexQueryObject> contrib_modules = new List<OSSIndexQueryObject>(contrib_module_files.Count);
             List<OSSIndexQueryObject> all_modules = new List<OSSIndexQueryObject>(core_module_files.Count + 1);
@@ -126,8 +128,9 @@ namespace DevAudit.AuditLibrary
             }
             if (this.SitesAllModulesDirectory != null)
             {
-                List<FileSystemInfo> sites_all_contrib_modules_files = this.SitesAllModulesDirectory.GetFileSystemInfos("*.info.yml", SearchOption.AllDirectories)
-                    .Where(f => !f.Name.Contains("_test") && !f.Name.Contains("test_")).ToList();
+                //                List<FileSystemInfo> sites_all_contrib_modules_files = this.SitesAllModulesDirectory.GetFileSystemInfos("*.info.yml", SearchOption.AllDirectories)
+                //                    .Where(f => !f.Name.Contains("_test") && !f.Name.Contains("test_")).ToList();
+                List<FileInfo> sites_all_contrib_modules_files = RecursiveFolderScan(this.SitesAllModulesDirectory, "*.info.yml").Where(f => !f.Name.Contains("_test") && !f.Name.Contains("test_")).ToList();
                 if (sites_all_contrib_modules_files.Count > 0)
                 {
                     List<OSSIndexQueryObject> sites_all_contrib_modules = new List<OSSIndexQueryObject>(sites_all_contrib_modules_files.Count + 1);
@@ -193,7 +196,20 @@ namespace DevAudit.AuditLibrary
         #endregion
 
         #region Private fields
-        
+
+        #endregion
+
+        #region Static methods
+        static List<FileInfo> RecursiveFolderScan(DirectoryInfo dir, string pattern)
+        {
+            List<FileInfo> results = new List<FileInfo>();            
+            foreach (DirectoryInfo d in dir.GetDirectories())
+            {
+                results.AddRange(RecursiveFolderScan(d, pattern));
+            }
+            results.AddRange(dir.GetFiles(pattern));
+            return results;
+        }
         #endregion
 
     }
