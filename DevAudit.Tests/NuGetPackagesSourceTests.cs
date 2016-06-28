@@ -15,7 +15,12 @@ namespace DevAudit.Tests
         protected override PackageSource s {get; } = new NuGetPackageSource(new Dictionary<string, object>()
         { {"File", @".\Examples\packages.config.example" } });
 
-        
+        [Fact]
+        public override void CanComparePackageVersions()
+        {
+            Assert.True(s.IsVulnerabilityVersionInPackageVersionRange("<3.3.5.3", "3.3.5.2"));
+        }
+
         public override async Task CanGetProjects()
         {
             OSSIndexHttpClient http_client = new OSSIndexHttpClient("1.1");
@@ -82,10 +87,6 @@ namespace DevAudit.Tests
             cs.ProjectVulnerabilitiesCacheTTL = TimeSpan.FromSeconds(0);
             Assert.False(cs.ProjectVulnerabilitiesCacheItems.Count() > 0);
             Assert.False(cs.CachedArtifacts.Count() > 0);
-
-
-
-
         }
 
     }

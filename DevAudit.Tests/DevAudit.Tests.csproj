@@ -42,6 +42,10 @@
     <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="MedallionShell, Version=1.1.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\MedallionShell.1.1.0\lib\net45\MedallionShell.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Management.Automation, Version=3.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
@@ -77,6 +81,7 @@
     <Compile Include="ComposerPackageSourceTests.cs" />
     <Compile Include="DockerTests.cs" />
     <Compile Include="DrupalApplicationTests.cs" />
+    <Compile Include="ConsoleProcessTests.cs" />
     <Compile Include="HttpClientTests.cs" />
     <Compile Include="HttpClientv10Tests.cs" />
     <Compile Include="HttpClientv11Tests.cs" />

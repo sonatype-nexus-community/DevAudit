@@ -15,7 +15,13 @@ namespace DevAudit.Tests
     {
         protected override PackageSource s { get; } = new BowerPackageSource(new Dictionary<string, object>()
         { {"File", @".\Examples\bower.json.example" } });
-        
+
+
+        public override void CanComparePackageVersions()
+        {
+            s.IsVulnerabilityVersionInPackageVersionRange("2.1", "~2.1.6");
+        }
+
         [Fact]
         public override async Task CanGetProjects()
         {

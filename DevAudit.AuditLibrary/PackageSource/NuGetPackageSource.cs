@@ -5,7 +5,7 @@ using System.Linq;
 using System.Xml;
 using System.Xml.Linq;
 
-using SemverSharp;
+using Versatile;
 using Sprache;
 
 namespace DevAudit.AuditLibrary
@@ -59,14 +59,8 @@ namespace DevAudit.AuditLibrary
 
         public override bool IsVulnerabilityVersionInPackageVersionRange(string vulnerability_version, string package_version)
         {
-            try
-            {
-                return SemanticVersion.RangeIntersect(vulnerability_version, package_version);
-            }
-            catch (ParseException e)
-            {
-                throw new Exception(e.Message);
-            }
+            return NuGetv2.RangeIntersect(vulnerability_version, package_version);
+           
         }
     }
 }

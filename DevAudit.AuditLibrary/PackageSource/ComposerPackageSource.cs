@@ -10,7 +10,7 @@ using Microsoft.Win32;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
-using SemverSharp;
+using Versatile;
 
 namespace DevAudit.AuditLibrary
 {

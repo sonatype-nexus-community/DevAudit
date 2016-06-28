@@ -59,5 +59,9 @@ namespace DevAudit.Tests
         [Fact]
         public abstract Task CanGetVulnerabilities();
 
+        [Fact]
+        public abstract void CanComparePackageVersions();
+
+
     }
 }

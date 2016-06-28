@@ -48,5 +48,10 @@ namespace DevAudit.Tests
         {
             throw new NotImplementedException();
         }
+
+        public override void CanComparePackageVersions()
+        {
+            throw new NotImplementedException();
+        }
     }
 }

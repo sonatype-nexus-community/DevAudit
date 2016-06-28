@@ -15,6 +15,11 @@ namespace DevAudit.Tests
         protected override PackageSource s { get; } = new ComposerPackageSource(new Dictionary<string, object>()
         { {"File", @".\Examples\composer.json.example.1" } });
 
+        public override void CanComparePackageVersions()
+        {
+            throw new NotImplementedException();
+        }
+
         [Fact]
         public override async Task CanGetProjects()
         {

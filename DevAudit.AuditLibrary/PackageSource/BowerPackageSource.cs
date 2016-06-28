@@ -6,7 +6,7 @@ using System.Linq;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
-using SemverSharp;
+using Versatile;
 
 
 namespace DevAudit.AuditLibrary
