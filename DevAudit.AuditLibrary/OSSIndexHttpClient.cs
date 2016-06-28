@@ -25,6 +25,9 @@ namespace DevAudit.AuditLibrary
     {
         public string ApiVersion { get; set; }
 
+        private String HOST = "https://ossindex.net/";
+        //private String HOST = "http://localhost:8080/";
+
         public OSSIndexHttpClient(string api_version)
         {
             this.ApiVersion = api_version;
@@ -34,7 +37,7 @@ namespace DevAudit.AuditLibrary
         {
             using (HttpClient client = new HttpClient())
             {
-                client.BaseAddress = new Uri(@"https://ossindex.net/");
+                client.BaseAddress = new Uri(@HOST);
                 client.DefaultRequestHeaders.Accept.Clear();
                 client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
                 client.DefaultRequestHeaders.Add("user-agent", "DevAudit");
@@ -65,7 +68,7 @@ namespace DevAudit.AuditLibrary
         {
             using (HttpClient client = new HttpClient())
             {
-                client.BaseAddress = new Uri(@"https://ossindex.net/");
+                client.BaseAddress = new Uri(@HOST);
                 client.DefaultRequestHeaders.Accept.Clear();
                 client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
                 client.DefaultRequestHeaders.Add("user-agent", "DevAudit");
@@ -96,7 +99,7 @@ namespace DevAudit.AuditLibrary
             if (string.IsNullOrEmpty(id))throw new ArgumentNullException("Project id.");
             using (HttpClient client = new HttpClient())
             {
-                client.BaseAddress = new Uri(@"https://ossindex.net/");
+                client.BaseAddress = new Uri(@HOST);
                 client.DefaultRequestHeaders.Accept.Clear();
                 client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
                 client.DefaultRequestHeaders.Add("user-agent", "DevAudit");
@@ -119,7 +122,7 @@ namespace DevAudit.AuditLibrary
             if (string.IsNullOrEmpty(id)) throw new ArgumentNullException("Package id.");
             using (HttpClient client = new HttpClient())
             {
-                client.BaseAddress = new Uri(@"https://ossindex.net/");
+                client.BaseAddress = new Uri(@HOST);
                 client.DefaultRequestHeaders.Accept.Clear();
                 client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
                 client.DefaultRequestHeaders.Add("user-agent", "DevAudit");
@@ -142,7 +145,7 @@ namespace DevAudit.AuditLibrary
         {
             using (HttpClient client = new HttpClient())
             {
-                client.BaseAddress = new Uri(@"https://ossindex.net/");
+                client.BaseAddress = new Uri(@HOST);
                 client.DefaultRequestHeaders.Accept.Clear();
                 client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
                 client.DefaultRequestHeaders.Add("user-agent", "DevAudit");
