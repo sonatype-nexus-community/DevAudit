@@ -33,10 +33,17 @@ namespace DevAudit.AuditLibrary
 
         public override bool IsVulnerabilityVersionInPackageVersionRange(string vulnerability_version, string package_version)
         {
-            return SemanticVersion.RangeIntersect(vulnerability_version, package_version);
+            string message = "";
+            bool r = SemanticVersion.RangeIntersect(vulnerability_version, package_version, out message);
+            if (!r && !string.IsNullOrEmpty(message))
+            {
+                throw new Exception(message);
+            }
+            else return r;
         }
 
         public BowerPackageSource() : base() {}
+
         public BowerPackageSource(Dictionary<string, object> package_source_options) : base(package_source_options)
         {
             if (string.IsNullOrEmpty(this.PackageManagerConfigurationFile))

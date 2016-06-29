@@ -17,7 +17,12 @@ namespace DevAudit.Tests
 
         public override void CanComparePackageVersions()
         {
-            throw new NotImplementedException();
+            Assert.True(s.IsVulnerabilityVersionInPackageVersionRange(">=3.4", "3.6"));
+            Assert.True(s.IsVulnerabilityVersionInPackageVersionRange(">1.2", "<1.5.2"));
+            Assert.True(s.IsVulnerabilityVersionInPackageVersionRange("<=4.3", "<4.2"));
+            Assert.True(s.IsVulnerabilityVersionInPackageVersionRange(">=1.2.2", ">1.2.0-alpha.0"));
+            Assert.True(s.IsVulnerabilityVersionInPackageVersionRange(">12.2.2", "<=20.0.0"));
+
         }
 
         [Fact]
@@ -38,17 +43,7 @@ namespace DevAudit.Tests
             OSSIndexHttpClient http_client = new OSSIndexHttpClient("1.1");
             List<OSSIndexProjectVulnerability> v1 = (await http_client.GetVulnerabilitiesForIdAsync("8396615975")).ToList();
             Assert.NotNull(v1);
-            Assert.Equal(v1[0].Title, "[CVE-2006-4067] Improper Neutralization of Input During Web Page Generation (\"Cross-site Scripting\")");
-        }
-
-        [Fact]
-        public void CanTestVulnerabilityVersionInPackageVersionRange()
-        {
-            Assert.True(s.IsVulnerabilityVersionInPackageVersionRange(">1.2", "<1.5.2"));
-            Assert.True(s.IsVulnerabilityVersionInPackageVersionRange("<=4.3", "<4.2"));
-            Assert.True(s.IsVulnerabilityVersionInPackageVersionRange(">=1.2.2", ">1.2.0-alpha.0"));
-            Assert.True(s.IsVulnerabilityVersionInPackageVersionRange(">12.2.2", "<=20.0.0"));
-
+            Assert.Equal(v1[0].Title, "[CVE-2006-4067] Cross-site scripting (XSS) vulnerability in cake/libs/error.php in CakePHP befor...");
         }
 
         [Fact]

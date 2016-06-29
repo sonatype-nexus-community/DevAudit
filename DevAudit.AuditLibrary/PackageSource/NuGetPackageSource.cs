@@ -6,7 +6,6 @@ using System.Xml;
 using System.Xml.Linq;
 
 using Versatile;
-using Sprache;
 
 namespace DevAudit.AuditLibrary
 {
@@ -59,8 +58,13 @@ namespace DevAudit.AuditLibrary
 
         public override bool IsVulnerabilityVersionInPackageVersionRange(string vulnerability_version, string package_version)
         {
-            return NuGetv2.RangeIntersect(vulnerability_version, package_version);
-           
+            string message = "";
+            bool r = NuGetv2.RangeIntersect(vulnerability_version, package_version, out message);
+            if (!r && !string.IsNullOrEmpty(message))
+            {
+                throw new Exception(message);
+            }
+            else return r;           
         }
     }
 }

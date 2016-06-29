@@ -45,7 +45,14 @@ namespace DevAudit.AuditLibrary
 
         public override bool IsVulnerabilityVersionInPackageVersionRange(string vulnerability_version, string package_version)
         {
-            return SemanticVersion.RangeIntersect(vulnerability_version, package_version);
+            string message = "";
+            bool r = Composer.RangeIntersect(vulnerability_version, package_version, out message);
+            if (!r && !string.IsNullOrEmpty(message))
+            {
+                throw new Exception(message);
+            }
+            else return r;
+
         }
 
         public ComposerPackageSource() : base() { }

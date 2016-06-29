@@ -31,7 +31,7 @@ namespace DevAudit.Tests
             Assert.Equal(p1.Id, 8396559329);
             Assert.Equal(p1.Name, "JQuery");
             Assert.Equal(p1.HasVulnerability, true);
-            Assert.Equal(p1.Vulnerabilities, "http://ossindex.net:8080/v1.1/project/8396559329/vulnerabilities");
+            Assert.Equal(p1.Vulnerabilities, "https://ossindex.net/v1.1/project/8396559329/vulnerabilities");
         }
 
         [Fact]
