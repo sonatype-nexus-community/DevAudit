@@ -22,7 +22,7 @@ namespace DevAudit.Tests
             Assert.True(s.IsVulnerabilityVersionInPackageVersionRange("<=4.3", "<4.2"));
             Assert.True(s.IsVulnerabilityVersionInPackageVersionRange(">=1.2.2", ">1.2.0-alpha.0"));
             Assert.True(s.IsVulnerabilityVersionInPackageVersionRange(">12.2.2", "<=20.0.0"));
-
+            Assert.True(s.IsVulnerabilityVersionInPackageVersionRange("~6.1", "6.1.1.0")); 
         }
 
         [Fact]

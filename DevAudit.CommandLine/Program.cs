@@ -367,7 +367,7 @@ namespace DevAudit.CommandLine
 
                             try
                             {
-                                if (vulnerability.Versions.Any(v => !string.IsNullOrEmpty(v) && Source.IsVulnerabilityVersionInPackageVersionRange(v, p.Package.Version)))
+                                if (vulnerability.Versions.Any(v => !string.IsNullOrEmpty(v) && Source.IsVulnerabilityVersionInPackageVersionRange(v, a.Version)))
                                 {
                                     found_vulnerabilities.Add(vulnerability);
                                 }
