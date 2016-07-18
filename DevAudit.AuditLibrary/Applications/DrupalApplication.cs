@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 
 using YamlDotNet.Serialization;
 using YamlDotNet.Serialization.NamingConventions;
+using Versatile;
 
 namespace DevAudit.AuditLibrary
 {
@@ -103,7 +104,7 @@ namespace DevAudit.AuditLibrary
                     {
                         DrupalModuleInfo m = yaml_deserializer.Deserialize<DrupalModuleInfo>(r);
                         m.ShortName = f.Name.Split('.')[0];
-                        core_modules.Add(new OSSIndexQueryObject("drupal", m.ShortName, m.Version, "", m.Project));
+                        core_modules.Add(new OSSIndexQueryObject("drupal", m.ShortName, m.Version  == "VERSION" ? m.Core : m.Version, "", m.Project));
                     }
                 }                               
             }
@@ -183,7 +184,13 @@ namespace DevAudit.AuditLibrary
 
         public override bool IsVulnerabilityVersionInPackageVersionRange(string vulnerability_version, string package_version)
         {
-            return vulnerability_version == package_version;
+            string message = "";
+            bool r = Drupal.RangeIntersect(vulnerability_version, package_version, out message);
+            if (!r && !string.IsNullOrEmpty(message))
+            {
+                throw new Exception(message);
+            }
+            else return r;
         }
 
         #endregion

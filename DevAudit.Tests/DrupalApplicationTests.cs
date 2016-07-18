@@ -51,7 +51,10 @@ namespace DevAudit.Tests
 
         public override void CanComparePackageVersions()
         {
-            throw new NotImplementedException();
+            Assert.True(s.IsVulnerabilityVersionInPackageVersionRange("6.x-1.0", "<6.x-2.0"));
+            Assert.True(s.IsVulnerabilityVersionInPackageVersionRange("<=5.x-2.8", "<6.x-1.0"));
+            Assert.True(s.IsVulnerabilityVersionInPackageVersionRange(">=5.x-2.0", "6.x-1.0-alpha1"));
+            //Assert.True(s.IsVulnerabilityVersionInPackageVersionRange(">12.2.2", "<=20.0.0"));
         }
     }
 }
