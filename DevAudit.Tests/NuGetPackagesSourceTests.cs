@@ -19,6 +19,12 @@ namespace DevAudit.Tests
         public override void CanComparePackageVersions()
         {
             Assert.True(s.IsVulnerabilityVersionInPackageVersionRange("<3.3.5.3", "3.3.5.2"));
+            Assert.True(s.IsVulnerabilityVersionInPackageVersionRange("<4", "[3,4)"));
+            Assert.True(s.IsVulnerabilityVersionInPackageVersionRange(">4.6", "[3.5,5.3.1.1)"));
+            Assert.False(s.IsVulnerabilityVersionInPackageVersionRange(">5.4", "[3.5,5.3.1.1)"));
+            Assert.True(s.IsVulnerabilityVersionInPackageVersionRange("7.6.3.2", "(5,7.6.3.2]"));
+            Assert.True(s.IsVulnerabilityVersionInPackageVersionRange("<7.6", "(5,7.6.3.2]"));
+            Assert.False(s.IsVulnerabilityVersionInPackageVersionRange("<5", "(5,7.6.3.2]"));
         }
 
         public override async Task CanGetProjects()

@@ -417,6 +417,7 @@ namespace DevAudit.CommandLine
                         Console.ResetColor();
                     }                    
                     Source.VulnerabilitiesTask.Remove(task);
+                    projects_successful++;
                 }
                 catch (AggregateException ae)
                 {
@@ -424,10 +425,11 @@ namespace DevAudit.CommandLine
                     {
                         Console.WriteLine("\nAudit Results\n=============");
                     }
+                    /*
                     if (ae.InnerException != null && ae.InnerException is OSSIndexHttpException)
                     {
                         OSSIndexHttpException oe = ae.InnerException as OSSIndexHttpException;
-                        OSSIndexArtifact artifact = Source.Artifacts.First(a => a.ProjectId == oe.RequestParameter);
+                        OSSIndexArtifact artifact = Source.Artifacts.FirstOrDefault(a => a.ProjectId == oe.RequestParameter || a.PackageId == oe.RequestParameter);
                         Console.Write("[{0}/{1}] {2} ", projects_processed, projects_count, artifact.PackageName, artifact.Version);
                         Console.ForegroundColor = ConsoleColor.DarkRed;
                         Console.WriteLine("{0} HTTP Error searching OSS Index...", artifact.Version);
@@ -439,7 +441,27 @@ namespace DevAudit.CommandLine
                         PrintErrorMessage("Unknown error encountered searching OSS Index for vulnerabilities : {0}",
                             ae.Message);
                     }
-                    projects_processed += Source.VulnerabilitiesTask.Count(t => t.Status == TaskStatus.Faulted || t.Status == TaskStatus.Canceled) - 1;
+                    */
+                    var failed_tasks = Source.VulnerabilitiesTask.Where(t => t.Status == TaskStatus.Faulted || t.Status == TaskStatus.Canceled);
+                    foreach (var t in failed_tasks)
+                    {
+                        if (t.Exception != null && t.Exception.InnerException is OSSIndexHttpException)
+                        {
+                            OSSIndexHttpException oe = t.Exception.InnerException as OSSIndexHttpException;
+                            OSSIndexArtifact artifact = Source.Artifacts.FirstOrDefault(a => a.ProjectId == oe.RequestParameter || a.PackageId == oe.RequestParameter);
+                            Console.Write("[{0}/{1}] {2} ", ++projects_processed, projects_count, artifact.PackageName, artifact.Version);
+                            Console.ForegroundColor = ConsoleColor.DarkRed;
+                            Console.WriteLine("{0} HTTP Error searching OSS Index...", artifact.Version);
+                            Console.ResetColor();
+                            ae.InnerExceptions.ToList().ForEach(i => HandleOSSIndexHttpException(i));
+                        }
+                        else
+                        {
+                            PrintErrorMessage("Unknown error encountered searching OSS Index for vulnerabilities : {0}",
+                                ae.Message);
+                        }
+                    }
+                    //projects_processed += Source.VulnerabilitiesTask.Count(t => t.Status == TaskStatus.Faulted || t.Status == TaskStatus.Canceled) - 1;
                     Source.VulnerabilitiesTask.RemoveAll(t => t.Status == TaskStatus.Faulted || t.Status == TaskStatus.Canceled);
                 }
             }
