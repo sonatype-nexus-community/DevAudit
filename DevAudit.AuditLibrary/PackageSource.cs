@@ -194,32 +194,32 @@ namespace DevAudit.AuditLibrary
             {
                 if (_VulnerabilitiesTask == null)
                 {
-                    List<OSSIndexArtifact> artifacts_to_query = this.ProjectVulnerabilitiesCacheEnabled ?
+                    List<OSSIndexArtifact> artifacts_to_query = this.ProjectVulnerabilitiesCacheEnabled ? 
                         this.ArtifactProjects.Except(this.CachedArtifacts).ToList() : this.ArtifactProjects;
                     this._VulnerabilitiesTask = new List<Task<KeyValuePair<OSSIndexProject, IEnumerable<OSSIndexProjectVulnerability>>>>
                             (artifacts_to_query.Count());
                     artifacts_to_query.ForEach(p => this._VulnerabilitiesTask.Add(Task<Task<KeyValuePair<OSSIndexProject, IEnumerable<OSSIndexProjectVulnerability>>>>
                         .Factory.StartNew(async (o) =>
-                            {   
-                                OSSIndexArtifact artifact = o as OSSIndexArtifact;
-                                List<OSSIndexPackageVulnerability> package_vulnerabilities = await this.HttpClient.GetPackageVulnerabilitiesAsync(artifact.PackageId);
-                                OSSIndexProject project = await this.HttpClient.GetProjectForIdAsync(artifact.ProjectId);
-                                project.Artifact = artifact;
-                                project.Package = artifact.Package;
-                                IEnumerable<OSSIndexProjectVulnerability> v = await this.HttpClient.GetVulnerabilitiesForIdAsync(project.Id.ToString());
-                                if (this.ProjectVulnerabilitiesCacheEnabled)
+                        {   
+                            OSSIndexArtifact artifact = o as OSSIndexArtifact;
+                            //List<OSSIndexPackageVulnerability> package_vulnerabilities = await this.HttpClient.GetPackageVulnerabilitiesAsync(artifact.PackageId);
+                            OSSIndexProject project = await this.HttpClient.GetProjectForIdAsync(artifact.ProjectId);
+                            project.Artifact = artifact;
+                            project.Package = artifact.Package;
+                            IEnumerable<OSSIndexProjectVulnerability> v = await this.HttpClient.GetVulnerabilitiesForIdAsync(project.Id.ToString());
+                            if (this.ProjectVulnerabilitiesCacheEnabled)
+                            {
+                                IEnumerable<string> expired_keys = this.ProjectVulnerabilitiesCache.Keys.Where(k => k.StartsWith(project.Id.ToString()));
+                                foreach (string ek in expired_keys)
                                 {
-                                    IEnumerable<string> expired_keys = this.ProjectVulnerabilitiesCache.Keys.Where(k => k.StartsWith(project.Id.ToString()));
-                                    foreach (string ek in expired_keys)
-                                    {
-                                        this.ProjectVulnerabilitiesCache.Remove(ek);
-                                    }
-                                    this.ProjectVulnerabilitiesCache[GetProjectVulnerabilitiesCacheKey(project.Id)] = new Tuple<OSSIndexProject, IEnumerable<OSSIndexProjectVulnerability>>
-                                        (project, v);
+                                    this.ProjectVulnerabilitiesCache.Remove(ek);
                                 }
-                                this.AddPackageVulnerability(artifact.Package, package_vulnerabilities);
-                                return this.AddProjectVulnerability(project, v);
-                            }, p, CancellationToken.None, TaskCreationOptions.DenyChildAttach, TaskScheduler.Default).Unwrap()));
+                                this.ProjectVulnerabilitiesCache[GetProjectVulnerabilitiesCacheKey(project.Id)] = new Tuple<OSSIndexProject, IEnumerable<OSSIndexProjectVulnerability>>
+                                    (project, v);
+                            }
+                            //this.AddPackageVulnerability(artifact.Package, package_vulnerabilities);
+                            return this.AddProjectVulnerability(project, v);
+                        }, p, CancellationToken.None, TaskCreationOptions.DenyChildAttach, TaskScheduler.Default).Unwrap()));
                 }
                 return this._VulnerabilitiesTask;
             }

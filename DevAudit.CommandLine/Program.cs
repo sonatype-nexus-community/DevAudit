@@ -323,8 +323,8 @@ namespace DevAudit.CommandLine
                     KeyValuePair<OSSIndexProject, IEnumerable<OSSIndexProjectVulnerability>> vulnerabilities = task.Result;
                     OSSIndexProject p = vulnerabilities.Key;
                     OSSIndexArtifact a = p.Artifact;
-                    KeyValuePair<OSSIndexQueryObject, IEnumerable<OSSIndexPackageVulnerability>> package_vulnerabilities
-                        = Source.PackageVulnerabilities.Where(pv => pv.Key == p.Package).First();
+                    KeyValuePair<OSSIndexQueryObject, IEnumerable<OSSIndexPackageVulnerability>> package_vulnerabilities = new KeyValuePair<OSSIndexQueryObject, IEnumerable<OSSIndexPackageVulnerability>>();
+                    //    = Source.PackageVulnerabilities.Where(pv => pv.Key == p.Package).First();
                     if (projects_processed++ == 0)
                     {
                         Console.WriteLine("\nAudit Results\n=============");
@@ -335,7 +335,8 @@ namespace DevAudit.CommandLine
                     Console.Write("[{0}/{1}] {2} {3}", projects_processed, projects_count, a.PackageName, string.IsNullOrEmpty(a.Version) ? "" : 
                         string.Format("({0}) ", a.Version));
                     Console.ResetColor();
-                    if (package_vulnerabilities.Value.Count() == 0 && vulnerabilities.Value.Count() == 0)
+                    
+                    if (/*package_vulnerabilities.Value.Count() == 0 &&*/ vulnerabilities.Value.Count() == 0)
                     {
                         Console.ForegroundColor = ConsoleColor.DarkGray;
                         Console.Write("no known vulnerabilities. ");
@@ -344,7 +345,8 @@ namespace DevAudit.CommandLine
                     }
                     else
                     {
-                        List<OSSIndexPackageVulnerability> found_package_vulnerabilities = new List<OSSIndexPackageVulnerability>();
+                        /*
+                     List<OSSIndexPackageVulnerability> found_package_vulnerabilities = new List<OSSIndexPackageVulnerability>();
                         foreach (OSSIndexPackageVulnerability package_vulnerability in package_vulnerabilities.Value)
                         {
 
@@ -360,7 +362,7 @@ namespace DevAudit.CommandLine
                                 PrintErrorMessage("Error determining vulnerability version range {0} in package version range {1}: {2}.",
                                     package_vulnerability.Versions.Aggregate((f, s) => { return f + "," + s; }), a.Package.Version, e.Message);
                             }
-                        }
+                        }*/
                         List<OSSIndexProjectVulnerability> found_vulnerabilities = new List<OSSIndexProjectVulnerability>(vulnerabilities.Value.Count());
                         foreach (OSSIndexProjectVulnerability vulnerability in vulnerabilities.Value.GroupBy(v => new { v.CVEId, v.Uri, v.Title, v.Summary }).SelectMany(v => v).ToList())
                         {
@@ -374,21 +376,22 @@ namespace DevAudit.CommandLine
                             }
                             catch (Exception e)
                             {
-                                PrintErrorMessage("Error determining vulnerability version range {0} in package version range {1}: {2}.",
-                                    vulnerability.Versions.Aggregate((f, s) => { return f + "," + s; }), a.Package.Version, e.Message);
+                                PrintErrorMessage("Error determining vulnerability version range {0} in project version range {1}: {2}.",
+                                    vulnerability.Versions.Aggregate((f, s) => { return f + "," + s; }), a.Version, e.Message);
                             }
                         }
                         //found_vulnerabilities = found_vulnerabilities.GroupBy(v => new { v.CVEId, v.Uri, v.Title, v.Summary }).SelectMany(v => v).ToList();
-                        if (found_vulnerabilities.Count() > 0 || found_package_vulnerabilities.Count() > 0)
+                        if (found_vulnerabilities.Count() > 0 /*|| found_package_vulnerabilities.Count() > 0*/)
                         {
                             Console.ForegroundColor = ConsoleColor.Red;
                             Console.WriteLine("[VULNERABLE]");
                         }
                         Console.ForegroundColor = ConsoleColor.Magenta;
-                        Console.Write("{0} known vulnerabilities, ", vulnerabilities.Value.Count() + package_vulnerabilities.Value.Count()); //vulnerabilities.Value.GroupBy(v => new { v.CVEId, v.Uri, v.Title, v.Summary }).SelectMany(v => v).Count(),
-                        Console.Write("{0} affecting installed version. ", found_vulnerabilities.Count() + found_package_vulnerabilities.Count());
+                        Console.Write("{0} known vulnerabilities, ", vulnerabilities.Value.Count() /*+ package_vulnerabilities.Value.Count()*/); //vulnerabilities.Value.GroupBy(v => new { v.CVEId, v.Uri, v.Title, v.Summary }).SelectMany(v => v).Count(),
+                        Console.Write("{0} affecting installed version. ", found_vulnerabilities.Count() /*+ found_package_vulnerabilities.Count()*/);
                         Console.ResetColor();
                         Console.Write("[{0} {1}]\n", p.Package.Name, p.Package.Version);
+                        /*
                         found_package_vulnerabilities.ForEach(v =>
                         {
                             Console.ForegroundColor = ConsoleColor.Red;
@@ -402,6 +405,7 @@ namespace DevAudit.CommandLine
                             Console.WriteLine("");
                         });
                         Console.ResetColor();
+                        */
                         found_vulnerabilities.ForEach(v =>
                         {
                             Console.ForegroundColor = ConsoleColor.Red;
@@ -425,34 +429,18 @@ namespace DevAudit.CommandLine
                     {
                         Console.WriteLine("\nAudit Results\n=============");
                     }
-                    /*
-                    if (ae.InnerException != null && ae.InnerException is OSSIndexHttpException)
-                    {
-                        OSSIndexHttpException oe = ae.InnerException as OSSIndexHttpException;
-                        OSSIndexArtifact artifact = Source.Artifacts.FirstOrDefault(a => a.ProjectId == oe.RequestParameter || a.PackageId == oe.RequestParameter);
-                        Console.Write("[{0}/{1}] {2} ", projects_processed, projects_count, artifact.PackageName, artifact.Version);
-                        Console.ForegroundColor = ConsoleColor.DarkRed;
-                        Console.WriteLine("{0} HTTP Error searching OSS Index...", artifact.Version);
-                        Console.ResetColor();
-                        ae.InnerExceptions.ToList().ForEach(i => HandleOSSIndexHttpException(i));
-                    }
-                    else
-                    {
-                        PrintErrorMessage("Unknown error encountered searching OSS Index for vulnerabilities : {0}",
-                            ae.Message);
-                    }
-                    */
-                    var failed_tasks = Source.VulnerabilitiesTask.Where(t => t.Status == TaskStatus.Faulted || t.Status == TaskStatus.Canceled);
+                    var failed_tasks = Source.VulnerabilitiesTask.Where(t => t.Status == TaskStatus.Faulted || t.Status == TaskStatus.Canceled).ToList();
                     foreach (var t in failed_tasks)
                     {
                         if (t.Exception != null && t.Exception.InnerException is OSSIndexHttpException)
                         {
                             OSSIndexHttpException oe = t.Exception.InnerException as OSSIndexHttpException;
-                            OSSIndexArtifact artifact = Source.Artifacts.FirstOrDefault(a => a.ProjectId == oe.RequestParameter || a.PackageId == oe.RequestParameter);
-                            Console.Write("[{0}/{1}] {2} ", ++projects_processed, projects_count, artifact.PackageName, artifact.Version);
-                            Console.ForegroundColor = ConsoleColor.DarkRed;
-                            Console.WriteLine("{0} HTTP Error searching OSS Index...", artifact.Version);
-                            Console.ResetColor();
+                            //OSSIndexArtifact artifact = Source.Artifacts.FirstOrDefault(a => a.ProjectId == oe.RequestParameter || a.PackageId == oe.RequestParameter);
+                            //Console.Write("[{0}/{1}] {2} ", ++projects_processed, projects_count, artifact.PackageName, artifact.Version);
+                            //Console.ForegroundColor = ConsoleColor.DarkRed;
+                            //Console.WriteLine("{0} HTTP Error searching OSS Index...", artifact.Version);
+                            //Console.ResetColor();
+                            ++projects_processed;
                             ae.InnerExceptions.ToList().ForEach(i => HandleOSSIndexHttpException(i));
                         }
                         else
@@ -460,9 +448,10 @@ namespace DevAudit.CommandLine
                             PrintErrorMessage("Unknown error encountered searching OSS Index for vulnerabilities : {0}",
                                 ae.Message);
                         }
+                        Source.VulnerabilitiesTask.Remove(t);
                     }
                     //projects_processed += Source.VulnerabilitiesTask.Count(t => t.Status == TaskStatus.Faulted || t.Status == TaskStatus.Canceled) - 1;
-                    Source.VulnerabilitiesTask.RemoveAll(t => t.Status == TaskStatus.Faulted || t.Status == TaskStatus.Canceled);
+                   
                 }
             }
             Source.Dispose();
