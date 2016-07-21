@@ -202,7 +202,7 @@ namespace DevAudit.AuditLibrary
                         .Factory.StartNew(async (o) =>
                         {   
                             OSSIndexArtifact artifact = o as OSSIndexArtifact;
-                            //List<OSSIndexPackageVulnerability> package_vulnerabilities = await this.HttpClient.GetPackageVulnerabilitiesAsync(artifact.PackageId);
+                            List<OSSIndexPackageVulnerability> package_vulnerabilities = await this.HttpClient.GetPackageVulnerabilitiesAsync(artifact.PackageId);
                             OSSIndexProject project = await this.HttpClient.GetProjectForIdAsync(artifact.ProjectId);
                             project.Artifact = artifact;
                             project.Package = artifact.Package;
@@ -217,7 +217,7 @@ namespace DevAudit.AuditLibrary
                                 this.ProjectVulnerabilitiesCache[GetProjectVulnerabilitiesCacheKey(project.Id)] = new Tuple<OSSIndexProject, IEnumerable<OSSIndexProjectVulnerability>>
                                     (project, v);
                             }
-                            //this.AddPackageVulnerability(artifact.Package, package_vulnerabilities);
+                            this.AddPackageVulnerability(artifact.Package, package_vulnerabilities);
                             return this.AddProjectVulnerability(project, v);
                         }, p, CancellationToken.None, TaskCreationOptions.DenyChildAttach, TaskScheduler.Default).Unwrap()));
                 }

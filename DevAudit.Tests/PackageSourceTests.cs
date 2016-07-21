@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using
+    System.Threading;
 using System.Threading.Tasks;
 
 using Xunit;
@@ -30,6 +32,42 @@ namespace DevAudit.Tests
             Assert.NotEmpty(s.Artifacts);
             Assert.NotEmpty(s.Artifacts.Where(a => a.PackageManager == s.PackageManagerId));
         }
+
+        [Fact]
+        public void CanGetPackageVulnerabilities()
+        {
+            s.PackagesTask.Wait();
+            Assert.NotEmpty(s.Packages);
+            Task.WaitAll(s.ArtifactsTask.ToArray());
+            Assert.NotEmpty(s.Artifacts);
+            var t = new List<Task> (s.ArtifactProjects.Count());
+            /*
+            s.ArtifactProjects.ForEach(p =>
+            {
+                OSSIndexArtifact artifact = p as OSSIndexArtifact;
+                List<OSSIndexPackageVulnerability> package_vulnerabilities = s.HttpClient.GetPackageVulnerabilitiesAsync(artifact.PackageId).Result;
+            });*/
+            
+            s.ArtifactProjects.ForEach(p => t.Add(Task<Task>
+                .Factory.StartNew(async (o) =>
+                {
+                    OSSIndexArtifact artifact = o as OSSIndexArtifact;
+                    List<OSSIndexPackageVulnerability> package_vulnerabilities = await s.HttpClient.GetPackageVulnerabilitiesAsync(artifact.PackageId);
+                }, p, CancellationToken.None, TaskCreationOptions.DenyChildAttach, TaskScheduler.Default).Unwrap()));
+                
+            try
+            {
+                Task.WaitAll(t.ToArray());
+            }
+            catch (AggregateException ae)
+            {
+                
+            }
+            catch (Exception e)
+            { }
+            
+        }
+
 
         [Fact]
         public void CanGetVulnerabilitiesTask()
