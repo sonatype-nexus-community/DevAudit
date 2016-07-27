@@ -27,7 +27,16 @@ namespace DevAudit.AuditLibrary
             {
                 JObject json = (JObject)JToken.ReadFrom(r);
                 JObject dependencies = (JObject)json["dependencies"];
-                return dependencies.Properties().Select(d => new OSSIndexQueryObject("bower", d.Name, d.Value.ToString(), ""));
+                JObject dev_dependencies = (JObject)json["devDependencies"];
+                if (dev_dependencies != null)
+                {
+                    return dependencies.Properties().Select(d => new OSSIndexQueryObject("bower", d.Name, d.Value.ToString(), ""))
+                        .Concat(dev_dependencies.Properties().Select(d => new OSSIndexQueryObject("bower", d.Name, d.Value.ToString(), "")));
+                }
+                else
+                {
+                    return dependencies.Properties().Select(d => new OSSIndexQueryObject("bower", d.Name, d.Value.ToString(), ""));
+                }
             }
         }
 

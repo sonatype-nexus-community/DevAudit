@@ -69,8 +69,8 @@
     <Reference Include="System.Data" />
     <Reference Include="System.Net.Http" />
     <Reference Include="System.Xml" />
-    <Reference Include="Versatile.Core, Version=0.1.9.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Versatile.0.1.9.0\lib\net45\Versatile.Core.dll</HintPath>
+    <Reference Include="Versatile.Core, Version=0.1.11.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Versatile.0.1.11.0\lib\net45\Versatile.Core.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="YamlDotNet, Version=3.8.0.0, Culture=neutral, processorArchitecture=MSIL">
@@ -106,6 +106,9 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="Examples\bower.json.example">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Examples\bower.json.example.2">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Include="Examples\composer.json.example.3">

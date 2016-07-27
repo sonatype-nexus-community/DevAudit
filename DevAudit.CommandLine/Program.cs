@@ -366,15 +366,15 @@ namespace DevAudit.CommandLine
                         {
                             try
                             {
-                                if (vulnerability.Versions.Any(v => !string.IsNullOrEmpty(v) && Source.IsVulnerabilityVersionInPackageVersionRange(v, a.Version)))
+                                if (vulnerability.Versions.Any(v => !string.IsNullOrEmpty(v) && Source.IsVulnerabilityVersionInPackageVersionRange(v, p.Package.Version)))
                                 {
                                     found_vulnerabilities.Add(vulnerability);
                                 }
                             }
                             catch (Exception e)
                             {
-                                PrintErrorMessage("Error determining vulnerability version range {0} in project version range {1}: {2}.",
-                                    vulnerability.Versions.Aggregate((f, s) => { return f + "," + s; }), a.Version, e.Message);
+                                PrintErrorMessage("Error determining vulnerability version range ({0}) in project version range ({1}). Message: {2}.",
+                                    vulnerability.Versions.Aggregate((f, s) => { return f + "," + s; }), a.Package.Version, e.Message);
                             }
                         }
                         //found_vulnerabilities = found_vulnerabilities.GroupBy(v => new { v.CVEId, v.Uri, v.Title, v.Summary }).SelectMany(v => v).ToList();
