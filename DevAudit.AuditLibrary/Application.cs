@@ -9,7 +9,6 @@ namespace DevAudit.AuditLibrary
     public abstract class Application : PackageSource
     {
         #region Public abstract properties
-
         public abstract string ApplicationId { get; }
 
         public abstract string ApplicationLabel { get; }
@@ -17,7 +16,6 @@ namespace DevAudit.AuditLibrary
         public abstract Dictionary<string, string> RequiredFileLocations { get; }
 
         public abstract Dictionary<string, string> RequiredDirectoryLocations { get; }
-        
         #endregion
 
         #region Public abstract methods
@@ -25,7 +23,6 @@ namespace DevAudit.AuditLibrary
         #endregion
 
         #region Public properties
-
         public Dictionary<string, FileSystemInfo> ApplicationFileSystemMap { get; } = new Dictionary<string, FileSystemInfo>();
 
         public DirectoryInfo RootDirectory
@@ -41,11 +38,9 @@ namespace DevAudit.AuditLibrary
         public Task<Dictionary<string, IEnumerable<OSSIndexQueryObject>>> ModulesTask;
 
         public Dictionary<string, object> ApplicationOptions { get; set; } = new Dictionary<string, object>();
-
         #endregion
 
         #region Constructors
-
         public Application() { }
 
         public Application(Dictionary<string, object> application_options)
@@ -133,6 +128,17 @@ namespace DevAudit.AuditLibrary
         #endregion
 
         #region Static methods
+        public static List<FileInfo> RecursiveFolderScan(DirectoryInfo dir, string pattern)
+        {
+            List<FileInfo> results = new List<FileInfo>();
+            foreach (DirectoryInfo d in dir.GetDirectories())
+            {
+                results.AddRange(RecursiveFolderScan(d, pattern));
+            }
+            results.AddRange(dir.GetFiles(pattern));
+            return results;
+        }
+
         public static string CombinePaths(params string[] paths)
         {
             return Path.Combine(paths);
@@ -144,9 +150,7 @@ namespace DevAudit.AuditLibrary
         #endregion
 
         #region Private fields
-
         public Task<Dictionary<string, IEnumerable<OSSIndexQueryObject>>> _ModulesTask;
-
         #endregion
 
         #region Private methods

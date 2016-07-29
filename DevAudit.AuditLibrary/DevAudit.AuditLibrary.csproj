@@ -48,6 +48,10 @@
       <HintPath>..\packages\CSharpTest.Net.Library.2.14.126.467\lib\net45\CSharpTest.Net.Library.dll</HintPath>
       <Private>True</Private>
     </Reference>
+    <Reference Include="INIFileParser, Version=2.3.0.0, Culture=neutral, PublicKeyToken=79af7b307b65cf3c, processorArchitecture=MSIL">
+      <HintPath>..\packages\ini-parser.2.3.0\lib\net20\INIFileParser.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
     <Reference Include="MedallionShell, Version=1.1.0.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\MedallionShell.1.1.0\lib\net45\MedallionShell.dll</HintPath>
       <Private>True</Private>
@@ -80,6 +84,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Application.cs" />
+    <Compile Include="Applications\Drupal7Application.cs" />
     <Compile Include="Applications\DrupalApplication.cs" />
     <Compile Include="Applications\DrupalModuleInfo.cs" />
     <Compile Include="BsonSerializer.cs" />

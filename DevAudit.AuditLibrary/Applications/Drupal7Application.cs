@@ -5,38 +5,36 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-using YamlDotNet.Serialization;
-using YamlDotNet.Serialization.NamingConventions;
+using IniParser;
+using IniParser.Parser;
+using IniParser.Model;
+using IniParser.Model.Configuration;
+
 using Versatile;
 
 namespace DevAudit.AuditLibrary
 {
-    public class DrupalApplication : Application
+    public class Drupal7Application : Application
     {
         #region Overriden properties
+        public override string ApplicationId { get { return "drupal7"; } }
 
-        public override string ApplicationId { get { return "drupal8"; } }
-
-        public override string ApplicationLabel { get { return "Drupal 8"; } }
+        public override string ApplicationLabel { get { return "Drupal 7"; } }
 
         public override string PackageManagerId { get { return "drupal"; } }
 
         public override string PackageManagerLabel { get { return "Drupal"; } }
 
         public override OSSIndexHttpClient HttpClient { get; } = new OSSIndexHttpClient("1.1");
-       
+
         public override Dictionary<string, string> RequiredDirectoryLocations { get; } = new Dictionary<string, string>()
         {
-            { "CoreModulesDirectory", Path.Combine("core", "modules") },
-            { "ContribModulesDirectory", "modules" },
+            { "CoreModulesDirectory", "modules" },
+            { "ContribModulesDirectory", Path.Combine("sites", "all", "modules") },
             { "DefaultSiteDirectory", Path.Combine("sites", "default") },
         };
 
-        public override Dictionary<string, string> RequiredFileLocations { get; } = new Dictionary<string, string>()
-        {
-            { "CorePackagesFile", Path.Combine("core", "composer.json") }
-        };
-
+        public override Dictionary<string, string> RequiredFileLocations { get; } = new Dictionary<string, string>();
         #endregion
 
         #region Public properties
@@ -44,7 +42,7 @@ namespace DevAudit.AuditLibrary
         {
             get
             {
-                return (DirectoryInfo) this.ApplicationFileSystemMap["CoreModulesDirectory"];
+                return (DirectoryInfo)this.ApplicationFileSystemMap["CoreModulesDirectory"];
             }
         }
 
@@ -68,42 +66,36 @@ namespace DevAudit.AuditLibrary
                 else return null;
             }
         }
-
-        public FileInfo CorePackagesFile
-        {
-            get
-            {
-                return (FileInfo) this.ApplicationFileSystemMap["CorePackagesFile"];
-            }
-        }
         #endregion
 
         #region Overriden methods
         public override Dictionary<string, IEnumerable<OSSIndexQueryObject>> GetModules()
         {
-            Dictionary<string, IEnumerable<OSSIndexQueryObject>> modules = new Dictionary<string, IEnumerable<OSSIndexQueryObject>>();            
-            List<FileInfo> core_module_files = RecursiveFolderScan(this.CoreModulesDirectory, "*.info.yml").Where(f => !f.Name.Contains("_test") && !f.Name.Contains("test_")).ToList();
-            List<FileInfo> contrib_module_files = RecursiveFolderScan(this.ContribModulesDirectory, "*.info.yml").Where(f => !f.Name.Contains("_test") && !f.Name.Contains("test_")).ToList();
-            //this.CoreModulesDirectory.GetFileSystemInfos("*.info.yml", SearchOption.AllDirectories)
-            //.Where(f => !f.Name.Contains("_test") && !f.Name.Contains("test_")).ToList();
-            //List<FileSystemInfo> contrib_module_files = this.ContribModulesDirectory.GetFileSystemInfos("*.info.yml", SearchOption.AllDirectories)
-            //    .Where(f => !f.Name.Contains("_test") && !f.Name.Contains("test_")).ToList();
+            Dictionary<string, IEnumerable<OSSIndexQueryObject>> modules = new Dictionary<string, IEnumerable<OSSIndexQueryObject>>();
+            List<FileInfo> core_module_files = RecursiveFolderScan(this.CoreModulesDirectory, "*.info").Where(f => !f.Name.Contains("_test") && !f.Name.Contains("test_")).ToList();
+            List<FileInfo> contrib_module_files = RecursiveFolderScan(this.ContribModulesDirectory, "*.info").Where(f => !f.Name.Contains("_test") && !f.Name.Contains("test_")).ToList();
+            
             List<OSSIndexQueryObject> core_modules = new List<OSSIndexQueryObject>(core_module_files.Count + 1);
             List<OSSIndexQueryObject> contrib_modules = new List<OSSIndexQueryObject>(contrib_module_files.Count);
             List<OSSIndexQueryObject> all_modules = new List<OSSIndexQueryObject>(core_module_files.Count + 1);
-            core_modules.Add(new OSSIndexQueryObject("drupal", "drupal_core", "8.x"));
-            Deserializer yaml_deserializer = new Deserializer(namingConvention: new CamelCaseNamingConvention(), ignoreUnmatched: true);
+            core_modules.Add(new OSSIndexQueryObject("drupal", "drupal_core", "7.x"));
+            IniParserConfiguration ini_parser_cfg = new IniParserConfiguration();
+            ini_parser_cfg.CommentString = ";";
+            ini_parser_cfg.AllowDuplicateKeys = true;
+            IniDataParser ini_parser = new IniDataParser(ini_parser_cfg);
+            
+            //Deserializer yaml_deserializer = new Deserializer(namingConvention: new CamelCaseNamingConvention(), ignoreUnmatched: true);
             foreach (FileInfo f in core_module_files)
             {
                 using (FileStream fs = f.OpenRead())
                 {
                     using (StreamReader r = new StreamReader(f.OpenRead()))
                     {
-                        DrupalModuleInfo m = yaml_deserializer.Deserialize<DrupalModuleInfo>(r);
-                        m.ShortName = f.Name.Split('.')[0];
-                        core_modules.Add(new OSSIndexQueryObject("drupal", m.ShortName, m.Version  == "VERSION" ? m.Core : m.Version, "", m.Project));
+                        IniData data = ini_parser.Parse(r.ReadToEnd());
+                        //m.ShortName = f.Name.Split('.')[0];
+                        //core_modules.Add(new OSSIndexQueryObject("drupal", m.ShortName, m.Version == "VERSION" ? m.Core : m.Version, "", m.Project));
                     }
-                }                               
+                }
             }
             modules.Add("core", core_modules);
             all_modules.AddRange(core_modules);
@@ -113,9 +105,9 @@ namespace DevAudit.AuditLibrary
                 {
                     using (StreamReader r = new StreamReader(f.OpenRead()))
                     {
-                        DrupalModuleInfo m = yaml_deserializer.Deserialize<DrupalModuleInfo>(r);
-                        m.ShortName = f.Name.Split('.')[0];
-                        contrib_modules.Add(new OSSIndexQueryObject("drupal", m.ShortName, m.Version, "", m.Project));
+                        //DrupalModuleInfo m = yaml_deserializer.Deserialize<DrupalModuleInfo>(r);
+                        //m.ShortName = f.Name.Split('.')[0];
+                        //contrib_modules.Add(new OSSIndexQueryObject("drupal", m.ShortName, m.Version, "", m.Project));
                     }
                 }
             }
@@ -138,9 +130,9 @@ namespace DevAudit.AuditLibrary
                         {
                             using (StreamReader r = new StreamReader(f.OpenRead()))
                             {
-                                DrupalModuleInfo m = yaml_deserializer.Deserialize<DrupalModuleInfo>(r);
-                                m.ShortName = f.Name.Split('.')[0];
-                                sites_all_contrib_modules.Add(new OSSIndexQueryObject("drupal", m.ShortName, m.Version, "", m.Project));
+                                //DrupalModuleInfo m = yaml_deserializer.Deserialize<DrupalModuleInfo>(r);
+                                //m.ShortName = f.Name.Split('.')[0];
+                                //sites_all_contrib_modules.Add(new OSSIndexQueryObject("drupal", m.ShortName, m.Version, "", m.Project));
                             }
                         }
                     }
@@ -159,26 +151,6 @@ namespace DevAudit.AuditLibrary
         {
             return this.GetModules()["all"];
         }
-
-        public override Func<List<OSSIndexArtifact>, List<OSSIndexArtifact>> ArtifactsTransform { get; } = (artifacts) =>
-        {
-            List<OSSIndexArtifact> o = artifacts.ToList();
-            foreach (OSSIndexArtifact a in o)
-            {
-                if (a.Search == null || a.Search.Count() != 4)
-                {
-                    throw new Exception("Did not receive expected Search field properties for artifact name: " + a.PackageName + " id: " +
-                        a.PackageId + " project id: " + a.ProjectId + ".");
-                }
-                else
-                {
-                    OSSIndexQueryObject package = new OSSIndexQueryObject(a.Search[0], a.Search[1], a.Search[3], "");
-                    a.Package = package;
-                }
-            }
-            return o;
-        };
-
         public override bool IsVulnerabilityVersionInPackageVersionRange(string vulnerability_version, string package_version)
         {
             string message = "";
@@ -189,22 +161,10 @@ namespace DevAudit.AuditLibrary
             }
             else return r;
         }
-
         #endregion
 
         #region Constructors
-        public DrupalApplication(Dictionary<string, object> application_options) : base(application_options)
-        {
-                                                               
-        }
-        #endregion
-
-        #region Private fields
-
-        #endregion
-
-        #region Static methods
-       
+        public Drupal7Application(Dictionary<string, object> application_options) : base(application_options) {}
         #endregion
 
     }
