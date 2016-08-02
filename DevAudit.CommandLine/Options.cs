@@ -38,8 +38,11 @@ namespace DevAudit.CommandLine
 		[VerbOption("dpkg", HelpText = "Audit dpkg packages. The packages are scanned from the system dpkg repository.")]
 		public Options AuditDpkg { get; set; }
 
-		[VerbOption("drupal", HelpText = "Audit a Drupal application instance. Use the --root option to specify the root directory of the Drupal instance, otherwise the current directory will be used.")]
-        public Options AuditDrupal { get; set; }
+		[VerbOption("drupal8", HelpText = "Audit a Drupal 8 application instance. Use the --root option to specify the root directory of the Drupal 8 instance, otherwise the current directory will be used.")]
+        public Options AuditDrupal8 { get; set; }
+
+        [VerbOption("drupal7", HelpText = "Audit a Drupal 7 application instance. Use the --root option to specify the root directory of the Drupal 7 instance, otherwise the current directory will be used.")]
+        public Options AuditDrupal7 { get; set; }
 
         [Option('f', "file", Required = false, HelpText = "Specifies the file (if any) containing the packages to be audited.")]
         public string File { get; set; }

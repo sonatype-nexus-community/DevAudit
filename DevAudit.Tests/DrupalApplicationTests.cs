@@ -11,11 +11,11 @@ namespace DevAudit.Tests
 {
     public class DrupalApplicationTests : PackageSourceTests
     {
-        protected DrupalApplication d { get; } = new DrupalApplication(new Dictionary<string, object>()
+        protected Drupal8Application d { get; } = new Drupal8Application(new Dictionary<string, object>()
         { {"RootDirectory", @"C:\Bitnami\wampstack-5.6.18-0\apps\drupal\htdocs" /*Application.CombinePaths("Examples", "Drupal")*/ }          
         });
 
-        protected override PackageSource s { get; } = new DrupalApplication(new Dictionary<string, object>()
+        protected override PackageSource s { get; } = new Drupal8Application(new Dictionary<string, object>()
         { {"RootDirectory", @"C:\Bitnami\wampstack-5.6.18-0\apps\drupal\htdocs" /*Application.CombinePaths("Examples", "Drupal")*/ }
         });
 

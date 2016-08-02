@@ -11,7 +11,7 @@ using Versatile;
 
 namespace DevAudit.AuditLibrary
 {
-    public class DrupalApplication : Application
+    public class Drupal8Application : Application
     {
         #region Overriden properties
 
@@ -193,7 +193,7 @@ namespace DevAudit.AuditLibrary
         #endregion
 
         #region Constructors
-        public DrupalApplication(Dictionary<string, object> application_options) : base(application_options)
+        public Drupal8Application(Dictionary<string, object> application_options) : base(application_options)
         {
                                                                
         }

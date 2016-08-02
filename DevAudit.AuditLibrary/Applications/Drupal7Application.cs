@@ -74,7 +74,6 @@ namespace DevAudit.AuditLibrary
             Dictionary<string, IEnumerable<OSSIndexQueryObject>> modules = new Dictionary<string, IEnumerable<OSSIndexQueryObject>>();
             List<FileInfo> core_module_files = RecursiveFolderScan(this.CoreModulesDirectory, "*.info").Where(f => !f.Name.Contains("_test") && !f.Name.Contains("test_")).ToList();
             List<FileInfo> contrib_module_files = RecursiveFolderScan(this.ContribModulesDirectory, "*.info").Where(f => !f.Name.Contains("_test") && !f.Name.Contains("test_")).ToList();
-            
             List<OSSIndexQueryObject> core_modules = new List<OSSIndexQueryObject>(core_module_files.Count + 1);
             List<OSSIndexQueryObject> contrib_modules = new List<OSSIndexQueryObject>(contrib_module_files.Count);
             List<OSSIndexQueryObject> all_modules = new List<OSSIndexQueryObject>(core_module_files.Count + 1);
@@ -82,9 +81,8 @@ namespace DevAudit.AuditLibrary
             IniParserConfiguration ini_parser_cfg = new IniParserConfiguration();
             ini_parser_cfg.CommentString = ";";
             ini_parser_cfg.AllowDuplicateKeys = true;
+            ini_parser_cfg.OverrideDuplicateKeys = true;
             IniDataParser ini_parser = new IniDataParser(ini_parser_cfg);
-            
-            //Deserializer yaml_deserializer = new Deserializer(namingConvention: new CamelCaseNamingConvention(), ignoreUnmatched: true);
             foreach (FileInfo f in core_module_files)
             {
                 using (FileStream fs = f.OpenRead())
@@ -92,8 +90,21 @@ namespace DevAudit.AuditLibrary
                     using (StreamReader r = new StreamReader(f.OpenRead()))
                     {
                         IniData data = ini_parser.Parse(r.ReadToEnd());
-                        //m.ShortName = f.Name.Split('.')[0];
-                        //core_modules.Add(new OSSIndexQueryObject("drupal", m.ShortName, m.Version == "VERSION" ? m.Core : m.Version, "", m.Project));
+                        foreach (KeyData d in data.Global)
+                        {
+                            if (d.Value.First() == '"') d.Value = d.Value.Remove(0, 1);
+                            if (d.Value.Last() == '"') d.Value = d.Value.Remove(d.Value.Length - 1, 1);
+                        }
+                        DrupalModuleInfo m = new DrupalModuleInfo
+                        {
+                            Core = data.Global["core"],
+                            Name = data.Global["name"],
+                            Description = data.Global["description"],
+                            Package = data.Global["package"],
+                            Version = data.Global["version"],
+                            Project = data.Global["project"]
+                        };
+                        core_modules.Add(new OSSIndexQueryObject("drupal", m.Name, m.Version == "VERSION" ? m.Core : m.Version, "", m.Project));
                     }
                 }
             }
@@ -105,9 +116,22 @@ namespace DevAudit.AuditLibrary
                 {
                     using (StreamReader r = new StreamReader(f.OpenRead()))
                     {
-                        //DrupalModuleInfo m = yaml_deserializer.Deserialize<DrupalModuleInfo>(r);
-                        //m.ShortName = f.Name.Split('.')[0];
-                        //contrib_modules.Add(new OSSIndexQueryObject("drupal", m.ShortName, m.Version, "", m.Project));
+                        IniData data = ini_parser.Parse(r.ReadToEnd());
+                        foreach(KeyData d in data.Global)
+                        {
+                            if (d.Value.First() == '"') d.Value = d.Value.Remove(0, 1);
+                            if (d.Value.Last() == '"') d.Value = d.Value.Remove(d.Value.Length - 1, 1);
+                        }
+                        DrupalModuleInfo m = new DrupalModuleInfo
+                        {
+                            Core = data.Global["core"],
+                            Name = data.Global["name"],
+                            Description = data.Global["description"],
+                            Package = data.Global["package"],
+                            Version = data.Global["version"],
+                            Project = data.Global["project"]
+                        };
+                        contrib_modules.Add(new OSSIndexQueryObject("drupal", m.Name, m.Version, "", m.Project));
                     }
                 }
             }
@@ -118,9 +142,7 @@ namespace DevAudit.AuditLibrary
             }
             if (this.SitesAllModulesDirectory != null)
             {
-                //                List<FileSystemInfo> sites_all_contrib_modules_files = this.SitesAllModulesDirectory.GetFileSystemInfos("*.info.yml", SearchOption.AllDirectories)
-                //                    .Where(f => !f.Name.Contains("_test") && !f.Name.Contains("test_")).ToList();
-                List<FileInfo> sites_all_contrib_modules_files = RecursiveFolderScan(this.SitesAllModulesDirectory, "*.info.yml").Where(f => !f.Name.Contains("_test") && !f.Name.Contains("test_")).ToList();
+                List<FileInfo> sites_all_contrib_modules_files = RecursiveFolderScan(this.SitesAllModulesDirectory, "*.info").Where(f => !f.Name.Contains("_test") && !f.Name.Contains("test_")).ToList();
                 if (sites_all_contrib_modules_files.Count > 0)
                 {
                     List<OSSIndexQueryObject> sites_all_contrib_modules = new List<OSSIndexQueryObject>(sites_all_contrib_modules_files.Count + 1);
@@ -130,9 +152,21 @@ namespace DevAudit.AuditLibrary
                         {
                             using (StreamReader r = new StreamReader(f.OpenRead()))
                             {
-                                //DrupalModuleInfo m = yaml_deserializer.Deserialize<DrupalModuleInfo>(r);
-                                //m.ShortName = f.Name.Split('.')[0];
-                                //sites_all_contrib_modules.Add(new OSSIndexQueryObject("drupal", m.ShortName, m.Version, "", m.Project));
+                                IniData data = ini_parser.Parse(r.ReadToEnd());
+                                foreach (KeyData d in data.Global)
+                                {
+                                    if (d.Value.First() == '"') d.Value = d.Value.Remove(0, 1);
+                                    if (d.Value.Last() == '"') d.Value = d.Value.Remove(d.Value.Length - 1, 1);
+                                }
+                                DrupalModuleInfo m = new DrupalModuleInfo
+                                {
+                                    Core = data.Global["core"],
+                                    Name = data.Global["name"],
+                                    Description = data.Global["description"],
+                                    Package = data.Global["package"],
+                                    Version = data.Global["version"],
+                                    Project = data.Global["project"]
+                                };
                             }
                         }
                     }
@@ -153,7 +187,15 @@ namespace DevAudit.AuditLibrary
         }
         public override bool IsVulnerabilityVersionInPackageVersionRange(string vulnerability_version, string package_version)
         {
-            string message = "";
+            string message = "";        
+            if (!package_version.StartsWith("7.x") && package_version.StartsWith("7."))
+            {
+                package_version = "7.x-" + package_version;
+            }
+            if (!vulnerability_version.StartsWith("7.x") && vulnerability_version.StartsWith("7."))
+            {
+                vulnerability_version = "7.x-" + vulnerability_version;
+            }
             bool r = Drupal.RangeIntersect(vulnerability_version, package_version, out message);
             if (!r && !string.IsNullOrEmpty(message))
             {

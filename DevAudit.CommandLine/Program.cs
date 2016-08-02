@@ -102,11 +102,14 @@ namespace DevAudit.CommandLine
                 {
                     Source = new DpkgPackageSource(audit_options);
                 }
-                else if (verb == "drupal")
+                else if (verb == "drupal8")
                 {
-                    Source = new DrupalApplication(audit_options);
+                    Source = new Drupal8Application(audit_options);
                 }
-
+                else if (verb == "drupal7")
+                {
+                    Source = new Drupal7Application(audit_options);
+                }
             });
             if (Source == null)
             {

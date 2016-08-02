@@ -131,7 +131,7 @@ namespace DevAudit.PowerShell
                     {
                         this.PackageSourceOptions.Add("RootDirectory", RootDirectory);
                     }
-                    this.PackageSource = new DrupalApplication(this.PackageSourceOptions);
+                    this.PackageSource = new Drupal8Application(this.PackageSourceOptions);
                     WriteVerbose(string.Format("Using application {0}.", this.PackageSource.PackageManagerLabel));
                     break;
 
