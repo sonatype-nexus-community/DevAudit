@@ -34,6 +34,7 @@ namespace DevAudit.AuditLibrary
 
         public override Dictionary<string, string> RequiredFileLocations { get; } = new Dictionary<string, string>()
         {
+            { "ChangeLog", Path.Combine("core", "CHANGELOG.TXT") },
             { "CorePackagesFile", Path.Combine("core", "composer.json") }
         };
 
@@ -81,6 +82,20 @@ namespace DevAudit.AuditLibrary
         #region Overriden methods
         public override Dictionary<string, IEnumerable<OSSIndexQueryObject>> GetModules()
         {
+            FileInfo changelog = this.ApplicationFileSystemMap["ChangeLog"] as FileInfo;
+            string l = string.Empty;
+            string core_version = "8.x";
+            using (StreamReader r = new StreamReader(changelog.OpenRead()))
+            {
+                while (!r.EndOfStream && !l.StartsWith("Drupal"))
+                {
+                    l = r.ReadLine();
+                }
+            }
+            if (l.StartsWith("Drupal "))
+            {
+                core_version = l.Split(',')[0].Substring(7);
+            }
             Dictionary<string, IEnumerable<OSSIndexQueryObject>> modules = new Dictionary<string, IEnumerable<OSSIndexQueryObject>>();            
             List<FileInfo> core_module_files = RecursiveFolderScan(this.CoreModulesDirectory, "*.info.yml").Where(f => !f.Name.Contains("_test") && !f.Name.Contains("test_")).ToList();
             List<FileInfo> contrib_module_files = RecursiveFolderScan(this.ContribModulesDirectory, "*.info.yml").Where(f => !f.Name.Contains("_test") && !f.Name.Contains("test_")).ToList();
@@ -100,7 +115,7 @@ namespace DevAudit.AuditLibrary
                     {
                         DrupalModuleInfo m = yaml_deserializer.Deserialize<DrupalModuleInfo>(r);
                         m.ShortName = f.Name.Split('.')[0];
-                        core_modules.Add(new OSSIndexQueryObject("drupal", m.ShortName, m.Version  == "VERSION" ? m.Core : m.Version, "", m.Project));
+                        core_modules.Add(new OSSIndexQueryObject("drupal", m.ShortName, m.Version  == "VERSION" ? core_version : m.Version, "", m.Project));
                     }
                 }                               
             }
