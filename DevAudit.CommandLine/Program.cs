@@ -360,7 +360,7 @@ namespace DevAudit.CommandLine
                             }
                             catch (Exception e)
                             {
-                                PrintErrorMessage("Error determining vulnerability version range {0} in package version range {1}: {2}.",
+                                PrintErrorMessage("Error determining vulnerability version range {0} in package version range {1}: {2}",
                                     package_vulnerability.Versions.Aggregate((f, s) => { return f + "," + s; }), a.Package.Version, e.Message);
                             }
                         }
@@ -376,7 +376,7 @@ namespace DevAudit.CommandLine
                             }
                             catch (Exception e)
                             {
-                                PrintErrorMessage("Error determining vulnerability version range ({0}) in project version range ({1}). Message: {2}.",
+                                PrintErrorMessage("Error determining vulnerability version range ({0}) in project version range ({1}). Message: {2}",
                                     vulnerability.Versions.Aggregate((f, s) => { return f + "," + s; }), a.Package.Version, e.Message);
                             }
                         }

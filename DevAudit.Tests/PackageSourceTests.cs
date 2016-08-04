@@ -59,11 +59,11 @@ namespace DevAudit.Tests
             {
                 Task.WaitAll(t.ToArray());
             }
-            catch (AggregateException ae)
+            catch (AggregateException)
             {
                 
             }
-            catch (Exception e)
+            catch (Exception)
             { }
             
         }

@@ -91,7 +91,6 @@ namespace DevAudit.AuditLibrary
             List<OSSIndexQueryObject> core_modules = new List<OSSIndexQueryObject>(core_module_files.Count + 1);
             List<OSSIndexQueryObject> contrib_modules = new List<OSSIndexQueryObject>(contrib_module_files.Count);
             List<OSSIndexQueryObject> all_modules = new List<OSSIndexQueryObject>(core_module_files.Count + 1);
-            core_modules.Add(new OSSIndexQueryObject("drupal", "drupal_core", "8.x"));
             Deserializer yaml_deserializer = new Deserializer(namingConvention: new CamelCaseNamingConvention(), ignoreUnmatched: true);
             foreach (FileInfo f in core_module_files)
             {
@@ -106,6 +105,7 @@ namespace DevAudit.AuditLibrary
                 }                               
             }
             modules.Add("core", core_modules);
+            core_modules.Add(new OSSIndexQueryObject("drupal", "drupal_core", core_modules.First().Version));
             all_modules.AddRange(core_modules);
             foreach (FileInfo f in contrib_module_files)
             {

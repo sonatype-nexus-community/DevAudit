@@ -77,7 +77,6 @@ namespace DevAudit.AuditLibrary
             List<OSSIndexQueryObject> core_modules = new List<OSSIndexQueryObject>(core_module_files.Count + 1);
             List<OSSIndexQueryObject> contrib_modules = new List<OSSIndexQueryObject>(contrib_module_files.Count);
             List<OSSIndexQueryObject> all_modules = new List<OSSIndexQueryObject>(core_module_files.Count + 1);
-            core_modules.Add(new OSSIndexQueryObject("drupal", "drupal_core", "7.x"));
             IniParserConfiguration ini_parser_cfg = new IniParserConfiguration();
             ini_parser_cfg.CommentString = ";";
             ini_parser_cfg.AllowDuplicateKeys = true;
@@ -108,6 +107,7 @@ namespace DevAudit.AuditLibrary
                     }
                 }
             }
+            core_modules.Add(new OSSIndexQueryObject("drupal", "drupal_core", core_modules.First().Version));
             modules.Add("core", core_modules);
             all_modules.AddRange(core_modules);
             foreach (FileInfo f in contrib_module_files)
@@ -188,14 +188,6 @@ namespace DevAudit.AuditLibrary
         public override bool IsVulnerabilityVersionInPackageVersionRange(string vulnerability_version, string package_version)
         {
             string message = "";        
-            if (!package_version.StartsWith("7.x") && package_version.StartsWith("7."))
-            {
-                package_version = "7.x-" + package_version;
-            }
-            if (!vulnerability_version.StartsWith("7.x") && vulnerability_version.StartsWith("7."))
-            {
-                vulnerability_version = "7.x-" + vulnerability_version;
-            }
             bool r = Drupal.RangeIntersect(vulnerability_version, package_version, out message);
             if (!r && !string.IsNullOrEmpty(message))
             {
