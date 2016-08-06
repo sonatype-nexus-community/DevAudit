@@ -103,7 +103,7 @@ namespace DevAudit.AuditLibrary
                             Version = data.Global["version"],
                             Project = data.Global["project"]
                         };
-                        core_modules.Add(new OSSIndexQueryObject("drupal", m.Name, m.Version == "VERSION" ? m.Core : m.Version, "", m.Project));
+                        core_modules.Add(new OSSIndexQueryObject("drupal", m.Name, m.Version == "VERSION" ? m.Core : m.Version, "", string.Empty));
                     }
                 }
             }
@@ -131,7 +131,7 @@ namespace DevAudit.AuditLibrary
                             Version = data.Global["version"],
                             Project = data.Global["project"]
                         };
-                        contrib_modules.Add(new OSSIndexQueryObject("drupal", m.Name, m.Version, "", m.Project));
+                        contrib_modules.Add(new OSSIndexQueryObject("drupal", m.Name, m.Version, "", string.Empty));
                     }
                 }
             }
@@ -165,7 +165,6 @@ namespace DevAudit.AuditLibrary
                                     Description = data.Global["description"],
                                     Package = data.Global["package"],
                                     Version = data.Global["version"],
-                                    Project = data.Global["project"]
                                 };
                             }
                         }

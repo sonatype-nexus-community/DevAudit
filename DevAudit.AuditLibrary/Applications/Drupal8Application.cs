@@ -115,7 +115,7 @@ namespace DevAudit.AuditLibrary
                     {
                         DrupalModuleInfo m = yaml_deserializer.Deserialize<DrupalModuleInfo>(r);
                         m.ShortName = f.Name.Split('.')[0];
-                        core_modules.Add(new OSSIndexQueryObject("drupal", m.ShortName, m.Version  == "VERSION" ? core_version : m.Version, "", m.Project));
+                        core_modules.Add(new OSSIndexQueryObject("drupal", m.ShortName, m.Version  == "VERSION" ? core_version : m.Version, "", string.Empty));
                     }
                 }                               
             }
@@ -130,7 +130,7 @@ namespace DevAudit.AuditLibrary
                     {
                         DrupalModuleInfo m = yaml_deserializer.Deserialize<DrupalModuleInfo>(r);
                         m.ShortName = f.Name.Split('.')[0];
-                        contrib_modules.Add(new OSSIndexQueryObject("drupal", m.ShortName, m.Version, "", m.Project));
+                        contrib_modules.Add(new OSSIndexQueryObject("drupal", m.ShortName, m.Version, "", string.Empty));
                     }
                 }
             }
@@ -155,7 +155,7 @@ namespace DevAudit.AuditLibrary
                             {
                                 DrupalModuleInfo m = yaml_deserializer.Deserialize<DrupalModuleInfo>(r);
                                 m.ShortName = f.Name.Split('.')[0];
-                                sites_all_contrib_modules.Add(new OSSIndexQueryObject("drupal", m.ShortName, m.Version, "", m.Project));
+                                sites_all_contrib_modules.Add(new OSSIndexQueryObject("drupal", m.ShortName, m.Version, "", string.Empty));
                             }
                         }
                     }
