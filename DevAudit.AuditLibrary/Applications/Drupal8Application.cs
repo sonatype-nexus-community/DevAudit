@@ -120,7 +120,7 @@ namespace DevAudit.AuditLibrary
                 }                               
             }
             modules.Add("core", core_modules);
-            core_modules.Add(new OSSIndexQueryObject("drupal", "drupal_core", core_modules.First().Version));
+            core_modules.Add(new OSSIndexQueryObject("drupal", "drupal_core", core_version));
             all_modules.AddRange(core_modules);
             foreach (FileInfo f in contrib_module_files)
             {
