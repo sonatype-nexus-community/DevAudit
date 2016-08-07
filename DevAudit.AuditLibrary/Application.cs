@@ -145,12 +145,8 @@ namespace DevAudit.AuditLibrary
         }
         #endregion
 
-        #region Private properties
-
-        #endregion
-
         #region Private fields
-        public Task<Dictionary<string, IEnumerable<OSSIndexQueryObject>>> _ModulesTask;
+        private Task<Dictionary<string, IEnumerable<OSSIndexQueryObject>>> _ModulesTask;
         #endregion
 
         #region Private methods

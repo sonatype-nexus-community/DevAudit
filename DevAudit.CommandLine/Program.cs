@@ -14,6 +14,7 @@ namespace DevAudit.CommandLine
     {
         public enum ExitCodes
         {
+            SUCCESS = 0,
             INVALID_ARGUMENTS = 1,
             NO_PACKAGE_MANAGER,
             ERROR_SCANNING_FOR_PACKAGES,
@@ -23,6 +24,10 @@ namespace DevAudit.CommandLine
         static Options ProgramOptions = new Options();
 
         static PackageSource Source { get; set; }
+
+        static ApplicationServer Server { get; set; }
+
+        static Spinner Spinner { get; set; } =  null;
 
         static int Main(string[] args)
         {
@@ -110,107 +115,91 @@ namespace DevAudit.CommandLine
                 {
                     Source = new Drupal7Application(audit_options);
                 }
+                else if (verb == "mysql")
+                {
+                    Source = new MySQLServer(audit_options);
+                    Server = Source as ApplicationServer;
+                }
             });
-            if (Source == null)
+            if (Source == null && Server == null)
             {
-                Console.WriteLine("No package source specified.");
+                Console.WriteLine("No package source or application server specified.");
                 return (int)ExitCodes.INVALID_ARGUMENTS;
             }
             #endregion
 
-            Spinner spinner = null;
-            Console.Write("Scanning {0} packages...", Source.PackageManagerLabel);
-            if (!ProgramOptions.NonInteractive)
-            {
-                spinner = new Spinner(50);
-                spinner.Start();
-            }
+            PrintMessage("Scanning {0} packages...", Source.PackageManagerLabel);
+            StartSpinner();
             try
             {
                 Source.PackagesTask.Wait();
             }
             catch (AggregateException ae)
             {
-                if (!ProgramOptions.NonInteractive) spinner.Stop();
+                if (!ProgramOptions.NonInteractive) Spinner.Stop();
                 PrintErrorMessage("\nError(s) encountered scanning for {0} packages: {1}", Source.PackageManagerLabel, ae.InnerException.Message);
                 return (int)ExitCodes.ERROR_SCANNING_FOR_PACKAGES;
             }
             finally
             {
-                if (!ProgramOptions.NonInteractive)
-                {
-                    spinner.Stop();
-                    spinner = null;
-                }             
+                StopSpinner();
             }
-            Console.WriteLine("\nFound {0} distinct packages.", Source.Packages.Count());             
+            PrintMessageLine("\nFound {0} distinct packages.", Source.Packages.Count());             
             if (ProgramOptions.ListPackages)
             {
                 int i = 1;
                 foreach (OSSIndexQueryObject package in Source.Packages)
                 {
-                    Console.WriteLine("[{0}/{1}] {2} {3} {4}", i++, Source.Packages.Count(), package.Name,
+                    PrintMessageLine("[{0}/{1}] {2} {3} {4}", i++, Source.Packages.Count(), package.Name,
                         package.Version, package.Vendor);
                 }
-                return 0;
+                return (int) ExitCodes.SUCCESS;
             }
             if (Source.Packages.Count() == 0)
             {
-                Console.WriteLine("Nothing to do, exiting.");
-                return 0;
+                PrintMessageLine("Nothing to do, exiting.");
+                return (int) ExitCodes.SUCCESS;
             }
             else
             {
-                Console.Write("Searching OSS Index for {0} {1} packages...", Source.Packages.Count(), Source.PackageManagerLabel);
+                PrintMessage("Searching OSS Index for {0} {1} packages...", Source.Packages.Count(), Source.PackageManagerLabel);
             }
-            if (!ProgramOptions.NonInteractive)
-            {
-                spinner = new Spinner(50);
-                spinner.Start();
-            }
+            StartSpinner();
             try
             {
                 Task.WaitAll(Source.ArtifactsTask.ToArray());
             }
             catch (AggregateException ae)
             {
-                if (!ProgramOptions.NonInteractive) spinner.Stop();
+                if (!ProgramOptions.NonInteractive) Spinner.Stop();
                 PrintErrorMessage("\nError encountered searching OSS Index for {0} packages: {1}...", Source.PackageManagerLabel, ae.InnerException.Message);
                 ae.InnerExceptions.ToList().ForEach(i => HandleOSSIndexHttpException(i));
                 return (int)ExitCodes.ERROR_SEARCHING_OSS_INDEX;
             }
             finally
             {
-                if (!ProgramOptions.NonInteractive)
-                {
-                    spinner.Stop();
-                    spinner = null;
-                }
+                StopSpinner();
             }
-            Console.WriteLine("\nFound {0} artifacts, {1} with an OSS Index project id.", Source.Artifacts.Count(), Source.ArtifactProjects.Count);
+            PrintMessageLine("\nFound {0} artifacts, {1} with an OSS Index project id.", Source.Artifacts.Count(), Source.ArtifactProjects.Count);
             if (Source.Artifacts.Count() == 0)
             {
-                Console.WriteLine("Nothing to do, exiting.");
-                return 0;
+                PrintMessageLine("Nothing to do, exiting.");
+                return (int) ExitCodes.SUCCESS;
             }
             if (ProgramOptions.ListArtifacts)
             {
                 int i = 1;
                 foreach (OSSIndexArtifact artifact in Source.Artifacts)
                 {
-                    Console.Write("[{0}/{1}] {2} ({3}) ", i++, Source.Artifacts.Count(), artifact.PackageName,
+                    PrintMessage("[{0}/{1}] {2} ({3}) ", i++, Source.Artifacts.Count(), artifact.PackageName,
                         !string.IsNullOrEmpty(artifact.Version) ? artifact.Version : string.Format("No version reported for package version {0}", artifact.Package.Version));
                     if (!string.IsNullOrEmpty(artifact.ProjectId))
                     {
-                        Console.ForegroundColor = ConsoleColor.Blue;
-                        Console.Write(artifact.ProjectId + "\n");
-                        Console.ResetColor();
+                        PrintMessage(ConsoleColor.Blue, artifact.ProjectId + "\n");
                     }
                     else
                     {
-                        Console.ForegroundColor = ConsoleColor.DarkRed;
-                        Console.Write("No project id found.\n");
-                        Console.ResetColor();
+                        PrintMessage(ConsoleColor.DarkRed, "No project id found.\n");
                     }
                 }
                 return 0;
@@ -237,16 +226,16 @@ namespace DevAudit.CommandLine
             }
             if (Source.ArtifactProjects.Count == 0)
             {
-                Console.WriteLine("No found artifacts have associated projects.");
-                Console.WriteLine("No vulnerability data for you packages currently exists in OSS Index, exiting.");
-                return 0;
+                PrintMessageLine("No found artifacts have associated projects.");
+                PrintMessageLine("No vulnerability data for your packages currently exists in OSS Index, exiting.");
+                return (int) ExitCodes.SUCCESS;
             }
             if (ProgramOptions.Cache)
             {                
-                Console.WriteLine("{0} projects have cached values.", Source.CachedArtifacts.Count());
-                Console.WriteLine("{0} cached project entries are stale and will be removed from cache.", Source.ProjectVulnerabilitiesExpiredCacheKeys.Count());
+                PrintMessageLine("{0} projects have cached values.", Source.CachedArtifacts.Count());
+                PrintMessageLine("{0} cached project entries are stale and will be removed from cache.", Source.ProjectVulnerabilitiesExpiredCacheKeys.Count());
             }
-            Console.WriteLine("Searching OSS Index for vulnerabilities for {0} projects...", Source.VulnerabilitiesTask.Count());
+            PrintMessageLine("Searching OSS Index for vulnerabilities for {0} projects...", Source.VulnerabilitiesTask.Count());
             int projects_count = Source.ArtifactProjects.Count;
             int projects_processed = 0;
             int projects_successful = 0;
@@ -258,16 +247,12 @@ namespace DevAudit.CommandLine
                     OSSIndexProject p = c.Item1;
                     IEnumerable<OSSIndexProjectVulnerability> vulnerabilities = c.Item2;
                     OSSIndexArtifact a = p.Artifact;
-                    Console.ForegroundColor = ConsoleColor.White;
-                    Console.Write("[{0}/{1}] {2}", projects_processed, projects_count, a.PackageName);
-                    Console.ForegroundColor = ConsoleColor.DarkCyan;
-                    Console.Write("[CACHED]");
-                    Console.ForegroundColor = ConsoleColor.White;
-                    Console.Write(" {0} ", a.Version);
+                    PrintMessage(ConsoleColor.White, "[{0}/{1}] {2}", projects_processed, projects_count, a.PackageName);
+                    PrintMessage(ConsoleColor.DarkCyan, "[CACHED]");
+                    PrintMessage(ConsoleColor.White, " {0} ", a.Version);
                     if (vulnerabilities.Count() == 0)
                     {
-                        Console.ForegroundColor = ConsoleColor.DarkGray;
-                        Console.WriteLine("No known vulnerabilities.");
+                        PrintMessageLine(ConsoleColor.DarkGray, "No known vulnerabilities.");
                     }
                     else
                     {
@@ -328,21 +313,15 @@ namespace DevAudit.CommandLine
                         = Source.PackageVulnerabilities.Where(pv => pv.Key == p.Package).First();
                     if (projects_processed++ == 0)
                     {
-                        Console.WriteLine("\nAudit Results\n=============");
+                        PrintMessageLine("\nAudit Results\n=============");
                     }
-                    Console.ResetColor();
                     projects_successful++;
-                    Console.ForegroundColor = ConsoleColor.White;
-                    Console.Write("[{0}/{1}] {2} {3}", projects_processed, projects_count, a.PackageName, string.IsNullOrEmpty(a.Version) ? "" : 
+                    PrintMessage(ConsoleColor.White, "[{0}/{1}] {2} {3}", projects_processed, projects_count, a.PackageName, string.IsNullOrEmpty(a.Version) ? "" : 
                         string.Format("({0}) ", a.Version));
-                    Console.ResetColor();
-                    
                     if (package_vulnerabilities.Value.Count() == 0 && vulnerabilities.Value.Count() == 0)
                     {
-                        Console.ForegroundColor = ConsoleColor.DarkGray;
-                        Console.Write("no known vulnerabilities. ");
-                        Console.ResetColor();
-                        Console.Write("[{0} {1}]\n", p.Package.Name, p.Package.Version);
+                        PrintMessage(ConsoleColor.DarkGray, "no known vulnerabilities. ");
+                        PrintMessage("[{0} {1}]\n", p.Package.Name, p.Package.Version);
                     }
                     else
                     {
@@ -383,40 +362,28 @@ namespace DevAudit.CommandLine
                         //found_vulnerabilities = found_vulnerabilities.GroupBy(v => new { v.CVEId, v.Uri, v.Title, v.Summary }).SelectMany(v => v).ToList();
                         if (found_vulnerabilities.Count() > 0 || found_package_vulnerabilities.Count() > 0)
                         {
-                            Console.ForegroundColor = ConsoleColor.Red;
-                            Console.WriteLine("[VULNERABLE]");
+                            PrintMessageLine(ConsoleColor.Red, "[VULNERABLE]");
                         }
-                        Console.ForegroundColor = ConsoleColor.Magenta;
-                        Console.Write("{0} known vulnerabilities, ", vulnerabilities.Value.Count() + package_vulnerabilities.Value.Count()); //vulnerabilities.Value.GroupBy(v => new { v.CVEId, v.Uri, v.Title, v.Summary }).SelectMany(v => v).Count(),
-                        Console.Write("{0} affecting installed version. ", found_vulnerabilities.Count() + found_package_vulnerabilities.Count());
-                        Console.ResetColor();
-                        Console.Write("[{0} {1}]\n", p.Package.Name, p.Package.Version);
+                        PrintMessageLine(ConsoleColor.Magenta, "{0} known vulnerabilities, ", vulnerabilities.Value.Count() + package_vulnerabilities.Value.Count()); //vulnerabilities.Value.GroupBy(v => new { v.CVEId, v.Uri, v.Title, v.Summary }).SelectMany(v => v).Count(),
+                        PrintMessage("{0} affecting installed version. ", found_vulnerabilities.Count() + found_package_vulnerabilities.Count());
+                        PrintMessageLine("[{0} {1}]", p.Package.Name, p.Package.Version);
                         found_package_vulnerabilities.ForEach(v =>
                         {
-                            Console.ForegroundColor = ConsoleColor.Red;
-                            Console.WriteLine("{0} {1}", v.Id, v.Title);
-                            Console.ResetColor();
-                            Console.WriteLine(v.Summary);
-                            Console.ForegroundColor = ConsoleColor.Red;
-                            Console.Write("Affected versions: ");
-                            Console.ForegroundColor = ConsoleColor.White;
-                            Console.WriteLine(string.Join(", ", v.Versions.ToArray()));
-                            Console.WriteLine("");
+                            PrintMessageLine(ConsoleColor.Red, "{0} {1}", v.Id.Trim(), v.Title.Trim());
+                            PrintMessageLine(v.Summary);
+                            PrintMessage(ConsoleColor.Red, "Affected versions: ");
+                            
+                            PrintMessageLine(ConsoleColor.White, string.Join(", ", v.Versions.ToArray()));
+                            PrintMessageLine("");
                         });
-                        Console.ResetColor();
                         found_vulnerabilities.ForEach(v =>
                         {
-                            Console.ForegroundColor = ConsoleColor.Red;
-                            Console.WriteLine("{0} {1}", v.CVEId, v.Title);
-                            Console.ResetColor();
-                            Console.WriteLine(v.Summary);
-                            Console.ForegroundColor = ConsoleColor.Red;
-                            Console.Write("Affected versions: ");
-                            Console.ForegroundColor = ConsoleColor.White;
-                            Console.WriteLine(string.Join(", ", v.Versions.ToArray()));
-                            Console.WriteLine("");
+                            PrintMessageLine(ConsoleColor.Red, "{0} {1}", v.CVEId, v.Title);
+                            PrintMessageLine(v.Summary);
+                            PrintMessage(ConsoleColor.Red, "Affected versions: ");
+                            PrintMessageLine(ConsoleColor.White, string.Join(", ", v.Versions.ToArray()));
+                            PrintMessageLine("");
                         });
-                        Console.ResetColor();
                     }                    
                     Source.VulnerabilitiesTask.Remove(task);
                     projects_successful++;
@@ -425,7 +392,7 @@ namespace DevAudit.CommandLine
                 {
                     if (projects_processed++ == 0)
                     {
-                        Console.WriteLine("\nAudit Results\n=============");
+                        PrintMessageLine("\nAudit Results\n=============");
                     }
                     var failed_tasks = Source.VulnerabilitiesTask.Where(t => t.Status == TaskStatus.Faulted || t.Status == TaskStatus.Canceled).ToList();
                     foreach (var t in failed_tasks)
@@ -435,9 +402,7 @@ namespace DevAudit.CommandLine
                             OSSIndexHttpException oe = t.Exception.InnerException as OSSIndexHttpException;
                             OSSIndexArtifact artifact = Source.Artifacts.FirstOrDefault(a => a.ProjectId == oe.RequestParameter || a.PackageId == oe.RequestParameter);
                             Console.Write("[{0}/{1}] {2} ", ++projects_processed, projects_count, artifact.PackageName, artifact.Version);
-                            Console.ForegroundColor = ConsoleColor.DarkRed;
-                            Console.WriteLine("{0} HTTP Error searching OSS Index...", artifact.Version);
-                            Console.ResetColor();
+                            PrintMessageLine(ConsoleColor.DarkRed, "{0} HTTP Error searching OSS Index...", artifact.Version);
                             ++projects_processed;
                             HandleOSSIndexHttpException(oe);
                             //ae.InnerExceptions.ToList().ForEach(i => HandleOSSIndexHttpException(i));
@@ -457,12 +422,75 @@ namespace DevAudit.CommandLine
             Source.Dispose();
             return 0;
         }
-           
+
+        static void PrintMessage(string format)
+        {
+            Console.Write(format);
+        }
+
+        static void PrintMessage(string format, params object[] args)
+        {
+            Console.Write(format, args);
+        }
+
+        static void PrintMessage(ConsoleColor color, string format)
+        {
+            if (!ProgramOptions.NonInteractive)
+            {
+                ConsoleColor o = Console.ForegroundColor;
+                Console.ForegroundColor = color;
+                PrintMessage(format);
+                Console.ForegroundColor = o;
+            }
+            else
+            {
+                Console.Write(format);
+            }
+        }
+
+        static void PrintMessage(ConsoleColor color, string format, params object[] args)
+        {
+            if (!ProgramOptions.NonInteractive)
+            {
+                ConsoleColor o = Console.ForegroundColor;
+                Console.ForegroundColor = color;
+                PrintMessage(format, args);
+                Console.ForegroundColor = o;
+            }
+            else
+            {
+                Console.Write(format, args);
+            }
+        }
+
+        static void PrintMessageLine(string format)
+        {
+            Console.WriteLine(format);
+        }
+
+        static void PrintMessageLine(string format, params object[] args)
+        {
+            Console.WriteLine(format, args);
+        }
+
+        static void PrintMessageLine(ConsoleColor color, string format, params object[] args)
+        {
+            if (!ProgramOptions.NonInteractive)
+            {
+                ConsoleColor o = Console.ForegroundColor;
+                Console.ForegroundColor = color;
+                PrintMessageLine(format, args);
+                Console.ForegroundColor = o;
+            }
+            else
+            {
+               PrintMessageLine(format, args);
+            }
+        }
+
         static void PrintErrorMessage(string format, params object[] args)
         {
-            Console.ForegroundColor = ConsoleColor.DarkRed;
-            Console.WriteLine(format, args);
-            Console.ResetColor();
+            PrintMessageLine(ConsoleColor.DarkRed, format, args);
         }
 
         static void HandleOSSIndexHttpException(Exception e)
@@ -471,6 +499,26 @@ namespace DevAudit.CommandLine
             {
                 OSSIndexHttpException oe = (OSSIndexHttpException) e;
                 PrintErrorMessage("HTTP status: {0} {1} \nReason: {2}\nRequest:\n{3}", (int) oe.StatusCode, oe.StatusCode, oe.ReasonPhrase, oe.Request);
+            }
+
+        }
+
+        static void StartSpinner()
+        {
+            if (!ProgramOptions.NonInteractive)
+            {
+                Spinner = new Spinner(50);
+                Spinner.Start();
+            }
+        }
+
+        static void StopSpinner()
+        {
+            if (ReferenceEquals(null, Spinner)) throw new ArgumentNullException();
+            if (!ProgramOptions.NonInteractive)
+            {
+                Spinner.Stop();
+                Spinner = null;
             }
 
         }
