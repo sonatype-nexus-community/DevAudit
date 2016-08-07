@@ -7,16 +7,12 @@ using System.Threading.Tasks;
 
 namespace DevAudit.AuditLibrary
 {
-    public abstract class ApplicationServer : PackageSource
+    public abstract class ApplicationServer : Application
     {
         #region Public abstract properties
         public abstract string ServerId { get; }
 
         public abstract string ServerLabel { get; }
-
-        public abstract Dictionary<string, string> RequiredFileLocations { get; }
-
-        public abstract Dictionary<string, string> RequiredDirectoryLocations { get; }
 
         public abstract Dictionary<string, string> OptionalFileLocations { get; }
 
@@ -41,30 +37,27 @@ namespace DevAudit.AuditLibrary
             }
         }
 
-        public DirectoryInfo RootDirectory
+        public new DirectoryInfo RootDirectory
         {
             get
             {
-                return (DirectoryInfo) this.ServerFileSystemMap["RootDirectory"];
+                return (DirectoryInfo)this.ServerFileSystemMap["RootDirectory"];
             }
         }
 
+        public string Version { get; set; }
 
         public Dictionary<string, object> Configuration { get; set; }
-
-        public Task<string> GetVersionTask { get; }
 
         public Task<Dictionary<string, object>> GetConfigurationTask { get; }
 
         public Dictionary<string, object> ServerOptions { get; set; } = new Dictionary<string, object>();
         #endregion
 
-    
-
         #region Constructors
-        public ApplicationServer() { }
+        public ApplicationServer() { } 
 
-        public ApplicationServer(Dictionary<string, object> server_options)
+        public ApplicationServer(Dictionary<string, object> server_options) : base(server_options)
         {
             if (ReferenceEquals(server_options, null)) throw new ArgumentNullException("server_options");
             this.ServerOptions = server_options;

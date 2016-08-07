@@ -14,6 +14,10 @@ namespace DevAudit.AuditLibrary
 
         public override string ServerLabel { get { return "MySQL"; } }
 
+        public override string ApplicationId { get { return "mysql"; } }
+
+        public override string ApplicationLabel { get { return "MySQL"; } }
+
         public override Dictionary<string, string> RequiredDirectoryLocations { get; } = new Dictionary<string, string>()
         {
             { "bin", "bin" }
@@ -64,6 +68,15 @@ namespace DevAudit.AuditLibrary
 
         #endregion
         #region Overriden methods
+        public override Dictionary<string, IEnumerable<OSSIndexQueryObject>> GetModules()
+        {
+            Dictionary<string, IEnumerable<OSSIndexQueryObject>> m = new Dictionary<string, IEnumerable<OSSIndexQueryObject>>
+            {
+                {"mysqld", new List<OSSIndexQueryObject> {new OSSIndexQueryObject("mysql", "mysqld", this.Version) }}
+            };
+            return m;
+        }
+
         public override string GetVersion()
         {
             HostEnvironment.ProcessStatus process_status;
@@ -72,7 +85,8 @@ namespace DevAudit.AuditLibrary
             HostEnvironment.Execute(MySQLExe.FullName, "-V", out process_status, out process_output, out process_error);
             if (process_status == HostEnvironment.ProcessStatus.Success)
             {
-                return process_output.Substring(process_output.IndexOf("Ver"));
+                this.Version = process_output.Substring(process_output.IndexOf("Ver"));
+                return this.Version;
             }
             else
             {
@@ -87,7 +101,7 @@ namespace DevAudit.AuditLibrary
 
         public override IEnumerable<OSSIndexQueryObject> GetPackages(params string[] o)
         {
-            throw new NotImplementedException();
+            return this.Modules["mysqld"];
         }
 
         public override bool IsVulnerabilityVersionInPackageVersionRange(string vulnerability_version, string package_version)

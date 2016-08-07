@@ -168,15 +168,15 @@ namespace DevAudit.CommandLine
             }
             catch (AggregateException ae)
             {
-                if (!ProgramOptions.NonInteractive) Spinner.Stop();
-                PrintErrorMessage("\nError(s) encountered scanning for {0} packages: {1}", Source.PackageManagerLabel, ae.InnerException.Message);
+                StopSpinner();
+                PrintErrorMessage("Error(s) encountered scanning for {0} packages: {1}", Source.PackageManagerLabel, ae.InnerException.Message);
                 return (int)ExitCodes.ERROR_SCANNING_FOR_PACKAGES;
             }
             finally
             {
                 StopSpinner();
             }
-            PrintMessageLine("\nFound {0} distinct packages.", Source.Packages.Count());             
+            PrintMessageLine("Found {0} distinct packages.", Source.Packages.Count());             
             if (ProgramOptions.ListPackages)
             {
                 int i = 1;
@@ -203,8 +203,8 @@ namespace DevAudit.CommandLine
             }
             catch (AggregateException ae)
             {
-                if (!ProgramOptions.NonInteractive) Spinner.Stop();
-                PrintErrorMessage("\nError encountered searching OSS Index for {0} packages: {1}...", Source.PackageManagerLabel, ae.InnerException.Message);
+                StopSpinner();
+                PrintErrorMessage("Error encountered searching OSS Index for {0} packages: {1}...", Source.PackageManagerLabel, ae.InnerException.Message);
                 ae.InnerExceptions.ToList().ForEach(i => HandleOSSIndexHttpException(i));
                 return (int)ExitCodes.ERROR_SEARCHING_OSS_INDEX;
             }
@@ -212,7 +212,7 @@ namespace DevAudit.CommandLine
             {
                 StopSpinner();
             }
-            PrintMessageLine("\nFound {0} artifacts, {1} with an OSS Index project id.", Source.Artifacts.Count(), Source.ArtifactProjects.Count);
+            PrintMessageLine("Found {0} artifacts, {1} with an OSS Index project id.", Source.Artifacts.Count(), Source.ArtifactProjects.Count);
             if (Source.Artifacts.Count() == 0)
             {
                 PrintMessageLine("Nothing to do, exiting.");
@@ -396,7 +396,7 @@ namespace DevAudit.CommandLine
                         {
                             PrintMessageLine(ConsoleColor.Red, "[VULNERABLE]");
                         }
-                        PrintMessageLine(ConsoleColor.Magenta, "{0} known vulnerabilities, ", vulnerabilities.Value.Count() + package_vulnerabilities.Value.Count()); //vulnerabilities.Value.GroupBy(v => new { v.CVEId, v.Uri, v.Title, v.Summary }).SelectMany(v => v).Count(),
+                        PrintMessage(ConsoleColor.Magenta, "{0} known vulnerabilities, ", vulnerabilities.Value.Count() + package_vulnerabilities.Value.Count()); //vulnerabilities.Value.GroupBy(v => new { v.CVEId, v.Uri, v.Title, v.Summary }).SelectMany(v => v).Count(),
                         PrintMessage("{0} affecting installed version. ", found_vulnerabilities.Count() + found_package_vulnerabilities.Count());
                         PrintMessageLine("[{0} {1}]", p.Package.Name, p.Package.Version);
                         found_package_vulnerabilities.ForEach(v =>
@@ -462,9 +462,12 @@ namespace DevAudit.CommandLine
             PrintMessage("Scanning {0} modules, extensions, or plugins.", Server.ServerLabel);
             StartSpinner();
             exit = ExitCodes.ERROR_SCANNING_SERVER_VERSION;
+            string version;
             try
             {
-                PrintMessageLine("Detected {0} version: {1}.", Server.ServerLabel, Server.GetVersion().Trim());
+                version = Server.GetVersion().Trim();
+                Server.ModulesTask.Wait();
+                Server.PackagesTask.Wait();
             }
             catch (Exception e)
             {
@@ -475,9 +478,34 @@ namespace DevAudit.CommandLine
             {
                 StopSpinner();
             }
+            PrintMessageLine("Detected {0} version: {1}.", Server.ServerLabel, version);
+            exit = ExitCodes.ERROR_SCANNING_FOR_PACKAGES;
+            if (ProgramOptions.ListPackages)
+            {
+                int i = 1;
+                foreach (OSSIndexQueryObject package in Server.Packages)
+                {
+                    PrintMessageLine("[{0}/{1}] {2} {3} {4}", i++, Server.Packages.Count(), package.Name,
+                        package.Version, package.Vendor);
+                }
+                exit = ExitCodes.SUCCESS;
+                return;
+            }
+            if (Server.Packages.Count() == 0)
+            {
+                exit = ExitCodes.SUCCESS;
+                return;
+            }
+            else
+            {
+                PrintMessage("Searching OSS Index for {0} {1} packages...", Server.Packages.Count(), Server.ServerLabel);
+
+            }
+            exit = ExitCodes.SUCCESS;
+            return;
+
         }
 
- 
         static void PrintMessage(string format)
         {
             Console.Write(format);
@@ -551,6 +579,8 @@ namespace DevAudit.CommandLine
         static void PrintErrorMessage(Exception e)
         {
             PrintMessageLine(ConsoleColor.DarkRed, "Exception: {0}", e.Message);
+            PrintMessageLine(ConsoleColor.DarkRed, "Stack trace: {0}", e.StackTrace);
+
             if (e.InnerException != null)
             {
                 PrintMessageLine(ConsoleColor.DarkRed, "Inner exception: {0}", e.InnerException.Message);
@@ -583,6 +613,7 @@ namespace DevAudit.CommandLine
             {
                 Spinner.Stop();
                 Spinner = null;
+                PrintMessageLine(string.Empty);
             }
 
         }
