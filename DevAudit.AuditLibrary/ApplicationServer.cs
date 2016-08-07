@@ -21,6 +21,8 @@ namespace DevAudit.AuditLibrary
         public abstract Dictionary<string, string> OptionalFileLocations { get; }
 
         public abstract Dictionary<string, string> OptionalDirectoryLocations { get; }
+
+        public abstract string DefaultConfigurationFile { get; }
         #endregion
 
         #region Public abstract methods
@@ -80,19 +82,46 @@ namespace DevAudit.AuditLibrary
                 this.ServerFileSystemMap.Add("RootDirectory", new DirectoryInfo((string)this.ServerOptions["RootDirectory"]));
             }
 
-            if (!this.ServerOptions.ContainsKey("ConfigurationFile"))
+            if (!this.ServerOptions.ContainsKey("ConfigurationFile") && string.IsNullOrEmpty(this.DefaultConfigurationFile))
             {
-                throw new ArgumentException(string.Format("The server configuration file was not specified."), "server_options");
+                throw new ArgumentException(string.Format("The server configuration file was not specified and no default configuration file can be used."), "server_options");
             }
-            else if (!File.Exists((string)this.ServerOptions["ConfigurationFile"]))
+            else if (!this.ServerOptions.ContainsKey("ConfigurationFile") && !string.IsNullOrEmpty(this.DefaultConfigurationFile))
             {
-                throw new ArgumentException(string.Format("The server configuration file {0} was not found.", this.ServerOptions["RootDirectory"]), "server_options");
+                string cf;
+                if (this.DefaultConfigurationFile.First() != Path.DirectorySeparatorChar)
+                {
+                    cf = Path.Combine(this.RootDirectory.FullName, this.DefaultConfigurationFile);
+                }
+                else
+                {
+                    cf = this.DefaultConfigurationFile;
+                }
+                if (File.Exists(cf))
+                {
+                    this.ServerFileSystemMap.Add("ConfigurationFile", new FileInfo(cf));
+                }
+                else
+                {
+                    throw new ArgumentException(string.Format("The server configuration file was not specified and the default configuration file {0} could not be found.", cf), "server_options");
+                }
             }
-            else
+            else 
             {
-                this.ServerFileSystemMap.Add("RootDirectory", new DirectoryInfo((string)this.ServerOptions["RootDirectory"]));
+                string cf = (string) this.ServerOptions["ConfigurationFile"];
+                if (cf.StartsWith("@"))
+                {
+                    cf = Path.Combine(this.RootDirectory.FullName, cf.Substring(1));
+                }
+                if (File.Exists(cf))
+                {
+                    this.ServerFileSystemMap.Add("ConfigurationFile", new FileInfo(cf));
+                }
+                else
+                {
+                    throw new ArgumentException(string.Format("The server configuration file {0} was not found.", cf), "server_options");
+                }           
             }
-
 
             foreach (string f in RequiredFileLocations.Keys)
             {

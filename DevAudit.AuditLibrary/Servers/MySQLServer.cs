@@ -34,12 +34,50 @@ namespace DevAudit.AuditLibrary
         public override string PackageManagerLabel { get { return "MySQL"; } }
 
         public override OSSIndexHttpClient HttpClient { get; } = new OSSIndexHttpClient("1.1");
+
+        public override string DefaultConfigurationFile { get; } = "my.ini";
         #endregion
 
+        #region Public properties
+        public DirectoryInfo MySQLBin
+        {
+            get
+            {
+                return this.RootDirectory.GetDirectories("bin").First();
+            }
+        }
+
+        public FileInfo MySQLExe
+        {
+            get
+            {
+                if (Environment.OSVersion.Platform == PlatformID.Unix || Environment.OSVersion.Platform == PlatformID.MacOSX)
+                {
+                    return this.MySQLBin.GetFiles("mysql").First();
+                }
+                else
+                {
+                    return this.MySQLBin.GetFiles("mysql.exe").First();
+                }
+            }
+        }
+
+        #endregion
         #region Overriden methods
         public override string GetVersion()
         {
-            throw new NotImplementedException();
+            HostEnvironment.ProcessStatus process_status;
+            string process_output;
+            string process_error;
+            HostEnvironment.Execute(MySQLExe.FullName, "-V", out process_status, out process_output, out process_error);
+            if (process_status == HostEnvironment.ProcessStatus.Success)
+            {
+                return process_output.Substring(process_output.IndexOf("Ver"));
+            }
+            else
+            {
+                throw new Exception(string.Format("Did not execute process {0} successfully. Error: {1}.", MySQLExe.Name, process_error));
+            }
         }
 
         public override Dictionary<string, object> GetConfiguration()
@@ -58,6 +96,6 @@ namespace DevAudit.AuditLibrary
         }
         #endregion
 
-        public MySQLServer(Dictionary<string, object> application_options) : base(application_options) {}
+        public MySQLServer(Dictionary<string, object> server_options) : base(server_options) {}
     }
 }

@@ -18,7 +18,9 @@ namespace DevAudit.CommandLine
             INVALID_ARGUMENTS = 1,
             NO_PACKAGE_MANAGER,
             ERROR_SCANNING_FOR_PACKAGES,
-            ERROR_SEARCHING_OSS_INDEX
+            ERROR_SCANNING_SERVER_VERSION,
+            ERROR_SEARCHING_OSS_INDEX,
+
         }
 
         static Options ProgramOptions = new Options();
@@ -72,6 +74,10 @@ namespace DevAudit.CommandLine
                     audit_options.Add("DockerContainerId", ProgramOptions.DockerContainerId);
                 }
 
+                if (!string.IsNullOrEmpty(ProgramOptions.ConfigurationFile))
+                {
+                    audit_options.Add("ConfigurationFile", ProgramOptions.ConfigurationFile);
+                }
 
             }
             #endregion
@@ -79,56 +85,82 @@ namespace DevAudit.CommandLine
             #region Handle command line verbs
             CL.Parser.Default.ParseArguments(args, ProgramOptions, (verb, options) =>
             {
-                if (verb == "nuget")
+                try
                 {
-                    Source = new NuGetPackageSource(audit_options);
+                    if (verb == "nuget")
+                    {
+                        Source = new NuGetPackageSource(audit_options);
+                    }
+                    else if (verb == "msi")
+                    {
+                        Source = new MSIPackageSource();
+                    }
+                    else if (verb == "choco")
+                    {
+                        Source = new ChocolateyPackageSource();
+                    }
+                    else if (verb == "bower")
+                    {
+                        Source = new BowerPackageSource(audit_options);
+                    }
+                    else if (verb == "oneget")
+                    {
+                        Source = new OneGetPackageSource();
+                    }
+                    else if (verb == "composer")
+                    {
+                        Source = new ComposerPackageSource(audit_options);
+                    }
+                    else if (verb == "dpkg")
+                    {
+                        Source = new DpkgPackageSource(audit_options);
+                    }
+                    else if (verb == "drupal8")
+                    {
+                        Source = new Drupal8Application(audit_options);
+                    }
+                    else if (verb == "drupal7")
+                    {
+                        Source = new Drupal7Application(audit_options);
+                    }
+                    else if (verb == "mysql")
+                    {
+                        Server = new MySQLServer(audit_options);
+                    }
                 }
-                else if (verb == "msi")
+                catch (ArgumentException ae)
                 {
-                    Source = new MSIPackageSource();
+                    PrintErrorMessage(ae);
+                    return;
                 }
-                else if (verb == "choco")
+                catch (Exception e)
                 {
-                    Source = new ChocolateyPackageSource();
-                }
-                else if (verb == "bower")
-                {
-                    Source = new BowerPackageSource(audit_options);
-                }
-                else if (verb == "oneget")
-                {
-                    Source = new OneGetPackageSource();
-                }
-                else if (verb == "composer")
-                {
-                    Source = new ComposerPackageSource(audit_options);
-                }
-                else if (verb == "dpkg")
-                {
-                    Source = new DpkgPackageSource(audit_options);
-                }
-                else if (verb == "drupal8")
-                {
-                    Source = new Drupal8Application(audit_options);
-                }
-                else if (verb == "drupal7")
-                {
-                    Source = new Drupal7Application(audit_options);
-                }
-                else if (verb == "mysql")
-                {
-                    Source = new MySQLServer(audit_options);
-                    Server = Source as ApplicationServer;
+                    PrintErrorMessage(e);
+                    return;
                 }
             });
+
             if (Source == null && Server == null)
             {
-                Console.WriteLine("No package source or application server specified.");
+                Console.WriteLine("No package source or application server specified or error parsing options.");
                 return (int)ExitCodes.INVALID_ARGUMENTS;
             }
             #endregion
 
-            PrintMessage("Scanning {0} packages...", Source.PackageManagerLabel);
+            if (Server != null) //Auditing an application server
+            {
+                ExitCodes exit;
+                AuditServer(out exit);
+                if (Server != null)
+                {
+                    Server.Dispose();
+                }
+                return (int) exit;
+            }
+            else
+            {
+                PrintMessage("Scanning {0} packages...", Source.PackageManagerLabel);
+            }
             StartSpinner();
             try
             {
@@ -423,6 +455,29 @@ namespace DevAudit.CommandLine
             return 0;
         }
 
+        #region Static methods
+        static void AuditServer(out ExitCodes exit)
+        {
+            if (ReferenceEquals(Server, null)) throw new ArgumentNullException("Server");
+            PrintMessage("Scanning {0} modules, extensions, or plugins.", Server.ServerLabel);
+            StartSpinner();
+            exit = ExitCodes.ERROR_SCANNING_SERVER_VERSION;
+            try
+            {
+                PrintMessageLine("Detected {0} version: {1}.", Server.ServerLabel, Server.GetVersion().Trim());
+            }
+            catch (Exception e)
+            {
+                PrintErrorMessage(e);
+                return;
+            }
+            finally
+            {
+                StopSpinner();
+            }
+        }
+
+ 
         static void PrintMessage(string format)
         {
             Console.Write(format);
@@ -493,6 +548,15 @@ namespace DevAudit.CommandLine
             PrintMessageLine(ConsoleColor.DarkRed, format, args);
         }
 
+        static void PrintErrorMessage(Exception e)
+        {
+            PrintMessageLine(ConsoleColor.DarkRed, "Exception: {0}", e.Message);
+            if (e.InnerException != null)
+            {
+                PrintMessageLine(ConsoleColor.DarkRed, "Inner exception: {0}", e.InnerException.Message);
+            }
+        }
+
         static void HandleOSSIndexHttpException(Exception e)
         {
             if (e.GetType() == typeof(OSSIndexHttpException))
@@ -522,7 +586,7 @@ namespace DevAudit.CommandLine
             }
 
         }
-
+        #endregion
 
     }
 }

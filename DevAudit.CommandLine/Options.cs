@@ -44,7 +44,11 @@ namespace DevAudit.CommandLine
         [VerbOption("drupal7", HelpText = "Audit a Drupal 7 application instance. Use the --root option to specify the root directory of the Drupal 7 instance, otherwise the current directory will be used.")]
         public Options AuditDrupal7 { get; set; }
 
-        [Option('f', "file", Required = false, HelpText = "Specifies the file (if any) containing the packages to be audited.")]
+        [VerbOption("mysql", HelpText = "Audit a MySQL application server instance. Use the --root option to specify the root directory of the MySQL server instance, and the --config-file option to specify the configuration file otherwise my.ini will be used.")]
+        public Options MySQL { get; set; }
+
+
+        [Option('f', "file", Required = false, HelpText = "Specifies the file containing packages to be audited.")]
         public string File { get; set; }
 
         [Option('p', "list-packages", Required = false, HelpText = "Only list the local packages that will be audited.")]
@@ -53,10 +57,13 @@ namespace DevAudit.CommandLine
         [Option('a', "list-artifacts", Required = false, HelpText = "Only list the artifacts corresponding to local packages found on OSS Index.")]
         public bool ListArtifacts { get; set; }
 
+        [Option('c', "config-file", Required = false, HelpText = "Specifies the configuration file for the application server to be audited.")]
+        public string ConfigurationFile { get; set; }
+
         [Option('n', "non-interact", Required = false, HelpText = "Disable any interctive console output (for redirecting console output to other devices.)")]
         public bool NonInteractive { get; set; }
 
-        [Option('c', "cache", Required = false, HelpText = "Cache results from querying OSS Index. Projects and vulnerabilities will be cached by default for 180 minutes or the duration specified by the --cache-ttl parameter.")]
+        [Option('z', "cache", Required = false, HelpText = "Cache results from querying OSS Index. Projects and vulnerabilities will be cached by default for 180 minutes or the duration specified by the --cache-ttl parameter.")]
         public bool Cache { get; set; }
 
         [Option('t', "cache-ttl", Required = false, HelpText = "Cache TTL - projects and vulnearabilities will be cached for the number of minutes specified here.")]
