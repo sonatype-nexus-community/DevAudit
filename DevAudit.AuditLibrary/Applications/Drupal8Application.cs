@@ -175,6 +175,11 @@ namespace DevAudit.AuditLibrary
             return this.GetModules()["all"];
         }
 
+        public override Dictionary<string, object> GetConfiguration()
+        {
+            throw new NotImplementedException();
+        }
+
         public override Func<List<OSSIndexArtifact>, List<OSSIndexArtifact>> ArtifactsTransform { get; } = (artifacts) =>
         {
             List<OSSIndexArtifact> o = artifacts.ToList();

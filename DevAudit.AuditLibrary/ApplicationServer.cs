@@ -23,7 +23,6 @@ namespace DevAudit.AuditLibrary
 
         #region Public abstract methods
         public abstract string GetVersion();
-        public abstract Dictionary<string, object> GetConfiguration();
         #endregion
 
         #region Public properties
@@ -46,10 +45,6 @@ namespace DevAudit.AuditLibrary
         }
 
         public string Version { get; set; }
-
-        public Dictionary<string, object> Configuration { get; set; }
-
-        public Task<Dictionary<string, object>> GetConfigurationTask { get; }
 
         public Dictionary<string, object> ServerOptions { get; set; } = new Dictionary<string, object>();
         #endregion
@@ -180,6 +175,10 @@ namespace DevAudit.AuditLibrary
                 }
             }
         }
+        #endregion
+
+        #region Private fields
+        private Task<Dictionary<string, object>> _ConfigurationTask;
         #endregion
     }
 }

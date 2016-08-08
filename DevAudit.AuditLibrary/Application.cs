@@ -20,6 +20,7 @@ namespace DevAudit.AuditLibrary
 
         #region Public abstract methods
         public abstract Dictionary<string, IEnumerable<OSSIndexQueryObject>> GetModules();
+        public abstract Dictionary<string, object> GetConfiguration();
         #endregion
 
         #region Public properties
@@ -33,7 +34,9 @@ namespace DevAudit.AuditLibrary
             }
         }
 
-        public Dictionary<string, IEnumerable<OSSIndexQueryObject>> Modules { get; set; } 
+        public Dictionary<string, IEnumerable<OSSIndexQueryObject>> Modules { get; set; }
+
+        public Dictionary<string, object> Configuration { get; set; } = new Dictionary<string, object>();
 
         public Dictionary<string, object> ApplicationOptions { get; set; } = new Dictionary<string, object>();
 
@@ -43,11 +46,24 @@ namespace DevAudit.AuditLibrary
             {
                 if (_ModulesTask == null)
                 {
-                    _ModulesTask = Task.Run(() => this.Modules = this.GetModules());
+                    _ModulesTask = Task.Run(() => this.GetModules());
                 }
                 return _ModulesTask;
             }
         }
+
+        public Task<Dictionary<string, object>> ConfigurationTask
+        {
+            get
+            {
+                if (_ConfigurationTask == null)
+                {
+                    _ConfigurationTask = Task.Run(() => this.GetConfiguration());
+                }
+                return _ConfigurationTask;
+            }
+        }
+
         #endregion
 
         #region Constructors
@@ -157,11 +173,12 @@ namespace DevAudit.AuditLibrary
 
         #region Private fields
         private Task<Dictionary<string, IEnumerable<OSSIndexQueryObject>>> _ModulesTask;
+        private Task<Dictionary<string, object>> _ConfigurationTask;
         #endregion
 
         #region Private methods
 
         #endregion
-        
+
     }
 }

@@ -98,6 +98,8 @@
     <Compile Include="Applications\Drupal7Application.cs" />
     <Compile Include="Applications\Drupal8Application.cs" />
     <Compile Include="OSSIndexPackageVulnerability.cs" />
+    <Compile Include="ApplicationServer.cs" />
+    <Compile Include="Servers\MySQLServer.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Examples\bower.json.example">

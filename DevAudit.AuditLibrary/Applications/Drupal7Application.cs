@@ -184,6 +184,12 @@ namespace DevAudit.AuditLibrary
         {
             return this.GetModules()["all"];
         }
+
+        public override Dictionary<string, object> GetConfiguration()
+        {
+            throw new NotImplementedException();
+        }
+
         public override bool IsVulnerabilityVersionInPackageVersionRange(string vulnerability_version, string package_version)
         {
             string message = "";        

@@ -15,12 +15,12 @@ namespace DevAudit.CommandLine
         public enum ExitCodes
         {
             SUCCESS = 0,
-            INVALID_ARGUMENTS = 1,
+            INVALID_ARGUMENTS,
             NO_PACKAGE_MANAGER,
             ERROR_SCANNING_FOR_PACKAGES,
-            ERROR_SCANNING_SERVER_VERSION,
             ERROR_SEARCHING_OSS_INDEX,
-
+            ERROR_SCANNING_SERVER_VERSION,
+            ERROR_SCANNING_SERVER_CONFIGURATION
         }
 
         static Options ProgramOptions = new Options();
@@ -126,6 +126,7 @@ namespace DevAudit.CommandLine
                     else if (verb == "mysql")
                     {
                         Server = new MySQLServer(audit_options);
+                        Source = Server as PackageSource;
                     }
                 }
                 catch (ArgumentException ae)
@@ -142,7 +143,7 @@ namespace DevAudit.CommandLine
 
             if (Source == null && Server == null)
             {
-                Console.WriteLine("No package source or application server specified or error parsing options.");
+                Console.WriteLine("No package source or application server specified or error parsing audit options.");
                 return (int)ExitCodes.INVALID_ARGUMENTS;
             }
             #endregion
@@ -159,8 +160,22 @@ namespace DevAudit.CommandLine
             }
             else
             {
-                PrintMessage("Scanning {0} packages...", Source.PackageManagerLabel);
+                ExitCodes exit;
+                AuditPackageSource(out exit);
+                if (Source != null)
+                {
+                    Source.Dispose();
+                }
+                return (int)exit;
             }
+        }
+
+        #region Static methods
+        static void AuditPackageSource(out ExitCodes exit)
+        {
+            if (ReferenceEquals(Source, null)) throw new ArgumentNullException("Source");
+            PrintMessage("Scanning {0} packages...", Source.PackageManagerLabel);
+            exit = ExitCodes.ERROR_SCANNING_FOR_PACKAGES;
             StartSpinner();
             try
             {
@@ -170,13 +185,13 @@ namespace DevAudit.CommandLine
             {
                 StopSpinner();
                 PrintErrorMessage("Error(s) encountered scanning for {0} packages: {1}", Source.PackageManagerLabel, ae.InnerException.Message);
-                return (int)ExitCodes.ERROR_SCANNING_FOR_PACKAGES;
+                return;
             }
             finally
             {
                 StopSpinner();
             }
-            PrintMessageLine("Found {0} distinct packages.", Source.Packages.Count());             
+            PrintMessageLine("Found {0} distinct packages.", Source.Packages.Count());
             if (ProgramOptions.ListPackages)
             {
                 int i = 1;
@@ -185,17 +200,20 @@ namespace DevAudit.CommandLine
                     PrintMessageLine("[{0}/{1}] {2} {3} {4}", i++, Source.Packages.Count(), package.Name,
                         package.Version, package.Vendor);
                 }
-                return (int) ExitCodes.SUCCESS;
+                exit = ExitCodes.SUCCESS;
+                return;
             }
             if (Source.Packages.Count() == 0)
             {
                 PrintMessageLine("Nothing to do, exiting.");
-                return (int) ExitCodes.SUCCESS;
+                exit = ExitCodes.SUCCESS;
+                return;
             }
             else
             {
                 PrintMessage("Searching OSS Index for {0} {1} packages...", Source.Packages.Count(), Source.PackageManagerLabel);
             }
+            exit = ExitCodes.ERROR_SEARCHING_OSS_INDEX;
             StartSpinner();
             try
             {
@@ -206,7 +224,7 @@ namespace DevAudit.CommandLine
                 StopSpinner();
                 PrintErrorMessage("Error encountered searching OSS Index for {0} packages: {1}...", Source.PackageManagerLabel, ae.InnerException.Message);
                 ae.InnerExceptions.ToList().ForEach(i => HandleOSSIndexHttpException(i));
-                return (int)ExitCodes.ERROR_SEARCHING_OSS_INDEX;
+                return;
             }
             finally
             {
@@ -216,7 +234,8 @@ namespace DevAudit.CommandLine
             if (Source.Artifacts.Count() == 0)
             {
                 PrintMessageLine("Nothing to do, exiting.");
-                return (int) ExitCodes.SUCCESS;
+                exit = ExitCodes.SUCCESS;
+                return;
             }
             if (ProgramOptions.ListArtifacts)
             {
@@ -234,7 +253,8 @@ namespace DevAudit.CommandLine
                         PrintMessage(ConsoleColor.DarkRed, "No project id found.\n");
                     }
                 }
-                return 0;
+                exit = ExitCodes.SUCCESS;
+                return;
             }
             if (ProgramOptions.CacheDump)
             {
@@ -254,16 +274,18 @@ namespace DevAudit.CommandLine
 
                 }
                 Source.Dispose();
-                return 0;
+                exit = ExitCodes.SUCCESS;
+                return;
             }
             if (Source.ArtifactProjects.Count == 0)
             {
                 PrintMessageLine("No found artifacts have associated projects.");
                 PrintMessageLine("No vulnerability data for your packages currently exists in OSS Index, exiting.");
-                return (int) ExitCodes.SUCCESS;
+                exit = ExitCodes.SUCCESS;
+                return;
             }
             if (ProgramOptions.Cache)
-            {                
+            {
                 PrintMessageLine("{0} projects have cached values.", Source.CachedArtifacts.Count());
                 PrintMessageLine("{0} cached project entries are stale and will be removed from cache.", Source.ProjectVulnerabilitiesExpiredCacheKeys.Count());
             }
@@ -272,10 +294,10 @@ namespace DevAudit.CommandLine
             int projects_processed = 0;
             int projects_successful = 0;
             if (Source.ProjectVulnerabilitiesCacheEnabled)
-            {                
+            {
                 foreach (Tuple<OSSIndexProject, IEnumerable<OSSIndexProjectVulnerability>> c in Source.ProjectVulnerabilitiesCacheItems)
                 {
-                    if (projects_processed++ ==0 ) Console.WriteLine("\nAudit Results\n=============");                    
+                    if (projects_processed++ == 0) Console.WriteLine("\nAudit Results\n=============");
                     OSSIndexProject p = c.Item1;
                     IEnumerable<OSSIndexProjectVulnerability> vulnerabilities = c.Item2;
                     OSSIndexArtifact a = p.Artifact;
@@ -330,10 +352,10 @@ namespace DevAudit.CommandLine
                     Console.ResetColor();
                     projects_successful++;
                 }
-            }    
+            }
             while (Source.VulnerabilitiesTask.Count() > 0)
             {
-                Task<KeyValuePair<OSSIndexProject, IEnumerable<OSSIndexProjectVulnerability>>>[] tasks = Source.VulnerabilitiesTask.ToArray();                                
+                Task<KeyValuePair<OSSIndexProject, IEnumerable<OSSIndexProjectVulnerability>>>[] tasks = Source.VulnerabilitiesTask.ToArray();
                 try
                 {
                     int x = Task.WaitAny(tasks);
@@ -348,7 +370,7 @@ namespace DevAudit.CommandLine
                         PrintMessageLine("\nAudit Results\n=============");
                     }
                     projects_successful++;
-                    PrintMessage(ConsoleColor.White, "[{0}/{1}] {2} {3}", projects_processed, projects_count, a.PackageName, string.IsNullOrEmpty(a.Version) ? "" : 
+                    PrintMessage(ConsoleColor.White, "[{0}/{1}] {2} {3}", projects_processed, projects_count, a.PackageName, string.IsNullOrEmpty(a.Version) ? "" :
                         string.Format("({0}) ", a.Version));
                     if (package_vulnerabilities.Value.Count() == 0 && vulnerabilities.Value.Count() == 0)
                     {
@@ -357,8 +379,8 @@ namespace DevAudit.CommandLine
                     }
                     else
                     {
-                      
-                     List<OSSIndexPackageVulnerability> found_package_vulnerabilities = new List<OSSIndexPackageVulnerability>();
+
+                        List<OSSIndexPackageVulnerability> found_package_vulnerabilities = new List<OSSIndexPackageVulnerability>();
                         foreach (OSSIndexPackageVulnerability package_vulnerability in package_vulnerabilities.Value)
                         {
 
@@ -404,7 +426,7 @@ namespace DevAudit.CommandLine
                             PrintMessageLine(ConsoleColor.Red, "{0} {1}", v.Id.Trim(), v.Title.Trim());
                             PrintMessageLine(v.Summary);
                             PrintMessage(ConsoleColor.Red, "Affected versions: ");
-                            
+
                             PrintMessageLine(ConsoleColor.White, string.Join(", ", v.Versions.ToArray()));
                             PrintMessageLine("");
                         });
@@ -416,7 +438,7 @@ namespace DevAudit.CommandLine
                             PrintMessageLine(ConsoleColor.White, string.Join(", ", v.Versions.ToArray()));
                             PrintMessageLine("");
                         });
-                    }                    
+                    }
                     Source.VulnerabilitiesTask.Remove(task);
                     projects_successful++;
                 }
@@ -448,24 +470,25 @@ namespace DevAudit.CommandLine
                         Source.VulnerabilitiesTask.Remove(t);
                     }
                     //projects_processed += Source.VulnerabilitiesTask.Count(t => t.Status == TaskStatus.Faulted || t.Status == TaskStatus.Canceled) - 1;
-                   
+
                 }
             }
             Source.Dispose();
-            return 0;
+            exit = ExitCodes.SUCCESS;
+            return;
         }
 
-        #region Static methods
         static void AuditServer(out ExitCodes exit)
         {
             if (ReferenceEquals(Server, null)) throw new ArgumentNullException("Server");
-            PrintMessage("Scanning {0} modules, extensions, or plugins.", Server.ServerLabel);
-            StartSpinner();
+            PrintMessage("Scanning {0} version, modules, extensions, or plugins...", Server.ServerLabel);
             exit = ExitCodes.ERROR_SCANNING_SERVER_VERSION;
+            StartSpinner();
             string version;
             try
             {
                 version = Server.GetVersion().Trim();
+                exit = ExitCodes.ERROR_SCANNING_FOR_PACKAGES;
                 Server.ModulesTask.Wait();
                 Server.PackagesTask.Wait();
             }
@@ -479,31 +502,31 @@ namespace DevAudit.CommandLine
                 StopSpinner();
             }
             PrintMessageLine("Detected {0} version: {1}.", Server.ServerLabel, version);
-            exit = ExitCodes.ERROR_SCANNING_FOR_PACKAGES;
-            if (ProgramOptions.ListPackages)
+            Task<Dictionary<string, object>> t = Server.ConfigurationTask;
+            AuditPackageSource(out exit);
+            if (ProgramOptions.ListPackages || ProgramOptions.ListArtifacts)
             {
-                int i = 1;
-                foreach (OSSIndexQueryObject package in Server.Packages)
-                {
-                    PrintMessageLine("[{0}/{1}] {2} {3} {4}", i++, Server.Packages.Count(), package.Name,
-                        package.Version, package.Vendor);
-                }
-                exit = ExitCodes.SUCCESS;
                 return;
             }
-            if (Server.Packages.Count() == 0)
+            exit = ExitCodes.ERROR_SCANNING_SERVER_CONFIGURATION;
+            PrintMessageLine("Scanning {0} configuration...", Server.ServerLabel);
+            StartSpinner();
+            try
             {
-                exit = ExitCodes.SUCCESS;
+                t.Wait();
+            }
+            catch (Exception e)
+            {
+                PrintErrorMessage(e);
                 return;
             }
-            else
+            finally
             {
-                PrintMessage("Searching OSS Index for {0} {1} packages...", Server.Packages.Count(), Server.ServerLabel);
-
+                StopSpinner();
             }
+            PrintMessageLine("Got {0} server configuration values.", Server.Configuration.Count);
             exit = ExitCodes.SUCCESS;
             return;
-
         }
 
         static void PrintMessage(string format)
@@ -584,6 +607,7 @@ namespace DevAudit.CommandLine
             if (e.InnerException != null)
             {
                 PrintMessageLine(ConsoleColor.DarkRed, "Inner exception: {0}", e.InnerException.Message);
+                PrintMessageLine(ConsoleColor.DarkRed, "Inner stack trace: {0}", e.InnerException.StackTrace);
             }
         }
 

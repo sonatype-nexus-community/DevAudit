@@ -5,6 +5,10 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
+using IniParser.Parser;
+using IniParser.Model;
+using IniParser.Model.Configuration;
+
 namespace DevAudit.AuditLibrary
 {
     public class MySQLServer : ApplicationServer
@@ -74,7 +78,8 @@ namespace DevAudit.AuditLibrary
             {
                 {"mysqld", new List<OSSIndexQueryObject> {new OSSIndexQueryObject("mysql", "mysqld", this.Version) }}
             };
-            return m;
+            this.Modules = m;
+            return this.Modules;
         }
 
         public override string GetVersion()
@@ -96,7 +101,30 @@ namespace DevAudit.AuditLibrary
 
         public override Dictionary<string, object> GetConfiguration()
         {
-            throw new NotImplementedException();
+            IniParserConfiguration ini_parser_cfg = new IniParserConfiguration();
+            ini_parser_cfg.CommentString = "#";
+            ini_parser_cfg.AllowDuplicateKeys = true;
+            ini_parser_cfg.OverrideDuplicateKeys = true;
+            IniDataParser ini_parser = new IniDataParser(ini_parser_cfg);
+            IniData data = null;
+            using (StreamReader r = new StreamReader(this.ConfigurationFile.OpenRead()))
+            {
+                data = ini_parser.Parse(r.ReadToEnd());            
+            }
+            foreach (KeyData d in data.Global)
+            {
+                if (d.Value.First() == '"') d.Value = d.Value.Remove(0, 1);
+                if (d.Value.Last() == '"') d.Value = d.Value.Remove(d.Value.Length - 1, 1);
+                this.Configuration.Add(d.KeyName, d.Value);
+            }
+            foreach(SectionData s in data.Sections)
+            {
+                foreach(KeyData k in s.Keys)
+                {
+                    this.Configuration.Add(s.SectionName + ">" + k.KeyName, k.Value);
+                }
+            }
+            return this.Configuration;
         }
 
         public override IEnumerable<OSSIndexQueryObject> GetPackages(params string[] o)
