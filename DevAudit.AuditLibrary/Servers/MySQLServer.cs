@@ -29,7 +29,7 @@ namespace DevAudit.AuditLibrary
 
         public override Dictionary<string, string> RequiredFileLocations { get; } = new Dictionary<string, string>()
         {
-            { "mysql", Path.Combine("bin", "mysql.exe") },
+            { "mysql", Environment.OSVersion.Platform == PlatformID.Unix ? Path.Combine("bin", "mysql") :  Path.Combine("bin", "mysql.exe")},
             
         };
 
