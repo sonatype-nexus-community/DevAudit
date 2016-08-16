@@ -1,11 +1,14 @@
 ﻿using System;
+using System.Reflection;
 using System.Collections.Generic;
+using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Xml.Linq;
 
 using CL = CommandLine; //Avoid type name conflict with external CommandLine library
+using CC = Colorful; //Avoid type name conflict with System Console class
 
 using DevAudit.AuditLibrary;
 
@@ -24,6 +27,8 @@ namespace DevAudit.CommandLine
             ERROR_SCANNING_SERVER_CONFIGURATION,
             ERROR_EVALUATING_CONFIGURATION_RULES
         }
+
+        static CC.Figlet FigletFont = new CC.Figlet(CC.FigletFont.Load("chunky.flf"));
 
         static Options ProgramOptions = new Options();
 
@@ -150,6 +155,7 @@ namespace DevAudit.CommandLine
             }
             #endregion
 
+            PrintBanner();
             if (Server != null) //Auditing an application server
             {
                 ExitCodes exit;
@@ -641,6 +647,22 @@ namespace DevAudit.CommandLine
                 PrintMessageLine(ConsoleColor.DarkRed, "Inner exception: {0}", e.InnerException.Message);
                 PrintMessageLine(ConsoleColor.DarkRed, "Inner stack trace: {0}", e.InnerException.StackTrace);
             }
+        }
+
+        static void PrintBanner()
+        {
+            Color banner_color;
+            if (Environment.OSVersion.Platform == PlatformID.Win32NT)
+            {
+                banner_color = Color.White;
+            }
+            else
+            {
+                banner_color = Color.White;
+            }
+
+            CC.Console.WriteLine(FigletFont.ToAscii("DevAudit"), banner_color);
+            CC.Console.WriteLine("v" + Assembly.GetExecutingAssembly().GetName().Version.ToString(), banner_color);
         }
 
         static void HandleOSSIndexHttpException(Exception e)

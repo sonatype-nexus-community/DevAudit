@@ -4,10 +4,6 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using System.Xml.Linq;
-using IniParser.Parser;
-using IniParser.Model;
-using IniParser.Model.Configuration;
 
 using Alpheus;
 
@@ -142,10 +138,10 @@ namespace DevAudit.AuditLibrary
             };
             OSSIndexProjectConfigurationRule r2 = new OSSIndexProjectConfigurationRule()
             {
-                Id = "1",
+                Id = "2",
                 Title = "Default port",
                 Summary = "The port should be changed from the default value.",
-                XPathTest = "/MySQL/mysqld/port/Value='3306'"
+                XPathTest = "/MySQL/mysqld/port='3306'"
             };
             List<OSSIndexProjectConfigurationRule> test_rules = new List<OSSIndexProjectConfigurationRule>()
             {
