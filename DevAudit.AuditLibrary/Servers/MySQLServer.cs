@@ -4,10 +4,12 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-
+using System.Xml.Linq;
 using IniParser.Parser;
 using IniParser.Model;
 using IniParser.Model.Configuration;
+
+using Alpheus;
 
 namespace DevAudit.AuditLibrary
 {
@@ -29,7 +31,8 @@ namespace DevAudit.AuditLibrary
 
         public override Dictionary<string, string> RequiredFileLocations { get; } = new Dictionary<string, string>()
         {
-            { "mysql", Environment.OSVersion.Platform == PlatformID.Unix ? Path.Combine("bin", "mysql") :  Path.Combine("bin", "mysql.exe")},
+            { "mysql",  Environment.OSVersion.Platform == PlatformID.Unix || Environment.OSVersion.Platform == PlatformID.MacOSX 
+                ? Path.Combine("bin", "mysql") :  Path.Combine("bin", "mysql.exe")},
             
         };
 
@@ -37,7 +40,7 @@ namespace DevAudit.AuditLibrary
 
         public override Dictionary<string, string> OptionalFileLocations { get; } = new Dictionary<string, string>();
 
-        public override string PackageManagerId { get { return "mysql"; } }
+        public override string PackageManagerId { get { return "ossi"; } }
 
         public override string PackageManagerLabel { get { return "MySQL"; } }
 
@@ -71,6 +74,7 @@ namespace DevAudit.AuditLibrary
         }
 
         #endregion
+
         #region Overriden methods
         public override Dictionary<string, IEnumerable<OSSIndexQueryObject>> GetModules()
         {
@@ -99,30 +103,12 @@ namespace DevAudit.AuditLibrary
             }
         }
 
-        public override Dictionary<string, object> GetConfiguration()
+        public override IConfiguration GetConfiguration()
         {
-            IniParserConfiguration ini_parser_cfg = new IniParserConfiguration();
-            ini_parser_cfg.CommentString = "#";
-            ini_parser_cfg.AllowDuplicateKeys = true;
-            ini_parser_cfg.OverrideDuplicateKeys = true;
-            IniDataParser ini_parser = new IniDataParser(ini_parser_cfg);
-            IniData data = null;
-            using (StreamReader r = new StreamReader(this.ConfigurationFile.OpenRead()))
+            MySQL mysql = new MySQL(this.ConfigurationFile.FullName);
+            if (mysql.ParseSucceded)
             {
-                data = ini_parser.Parse(r.ReadToEnd());            
-            }
-            foreach (KeyData d in data.Global)
-            {
-                if (d.Value.First() == '"') d.Value = d.Value.Remove(0, 1);
-                if (d.Value.Last() == '"') d.Value = d.Value.Remove(d.Value.Length - 1, 1);
-                this.Configuration.Add(d.KeyName, d.Value);
-            }
-            foreach(SectionData s in data.Sections)
-            {
-                foreach(KeyData k in s.Keys)
-                {
-                    this.Configuration.Add(s.SectionName + ">" + k.KeyName, k.Value);
-                }
+                this.Configuration = mysql;
             }
             return this.Configuration;
         }
@@ -138,6 +124,38 @@ namespace DevAudit.AuditLibrary
         }
         #endregion
 
-        public MySQLServer(Dictionary<string, object> server_options) : base(server_options) {}
+        #region Constructors
+        public MySQLServer(Dictionary<string, object> server_options) : base(server_options)
+        {
+            OSSIndexProject m = new OSSIndexProject()
+            {
+                Id = 0,
+                Name = "mysql",
+                Description = "Test project for MySQL."
+            };
+            OSSIndexProjectConfigurationRule r1 = new OSSIndexProjectConfigurationRule()
+            {
+                Id = "1",
+                Title = "Default root user",
+                Summary = "The root user should be changed from the default value.",
+                XPathTest = "/MySQL/mysqld/user='root'"
+            };
+            OSSIndexProjectConfigurationRule r2 = new OSSIndexProjectConfigurationRule()
+            {
+                Id = "1",
+                Title = "Default port",
+                Summary = "The port should be changed from the default value.",
+                XPathTest = "/MySQL/mysqld/port/Value='3306'"
+            };
+            List<OSSIndexProjectConfigurationRule> test_rules = new List<OSSIndexProjectConfigurationRule>()
+            {
+                r1, r2
+            };
+            this._ConfigurationRulesForProject = new Dictionary<OSSIndexProject, IEnumerable<OSSIndexProjectConfigurationRule>>
+            {
+                {m, test_rules }
+            };
+        }
+        #endregion
     }
 }

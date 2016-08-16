@@ -3,6 +3,9 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using System.Xml.Linq;
+
+using Alpheus;
 
 namespace DevAudit.AuditLibrary
 {
@@ -20,7 +23,7 @@ namespace DevAudit.AuditLibrary
 
         #region Public abstract methods
         public abstract Dictionary<string, IEnumerable<OSSIndexQueryObject>> GetModules();
-        public abstract Dictionary<string, object> GetConfiguration();
+        public abstract IConfiguration GetConfiguration();
         #endregion
 
         #region Public properties
@@ -36,7 +39,27 @@ namespace DevAudit.AuditLibrary
 
         public Dictionary<string, IEnumerable<OSSIndexQueryObject>> Modules { get; set; }
 
-        public Dictionary<string, object> Configuration { get; set; } = new Dictionary<string, object>();
+        public IConfiguration Configuration { get; set; } = null;
+
+        public XDocument XmlConfiguration
+        {
+            get
+            {
+                if (this.Configuration != null)
+                {
+                    return this.Configuration.XmlConfiguration;
+                }
+                else return null;
+            }
+        }
+
+        public Dictionary<OSSIndexProject, IEnumerable<OSSIndexProjectConfigurationRule>> ProjectConfigurationRules
+        {
+            get
+            {
+                return _ConfigurationRulesForProject;
+            }
+        }
 
         public Dictionary<string, object> ApplicationOptions { get; set; } = new Dictionary<string, object>();
 
@@ -52,7 +75,7 @@ namespace DevAudit.AuditLibrary
             }
         }
 
-        public Task<Dictionary<string, object>> ConfigurationTask
+        public Task ConfigurationTask
         {
             get
             {
@@ -64,6 +87,18 @@ namespace DevAudit.AuditLibrary
             }
         }
 
+        public List<Task<KeyValuePair<OSSIndexProject, IEnumerable<OSSIndexProjectConfigurationRule>>>> ConfigurationRulesTask
+        {
+            get
+            {
+                if (_ConfigurationRulesTask == null)
+                {
+                    this._ConfigurationRulesTask = new List<Task<KeyValuePair<OSSIndexProject, IEnumerable<OSSIndexProjectConfigurationRule>>>>(1);
+
+                }
+                return this._ConfigurationRulesTask;
+            }
+        }
         #endregion
 
         #region Constructors
@@ -153,6 +188,40 @@ namespace DevAudit.AuditLibrary
         }
         #endregion
 
+        #region Public methods
+        public Dictionary<string, bool> FilesExist(List<string> paths)
+        {
+            throw new NotImplementedException();
+        }
+
+        public bool FileContains(string path, string value)
+        {
+            throw new NotImplementedException();
+        }
+
+        public bool FileIsWritable(string path)
+        {
+            throw new NotImplementedException();
+        }
+
+        public bool WindowsRegistryKeyExists(string path)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Dictionary<OSSIndexProjectConfigurationRule, Tuple<bool, List<string>, string>> EvaluateProjectConfigurationRules(IEnumerable<OSSIndexProjectConfigurationRule> rules)
+        {
+            Dictionary<OSSIndexProjectConfigurationRule, Tuple<bool, List<string>, string>> results = new Dictionary<OSSIndexProjectConfigurationRule, Tuple<bool, List<string>, string>>(rules.Count());
+            foreach (OSSIndexProjectConfigurationRule r in rules)
+            {
+                List<string> result;
+                string message;
+                results.Add(r, new Tuple<bool, List<string>, string>(this.Configuration.XPathEvaluate(r.XPathTest, out result, out message), result, message));
+            }
+            return results;
+        }
+        #endregion
+
         #region Static methods
         public static List<FileInfo> RecursiveFolderScan(DirectoryInfo dir, string pattern)
         {
@@ -171,13 +240,14 @@ namespace DevAudit.AuditLibrary
         }
         #endregion
 
-        #region Private fields
+        #region Protected and private fields
+        protected Dictionary<OSSIndexProject, IEnumerable<OSSIndexProjectConfigurationRule>> _ConfigurationRulesForProject;
         private Task<Dictionary<string, IEnumerable<OSSIndexQueryObject>>> _ModulesTask;
-        private Task<Dictionary<string, object>> _ConfigurationTask;
+        private Task _ConfigurationTask;
+        private List<Task<KeyValuePair<OSSIndexProject, IEnumerable<OSSIndexProjectConfigurationRule>>>> _ConfigurationRulesTask;
         #endregion
 
         #region Private methods
-
         #endregion
 
     }

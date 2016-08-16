@@ -60,6 +60,9 @@ namespace DevAudit.CommandLine
         [Option('c', "config-file", Required = false, HelpText = "Specifies the configuration file for the application server to be audited.")]
         public string ConfigurationFile { get; set; }
 
+        [Option('l', "list-rules", Required = false, HelpText = "Only list the configuration rules for the application or application server found on OSS Index.")]
+        public bool ListRules { get; set; }
+
         [Option('n', "non-interact", Required = false, HelpText = "Disable any interctive console output (for redirecting console output to other devices.)")]
         public bool NonInteractive { get; set; }
 

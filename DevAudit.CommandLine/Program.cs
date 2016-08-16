@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using System.Xml.Linq;
 
 using CL = CommandLine; //Avoid type name conflict with external CommandLine library
 
@@ -20,7 +21,8 @@ namespace DevAudit.CommandLine
             ERROR_SCANNING_FOR_PACKAGES,
             ERROR_SEARCHING_OSS_INDEX,
             ERROR_SCANNING_SERVER_VERSION,
-            ERROR_SCANNING_SERVER_CONFIGURATION
+            ERROR_SCANNING_SERVER_CONFIGURATION,
+            ERROR_EVALUATING_CONFIGURATION_RULES
         }
 
         static Options ProgramOptions = new Options();
@@ -502,8 +504,15 @@ namespace DevAudit.CommandLine
                 StopSpinner();
             }
             PrintMessageLine("Detected {0} version: {1}.", Server.ServerLabel, version);
-            Task<Dictionary<string, object>> t = Server.ConfigurationTask;
-            AuditPackageSource(out exit);
+            Task t = Server.ConfigurationTask;
+            if (!ProgramOptions.ListRules)
+            {
+                AuditPackageSource(out exit);
+                if (exit != ExitCodes.SUCCESS)
+                {
+                    PrintMessageLine("Error encountered auditing packages.");
+                }
+            }
             if (ProgramOptions.ListPackages || ProgramOptions.ListArtifacts)
             {
                 return;
@@ -512,7 +521,7 @@ namespace DevAudit.CommandLine
             PrintMessageLine("Scanning {0} configuration...", Server.ServerLabel);
             StartSpinner();
             try
-            {
+            { 
                 t.Wait();
             }
             catch (Exception e)
@@ -524,8 +533,30 @@ namespace DevAudit.CommandLine
             {
                 StopSpinner();
             }
-            PrintMessageLine("Got {0} server configuration values.", Server.Configuration.Count);
-            exit = ExitCodes.SUCCESS;
+            if (Server.XmlConfiguration == null || Server.XmlConfiguration.Root.Elements().Count() == 0)
+            {
+                PrintErrorMessage("Error scanning server configuration or server configuration file has no values.");
+            }
+            PrintMessageLine("Got {0} top-level server configuration nodes with {1} server configuration values.", 
+                Server.XmlConfiguration.Root.Elements().Count(), 
+                Server.XmlConfiguration.Root.Elements().Where(el => el.Descendants("Value").Count() > 0).Count());
+            PrintMessageLine("Got {0} configuration rule(s) for server.", Server.ProjectConfigurationRules.Sum(cr => cr.Value.Count()));
+            exit = ExitCodes.ERROR_EVALUATING_CONFIGURATION_RULES;
+            //int projects_count = 0;
+            //int projects_processed = 0;
+            foreach (KeyValuePair<OSSIndexProject, IEnumerable<OSSIndexProjectConfigurationRule>> rule in Server.ProjectConfigurationRules)
+            {
+                Dictionary<OSSIndexProjectConfigurationRule, Tuple<bool, List<string>, string>> evals = Server.EvaluateProjectConfigurationRules    (rule.Value);
+                int total_project_rules = rule.Value.Count();
+                int processed_project_rules = 0;
+                foreach(KeyValuePair<OSSIndexProjectConfigurationRule, Tuple <bool, List<string>, string>> e in evals)
+                {
+                    ++processed_project_rules;
+                    PrintMessageLine(ConsoleColor.White, "[{0}/{1}] Project: {2} Rule Name: {3} Result: {4}", processed_project_rules, total_project_rules, rule.Key.Name, e.Key.Title, e.Value.Item1);
+                }
+                //PrintMessage(ConsoleColor.White, "[{0}/{1}] {2}", projects_processed, projects_count, r.Key.Name);
+                //
+            }
             return;
         }
 

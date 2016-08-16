@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Xml.Linq;
 
 using IniParser;
 using IniParser.Parser;
@@ -11,6 +12,7 @@ using IniParser.Model;
 using IniParser.Model.Configuration;
 
 using Versatile;
+using Alpheus;
 
 namespace DevAudit.AuditLibrary
 {
@@ -185,7 +187,7 @@ namespace DevAudit.AuditLibrary
             return this.GetModules()["all"];
         }
 
-        public override Dictionary<string, object> GetConfiguration()
+        public override IConfiguration GetConfiguration()
         {
             throw new NotImplementedException();
         }

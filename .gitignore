@@ -212,3 +212,5 @@ _Pvt_Extensions/
 ModelManifest.xml
 /cygwin
 /cygwin2
+/augeas
+/lenses2
