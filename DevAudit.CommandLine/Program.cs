@@ -664,9 +664,9 @@ namespace DevAudit.CommandLine
 
         static void StopSpinner()
         {
-            if (ReferenceEquals(null, Spinner)) throw new ArgumentNullException();
             if (!ProgramOptions.NonInteractive)
             {
+                if (ReferenceEquals(null, Spinner)) throw new ArgumentNullException();
                 Spinner.Stop();
                 Spinner = null;
                 PrintMessageLine(string.Empty);
