@@ -542,11 +542,12 @@ namespace DevAudit.CommandLine
                 Server.XmlConfiguration.Root.Elements().Where(el => el.Descendants("Value").Count() > 0).Count());
             PrintMessageLine("Got {0} configuration rule(s) for server.", Server.ProjectConfigurationRules.Sum(cr => cr.Value.Count()));
             exit = ExitCodes.ERROR_EVALUATING_CONFIGURATION_RULES;
-            //int projects_count = 0;
-            //int projects_processed = 0;
+            int projects_count = Server.ProjectConfigurationRules.Keys.Count;
+            int projects_processed = 0;
             foreach (KeyValuePair<OSSIndexProject, IEnumerable<OSSIndexProjectConfigurationRule>> rule in Server.ProjectConfigurationRules)
             {
-                Dictionary<OSSIndexProjectConfigurationRule, Tuple<bool, List<string>, string>> evals = Server.EvaluateProjectConfigurationRules    (rule.Value);
+                //PrintMessageLine(ConsoleColor.White, "[{0}/{1}] Project: {2}", processed_pr,
+                Dictionary <OSSIndexProjectConfigurationRule, Tuple<bool, List<string>, string>> evals = Server.EvaluateProjectConfigurationRules    (rule.Value);
                 int total_project_rules = rule.Value.Count();
                 int processed_project_rules = 0;
                 foreach(KeyValuePair<OSSIndexProjectConfigurationRule, Tuple <bool, List<string>, string>> e in evals)
