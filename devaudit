@@ -1,3 +1,5 @@
 #!/bin/bash
-
-mono ./DevAudit.CommandLine/bin/Debug/devaudit.exe "$@"
+cd ./Alpheus.CommandLine/bin/Debug/
+MONO_LOG_LEVEL=debug
+mono devaudit.exe "$@"
+cd ../../../
