@@ -40,6 +40,8 @@ namespace DevAudit.CommandLine
 
         static int Main(string[] args)
         {
+            AppDomain.CurrentDomain.UnhandledException += Program_UnhandledException;
+
             #region Handle command line options
             Dictionary<string, object> audit_options = new Dictionary<string, object>();
             
@@ -552,17 +554,32 @@ namespace DevAudit.CommandLine
             int projects_processed = 0;
             foreach (KeyValuePair<OSSIndexProject, IEnumerable<OSSIndexProjectConfigurationRule>> rule in Server.ProjectConfigurationRules)
             {
-                //PrintMessageLine(ConsoleColor.White, "[{0}/{1}] Project: {2}", processed_pr,
-                Dictionary <OSSIndexProjectConfigurationRule, Tuple<bool, List<string>, string>> evals = Server.EvaluateProjectConfigurationRules    (rule.Value);
+                Dictionary<OSSIndexProjectConfigurationRule, Tuple<bool, List<string>, string>> evals = Server.EvaluateProjectConfigurationRules(rule.Value);
+                PrintMessage(ConsoleColor.White, "[{0}/{1}] Project: ", ++projects_processed, projects_count);
+                PrintMessage(ConsoleColor.Blue, "{0}. ", rule.Key.Name);
                 int total_project_rules = rule.Value.Count();
+                int succeded_project_rules = evals.Count(ev => ev.Value.Item1);
                 int processed_project_rules = 0;
-                foreach(KeyValuePair<OSSIndexProjectConfigurationRule, Tuple <bool, List<string>, string>> e in evals)
+                PrintMessage(ConsoleColor.White, "{0} rule(s). ", total_project_rules);
+                if (succeded_project_rules > 0 )
+                {
+                    PrintMessage(ConsoleColor.Magenta, " {0} rule(s) succeded. ", succeded_project_rules);
+                    PrintMessageLine(ConsoleColor.Red, "[VULNERABLE]");
+                }
+                else
+                {
+                    PrintMessage(ConsoleColor.DarkGreen, " {0} rule(s) succeded. \n", succeded_project_rules);
+                }
+                foreach (KeyValuePair<OSSIndexProjectConfigurationRule, Tuple <bool, List<string>, string>> e in evals)
                 {
                     ++processed_project_rules;
-                    PrintMessageLine(ConsoleColor.White, "[{0}/{1}] Project: {2} Rule Name: {3} Result: {4}", processed_project_rules, total_project_rules, rule.Key.Name, e.Key.Title, e.Value.Item1);
+                    PrintMessage(ConsoleColor.White, "--[{0}/{1}] Rule Name: {2}. Result: ", processed_project_rules, total_project_rules, e.Key.Title);
+                    PrintMessageLine(e.Value.Item1 ? ConsoleColor.Red : ConsoleColor.DarkGreen, "{0}.", e.Value.Item1);
+                    if (e.Value.Item1)
+                    {
+                        PrintMessageLine("  --Summary: {0}", e.Key.Summary);
+                    }
                 }
-                //PrintMessage(ConsoleColor.White, "[{0}/{1}] {2}", projects_processed, projects_count, r.Key.Name);
-                //
             }
             return;
         }
@@ -695,6 +712,12 @@ namespace DevAudit.CommandLine
             }
 
         }
+
+        static void Program_UnhandledException(object sender, UnhandledExceptionEventArgs e)
+        {
+            PrintErrorMessage("Runtime error! {0}", e.IsTerminating ? "DevAudit will now terminate." : "");
+        }
+
         #endregion
 
     }
