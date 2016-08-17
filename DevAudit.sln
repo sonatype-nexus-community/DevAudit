@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 14
-VisualStudioVersion = 14.0.23107.0
+VisualStudioVersion = 14.0.25420.1
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DevAudit.AuditLibrary", "DevAudit.AuditLibrary\DevAudit.AuditLibrary.csproj", "{36F663F6-4B5C-441F-B11A-9CC556D1C1FE}"
 EndProject
@@ -10,6 +10,11 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DevAudit.CommandLine", "DevAudit.CommandLine\DevAudit.CommandLine.csproj", "{86EE75FC-D05D-42BC-B2C2-B80CF3734332}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DevAudit.PowerShell", "DevAudit.PowerShell\DevAudit.PowerShell.csproj", "{019B92FA-B3B4-418B-B069-AC9B87992EB7}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{214479BB-441E-4A96-8F67-74690790AD98}"
+	ProjectSection(SolutionItems) = preProject
+		chunky.flf = chunky.flf
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
