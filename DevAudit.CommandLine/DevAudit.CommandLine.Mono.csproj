@@ -83,7 +83,9 @@
     <None Include="Examples\Drupal\web.config" />
     <None Include="Examples\Drupal\core\composer.json" />
     <None Include="Examples\Drupal\core\core.services.yml" />
-    <None Include="chunky.flf" />
+    <None Include="chunky.flf">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\DevAudit.AuditLibrary\DevAudit.AuditLibrary.Mono.csproj">
