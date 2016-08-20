@@ -593,6 +593,14 @@ namespace DevAudit.CommandLine
                             summary_sb.AppendLine("    --" + s);
                         }
                         PrintMessageLine(ConsoleColor.White,"  --Summary: \n{0}", summary_sb.ToString());
+                        StringBuilder resolution_sb = new StringBuilder(e.Key.Resolution.Length);
+                        string[] resolutions = e.Key.Resolution.Split(Environment.NewLine.ToCharArray());
+                        foreach (string r in resolutions.TakeWhile(s => !string.IsNullOrEmpty(s)))
+                        {
+
+                            resolution_sb.AppendLine("    --" + r);
+                        }
+                        PrintMessageLine(ConsoleColor.White, "  --Resolution: \n{0}", resolution_sb.ToString());
                         e.Key.Urls.ForEach(u => PrintMessageLine(ConsoleColor.White, " --Url: {0}", u));
                     }
                 }
