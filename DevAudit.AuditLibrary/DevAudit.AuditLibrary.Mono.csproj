@@ -135,7 +135,7 @@
     <None Include="Examples\bower.json.example.2" />
     <None Include="Examples\composer.json.example.3" />
     <None Include="Examples\packages.config.example.3" />
-   <None Include="Rules\sshd.yaml">
+   <None Include="Rules\sshd.yml">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
   </ItemGroup>
