@@ -69,7 +69,7 @@ namespace DevAudit.AuditLibrary
             HostEnvironment.ProcessStatus process_status;
             string process_output;
             string process_error;
-            HostEnvironment.Execute(SSHDExe.FullName, "-V", out process_status, out process_output, out process_error);
+            HostEnvironment.Execute(SSHDExe.FullName, "-?", out process_status, out process_output, out process_error);
             if (process_status == HostEnvironment.ProcessStatus.Success)
             {
                 if (string.IsNullOrEmpty(process_output) && string.IsNullOrEmpty(process_output))
