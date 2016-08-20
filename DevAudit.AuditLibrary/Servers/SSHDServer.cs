@@ -72,11 +72,16 @@ namespace DevAudit.AuditLibrary
             HostEnvironment.Execute(SSHDExe.FullName, "-?", out process_status, out process_output, out process_error);
             if (process_status == HostEnvironment.ProcessStatus.Success)
             {
-                if (string.IsNullOrEmpty(process_output) && string.IsNullOrEmpty(process_output))
+                if (!string.IsNullOrEmpty(process_error) && string.IsNullOrEmpty(process_output))
                 {
                     process_output = process_error;
                 }
                 this.Version = process_output.Split(Environment.NewLine.ToCharArray())[0];
+                return this.Version;
+            }
+            else if (!string.IsNullOrEmpty(process_error) && string.IsNullOrEmpty(process_output) && process_error.Contains("usage"))
+            {
+                this.Version = process_error.Split(Environment.NewLine.ToCharArray())[0];
                 return this.Version;
             }
             else
