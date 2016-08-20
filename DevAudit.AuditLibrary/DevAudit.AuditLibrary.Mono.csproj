@@ -135,6 +135,9 @@
     <None Include="Examples\bower.json.example.2" />
     <None Include="Examples\composer.json.example.3" />
     <None Include="Examples\packages.config.example.3" />
+   <None Include="Rules\sshd.yaml">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Examples\Drupal\core\modules\" />

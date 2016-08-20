@@ -215,7 +215,7 @@ namespace DevAudit.AuditLibrary
                 }
             }
             string default_rules_exception_message;
-            LoadDefaultConfigurationRules(out default_rules_exception_message);
+            int l = LoadDefaultConfigurationRules(out default_rules_exception_message);
 
         }
         #endregion

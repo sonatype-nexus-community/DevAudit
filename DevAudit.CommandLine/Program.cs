@@ -549,9 +549,13 @@ namespace DevAudit.CommandLine
             {
                 PrintErrorMessage("Error scanning server configuration or server configuration file has no values.");
             }
-            PrintMessageLine("Got {0} top-level server configuration nodes with {1} server configuration values.", 
-                Server.XmlConfiguration.Root.Elements().Count(), 
-                Server.XmlConfiguration.Root.Elements().Where(el => el.Descendants("Value").Count() > 0).Count());
+            PrintMessageLine("Got {0} top-level server configuration nodes.", 
+                Server.XmlConfiguration.Root.Elements().Count());
+            if (Server.ProjectConfigurationRules == null)
+            {
+                PrintErrorMessage("There was an error loading the default configuration rules for the server or the file does not exist.");
+                return;
+            }
             PrintMessageLine("Got {0} configuration rule(s) for server.", Server.ProjectConfigurationRules.Sum(cr => cr.Value.Count()));
             exit = ExitCodes.ERROR_EVALUATING_CONFIGURATION_RULES;
             int projects_count = Server.ProjectConfigurationRules.Keys.Count;
@@ -721,7 +725,7 @@ namespace DevAudit.CommandLine
                 if (ReferenceEquals(null, Spinner)) throw new ArgumentNullException();
                 Spinner.Stop();
                 Spinner = null;
-                //PrintMessageLine(string.Empty);
+                PrintMessageLine(string.Empty);
             }
 
         }
