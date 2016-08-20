@@ -1,0 +1,19 @@
+﻿---
+sshd:
+    -   id: 1
+        title: Root login is permitted
+        xpathtest: not(/SSHD/Values/PermitRootLogin='no')
+        summary: |
+            By default you can ssh to the server as root. It is best not to allow root to login directly to the server. 
+            Instead, you should login to the system as your account and then do ‘su -‘ to login as root.
+        urls:
+            -   http://www.thegeekstuff.com/2011/05/openssh-options/
+    -   id: 2
+        title:  Allow Only Specific Users or Groups (AllowUsers AllowGroups)
+        xpathtest: not(boolean(/SSHD/Values/AllowUsers))
+        summary: |
+            By default anybody who is authenticated successfully are allowed to login. 
+            Instead you can restrict which users (or groups) you allow to login to the system.
+        urls:
+            -   http://www.thegeekstuff.com/2011/05/openssh-options/
+   

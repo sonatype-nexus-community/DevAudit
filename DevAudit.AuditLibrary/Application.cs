@@ -6,6 +6,8 @@ using System.Threading.Tasks;
 using System.Xml.Linq;
 
 using Alpheus;
+using YamlDotNet.Serialization;
+using YamlDotNet.Serialization.NamingConventions;
 
 namespace DevAudit.AuditLibrary
 {
@@ -106,85 +108,115 @@ namespace DevAudit.AuditLibrary
 
         public Application(Dictionary<string, object> application_options)
         {
-            if (ReferenceEquals(application_options, null)) throw new ArgumentNullException("application_options");
+            if (ReferenceEquals(application_options, null)) throw new ArgumentNullException("Application_options");
             this.ApplicationOptions = application_options;
+
             if (!this.ApplicationOptions.ContainsKey("RootDirectory"))
             {
-                //.ApplicationFileSystemMap.Add("RootDirectory", new DirectoryInfo(Directory.GetCurrentDirectory()));
-                throw new ArgumentException(string.Format("The root application directory was not specified."), "application_options");
+                throw new ArgumentException(string.Format("The root Application directory was not specified."), "Application_options");
             }
-            else if (!Directory.Exists((string) this.ApplicationOptions["RootDirectory"]))
+            else if (!Directory.Exists((string)this.ApplicationOptions["RootDirectory"]))
             {
-                throw new ArgumentException(string.Format("The root application directory {0} was not found.", this.ApplicationOptions["RootDirectory"]), "application_options");
+                throw new ArgumentException(string.Format("The root Application directory {0} was not found.", this.ApplicationOptions["RootDirectory"]), "Application_options");
             }
             else
             {
                 this.ApplicationFileSystemMap.Add("RootDirectory", new DirectoryInfo((string)this.ApplicationOptions["RootDirectory"]));
             }
 
-            foreach (string f in RequiredFileLocations.Keys)
+            foreach (KeyValuePair<string, string> f in RequiredFileLocations)
             {
-                if (!this.ApplicationOptions.ContainsKey(f))
+                string fn = f.Value;
+                if (f.Value.StartsWith("@"))
                 {
-                    if (string.IsNullOrEmpty(RequiredFileLocations[f]))
+                    fn = Path.Combine(this.RootDirectory.FullName, f.Value.Substring(1));
+                }
+                if (!this.ApplicationOptions.ContainsKey(f.Key))
+                {
+                    if (string.IsNullOrEmpty(f.Value))
                     {
-                        throw new ArgumentException(string.Format("The required application file {0} was not specified and no default path exists.", f), "application_options");
+                        throw new ArgumentException(string.Format("The required application file {0} was not specified and no default path exists.", f), "Application_options");
                     }
                     else
                     {
-                        if (this.RootDirectory.GetFiles(RequiredFileLocations[f]).FirstOrDefault() == null)
+                        if (!File.Exists(fn))
                         {
                             throw new ArgumentException(string.Format("The default path {0} for required application file {1} does not exist.",
-                                RequiredFileLocations[f], f), "RequiredFileLocations");
+                                fn, f.Key), "RequiredFileLocations");
                         }
                         else
                         {
-                            this.ApplicationFileSystemMap.Add(f, this.RootDirectory.GetFiles(RequiredFileLocations[f]).First());
+                            this.ApplicationFileSystemMap.Add(f.Key, new FileInfo(fn));
                         }
                     }
 
                 }
-                else if (this.RootDirectory.GetFiles((string) ApplicationOptions[f]).FirstOrDefault() == null)
-                {
-                    throw new ArgumentException(string.Format("The required application file {0} was not found.", f), "application_options");
-                }
                 else
                 {
-                    this.ApplicationFileSystemMap.Add(f, this.RootDirectory.GetFiles((string) ApplicationOptions[f]).First());
-                }
-            }
-
-            foreach (string d in RequiredDirectoryLocations.Keys)
-            {
-                if (!this.ApplicationOptions.ContainsKey(d))
-                {
-                    if (string.IsNullOrEmpty(RequiredDirectoryLocations[d]))
+                    fn = (string)ApplicationOptions[f.Key];
+                    if (fn.StartsWith("@"))
                     {
-                        throw new ArgumentException(string.Format("The required application Directory {0} was not specified and no default path exists.", d), "application_options");
+                        fn = Path.Combine(this.RootDirectory.FullName, fn.Substring(1));
+                    }
+                    if (!File.Exists(fn))
+                    {
+                        throw new ArgumentException(string.Format("The required Application file {0} was not found.", f), "Application_options");
                     }
                     else
                     {
-                        if (this.RootDirectory.GetDirectories(RequiredDirectoryLocations[d]).FirstOrDefault() == null)
+                        this.ApplicationFileSystemMap.Add(f.Key, new FileInfo(fn));
+                    }
+                }
+            }
+
+            foreach (KeyValuePair<string, string> d in RequiredDirectoryLocations)
+            {
+                string dn = d.Value;
+                if (dn.StartsWith("@"))
+                {
+                    dn = Path.Combine(this.RootDirectory.FullName, dn.Substring(1));
+                }
+                if (!this.ApplicationOptions.ContainsKey(d.Key))
+                {
+                    if (string.IsNullOrEmpty(d.Value))
+                    {
+                        throw new ArgumentException(string.Format("The required Application directory {0} was not specified and no default path exists.", d.Key), "application_options");
+                    }
+                    else
+                    {
+                        if (!Directory.Exists(dn))
                         {
-                            throw new ArgumentException(string.Format("The default path {0} for required application directory {1} does not exist.",
-                                RequiredDirectoryLocations[d], d), "RequiredDirectoryLocations");
+                            throw new ArgumentException(string.Format("The default path {0} for required Application directory {1} does not exist.",
+                                d.Key, dn), "RequiredDirectoryLocations");
                         }
                         else
                         {
-                            this.ApplicationFileSystemMap.Add(d, this.RootDirectory.GetDirectories(RequiredDirectoryLocations[d]).First());
+                            this.ApplicationFileSystemMap.Add(d.Key, new DirectoryInfo(dn));
                         }
                     }
 
                 }
-                else if (this.RootDirectory.GetDirectories((string)ApplicationOptions[d]).FirstOrDefault() == null)
-                {
-                    throw new ArgumentException(string.Format("The required application Directory {0} was not found.", d), "application_options");
-                }
                 else
                 {
-                    this.ApplicationFileSystemMap.Add(d, this.RootDirectory.GetDirectories((string)ApplicationOptions[d]).First());
+                    dn = (string)ApplicationOptions[d.Key];
+                    if (dn.StartsWith("@"))
+                    {
+                        dn = Path.Combine(this.RootDirectory.FullName, dn.Substring(1));
+                    }
+
+                    if (!Directory.Exists(dn))
+                    {
+                        throw new ArgumentException(string.Format("The required Application directory {0} was not found.", dn), "application_options");
+                    }
+                    else
+                    {
+                        this.ApplicationFileSystemMap.Add(d.Key, new DirectoryInfo(dn));
+                    }
                 }
             }
+            string default_rules_exception_message;
+            LoadDefaultConfigurationRules(out default_rules_exception_message);
+
         }
         #endregion
 
@@ -222,7 +254,10 @@ namespace DevAudit.AuditLibrary
         }
         #endregion
 
-        #region Static methods
+        #region Static members
+
+        public static string DIR = new string(Path.DirectorySeparatorChar, 1);
+
         public static List<FileInfo> RecursiveFolderScan(DirectoryInfo dir, string pattern)
         {
             List<FileInfo> results = new List<FileInfo>();
@@ -247,7 +282,30 @@ namespace DevAudit.AuditLibrary
         private List<Task<KeyValuePair<OSSIndexProject, IEnumerable<OSSIndexProjectConfigurationRule>>>> _ConfigurationRulesTask;
         #endregion
 
-        #region Private methods
+        #region Protected and private methods
+        protected int LoadDefaultConfigurationRules(out string exception_message)
+        {
+            exception_message = string.Empty;
+            string rules_file_name = Path.Combine("Rules", this.ApplicationId + "." + "yml");
+            if (!File.Exists(rules_file_name)) return 0;
+            Deserializer yaml_deserializer = new Deserializer(namingConvention: new CamelCaseNamingConvention(), ignoreUnmatched: true);
+            Dictionary<string, List<OSSIndexProjectConfigurationRule>> rules;
+            using (StreamReader r = new StreamReader(rules_file_name))
+            {
+                rules = yaml_deserializer.Deserialize<Dictionary<string, List<OSSIndexProjectConfigurationRule>>>(r);
+            }
+            if (rules == null)
+            {
+                return -1;
+            }
+            this._ConfigurationRulesForProject = new Dictionary<OSSIndexProject, IEnumerable<OSSIndexProjectConfigurationRule>>(rules.Count);
+            foreach (KeyValuePair<string, List<OSSIndexProjectConfigurationRule>> kv in rules)
+            {
+                OSSIndexProject p = new OSSIndexProject() { Name = kv.Key };
+                this._ConfigurationRulesForProject.Add(p, kv.Value);
+            }
+            return rules.Count;
+        }
         #endregion
 
     }

@@ -47,6 +47,8 @@ namespace DevAudit.CommandLine
         [VerbOption("mysql", HelpText = "Audit a MySQL application server instance. Use the --root option to specify the root directory of the MySQL server instance, and the --config-file option to specify the configuration file otherwise my.ini will be used.")]
         public Options MySQL { get; set; }
 
+        [VerbOption("sshd", HelpText = "Audit a OpenSSH SSHD-compatibile application server instance. Use the --root option to specify the root directory of the SSHD server instance, and the --config-file option to specify the configuration file otherwise /etc/sshd/sshd_config will be used.")]
+        public Options SSHD { get; set; }
 
         [Option('f', "file", Required = false, HelpText = "Specifies the file containing packages to be audited.")]
         public string File { get; set; }

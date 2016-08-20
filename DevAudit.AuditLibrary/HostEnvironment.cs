@@ -12,6 +12,7 @@ namespace DevAudit.AuditLibrary
     {
         public enum ProcessStatus
         {
+            Unknown = -99,
             FileNotFound = -1,
             Success = 0,
             Error = 1
@@ -21,8 +22,8 @@ namespace DevAudit.AuditLibrary
             out ProcessStatus process_status, out string process_output, out string process_error, Action<string> OutputDataReceived = null, Action<string> OutputErrorReceived = null)
         {
             int? process_exit_code = null;
-            string process_out = "";
-            string process_err = "";
+            StringBuilder process_out_sb = new StringBuilder();
+            StringBuilder process_err_sb = new StringBuilder();
             ProcessStartInfo psi = new ProcessStartInfo(command);
             psi.Arguments = arguments;
             psi.CreateNoWindow = true;
@@ -36,16 +37,16 @@ namespace DevAudit.AuditLibrary
             {
                 if (!String.IsNullOrEmpty(e.Data))
                 {
-                    process_out += e.Data + Environment.NewLine;
-                    if (OutputDataReceived != null) OutputDataReceived(e.Data);
+                    process_out_sb.AppendLine(e.Data);
+                    OutputDataReceived?.Invoke(e.Data);
                 }
             };
             p.ErrorDataReceived += (object sender, DataReceivedEventArgs e) =>
             {
                 if (!String.IsNullOrEmpty(e.Data))
                 {
-                    process_err += e.Data + Environment.NewLine;
-                    if (OutputErrorReceived != null) OutputErrorReceived(e.Data);
+                    process_err_sb.AppendLine(e.Data);
+                    OutputErrorReceived?.Invoke(e.Data);
                 }
 
             };
@@ -63,27 +64,33 @@ namespace DevAudit.AuditLibrary
                 if (e.Message == "The system cannot find the file specified")
                 {
                     process_status = ProcessStatus.FileNotFound;
-                    process_error = e.Message;
-                    process_output = "";
+                    process_err_sb.AppendLine (e.Message);
                     return false;
                 }
 
             }
             finally
             {
+                process_output = process_out_sb.ToString();
+                process_error = process_err_sb.ToString();
                 p.Dispose();
             }
-            process_output = process_out;
-            process_error = process_err;
-            if (!string.IsNullOrEmpty(process_error) || (process_exit_code.HasValue && process_exit_code.Value != 0))
+
+            if ((process_exit_code.HasValue && process_exit_code.Value != 0))
             {
                 process_status = ProcessStatus.Error;
                 return false;
             }
-            else
+            else if ((process_exit_code.HasValue && process_exit_code.Value == 0))
             {
                 process_status = ProcessStatus.Success;
                 return true;
+            }
+            else
+            {
+                process_status = ProcessStatus.Unknown;
+                return false;
+
             }
         }
     }

@@ -77,9 +77,9 @@ namespace DevAudit.AuditLibrary
             else if (!this.ServerOptions.ContainsKey("ConfigurationFile") && !string.IsNullOrEmpty(this.DefaultConfigurationFile))
             {
                 string cf;
-                if (this.DefaultConfigurationFile.First() != Path.DirectorySeparatorChar)
+                if (this.DefaultConfigurationFile.First() == '@')
                 {
-                    cf = Path.Combine(this.RootDirectory.FullName, this.DefaultConfigurationFile);
+                    cf = Path.Combine(this.RootDirectory.FullName, this.DefaultConfigurationFile.Substring(1));
                 }
                 else
                 {
@@ -111,67 +111,94 @@ namespace DevAudit.AuditLibrary
                 }           
             }
 
-            foreach (string f in RequiredFileLocations.Keys)
+            foreach (KeyValuePair<string, string> f in RequiredFileLocations)
             {
-                if (!this.ServerOptions.ContainsKey(f))
+                string fn = f.Value;
+                if (f.Value.StartsWith("@"))
                 {
-                    if (string.IsNullOrEmpty(RequiredFileLocations[f]))
+                    fn = Path.Combine(this.RootDirectory.FullName, f.Value.Substring(1));
+                }
+                if (!this.ServerOptions.ContainsKey(f.Key))
+                {
+                    if (string.IsNullOrEmpty(f.Value))
                     {
                         throw new ArgumentException(string.Format("The required server file {0} was not specified and no default path exists.", f), "server_options");
                     }
                     else
                     {
-                        if (this.RootDirectory.GetFiles(RequiredFileLocations[f]).FirstOrDefault() == null)
+                        if (!File.Exists(fn))
                         {
                             throw new ArgumentException(string.Format("The default path {0} for required server file {1} does not exist.",
-                                RequiredFileLocations[f], f), "RequiredFileLocations");
+                                fn, f.Key), "RequiredFileLocations");
                         }
                         else
                         {
-                            this.ServerFileSystemMap.Add(f, this.RootDirectory.GetFiles(RequiredFileLocations[f]).First());
+                            this.ServerFileSystemMap.Add(f.Key, new FileInfo(fn));
                         }
                     }
 
                 }
-                else if (this.RootDirectory.GetFiles((string)ServerOptions[f]).FirstOrDefault() == null)
-                {
-                    throw new ArgumentException(string.Format("The required server file {0} was not found.", f), "server_options");
-                }
                 else
                 {
-                    this.ServerFileSystemMap.Add(f, this.RootDirectory.GetFiles((string)ServerOptions[f]).First());
-                }
-            }
-
-            foreach (string d in RequiredDirectoryLocations.Keys)
-            {
-                if (!this.ServerOptions.ContainsKey(d))
-                {
-                    if (string.IsNullOrEmpty(RequiredDirectoryLocations[d]))
+                    fn = (string) ServerOptions[f.Key];
+                    if (fn.StartsWith("@"))
                     {
-                        throw new ArgumentException(string.Format("The required server directory {0} was not specified and no default path exists.", d), "server_options");
+                        fn = Path.Combine(this.RootDirectory.FullName, fn.Substring(1));
+                    }
+                    if (!File.Exists(fn))
+                    {
+                        throw new ArgumentException(string.Format("The required server file {0} was not found.", f), "server_options");
                     }
                     else
                     {
-                        if (this.RootDirectory.GetDirectories(RequiredDirectoryLocations[d]).FirstOrDefault() == null)
+                        this.ServerFileSystemMap.Add(f.Key, new FileInfo(fn));
+                    }
+                }
+            }
+
+            foreach (KeyValuePair<string, string> d in RequiredDirectoryLocations)
+            {
+                string dn = d.Value;
+                if (dn.StartsWith("@"))
+                {
+                    dn = Path.Combine(this.RootDirectory.FullName, dn.Substring(1));
+                }
+                if (!this.ServerOptions.ContainsKey(d.Key))
+                {
+                    if (string.IsNullOrEmpty(d.Value))
+                    {
+                        throw new ArgumentException(string.Format("The required server directory {0} was not specified and no default path exists.", d.Key), "server_options");
+                    }
+                    else
+                    {
+                        if (!Directory.Exists(dn))
                         {
                             throw new ArgumentException(string.Format("The default path {0} for required server directory {1} does not exist.",
-                                RequiredDirectoryLocations[d], d), "RequiredDirectoryLocations");
+                                d.Key, dn), "RequiredDirectoryLocations");
                         }
                         else
                         {
-                            this.ServerFileSystemMap.Add(d, this.RootDirectory.GetDirectories(RequiredDirectoryLocations[d]).First());
+                            this.ServerFileSystemMap.Add(d.Key, new DirectoryInfo(dn));
                         }
                     }
 
                 }
-                else if (this.RootDirectory.GetDirectories((string)ServerOptions[d]).FirstOrDefault() == null)
-                {
-                    throw new ArgumentException(string.Format("The required server directory {0} was not found.", d), "server_options");
-                }
                 else
                 {
-                    this.ServerFileSystemMap.Add(d, this.RootDirectory.GetDirectories((string)ServerOptions[d]).First());
+                    dn = (string) ServerOptions[d.Key];
+                    if (dn.StartsWith("@"))
+                    {
+                        dn = Path.Combine(this.RootDirectory.FullName, dn.Substring(1));
+                    }
+
+                    if (!Directory.Exists(dn))
+                    {
+                        throw new ArgumentException(string.Format("The required server directory {0} was not found.", dn), "server_options");
+                    }
+                    else
+                    {
+                        this.ServerFileSystemMap.Add(d.Key, new DirectoryInfo(dn));
+                    }
                 }
             }
         }

@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 using System.Xml.Linq;
 
@@ -135,6 +136,11 @@ namespace DevAudit.CommandLine
                     else if (verb == "mysql")
                     {
                         Server = new MySQLServer(audit_options);
+                        Source = Server as PackageSource;
+                    }
+                    else if (verb == "sshd")
+                    {
+                        Server = new SSHDServer(audit_options);
                         Source = Server as PackageSource;
                     }
                 }
@@ -479,8 +485,6 @@ namespace DevAudit.CommandLine
                         }
                         Source.VulnerabilitiesTask.Remove(t);
                     }
-                    //projects_processed += Source.VulnerabilitiesTask.Count(t => t.Status == TaskStatus.Faulted || t.Status == TaskStatus.Canceled) - 1;
-
                 }
             }
             Source.Dispose();
@@ -577,7 +581,15 @@ namespace DevAudit.CommandLine
                     PrintMessageLine(e.Value.Item1 ? ConsoleColor.Red : ConsoleColor.DarkGreen, "{0}.", e.Value.Item1);
                     if (e.Value.Item1)
                     {
-                        PrintMessageLine("  --Summary: {0}", e.Key.Summary);
+                        StringBuilder summary_sb = new StringBuilder(e.Key.Summary.Length);
+                        string[] summaries = e.Key.Summary.Split(Environment.NewLine.ToCharArray());
+                        foreach(string s in summaries.TakeWhile(s => !string.IsNullOrEmpty(s)))
+                        {
+
+                            summary_sb.AppendLine("    --" + s);
+                        }
+                        PrintMessageLine(ConsoleColor.White,"  --Summary: \n{0}", summary_sb.ToString());
+                        e.Key.Urls.ForEach(u => PrintMessageLine(ConsoleColor.White, " --Url: {0}", u));
                     }
                 }
             }
@@ -668,6 +680,7 @@ namespace DevAudit.CommandLine
 
         static void PrintBanner()
         {
+            if (ProgramOptions.NonInteractive) return;
             Color banner_color;
             if (Environment.OSVersion.Platform == PlatformID.Win32NT)
             {
@@ -708,7 +721,7 @@ namespace DevAudit.CommandLine
                 if (ReferenceEquals(null, Spinner)) throw new ArgumentNullException();
                 Spinner.Stop();
                 Spinner = null;
-                PrintMessageLine(string.Empty);
+                //PrintMessageLine(string.Empty);
             }
 
         }

@@ -22,13 +22,13 @@ namespace DevAudit.AuditLibrary
 
         public override Dictionary<string, string> RequiredDirectoryLocations { get; } = new Dictionary<string, string>()
         {
-            { "bin", "bin" }
+            { "bin", "@bin" }
         };
 
         public override Dictionary<string, string> RequiredFileLocations { get; } = new Dictionary<string, string>()
         {
             { "mysql",  Environment.OSVersion.Platform == PlatformID.Unix || Environment.OSVersion.Platform == PlatformID.MacOSX 
-                ? Path.Combine("bin", "mysql") :  Path.Combine("bin", "mysql.exe")},
+                ? "@" + Path.Combine("bin", "mysql") :  "@" + Path.Combine("bin", "mysql.exe")},
             
         };
 
@@ -42,7 +42,7 @@ namespace DevAudit.AuditLibrary
 
         public override OSSIndexHttpClient HttpClient { get; } = new OSSIndexHttpClient("1.1");
 
-        public override string DefaultConfigurationFile { get; } = "my.ini";
+        public override string DefaultConfigurationFile { get; } = "@my.ini";
         #endregion
 
         #region Public properties
@@ -50,7 +50,7 @@ namespace DevAudit.AuditLibrary
         {
             get
             {
-                return this.RootDirectory.GetDirectories("bin").First();
+                return (DirectoryInfo) this.ServerFileSystemMap["bin"];
             }
         }
 
@@ -76,7 +76,7 @@ namespace DevAudit.AuditLibrary
         {
             Dictionary<string, IEnumerable<OSSIndexQueryObject>> m = new Dictionary<string, IEnumerable<OSSIndexQueryObject>>
             {
-                {"mysqld", new List<OSSIndexQueryObject> {new OSSIndexQueryObject("mysql", "mysqld", this.Version) }}
+                {"mysqld", new List<OSSIndexQueryObject> {new OSSIndexQueryObject(this.PackageManagerId, "mysqld", this.Version) }}
             };
             this.Modules = m;
             return this.Modules;
