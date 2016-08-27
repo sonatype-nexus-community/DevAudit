@@ -29,8 +29,8 @@ namespace DevAudit.AuditLibrary
 
         public override Dictionary<string, string> RequiredFileLocations { get; } = new Dictionary<string, string>()
         {
-            { "httpd",  Environment.OSVersion.Platform == PlatformID.Unix || Environment.OSVersion.Platform == PlatformID.MacOSX 
-                ? "@httpd" :  "@httpd.exe"},
+            { "httpd",  Environment.OSVersion.Platform == PlatformID.Unix || Environment.OSVersion.Platform == PlatformID.MacOSX
+                ? CombinePathsUnderRoot("bin", "httpd") :  CombinePathsUnderRoot("bin", "httpd.exe") },
         };
 
         public override Dictionary<string, string> OptionalDirectoryLocations { get; } = new Dictionary<string, string>();
@@ -69,10 +69,10 @@ namespace DevAudit.AuditLibrary
 
         protected override IConfiguration GetConfiguration()
         {
-            SSHD sshd = new SSHD(this.ConfigurationFile.FullName);
-            if (sshd.ParseSucceded)
+            Httpd httpd = new Httpd(this.ConfigurationFile.FullName);
+            if (httpd.ParseSucceded)
             {
-                this.Configuration = sshd;
+                this.Configuration = httpd;
             }
             return this.Configuration;
         }

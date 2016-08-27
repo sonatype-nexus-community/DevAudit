@@ -145,7 +145,7 @@ namespace DevAudit.CommandLine
                     }
                     else if (verb == "httpd")
                     {
-                        Server = new SSHDServer(audit_options);
+                        Server = new HttpdServer(audit_options);
                         Source = Server as PackageSource;
                     }
                 }
