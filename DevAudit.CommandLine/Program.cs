@@ -143,6 +143,11 @@ namespace DevAudit.CommandLine
                         Server = new SSHDServer(audit_options);
                         Source = Server as PackageSource;
                     }
+                    else if (verb == "httpd")
+                    {
+                        Server = new SSHDServer(audit_options);
+                        Source = Server as PackageSource;
+                    }
                 }
                 catch (ArgumentException ae)
                 {
@@ -516,7 +521,6 @@ namespace DevAudit.CommandLine
                 StopSpinner();
             }
             PrintMessageLine("Detected {0} version: {1}.", Server.ServerLabel, version);
-            Task t = Server.ConfigurationTask;
             if (!ProgramOptions.ListRules)
             {
                 AuditPackageSource(out exit);
@@ -529,8 +533,35 @@ namespace DevAudit.CommandLine
             {
                 return;
             }
-            exit = ExitCodes.ERROR_SCANNING_SERVER_CONFIGURATION;
+            Task t = Server.ConfigurationTask;
             PrintMessageLine("Scanning {0} configuration...", Server.ServerLabel);
+            StartSpinner();
+            try
+            {
+                t.Wait();
+            }
+            catch (Exception e)
+            {
+                PrintErrorMessage(e);
+            }
+            finally
+            {
+                StopSpinner();
+            }
+            if (t.IsFaulted || t.IsCanceled  || Server.XmlConfiguration == null)
+            {
+                PrintMessageLine("Error encountered scanning server configuration. Exiting");
+                return;
+            }
+            else if (Server.XmlConfiguration.Root.Elements().Count() == 0)
+            {
+                PrintMessageLine("Got zero top-level nodes from scanning server configuration. Exiting.");
+                return;
+            }
+            PrintMessageLine("Got {0} top-level server configuration nodes.",
+                Server.XmlConfiguration.Root.Elements().Count());
+            PrintMessageLine("Scanning {0} configuration rules...", Server.ServerLabel);
+            t = Server.ConfigurationRulesTask;
             StartSpinner();
             try
             { 
@@ -539,21 +570,20 @@ namespace DevAudit.CommandLine
             catch (Exception e)
             {
                 PrintErrorMessage(e);
-                return;
             }
             finally
             {
                 StopSpinner();
             }
-            if (Server.XmlConfiguration == null || Server.XmlConfiguration.Root.Elements().Count() == 0)
+            if (t.IsFaulted || t.IsCanceled || Server.ProjectConfigurationRules == null)
             {
-                PrintErrorMessage("Error scanning server configuration or server configuration file has no values.");
+                PrintErrorMessage("Error encountered scanning configuration rules for {0} server.", Server.ServerLabel);
+                return;
             }
-            PrintMessageLine("Got {0} top-level server configuration nodes.", 
-                Server.XmlConfiguration.Root.Elements().Count());
-            if (Server.ProjectConfigurationRules == null)
+            else if (Server.ProjectConfigurationRules.Count() == 0)
             {
-                PrintErrorMessage("There was an error loading the default configuration rules for the server or the file does not exist.");
+                exit = ExitCodes.SUCCESS;
+                PrintErrorMessage("No configuration rules found for {0} server. Exiting.", Server.ServerLabel);
                 return;
             }
             PrintMessageLine("Got {0} configuration rule(s) for server.", Server.ProjectConfigurationRules.Sum(cr => cr.Value.Count()));
@@ -585,23 +615,9 @@ namespace DevAudit.CommandLine
                     PrintMessageLine(e.Value.Item1 ? ConsoleColor.Red : ConsoleColor.DarkGreen, "{0}.", e.Value.Item1);
                     if (e.Value.Item1)
                     {
-                        StringBuilder summary_sb = new StringBuilder(e.Key.Summary.Length);
-                        string[] summaries = e.Key.Summary.Split(Environment.NewLine.ToCharArray());
-                        foreach(string s in summaries.TakeWhile(s => !string.IsNullOrEmpty(s)))
-                        {
-
-                            summary_sb.AppendLine("    --" + s);
-                        }
-                        PrintMessageLine(ConsoleColor.White,"  --Summary: \n{0}", summary_sb.ToString());
-                        StringBuilder resolution_sb = new StringBuilder(e.Key.Resolution.Length);
-                        string[] resolutions = e.Key.Resolution.Split(Environment.NewLine.ToCharArray());
-                        foreach (string r in resolutions.TakeWhile(s => !string.IsNullOrEmpty(s)))
-                        {
-
-                            resolution_sb.AppendLine("    --" + r);
-                        }
-                        PrintMessageLine(ConsoleColor.White, "  --Resolution: \n{0}", resolution_sb.ToString());
-                        e.Key.Urls.ForEach(u => PrintMessageLine(ConsoleColor.White, " --Url: {0}", u));
+                        PrintProjectConfigurationRuleMultiLineField(ConsoleColor.White, 2, "Summary", e.Key.Summary);
+                        PrintProjectConfigurationRuleMultiLineField(ConsoleColor.Magenta, 2, "Resolution", e.Key.Resolution);
+                        PrintProjectConfigurationRuleMultiLineField(ConsoleColor.White, 2, "Urls", e.Key.Urls);
                     }
                 }
             }
@@ -688,6 +704,39 @@ namespace DevAudit.CommandLine
                 PrintMessageLine(ConsoleColor.DarkRed, "Inner exception: {0}", e.InnerException.Message);
                 PrintMessageLine(ConsoleColor.DarkRed, "Inner stack trace: {0}", e.InnerException.StackTrace);
             }
+        }
+
+        static void PrintProjectConfigurationRuleMultiLineField(ConsoleColor color, int indent, string field, string value)
+        {
+            StringBuilder sb = new StringBuilder(value.Length);
+            sb.Append(' ', indent);
+            sb.Append("--");
+            sb.Append(field);
+            sb.AppendLine(":");
+            string[] lines = value.Split(Environment.NewLine.ToCharArray());
+            foreach (string l in lines.TakeWhile(s => !string.IsNullOrEmpty(s)))
+            {
+                sb.Append(' ', indent * 2);
+                sb.Append("--");
+                sb.AppendLine(l);
+            }
+            PrintMessage(ConsoleColor.White, sb.ToString());
+        }
+
+        static void PrintProjectConfigurationRuleMultiLineField(ConsoleColor color, int indent, string field, List<string> values)
+        {
+            StringBuilder sb = new StringBuilder();
+            sb.Append(' ', indent);
+            sb.Append("--");
+            sb.Append(field);
+            sb.AppendLine(":");
+            foreach (string l in values.TakeWhile(s => !string.IsNullOrEmpty(s)))
+            {
+                sb.Append(' ', indent * 2);
+                sb.Append("--");
+                sb.AppendLine(l);
+            }
+            PrintMessage(color, sb.ToString());
         }
 
         static void PrintBanner()

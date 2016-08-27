@@ -58,7 +58,14 @@ namespace DevAudit.CommandLine
         private void Draw(char c)
         {
             Console.Write(c);
-            Console.SetCursorPosition(Console.CursorLeft - 1, Console.CursorTop);
+            try
+            {
+                Console.SetCursorPosition(Console.CursorLeft - 1, Console.CursorTop);
+            }
+            catch (ArgumentOutOfRangeException)
+            {
+                return;
+            }
         }
 
         private void Turn()

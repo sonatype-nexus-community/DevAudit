@@ -72,7 +72,7 @@ namespace DevAudit.AuditLibrary
         #endregion
 
         #region Overriden methods
-        public override Dictionary<string, IEnumerable<OSSIndexQueryObject>> GetModules()
+        protected override Dictionary<string, IEnumerable<OSSIndexQueryObject>> GetModules()
         {
             Dictionary<string, IEnumerable<OSSIndexQueryObject>> m = new Dictionary<string, IEnumerable<OSSIndexQueryObject>>
             {
@@ -80,6 +80,16 @@ namespace DevAudit.AuditLibrary
             };
             this.Modules = m;
             return this.Modules;
+        }
+
+        protected override IConfiguration GetConfiguration()
+        {
+            MySQL mysql = new MySQL(this.ConfigurationFile.FullName);
+            if (mysql.ParseSucceded)
+            {
+                this.Configuration = mysql;
+            }
+            return this.Configuration;
         }
 
         public override string GetVersion()
@@ -97,16 +107,6 @@ namespace DevAudit.AuditLibrary
             {
                 throw new Exception(string.Format("Did not execute process {0} successfully. Error: {1}.", MySQLExe.Name, process_error));
             }
-        }
-
-        public override IConfiguration GetConfiguration()
-        {
-            MySQL mysql = new MySQL(this.ConfigurationFile.FullName);
-            if (mysql.ParseSucceded)
-            {
-                this.Configuration = mysql;
-            }
-            return this.Configuration;
         }
 
         public override IEnumerable<OSSIndexQueryObject> GetPackages(params string[] o)

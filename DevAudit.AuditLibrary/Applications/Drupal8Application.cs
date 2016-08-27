@@ -29,15 +29,15 @@ namespace DevAudit.AuditLibrary
        
         public override Dictionary<string, string> RequiredDirectoryLocations { get; } = new Dictionary<string, string>()
         {
-            { "CoreModulesDirectory", Path.Combine("core", "modules") },
-            { "ContribModulesDirectory", "modules" },
-            { "DefaultSiteDirectory", Path.Combine("sites", "default") },
+            { "CoreModulesDirectory", CombinePathsUnderRoot("core", "modules") },
+            { "ContribModulesDirectory", CombinePathsUnderRoot("modules") },
+            { "DefaultSiteDirectory", CombinePathsUnderRoot("sites", "default") },
         };
 
         public override Dictionary<string, string> RequiredFileLocations { get; } = new Dictionary<string, string>()
         {
-            { "ChangeLog", Path.Combine("core", "CHANGELOG.TXT") },
-            { "CorePackagesFile", Path.Combine("core", "composer.json") }
+            { "ChangeLog", CombinePathsUnderRoot("core", "CHANGELOG.TXT") },
+            { "CorePackagesFile", CombinePathsUnderRoot("core", "composer.json") }
         };
 
         #endregion
@@ -82,7 +82,7 @@ namespace DevAudit.AuditLibrary
         #endregion
 
         #region Overriden methods
-        public override Dictionary<string, IEnumerable<OSSIndexQueryObject>> GetModules()
+        protected override Dictionary<string, IEnumerable<OSSIndexQueryObject>> GetModules()
         {
             FileInfo changelog = this.ApplicationFileSystemMap["ChangeLog"] as FileInfo;
             string l = string.Empty;
@@ -177,7 +177,7 @@ namespace DevAudit.AuditLibrary
             return this.GetModules()["all"];
         }
 
-        public override IConfiguration GetConfiguration()
+        protected override IConfiguration GetConfiguration()
         {
             throw new NotImplementedException();
         }

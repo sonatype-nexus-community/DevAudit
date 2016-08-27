@@ -31,9 +31,9 @@ namespace DevAudit.AuditLibrary
 
         public override Dictionary<string, string> RequiredDirectoryLocations { get; } = new Dictionary<string, string>()
         {
-            { "CoreModulesDirectory", "modules" },
-            { "ContribModulesDirectory", Path.Combine("sites", "all", "modules") },
-            { "DefaultSiteDirectory", Path.Combine("sites", "default") },
+            { "CoreModulesDirectory", CombinePathsUnderRoot("modules") },
+            { "ContribModulesDirectory", CombinePathsUnderRoot("sites", "all", "modules") },
+            { "DefaultSiteDirectory", CombinePathsUnderRoot("sites", "default") },
         };
 
         public override Dictionary<string, string> RequiredFileLocations { get; } = new Dictionary<string, string>();
@@ -71,7 +71,7 @@ namespace DevAudit.AuditLibrary
         #endregion
 
         #region Overriden methods
-        public override Dictionary<string, IEnumerable<OSSIndexQueryObject>> GetModules()
+        protected override Dictionary<string, IEnumerable<OSSIndexQueryObject>> GetModules()
         {
             Dictionary<string, IEnumerable<OSSIndexQueryObject>> modules = new Dictionary<string, IEnumerable<OSSIndexQueryObject>>();
             List<FileInfo> core_module_files = RecursiveFolderScan(this.CoreModulesDirectory, "*.info").Where(f => !f.Name.Contains("_test") && !f.Name.Contains("test_")).ToList();
@@ -187,7 +187,7 @@ namespace DevAudit.AuditLibrary
             return this.GetModules()["all"];
         }
 
-        public override IConfiguration GetConfiguration()
+        protected override IConfiguration GetConfiguration()
         {
             throw new NotImplementedException();
         }

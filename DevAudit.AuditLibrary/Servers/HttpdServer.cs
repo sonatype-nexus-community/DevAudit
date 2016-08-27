@@ -11,23 +11,26 @@ using Alpheus;
 
 namespace DevAudit.AuditLibrary
 {
-    public class SSHDServer : ApplicationServer
+    public class HttpdServer : ApplicationServer
     {
         #region Overriden properties
-        public override string ServerId { get { return "sshd"; } }
+        public override string ServerId { get { return "httpd"; } }
 
-        public override string ServerLabel { get { return "SSHD Server"; } }
+        public override string ServerLabel { get { return "Apache Httpd Server"; } }
 
-        public override string ApplicationId { get { return "sshd"; } }
+        public override string ApplicationId { get { return "httpd"; } }
 
-        public override string ApplicationLabel { get { return "SSHD server"; } }
+        public override string ApplicationLabel { get { return "Apache Httpd server"; } }
 
-        public override Dictionary<string, string> RequiredDirectoryLocations { get; } = new Dictionary<string, string>() {};
+        public override  Dictionary<string, string> RequiredDirectoryLocations { get; } = new Dictionary<string, string>()
+        {
+            { "bin", "@bin" }
+        };
 
         public override Dictionary<string, string> RequiredFileLocations { get; } = new Dictionary<string, string>()
         {
-            { "sshd",  Environment.OSVersion.Platform == PlatformID.Unix || Environment.OSVersion.Platform == PlatformID.MacOSX 
-                ? "@sshd" :  "@ssh.exe"},
+            { "httpd",  Environment.OSVersion.Platform == PlatformID.Unix || Environment.OSVersion.Platform == PlatformID.MacOSX 
+                ? "@httpd" :  "@httpd.exe"},
         };
 
         public override Dictionary<string, string> OptionalDirectoryLocations { get; } = new Dictionary<string, string>();
@@ -36,19 +39,19 @@ namespace DevAudit.AuditLibrary
 
         public override string PackageManagerId { get { return "ossi"; } }
 
-        public override string PackageManagerLabel { get { return "SSHD"; } }
+        public override string PackageManagerLabel { get { return "Apache Httpd"; } }
 
         public override OSSIndexHttpClient HttpClient { get; } = new OSSIndexHttpClient("1.1");
 
-        public override string DefaultConfigurationFile { get; } = Path.Combine(DIR, "etc", "sshd", "sshd_config");
+        public override string DefaultConfigurationFile { get; } = CombinePathsUnderRoot("conf", "httpd.conf");
         #endregion
 
         #region Public properties
-        public FileInfo SSHDExe
+        public FileInfo HttpdExe
         {
             get
             {
-                return (FileInfo)this.ServerFileSystemMap["sshd"];
+                return (FileInfo)this.ServerFileSystemMap["httpd"];
             }
         }
         #endregion
@@ -58,7 +61,7 @@ namespace DevAudit.AuditLibrary
         {
             Dictionary<string, IEnumerable<OSSIndexQueryObject>> m = new Dictionary<string, IEnumerable<OSSIndexQueryObject>>
             {
-                {"sshd", new List<OSSIndexQueryObject> {new OSSIndexQueryObject(this.PackageManagerId, "sshd", this.Version) }}
+                {"httpd", new List<OSSIndexQueryObject> {new OSSIndexQueryObject(this.PackageManagerId, "httpd", this.Version) }}
             };
             this.Modules = m;
             return this.Modules;
@@ -79,30 +82,26 @@ namespace DevAudit.AuditLibrary
             HostEnvironment.ProcessStatus process_status;
             string process_output;
             string process_error;
-            HostEnvironment.Execute(SSHDExe.FullName, "-?", out process_status, out process_output, out process_error);
+            HostEnvironment.Execute(HttpdExe.FullName, "-v", out process_status, out process_output, out process_error);
             if (process_status == HostEnvironment.ProcessStatus.Success)
             {
                 if (!string.IsNullOrEmpty(process_error) && string.IsNullOrEmpty(process_output))
                 {
                     process_output = process_error;
                 }
-                this.Version = process_output.Split(Environment.NewLine.ToCharArray())[1];
-                return this.Version;
-            }
-            else if (!string.IsNullOrEmpty(process_error) && string.IsNullOrEmpty(process_output) && process_error.Contains("usage"))
-            {
-                this.Version = process_error.Split(Environment.NewLine.ToCharArray())[1];
+                this.Version = process_output.Split(Environment.NewLine.ToCharArray())[0];
                 return this.Version;
             }
             else
             {
-                throw new Exception(string.Format("Did not execute process {0} successfully. Error: {1}.", SSHDExe.Name, process_error));
+                throw new Exception(string.Format("Did not execute process {0} successfully. Error: {1}.", HttpdExe.Name, process_error));
             }
         }
 
+
         public override IEnumerable<OSSIndexQueryObject> GetPackages(params string[] o)
         {
-            return this.Modules["sshd"];
+            return this.Modules["httpd"];
         }
 
         public override bool IsVulnerabilityVersionInPackageVersionRange(string vulnerability_version, string package_version)
@@ -112,7 +111,7 @@ namespace DevAudit.AuditLibrary
         #endregion
 
         #region Constructors
-        public SSHDServer(Dictionary<string, object> server_options) : base(server_options) {}
+        public HttpdServer(Dictionary<string, object> server_options) : base(server_options) {}
         #endregion
     }
 }

@@ -23,9 +23,9 @@ namespace DevAudit.AuditLibrary
         public abstract Dictionary<string, string> RequiredDirectoryLocations { get; }
         #endregion
 
-        #region Public abstract methods
-        public abstract Dictionary<string, IEnumerable<OSSIndexQueryObject>> GetModules();
-        public abstract IConfiguration GetConfiguration();
+        #region Protected abstract methods
+        protected abstract Dictionary<string, IEnumerable<OSSIndexQueryObject>> GetModules();
+        protected abstract IConfiguration GetConfiguration();
         #endregion
 
         #region Public properties
@@ -89,13 +89,13 @@ namespace DevAudit.AuditLibrary
             }
         }
 
-        public List<Task<KeyValuePair<OSSIndexProject, IEnumerable<OSSIndexProjectConfigurationRule>>>> ConfigurationRulesTask
+        public Task<Dictionary<OSSIndexProject, Tuple<IEnumerable<OSSIndexProjectConfigurationRule>, string>>> ConfigurationRulesTask
         {
             get
             {
                 if (_ConfigurationRulesTask == null)
                 {
-                    this._ConfigurationRulesTask = new List<Task<KeyValuePair<OSSIndexProject, IEnumerable<OSSIndexProjectConfigurationRule>>>>(1);
+                    this._ConfigurationRulesTask = Task.Run(() => this.GetConfigurationRules());
 
                 }
                 return this._ConfigurationRulesTask;
@@ -214,9 +214,6 @@ namespace DevAudit.AuditLibrary
                     }
                 }
             }
-            string default_rules_exception_message;
-            int l = LoadDefaultConfigurationRules(out default_rules_exception_message);
-
         }
         #endregion
 
@@ -241,6 +238,25 @@ namespace DevAudit.AuditLibrary
             throw new NotImplementedException();
         }
 
+        protected Dictionary<OSSIndexProject, Tuple<IEnumerable<OSSIndexProjectConfigurationRule>, string>> GetConfigurationRules()
+        {
+            Dictionary<OSSIndexProject, Tuple<IEnumerable<OSSIndexProjectConfigurationRule>, string>> r = new Dictionary<OSSIndexProject, Tuple<IEnumerable<OSSIndexProjectConfigurationRule>, string>>();
+                string get_default_rules_error = "";
+            int n = this.LoadDefaultConfigurationRules(out get_default_rules_error);
+            if (n > 0)
+            {
+                foreach (var kv in this.ProjectConfigurationRules)
+                {
+                    r.Add(kv.Key, new Tuple<IEnumerable<OSSIndexProjectConfigurationRule>, string>(kv.Value, string.Empty));
+                }
+            }
+            else if (n  < 0)
+            {
+                r.Add(new OSSIndexProject() { Name = this.ApplicationId }, new Tuple<IEnumerable<OSSIndexProjectConfigurationRule>, string>(null, get_default_rules_error));
+            }
+            return r;
+        }
+
         public Dictionary<OSSIndexProjectConfigurationRule, Tuple<bool, List<string>, string>> EvaluateProjectConfigurationRules(IEnumerable<OSSIndexProjectConfigurationRule> rules)
         {
             Dictionary<OSSIndexProjectConfigurationRule, Tuple<bool, List<string>, string>> results = new Dictionary<OSSIndexProjectConfigurationRule, Tuple<bool, List<string>, string>>(rules.Count());
@@ -255,7 +271,6 @@ namespace DevAudit.AuditLibrary
         #endregion
 
         #region Static members
-
         public static string DIR = new string(Path.DirectorySeparatorChar, 1);
 
         public static List<FileInfo> RecursiveFolderScan(DirectoryInfo dir, string pattern)
@@ -269,9 +284,9 @@ namespace DevAudit.AuditLibrary
             return results;
         }
 
-        public static string CombinePaths(params string[] paths)
+        public static string CombinePathsUnderRoot(params string[] paths)
         {
-            return Path.Combine(paths);
+            return "@" + Path.Combine(paths);
         }
         #endregion
 
@@ -279,7 +294,7 @@ namespace DevAudit.AuditLibrary
         protected Dictionary<OSSIndexProject, IEnumerable<OSSIndexProjectConfigurationRule>> _ConfigurationRulesForProject;
         private Task<Dictionary<string, IEnumerable<OSSIndexQueryObject>>> _ModulesTask;
         private Task _ConfigurationTask;
-        private List<Task<KeyValuePair<OSSIndexProject, IEnumerable<OSSIndexProjectConfigurationRule>>>> _ConfigurationRulesTask;
+        private Task<Dictionary<OSSIndexProject, Tuple<IEnumerable<OSSIndexProjectConfigurationRule>, string>>> _ConfigurationRulesTask;
         #endregion
 
         #region Protected and private methods

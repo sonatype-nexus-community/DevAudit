@@ -50,6 +50,9 @@ namespace DevAudit.CommandLine
         [VerbOption("sshd", HelpText = "Audit a OpenSSH SSHD-compatibile application server instance. Use the --root option to specify the root directory of the SSHD server instance, and the --config-file option to specify the configuration file otherwise /etc/sshd/sshd_config will be used.")]
         public Options SSHD { get; set; }
 
+        [VerbOption("httpd", HelpText = "Audit an Apache Httpd server instance. Use the --root option to specify the root directory of the Httpd server instance, and the --config-file option to specify the configuration file otherwise conf/httpd.conf will be used.")]
+        public Options Httpd { get; set; }
+
         [Option('f', "file", Required = false, HelpText = "Specifies the file containing packages to be audited.")]
         public string File { get; set; }
 
