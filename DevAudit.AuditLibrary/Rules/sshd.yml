@@ -1,7 +1,7 @@
 ﻿---
 sshd:
     -   id: 1
-        title: Root login is permitted
+        title: Root login is permitted (PermitRootLogin)
         xpathtest: not(/SSHD/Values/PermitRootLogin='no')
         summary: |
             By default you can ssh to the server as root. It is best not to allow root to login directly to the server. 
@@ -11,8 +11,8 @@ sshd:
         urls:
             -   http://www.thegeekstuff.com/2011/05/openssh-options/
     -   id: 2
-        title:  Do not allow Only Specific Users or Groups (AllowUsers AllowGroups)
-        xpathtest: not(boolean(/SSHD/Values/AllowUsers)) and not(boolean(/SSHD/Values/AllowGroups))
+        title:  Access is not restricted to specific users or groups (AllowUsers AllowGroups DenyUsers DenyGroups)
+        xpathtest: not(boolean(/SSHD/Values/AllowUsers)) and not(boolean(/SSHD/Values/AllowGroups)) and not(boolean(/SSHD/Values/DenyUsers)) and not(boolean(/SSHD/Values/DenyGroups))
         summary: |
             By default anybody who is authenticated successfully are allowed to login. 
             Instead you can restrict which users (or groups) you allow to login to the system.
@@ -20,4 +20,25 @@ sshd:
             Add directives like the following to configuration file: AllowUsers ramesh john jason and AllowGroups remote_workers.
         urls:
             -   http://www.thegeekstuff.com/2011/05/openssh-options/
+    -   id: 3
+        title:  Port is set to default (Port)
+        xpathtest:  /SSHD/Values/Port='22' 
+        summary: |
+            By default ssh runs on port 22. Most of the attackers will check if a server is open on port 22, and will randomly use brute force to login to the server using several username and password combination.
+            If you change the port # to something different, others need to know exactly what port to use to login to the server using ssh.  
+        resolution: |
+            Add directives like the following to configuration file: Port 773.
+            This will result in ssh listening on port 773.
+        urls:
+            -   http://www.thegeekstuff.com/2011/05/openssh-options/
+    -   id: 4
+        title:  User .rhosts files are not disabled (IgnoreRhosts)
+        xpathtest:  not(/SSHD/Values/IgnoreRhosts='yes')
+        summary: |
+            SSH can emulate the behavior of the obsolete rsh command. You should always disable insecure access via RSH.
+        resolution: |
+            Add IgnoreRhosts=yes directive.
+        urls:
+            -   http://www.thegeekstuff.com/2011/05/openssh-options/
+
    

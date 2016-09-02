@@ -501,12 +501,13 @@ namespace DevAudit.CommandLine
         {
             if (ReferenceEquals(Server, null)) throw new ArgumentNullException("Server");
             PrintMessage("Scanning {0} version, modules, extensions, or plugins...", Server.ServerLabel);
-            exit = ExitCodes.ERROR_SCANNING_SERVER_VERSION;
             StartSpinner();
             string version;
+            exit = ExitCodes.ERROR_SCANNING_SERVER_VERSION;
             try
             {
-                version = Server.GetVersion().Trim();
+
+                version = Server.GetVersion();
                 exit = ExitCodes.ERROR_SCANNING_FOR_PACKAGES;
                 Server.ModulesTask.Wait();
                 Server.PackagesTask.Wait();
@@ -520,7 +521,7 @@ namespace DevAudit.CommandLine
             {
                 StopSpinner();
             }
-            PrintMessageLine("Detected {0} version: {1}.", Server.ServerLabel, version);
+            PrintMessageLine("Detected {0} version: {1}.", Server.ServerLabel, Server.Version);
             if (!ProgramOptions.ListRules)
             {
                 AuditPackageSource(out exit);
@@ -534,7 +535,7 @@ namespace DevAudit.CommandLine
                 return;
             }
             Task t = Server.ConfigurationTask;
-            PrintMessageLine("Scanning {0} configuration...", Server.ServerLabel);
+            PrintMessage("Scanning {0} configuration...", Server.ServerLabel);
             StartSpinner();
             try
             {
@@ -560,7 +561,7 @@ namespace DevAudit.CommandLine
             }
             PrintMessageLine("Got {0} top-level server configuration nodes.",
                 Server.XmlConfiguration.Root.Elements().Count());
-            PrintMessageLine("Scanning {0} configuration rules...", Server.ServerLabel);
+            PrintMessage("Scanning {0} configuration rules...", Server.ServerLabel);
             t = Server.ConfigurationRulesTask;
             StartSpinner();
             try
@@ -593,12 +594,12 @@ namespace DevAudit.CommandLine
             foreach (KeyValuePair<OSSIndexProject, IEnumerable<OSSIndexProjectConfigurationRule>> rule in Server.ProjectConfigurationRules)
             {
                 Dictionary<OSSIndexProjectConfigurationRule, Tuple<bool, List<string>, string>> evals = Server.EvaluateProjectConfigurationRules(rule.Value);
-                PrintMessage(ConsoleColor.White, "[{0}/{1}] Project: ", ++projects_processed, projects_count);
+                PrintMessage("[{0}/{1}] Project: ", ++projects_processed, projects_count);
                 PrintMessage(ConsoleColor.Blue, "{0}. ", rule.Key.Name);
                 int total_project_rules = rule.Value.Count();
                 int succeded_project_rules = evals.Count(ev => ev.Value.Item1);
                 int processed_project_rules = 0;
-                PrintMessage(ConsoleColor.White, "{0} rule(s). ", total_project_rules);
+                PrintMessage("{0} rule(s). ", total_project_rules);
                 if (succeded_project_rules > 0 )
                 {
                     PrintMessage(ConsoleColor.Magenta, " {0} rule(s) succeded. ", succeded_project_rules);
@@ -611,11 +612,15 @@ namespace DevAudit.CommandLine
                 foreach (KeyValuePair<OSSIndexProjectConfigurationRule, Tuple <bool, List<string>, string>> e in evals)
                 {
                     ++processed_project_rules;
-                    PrintMessage(ConsoleColor.White, "--[{0}/{1}] Rule Name: {2}. Result: ", processed_project_rules, total_project_rules, e.Key.Title);
+                    PrintMessage("--[{0}/{1}] Rule Name: {2}. Result: ", processed_project_rules, total_project_rules, e.Key.Title);
                     PrintMessageLine(e.Value.Item1 ? ConsoleColor.Red : ConsoleColor.DarkGreen, "{0}.", e.Value.Item1);
                     if (e.Value.Item1)
                     {
                         PrintProjectConfigurationRuleMultiLineField(ConsoleColor.White, 2, "Summary", e.Key.Summary);
+                        if (e.Value.Item2 != null && e.Value.Item2.Count > 0)
+                        {
+                            PrintProjectConfigurationRuleMultiLineField(ConsoleColor.White, 2, "Results", e.Value.Item2);
+                        }
                         PrintProjectConfigurationRuleMultiLineField(ConsoleColor.Magenta, 2, "Resolution", e.Key.Resolution);
                         PrintProjectConfigurationRuleMultiLineField(ConsoleColor.White, 2, "Urls", e.Key.Urls);
                     }
@@ -706,6 +711,11 @@ namespace DevAudit.CommandLine
             }
         }
 
+        static void PrintProjectConfigurationRuleMultiLineField(int indent, string field, string value)
+        {
+            PrintProjectConfigurationRuleMultiLineField(ConsoleColor.White, indent, field, value);
+        }
+
         static void PrintProjectConfigurationRuleMultiLineField(ConsoleColor color, int indent, string field, string value)
         {
             StringBuilder sb = new StringBuilder(value.Length);
@@ -720,7 +730,7 @@ namespace DevAudit.CommandLine
                 sb.Append("--");
                 sb.AppendLine(l);
             }
-            PrintMessage(ConsoleColor.White, sb.ToString());
+            PrintMessage(color, sb.ToString());
         }
 
         static void PrintProjectConfigurationRuleMultiLineField(ConsoleColor color, int indent, string field, List<string> values)
@@ -737,6 +747,11 @@ namespace DevAudit.CommandLine
                 sb.AppendLine(l);
             }
             PrintMessage(color, sb.ToString());
+        }
+
+        static void PrintProjectConfigurationRuleMultiLineField(int indent, string field, List<string> values)
+        {
+            PrintProjectConfigurationRuleMultiLineField(ConsoleColor.White, indent, field, values);
         }
 
         static void PrintBanner()

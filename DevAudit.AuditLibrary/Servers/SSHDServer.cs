@@ -27,7 +27,7 @@ namespace DevAudit.AuditLibrary
         public override Dictionary<string, string> RequiredFileLocations { get; } = new Dictionary<string, string>()
         {
             { "sshd",  Environment.OSVersion.Platform == PlatformID.Unix || Environment.OSVersion.Platform == PlatformID.MacOSX 
-                ? "@sshd" :  "@ssh.exe"},
+                ? "@sshd" :  "@sshd.exe"},
         };
 
         public override Dictionary<string, string> OptionalDirectoryLocations { get; } = new Dictionary<string, string>();
@@ -89,9 +89,9 @@ namespace DevAudit.AuditLibrary
                 this.Version = process_output.Split(Environment.NewLine.ToCharArray())[1];
                 return this.Version;
             }
-            else if (!string.IsNullOrEmpty(process_error) && string.IsNullOrEmpty(process_output) && process_error.Contains("usage"))
+            else if (!string.IsNullOrEmpty(process_error) && string.IsNullOrEmpty(process_output) && process_error.StartsWith("sshd: unknown option"))
             {
-                this.Version = process_error.Split(Environment.NewLine.ToCharArray())[1];
+                this.Version = process_error.Split(Environment.NewLine.ToCharArray(), StringSplitOptions.RemoveEmptyEntries)[1];
                 return this.Version;
             }
             else

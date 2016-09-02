@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.ComponentModel;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -21,6 +22,14 @@ namespace DevAudit.AuditLibrary
         public static bool Execute(string command, string arguments, 
             out ProcessStatus process_status, out string process_output, out string process_error, Action<string> OutputDataReceived = null, Action<string> OutputErrorReceived = null)
         {
+            if (!File.Exists(command))
+            {
+                process_output = process_error = string.Empty;
+                process_status = ProcessStatus.FileNotFound;
+                return false;
+            }
+            FileInfo cf = new FileInfo(command);
+            DirectoryInfo wd = cf.Directory;
             int? process_exit_code = null;
             StringBuilder process_out_sb = new StringBuilder();
             StringBuilder process_err_sb = new StringBuilder();
@@ -30,6 +39,7 @@ namespace DevAudit.AuditLibrary
             psi.RedirectStandardError = true;
             psi.RedirectStandardOutput = true;
             psi.UseShellExecute = false;
+            psi.WorkingDirectory = wd.FullName;
             Process p = new Process();
             p.EnableRaisingEvents = true;
             p.StartInfo = psi;
