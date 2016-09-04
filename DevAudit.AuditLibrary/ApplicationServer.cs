@@ -26,23 +26,16 @@ namespace DevAudit.AuditLibrary
         #endregion
 
         #region Public properties
-        public Dictionary<string, FileSystemInfo> ServerFileSystemMap { get; } = new Dictionary<string, FileSystemInfo>();
+        //public Dictionary<string, FileSystemInfo> ServerFileSystemMap { get; } = new Dictionary<string, FileSystemInfo>();
 
         public FileInfo ConfigurationFile
         {
             get
             {
-                return (FileInfo)this.ServerFileSystemMap["ConfigurationFile"];
+                return (FileInfo)this.ApplicationFileSystemMap["ConfigurationFile"];
             }
         }
 
-        public new DirectoryInfo RootDirectory
-        {
-            get
-            {
-                return (DirectoryInfo)this.ServerFileSystemMap["RootDirectory"];
-            }
-        }
 
         public string Version { get; set; }
 
@@ -56,7 +49,48 @@ namespace DevAudit.AuditLibrary
         {
             if (ReferenceEquals(server_options, null)) throw new ArgumentNullException("server_options");
             this.ServerOptions = server_options;
+            if (!this.ServerOptions.ContainsKey("ConfigurationFile") && string.IsNullOrEmpty(this.DefaultConfigurationFile))
+            {
+                throw new ArgumentException(string.Format("The server configuration file was not specified and no default configuration file can be used."), "server_options");
+            }
+            else if (!this.ServerOptions.ContainsKey("ConfigurationFile") && !string.IsNullOrEmpty(this.DefaultConfigurationFile))
+            {
+                string cf;
+                if (this.DefaultConfigurationFile.First() == '@')
+                {
+                    cf = Path.Combine(this.RootDirectory.FullName, this.DefaultConfigurationFile.Substring(1));
+                }
+                else
+                {
+                    cf = this.DefaultConfigurationFile;
+                }
+                if (File.Exists(cf))
+                {
+                    this.ApplicationFileSystemMap.Add("ConfigurationFile", new FileInfo(cf));
+                }
+                else
+                {
+                    throw new ArgumentException(string.Format("The server configuration file was not specified and the default configuration file {0} could not be found.", cf), "server_options");
+                }
+            }
+            else
+            {
+                string cf = (string)this.ServerOptions["ConfigurationFile"];
+                if (cf.StartsWith("@"))
+                {
+                    cf = Path.Combine(this.RootDirectory.FullName, cf.Substring(1));
+                }
+                if (File.Exists(cf))
+                {
+                    this.ApplicationFileSystemMap.Add("ConfigurationFile", new FileInfo(cf));
+                }
+                else
+                {
+                    throw new ArgumentException(string.Format("The server configuration file {0} was not found.", cf), "server_options");
+                }
+            }
 
+            /*
             if (!this.ServerOptions.ContainsKey("RootDirectory"))
             {
                 throw new ArgumentException(string.Format("The root server directory was not specified."), "server_options");
@@ -201,6 +235,7 @@ namespace DevAudit.AuditLibrary
                     }
                 }
             }
+            */
         }
         #endregion
 

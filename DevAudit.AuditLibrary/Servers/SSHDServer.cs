@@ -26,8 +26,8 @@ namespace DevAudit.AuditLibrary
 
         public override Dictionary<string, string> RequiredFileLocations { get; } = new Dictionary<string, string>()
         {
-            { "sshd",  Environment.OSVersion.Platform == PlatformID.Unix || Environment.OSVersion.Platform == PlatformID.MacOSX 
-                ? "@sshd" :  "@sshd.exe"},
+            //{ "sshd",  Environment.OSVersion.Platform == PlatformID.Unix || Environment.OSVersion.Platform == PlatformID.MacOSX 
+            //    ? "@sshd" :  "@sshd.exe"},
         };
 
         public override Dictionary<string, string> OptionalDirectoryLocations { get; } = new Dictionary<string, string>();
@@ -44,13 +44,6 @@ namespace DevAudit.AuditLibrary
         #endregion
 
         #region Public properties
-        public FileInfo SSHDExe
-        {
-            get
-            {
-                return (FileInfo)this.ServerFileSystemMap["sshd"];
-            }
-        }
         #endregion
 
         #region Overriden methods
@@ -79,7 +72,7 @@ namespace DevAudit.AuditLibrary
             HostEnvironment.ProcessStatus process_status;
             string process_output;
             string process_error;
-            HostEnvironment.Execute(SSHDExe.FullName, "-?", out process_status, out process_output, out process_error);
+            HostEnvironment.Execute(this.ApplicationBinary.FullName, "-?", out process_status, out process_output, out process_error);
             if (process_status == HostEnvironment.ProcessStatus.Success)
             {
                 if (!string.IsNullOrEmpty(process_error) && string.IsNullOrEmpty(process_output))
@@ -96,7 +89,7 @@ namespace DevAudit.AuditLibrary
             }
             else
             {
-                throw new Exception(string.Format("Did not execute process {0} successfully. Error: {1}.", SSHDExe.Name, process_error));
+                throw new Exception(string.Format("Did not execute process {0} successfully. Error: {1}.", this.ApplicationBinary.Name, process_error));
             }
         }
 
@@ -104,7 +97,7 @@ namespace DevAudit.AuditLibrary
         {
             return this.Modules["sshd"];
         }
-
+        
         public override bool IsVulnerabilityVersionInPackageVersionRange(string vulnerability_version, string package_version)
         {
             return vulnerability_version == package_version;
@@ -112,7 +105,27 @@ namespace DevAudit.AuditLibrary
         #endregion
 
         #region Constructors
-        public SSHDServer(Dictionary<string, object> server_options) : base(server_options) {}
+        public SSHDServer(Dictionary<string, object> server_options) : base(server_options)
+        {
+            if (this.ApplicationBinary != null)
+            {
+                this.ApplicationFileSystemMap["sshd"] = this.ApplicationBinary;
+            }
+            else
+            {
+                string fn = Environment.OSVersion.Platform == PlatformID.Unix || Environment.OSVersion.Platform == PlatformID.MacOSX
+                ? CombinePathsUnderRoot("sshd") : CombinePathsUnderRoot("sshd.exe");
+                if (!File.Exists(fn))
+                {
+                    throw new ArgumentException(string.Format("The server binary for SSHD was not specified and the default file path {0} does not exist.", fn));
+                }
+                else
+                {
+                    this.ApplicationBinary = new FileInfo(fn);
+                    this.ApplicationFileSystemMap["sshd"] = this.ApplicationBinary;
+                }
+            }
+        }
         #endregion
     }
 }

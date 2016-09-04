@@ -22,13 +22,13 @@ namespace DevAudit.AuditLibrary
 
         public override Dictionary<string, string> RequiredDirectoryLocations { get; } = new Dictionary<string, string>()
         {
-            { "bin", "@bin" }
+            //{ "bin", "@bin" }
         };
 
         public override Dictionary<string, string> RequiredFileLocations { get; } = new Dictionary<string, string>()
         {
-            { "mysql",  Environment.OSVersion.Platform == PlatformID.Unix || Environment.OSVersion.Platform == PlatformID.MacOSX 
-                ? "@" + Path.Combine("bin", "mysql") :  "@" + Path.Combine("bin", "mysql.exe")},
+            //{ "mysql",  Environment.OSVersion.Platform == PlatformID.Unix || Environment.OSVersion.Platform == PlatformID.MacOSX 
+            //    ? "@" + Path.Combine("bin", "mysql") :  "@" + Path.Combine("bin", "mysql.exe")},
             
         };
 
@@ -46,29 +46,6 @@ namespace DevAudit.AuditLibrary
         #endregion
 
         #region Public properties
-        public DirectoryInfo MySQLBin
-        {
-            get
-            {
-                return (DirectoryInfo) this.ServerFileSystemMap["bin"];
-            }
-        }
-
-        public FileInfo MySQLExe
-        {
-            get
-            {
-                if (Environment.OSVersion.Platform == PlatformID.Unix || Environment.OSVersion.Platform == PlatformID.MacOSX)
-                {
-                    return this.MySQLBin.GetFiles("mysql").First();
-                }
-                else
-                {
-                    return this.MySQLBin.GetFiles("mysql.exe").First();
-                }
-            }
-        }
-
         #endregion
 
         #region Overriden methods
@@ -97,7 +74,7 @@ namespace DevAudit.AuditLibrary
             HostEnvironment.ProcessStatus process_status;
             string process_output;
             string process_error;
-            HostEnvironment.Execute(MySQLExe.FullName, "-V", out process_status, out process_output, out process_error);
+            HostEnvironment.Execute(this.ApplicationBinary.FullName, "-V", out process_status, out process_output, out process_error);
             if (process_status == HostEnvironment.ProcessStatus.Success)
             {
                 this.Version = process_output.Substring(process_output.IndexOf("Ver"));
@@ -105,7 +82,7 @@ namespace DevAudit.AuditLibrary
             }
             else
             {
-                throw new Exception(string.Format("Did not execute process {0} successfully. Error: {1}.", MySQLExe.Name, process_error));
+                throw new Exception(string.Format("Did not execute process {0} successfully. Error: {1}.", this.ApplicationBinary.Name, process_error));
             }
         }
 
@@ -123,34 +100,25 @@ namespace DevAudit.AuditLibrary
         #region Constructors
         public MySQLServer(Dictionary<string, object> server_options) : base(server_options)
         {
-            OSSIndexProject m = new OSSIndexProject()
+            if (this.ApplicationBinary != null)
             {
-                Id = 0,
-                Name = "mysql",
-                Description = "Test project for MySQL."
-            };
-            OSSIndexProjectConfigurationRule r1 = new OSSIndexProjectConfigurationRule()
+                this.ApplicationFileSystemMap["mysql"] = this.ApplicationBinary;
+            }
+            else
             {
-                Id = "1",
-                Title = "Default root user",
-                Summary = "The root user should be changed from the default value.",
-                XPathTest = "/MySQL/mysqld/user='root'"
-            };
-            OSSIndexProjectConfigurationRule r2 = new OSSIndexProjectConfigurationRule()
-            {
-                Id = "2",
-                Title = "Default port",
-                Summary = "The port should be changed from the default value.",
-                XPathTest = "/MySQL/mysqld/port='3306'"
-            };
-            List<OSSIndexProjectConfigurationRule> test_rules = new List<OSSIndexProjectConfigurationRule>()
-            {
-                r1, r2
-            };
-            this._ConfigurationRulesForProject = new Dictionary<OSSIndexProject, IEnumerable<OSSIndexProjectConfigurationRule>>
-            {
-                {m, test_rules }
-            };
+                string fn = Environment.OSVersion.Platform == PlatformID.Unix || Environment.OSVersion.Platform == PlatformID.MacOSX
+                ? CombinePathsUnderRoot("bin", "mysql") : CombinePathsUnderRoot("bin", "mysql.exe");
+                if (!File.Exists(fn))
+                {
+                    throw new ArgumentException(string.Format("The server binary for SSHD was not specified and the default file path {0} does not exist.", fn));
+                }
+                else
+                {
+                    this.ApplicationBinary = new FileInfo(fn);
+                    this.ApplicationFileSystemMap["mysql"] = this.ApplicationBinary;
+                }
+            }
+
         }
         #endregion
     }

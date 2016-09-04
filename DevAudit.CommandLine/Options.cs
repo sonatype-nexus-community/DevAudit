@@ -86,6 +86,9 @@ namespace DevAudit.CommandLine
         [Option('d', "docker-container", Required = false, HelpText = "Run the audit on a docker container with this id. The command line docker tools are used to execute the required commands on the docker container.")]
         public string DockerContainerId { get; set; }
 
+        [Option('b', "application-binary", Required = false, HelpText = "The path to the application or server binary.")]
+        public string ApplicationBinary { get; set; }
+
         [ParserState]
         public IParserState LastParserState { get; set; }
         

@@ -39,6 +39,8 @@ namespace DevAudit.AuditLibrary
             }
         }
 
+        public FileInfo ApplicationBinary { get; protected set; }
+
         public Dictionary<string, IEnumerable<OSSIndexQueryObject>> Modules { get; set; }
 
         public IConfiguration Configuration { get; set; } = null;
@@ -113,11 +115,11 @@ namespace DevAudit.AuditLibrary
 
             if (!this.ApplicationOptions.ContainsKey("RootDirectory"))
             {
-                throw new ArgumentException(string.Format("The root Application directory was not specified."), "Application_options");
+                throw new ArgumentException(string.Format("The root application directory was not specified."), "Application_options");
             }
             else if (!Directory.Exists((string)this.ApplicationOptions["RootDirectory"]))
             {
-                throw new ArgumentException(string.Format("The root Application directory {0} was not found.", this.ApplicationOptions["RootDirectory"]), "Application_options");
+                throw new ArgumentException(string.Format("The root application directory {0} was not found.", this.ApplicationOptions["RootDirectory"]), "application_options");
             }
             else
             {
@@ -160,7 +162,7 @@ namespace DevAudit.AuditLibrary
                     }
                     if (!File.Exists(fn))
                     {
-                        throw new ArgumentException(string.Format("The required Application file {0} was not found.", f), "Application_options");
+                        throw new ArgumentException(string.Format("The required application file {0} was not found.", f), "Application_options");
                     }
                     else
                     {
@@ -180,14 +182,14 @@ namespace DevAudit.AuditLibrary
                 {
                     if (string.IsNullOrEmpty(d.Value))
                     {
-                        throw new ArgumentException(string.Format("The required Application directory {0} was not specified and no default path exists.", d.Key), "application_options");
+                        throw new ArgumentException(string.Format("The required application directory {0} was not specified and no default path exists.", d.Key), "application_options");
                     }
                     else
                     {
                         if (!Directory.Exists(dn))
                         {
-                            throw new ArgumentException(string.Format("The default path {0} for required Application directory {1} does not exist.",
-                                d.Key, dn), "RequiredDirectoryLocations");
+                            throw new ArgumentException(string.Format("The default path {0} for required application directory {1} does not exist.",
+                                dn, d.Key), "RequiredDirectoryLocations");
                         }
                         else
                         {
@@ -214,10 +216,33 @@ namespace DevAudit.AuditLibrary
                     }
                 }
             }
+
+            if (this.ApplicationOptions.ContainsKey("ApplicationBinary"))
+            {
+                string fn = (string) this.ApplicationOptions["ApplicationBinary"];
+                if (fn.StartsWith("@"))
+                {
+                    fn = CombinePathsUnderRoot(fn.Substring(1));
+                }
+                if (!File.Exists(fn))
+                {
+                    throw new ArgumentException(string.Format("The specified application binary does not exist."), "application_options");
+                }
+                else
+                {
+                    this.ApplicationBinary = new FileInfo(fn);
+                }
+            }
         }
         #endregion
 
         #region Public methods
+
+        public string CombinePathsUnderRoot(params string[] paths)
+        {
+            return Path.Combine(this.RootDirectory.FullName, Path.Combine(paths));
+        }
+
         public Dictionary<string, bool> FilesExist(List<string> paths)
         {
             throw new NotImplementedException();
@@ -284,10 +309,12 @@ namespace DevAudit.AuditLibrary
             return results;
         }
 
-        public static string CombinePathsUnderRoot(params string[] paths)
+        public static string LocateUnderRoot(params string[] paths)
         {
             return "@" + Path.Combine(paths);
         }
+
+       
         #endregion
 
         #region Protected and private fields

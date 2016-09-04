@@ -31,9 +31,9 @@ namespace DevAudit.AuditLibrary
 
         public override Dictionary<string, string> RequiredDirectoryLocations { get; } = new Dictionary<string, string>()
         {
-            { "CoreModulesDirectory", CombinePathsUnderRoot("modules") },
-            { "ContribModulesDirectory", CombinePathsUnderRoot("sites", "all", "modules") },
-            { "DefaultSiteDirectory", CombinePathsUnderRoot("sites", "default") },
+            { "CoreModulesDirectory", LocateUnderRoot("modules") },
+            { "ContribModulesDirectory", LocateUnderRoot("sites", "all", "modules") },
+            { "DefaultSiteDirectory", LocateUnderRoot("sites", "default") },
         };
 
         public override Dictionary<string, string> RequiredFileLocations { get; } = new Dictionary<string, string>();

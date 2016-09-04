@@ -89,6 +89,11 @@ namespace DevAudit.CommandLine
                     audit_options.Add("ConfigurationFile", ProgramOptions.ConfigurationFile);
                 }
 
+                if (!string.IsNullOrEmpty(ProgramOptions.ApplicationBinary))
+                {
+                    audit_options.Add("ApplicationBinary", ProgramOptions.ApplicationBinary);
+                }
+
             }
             #endregion
 

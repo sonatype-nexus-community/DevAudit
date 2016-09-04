@@ -24,13 +24,13 @@ namespace DevAudit.AuditLibrary
 
         public override  Dictionary<string, string> RequiredDirectoryLocations { get; } = new Dictionary<string, string>()
         {
-            { "bin", "@bin" }
+            //{ "bin", "@bin" }
         };
 
         public override Dictionary<string, string> RequiredFileLocations { get; } = new Dictionary<string, string>()
         {
-            { "httpd",  Environment.OSVersion.Platform == PlatformID.Unix || Environment.OSVersion.Platform == PlatformID.MacOSX
-                ? CombinePathsUnderRoot("bin", "httpd") :  CombinePathsUnderRoot("bin", "httpd.exe") },
+            //{ "httpd",  Environment.OSVersion.Platform == PlatformID.Unix || Environment.OSVersion.Platform == PlatformID.MacOSX
+            //    ? LocateUnderRoot("bin", "httpd") :  LocateUnderRoot("bin", "httpd.exe") },
         };
 
         public override Dictionary<string, string> OptionalDirectoryLocations { get; } = new Dictionary<string, string>();
@@ -43,17 +43,10 @@ namespace DevAudit.AuditLibrary
 
         public override OSSIndexHttpClient HttpClient { get; } = new OSSIndexHttpClient("1.1");
 
-        public override string DefaultConfigurationFile { get; } = CombinePathsUnderRoot("conf", "httpd.conf");
+        public override string DefaultConfigurationFile { get; } = LocateUnderRoot("conf", "httpd.conf");
         #endregion
 
         #region Public properties
-        public FileInfo HttpdExe
-        {
-            get
-            {
-                return (FileInfo)this.ServerFileSystemMap["httpd"];
-            }
-        }
         #endregion
 
         #region Overriden methods
@@ -82,7 +75,7 @@ namespace DevAudit.AuditLibrary
             HostEnvironment.ProcessStatus process_status;
             string process_output;
             string process_error;
-            HostEnvironment.Execute(HttpdExe.FullName, "-v", out process_status, out process_output, out process_error);
+            HostEnvironment.Execute(ApplicationBinary.FullName, "-v", out process_status, out process_output, out process_error);
             if (process_status == HostEnvironment.ProcessStatus.Success)
             {
                 if (!string.IsNullOrEmpty(process_error) && string.IsNullOrEmpty(process_output))
@@ -94,7 +87,7 @@ namespace DevAudit.AuditLibrary
             }
             else
             {
-                throw new Exception(string.Format("Did not execute process {0} successfully. Error: {1}.", HttpdExe.Name, process_error));
+                throw new Exception(string.Format("Did not execute process {0} successfully. Error: {1}.", ApplicationBinary.Name, process_error));
             }
         }
 
@@ -111,7 +104,27 @@ namespace DevAudit.AuditLibrary
         #endregion
 
         #region Constructors
-        public HttpdServer(Dictionary<string, object> server_options) : base(server_options) {}
+        public HttpdServer(Dictionary<string, object> server_options) : base(server_options)
+        {
+            if (this.ApplicationBinary != null)
+            {
+                this.ApplicationFileSystemMap["httpd"] = this.ApplicationBinary;
+            }
+            else
+            {
+                string fn = Environment.OSVersion.Platform == PlatformID.Unix || Environment.OSVersion.Platform == PlatformID.MacOSX
+                ? CombinePathsUnderRoot("bin", "httpd") : CombinePathsUnderRoot("bin", "httpd.exe");
+                if (!File.Exists(fn))
+                {
+                    throw new ArgumentException(string.Format("The server binary for Apache Httpd was not specified and the default file path {0} does not exist.", fn));
+                }
+                else
+                {
+                    this.ApplicationBinary = new FileInfo(fn);
+                    this.ApplicationFileSystemMap["httpd"] = this.ApplicationBinary;
+                }
+            }
+        }
         #endregion
     }
 }

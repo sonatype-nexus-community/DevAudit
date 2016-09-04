@@ -1,5 +1,5 @@
 ﻿---
-sshd:
+httpd:
     -   id: 1
         title: Httpd version and OS identity are not hidden(ServerSignature)
         xpathtest: not(/Httpd/ServerSignature='Off') and not(/Httpd/ServerTokens='Prod')
@@ -22,5 +22,19 @@ sshd:
         resolution: |
             Add directives like the following to each <Directory /> section.
         urls:
-            -   http://www.thegeekstuff.com/2011/05/openssh-options/
+            -   http://www.tecmint.com/apache-security-tips/
+   
+    -   id: 3
+        title:  Some modules enabled by default but not often used are enabled (LoadModule)
+        xpathtest: > 
+            /*/LoadModule/Arg[contains(text(), 'mod_imap')] | /*/LoadModule/Arg[contains(text(), 'mod_include')] | 
+            /*/LoadModule/Arg[contains(text(), 'mod_userdir')] | /*/LoadModule/Arg[contains(text(), 'mod_info')] |
+            /*/LoadModule/Arg[contains(text(), 'mod_autoindex')]
+        summary: |
+            Some modules enabled by default are not often needed and can be vectors for security attacks. 
+        resolution: |
+            Comment out the corresponding LoadModule directives.
+        urls:
+            -   http://www.tecmint.com/apache-security-tips/
+
    
