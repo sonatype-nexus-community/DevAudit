@@ -231,7 +231,7 @@ namespace DevAudit.CommandLine
             }
             if (Source.Packages.Count() == 0)
             {
-                PrintMessageLine("Nothing to do, exiting.");
+                PrintMessageLine("Nothing to do, exiting package audit.");
                 exit = ExitCodes.SUCCESS;
                 return;
             }
@@ -256,10 +256,10 @@ namespace DevAudit.CommandLine
             {
                 StopSpinner();
             }
-            PrintMessageLine("Found {0} artifacts, {1} with an OSS Index project id.", Source.Artifacts.Count(), Source.ArtifactProjects.Count);
+            PrintMessageLine("Found {0} artifacts, {1} with an OSS Index project id.", Source.Artifacts.Count(), Source.ArtifactsWithProjects.Count);
             if (Source.Artifacts.Count() == 0)
             {
-                PrintMessageLine("Nothing to do, exiting.");
+                PrintMessageLine("Nothing to do, exiting package audit.");
                 exit = ExitCodes.SUCCESS;
                 return;
             }
@@ -303,7 +303,7 @@ namespace DevAudit.CommandLine
                 exit = ExitCodes.SUCCESS;
                 return;
             }
-            if (Source.ArtifactProjects.Count == 0)
+            if (Source.ArtifactsWithProjects.Count == 0)
             {
                 PrintMessageLine("No found artifacts have associated projects.");
                 PrintMessageLine("No vulnerability data for your packages currently exists in OSS Index, exiting.");
@@ -316,7 +316,7 @@ namespace DevAudit.CommandLine
                 PrintMessageLine("{0} cached project entries are stale and will be removed from cache.", Source.ProjectVulnerabilitiesExpiredCacheKeys.Count());
             }
             PrintMessageLine("Searching OSS Index for vulnerabilities for {0} projects...", Source.VulnerabilitiesTask.Count());
-            int projects_count = Source.ArtifactProjects.Count;
+            int projects_count = Source.ArtifactsWithProjects.Count;
             int projects_processed = 0;
             int projects_successful = 0;
             if (Source.ProjectVulnerabilitiesCacheEnabled)
@@ -564,35 +564,52 @@ namespace DevAudit.CommandLine
                 PrintMessageLine("Got zero top-level nodes from scanning server configuration. Exiting.");
                 return;
             }
-            PrintMessageLine("Got {0} top-level server configuration nodes.",
+            PrintMessageLine("Got {0} top-level server configuration node(s).",
                 Server.XmlConfiguration.Root.Elements().Count());
             PrintMessage("Scanning {0} configuration rules...", Server.ServerLabel);
-            t = Server.ConfigurationRulesTask;
             StartSpinner();
             try
-            { 
-                t.Wait();
-            }
-            catch (Exception e)
             {
-                PrintErrorMessage(e);
+                Task.WaitAll(Server.ConfigurationRulesTask.ToArray());
+            }
+            catch (AggregateException ae)
+            {
+                StopSpinner();
+                PrintErrorMessage("Error encountered searching OSS Index for {0} configuration rules: {1}...", Server.ApplicationLabel, ae.InnerException.Message);
+                ae.InnerExceptions.ToList().ForEach(i => HandleOSSIndexHttpException(i));
             }
             finally
             {
                 StopSpinner();
             }
-            if (t.IsFaulted || t.IsCanceled || Server.ProjectConfigurationRules == null)
+            /*
+            if (ProgramOptions.ListArtifacts)
             {
-                PrintErrorMessage("Error encountered scanning configuration rules for {0} server.", Server.ServerLabel);
+                int i = 1;
+                foreach (OSSIndexArtifact artifact in Source.Artifacts)
+                {
+                    PrintMessage("[{0}/{1}] {2} ({3}) ", i++, Source.Artifacts.Count(), artifact.PackageName,
+                        !string.IsNullOrEmpty(artifact.Version) ? artifact.Version : string.Format("No version reported for package version {0}", artifact.Package.Version));
+                    if (!string.IsNullOrEmpty(artifact.ProjectId))
+                    {
+                        PrintMessage(ConsoleColor.Blue, artifact.ProjectId + "\n");
+                    }
+                    else
+                    {
+                        PrintMessage(ConsoleColor.DarkRed, "No project id found.\n");
+                    }
+                }
+                exit = ExitCodes.SUCCESS;
                 return;
             }
-            else if (Server.ProjectConfigurationRules.Count() == 0)
+            */
+            if (Server.ProjectConfigurationRules.Count() == 0)
             {
                 exit = ExitCodes.SUCCESS;
                 PrintErrorMessage("No configuration rules found for {0} server. Exiting.", Server.ServerLabel);
                 return;
             }
-            PrintMessageLine("Got {0} configuration rule(s) for server.", Server.ProjectConfigurationRules.Sum(cr => cr.Value.Count()));
+            PrintMessageLine("Got {0} configuration rule(s) for {1} server project(s).", Server.ProjectConfigurationRules.Sum(cr => cr.Value.Count()), Server.ProjectConfigurationRules.Keys.Count);
             exit = ExitCodes.ERROR_EVALUATING_CONFIGURATION_RULES;
             int projects_count = Server.ProjectConfigurationRules.Keys.Count;
             int projects_processed = 0;

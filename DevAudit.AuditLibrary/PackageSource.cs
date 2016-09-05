@@ -38,7 +38,7 @@ namespace DevAudit.AuditLibrary
                     IEnumerable<string> alive_cache_keys =
                         from cache_key in ProjectVulnerabilitiesCache.Keys
                         where DateTime.UtcNow.Subtract(GetProjectVulnerabilitiesCacheEntry(cache_key).Item2) < this.ProjectVulnerabilitiesCacheTTL
-                        join artifact in ArtifactProjects
+                        join artifact in ArtifactsWithProjects
                         on GetProjectVulnerabilitiesCacheEntry(cache_key).Item1 equals artifact.ProjectId
                         select cache_key;                    
                     return
@@ -72,7 +72,7 @@ namespace DevAudit.AuditLibrary
                 return
                    from cache_key in ProjectVulnerabilitiesCache.Keys
                    where DateTime.UtcNow.Subtract(GetProjectVulnerabilitiesCacheEntry(cache_key).Item2) < this.ProjectVulnerabilitiesCacheTTL
-                   join artifact in ArtifactProjects
+                   join artifact in ArtifactsWithProjects
                    on GetProjectVulnerabilitiesCacheEntry(cache_key).Item1 equals artifact.ProjectId
                    select artifact;
             }
@@ -94,6 +94,16 @@ namespace DevAudit.AuditLibrary
             }
         }
 
+        
+        public Dictionary<OSSIndexArtifact, OSSIndexProject> ArtifactProject
+        {
+            get
+            {
+                return this._ArtifactProject;
+            }
+        }
+        
+
         public IEnumerable<OSSIndexArtifact> Artifacts
         {
             get
@@ -102,6 +112,7 @@ namespace DevAudit.AuditLibrary
                     && this.IsVulnerabilityVersionInPackageVersionRange(a.Version, a.Package.Version)));//.GroupBy(a => new { a.PackageName}).Select(d => d.First());
             }
         }
+
 
         public virtual Func<List<OSSIndexArtifact>, List<OSSIndexArtifact>> ArtifactsTransform { get; } = (artifacts) =>
         {
@@ -122,7 +133,7 @@ namespace DevAudit.AuditLibrary
             return o.ToList();
         };
 
-        public List<OSSIndexArtifact> ArtifactProjects
+        public List<OSSIndexArtifact> ArtifactsWithProjects
         {
             get
             {
@@ -195,7 +206,7 @@ namespace DevAudit.AuditLibrary
                 if (_VulnerabilitiesTask == null)
                 {
                     List<OSSIndexArtifact> artifacts_to_query = this.ProjectVulnerabilitiesCacheEnabled ? 
-                        this.ArtifactProjects.Except(this.CachedArtifacts).ToList() : this.ArtifactProjects;
+                        this.ArtifactsWithProjects.Except(this.CachedArtifacts).ToList() : this.ArtifactsWithProjects;
                     this._VulnerabilitiesTask = new List<Task<KeyValuePair<OSSIndexProject, IEnumerable<OSSIndexProjectVulnerability>>>>
                             (artifacts_to_query.Count());
                     artifacts_to_query.ForEach(p => this._VulnerabilitiesTask.Add(Task<Task<KeyValuePair<OSSIndexProject, IEnumerable<OSSIndexProjectVulnerability>>>>
@@ -206,6 +217,10 @@ namespace DevAudit.AuditLibrary
                             OSSIndexProject project = await this.HttpClient.GetProjectForIdAsync(artifact.ProjectId);
                             project.Artifact = artifact;
                             project.Package = artifact.Package;
+                            lock (artifact_project_lock)
+                            {
+                                this._ArtifactProject.Add(Artifacts.Where(a => a.ProjectId == project.Id.ToString()).First(), project);
+                            }
                             IEnumerable<OSSIndexProjectVulnerability> v = await this.HttpClient.GetVulnerabilitiesForIdAsync(project.Id.ToString());
                             if (this.ProjectVulnerabilitiesCacheEnabled)
                             {
@@ -350,11 +365,12 @@ namespace DevAudit.AuditLibrary
         #endregion
 
         #region Private fields
-        private readonly object artifacts_lock = new object(), vulnerabilities_lock = new object(), project_vulnerabilities_cache_lock = new object();
+        private readonly object artifacts_lock = new object(), vulnerabilities_lock = new object(), project_vulnerabilities_cache_lock = new object(), artifact_project_lock = new object();
         private BPlusTree<string, Tuple<OSSIndexProject, IEnumerable<OSSIndexProjectVulnerability>>>
             _ProjectVulnerabilitiesCache = null;
         private Dictionary<IEnumerable<OSSIndexQueryObject>, IEnumerable<OSSIndexArtifact>> _ArtifactsForQuery =
             new Dictionary<IEnumerable<OSSIndexQueryObject>, IEnumerable<OSSIndexArtifact>>();
+        private Dictionary<OSSIndexArtifact, OSSIndexProject> _ArtifactProject = new Dictionary<OSSIndexArtifact, OSSIndexProject>();
         private List<Task<KeyValuePair<IEnumerable<OSSIndexQueryObject>, IEnumerable<OSSIndexArtifact>>>> _ArtifactsTask;
         private Task<IEnumerable<OSSIndexQueryObject>> _PackagesTask;
         private Dictionary<OSSIndexQueryObject, IEnumerable<OSSIndexPackageVulnerability>> _VulnerabilitiesForPackage =
@@ -421,7 +437,7 @@ namespace DevAudit.AuditLibrary
                 IEnumerable<string> expired_cache_keys =
                     from cache_key in c.Keys
                     where DateTime.UtcNow.Subtract(GetProjectVulnerabilitiesCacheEntry(cache_key).Item2) >= this.ProjectVulnerabilitiesCacheTTL
-                    join artifact in ArtifactProjects
+                    join artifact in ArtifactsWithProjects
                     on GetProjectVulnerabilitiesCacheEntry(cache_key).Item1 equals artifact.ProjectId
                     select cache_key;
                 this.ProjectVulnerabilitiesExpiredCacheKeys = expired_cache_keys;
@@ -457,7 +473,7 @@ namespace DevAudit.AuditLibrary
                 IEnumerable<string> expired_cache_keys =
                     from cache_key in ProjectVulnerabilitiesCache.Keys
                     where DateTime.UtcNow.Subtract(GetProjectVulnerabilitiesCacheEntry(cache_key).Item2) >= this.ProjectVulnerabilitiesCacheTTL
-                    join artifact in ArtifactProjects
+                    join artifact in ArtifactsWithProjects
                     on GetProjectVulnerabilitiesCacheEntry(cache_key).Item1 equals artifact.ProjectId
                     select cache_key;
                 this.ProjectVulnerabilitiesExpiredCacheKeys = expired_cache_keys;

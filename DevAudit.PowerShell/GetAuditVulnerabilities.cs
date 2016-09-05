@@ -33,7 +33,7 @@ namespace DevAudit.PowerShell
             {
                 WriteVerbose(string.Format("Searching OSS Index for {0} {1} packages...", base.PackageSource.Packages.Count(), base.PackageSource.PackageManagerLabel));
                 Task.WaitAll(base.PackageSource.ArtifactsTask.ToArray());
-                WriteVerbose(string.Format("Found {0} artifacts, {1} with an OSS Index project id.", base.PackageSource.Artifacts.Count(), base.PackageSource.ArtifactProjects.Count));
+                WriteVerbose(string.Format("Found {0} artifacts, {1} with an OSS Index project id.", base.PackageSource.Artifacts.Count(), base.PackageSource.ArtifactsWithProjects.Count));
             }
             catch (AggregateException ae)
             {
@@ -46,7 +46,7 @@ namespace DevAudit.PowerShell
 
         protected override void ProcessRecord()
         {
-            int projects_count = this.PackageSource.ArtifactProjects.Count;
+            int projects_count = this.PackageSource.ArtifactsWithProjects.Count;
             int projects_processed = 0;
             int projects_successful = 0;
             while (this.PackageSource.VulnerabilitiesTask.Count() > 0)

@@ -40,7 +40,7 @@ namespace DevAudit.Tests
             Assert.NotEmpty(s.Packages);
             Task.WaitAll(s.ArtifactsTask.ToArray());
             Assert.NotEmpty(s.Artifacts);
-            var t = new List<Task> (s.ArtifactProjects.Count());
+            var t = new List<Task> (s.ArtifactsWithProjects.Count());
             /*
             s.ArtifactProjects.ForEach(p =>
             {
@@ -48,7 +48,7 @@ namespace DevAudit.Tests
                 List<OSSIndexPackageVulnerability> package_vulnerabilities = s.HttpClient.GetPackageVulnerabilitiesAsync(artifact.PackageId).Result;
             });*/
             
-            s.ArtifactProjects.ForEach(p => t.Add(Task<Task>
+            s.ArtifactsWithProjects.ForEach(p => t.Add(Task<Task>
                 .Factory.StartNew(async (o) =>
                 {
                     OSSIndexArtifact artifact = o as OSSIndexArtifact;

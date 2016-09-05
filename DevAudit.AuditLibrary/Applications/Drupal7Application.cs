@@ -202,6 +202,11 @@ namespace DevAudit.AuditLibrary
             }
             else return r;
         }
+
+        public override bool IsConfigurationRuleVersionInServerVersionRange(string configuration_rule_version, string server_version)
+        {
+            return (configuration_rule_version == server_version) || configuration_rule_version == ">0";
+        }
         #endregion
 
         #region Constructors

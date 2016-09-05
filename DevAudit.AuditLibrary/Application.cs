@@ -2,9 +2,9 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Xml.Linq;
-
 using Alpheus;
 using YamlDotNet.Serialization;
 using YamlDotNet.Serialization.NamingConventions;
@@ -13,7 +13,9 @@ namespace DevAudit.AuditLibrary
 {
     public abstract class Application : PackageSource
     {
-        #region Public abstract properties
+        #region Public abstract methods and properties
+        public abstract bool IsConfigurationRuleVersionInServerVersionRange(string configuration_rule_version, string server_version);
+
         public abstract string ApplicationId { get; }
 
         public abstract string ApplicationLabel { get; }
@@ -91,14 +93,37 @@ namespace DevAudit.AuditLibrary
             }
         }
 
-        public Task<Dictionary<OSSIndexProject, Tuple<IEnumerable<OSSIndexProjectConfigurationRule>, string>>> ConfigurationRulesTask
+        public List<Task<KeyValuePair<OSSIndexProject, IEnumerable<OSSIndexProjectConfigurationRule>>>> ConfigurationRulesTask
         {
             get
             {
                 if (_ConfigurationRulesTask == null)
                 {
-                    this._ConfigurationRulesTask = Task.Run(() => this.GetConfigurationRules());
+                    this._ConfigurationRulesForProject = new Dictionary<OSSIndexProject, IEnumerable<OSSIndexProjectConfigurationRule>>();
+                    this.LoadDefaultConfigurationRules();
+                    List<string> projects_to_query = this.ArtifactsWithProjects.Select(a => a.ProjectId).ToList();
+                    this._ConfigurationRulesTask = new List<Task<KeyValuePair<OSSIndexProject, IEnumerable<OSSIndexProjectConfigurationRule>>>>(projects_to_query.Count);
+                    projects_to_query.ForEach(pr => this._ConfigurationRulesTask.Add(Task<Task<KeyValuePair<OSSIndexProject, IEnumerable<OSSIndexProjectConfigurationRule>>>>.Factory.StartNew(async (o) =>    
+                        {
+                            string project_id = o as string;
+                            OSSIndexProject project = null;
+                            if (!ArtifactProject.Values.Any(ap => ap.Id.ToString() == project_id))
+                            {
+                                project = await this.HttpClient.GetProjectForIdAsync(project_id);
 
+                            }
+                            else
+                            {
+                                project = ArtifactProject.Values.Where(ap => ap.Id.ToString() == project_id).First();
+                            }
+                            IEnumerable<OSSIndexProjectConfigurationRule> rules = await this.HttpClient.GetConfigurationRulesForIdAsync(project_id);
+                            if (rules != null)
+                            {
+                                this.AddConfigurationRules(project, rules);
+                            }
+                            return new KeyValuePair<OSSIndexProject, IEnumerable<OSSIndexProjectConfigurationRule>>
+                            (project, rules);
+                        }, pr, CancellationToken.None, TaskCreationOptions.DenyChildAttach, TaskScheduler.Default).Unwrap()));
                 }
                 return this._ConfigurationRulesTask;
             }
@@ -162,7 +187,7 @@ namespace DevAudit.AuditLibrary
                     }
                     if (!File.Exists(fn))
                     {
-                        throw new ArgumentException(string.Format("The required application file {0} was not found.", f), "Application_options");
+                        throw new ArgumentException(string.Format("The required application file {0} was not found.", f), "application_options");
                     }
                     else
                     {
@@ -263,25 +288,6 @@ namespace DevAudit.AuditLibrary
             throw new NotImplementedException();
         }
 
-        protected Dictionary<OSSIndexProject, Tuple<IEnumerable<OSSIndexProjectConfigurationRule>, string>> GetConfigurationRules()
-        {
-            Dictionary<OSSIndexProject, Tuple<IEnumerable<OSSIndexProjectConfigurationRule>, string>> r = new Dictionary<OSSIndexProject, Tuple<IEnumerable<OSSIndexProjectConfigurationRule>, string>>();
-                string get_default_rules_error = "";
-            int n = this.LoadDefaultConfigurationRules(out get_default_rules_error);
-            if (n > 0)
-            {
-                foreach (var kv in this.ProjectConfigurationRules)
-                {
-                    r.Add(kv.Key, new Tuple<IEnumerable<OSSIndexProjectConfigurationRule>, string>(kv.Value, string.Empty));
-                }
-            }
-            else if (n  < 0)
-            {
-                r.Add(new OSSIndexProject() { Name = this.ApplicationId }, new Tuple<IEnumerable<OSSIndexProjectConfigurationRule>, string>(null, get_default_rules_error));
-            }
-            return r;
-        }
-
         public Dictionary<OSSIndexProjectConfigurationRule, Tuple<bool, List<string>, string>> EvaluateProjectConfigurationRules(IEnumerable<OSSIndexProjectConfigurationRule> rules)
         {
             Dictionary<OSSIndexProjectConfigurationRule, Tuple<bool, List<string>, string>> results = new Dictionary<OSSIndexProjectConfigurationRule, Tuple<bool, List<string>, string>>(rules.Count());
@@ -321,15 +327,15 @@ namespace DevAudit.AuditLibrary
         protected Dictionary<OSSIndexProject, IEnumerable<OSSIndexProjectConfigurationRule>> _ConfigurationRulesForProject;
         private Task<Dictionary<string, IEnumerable<OSSIndexQueryObject>>> _ModulesTask;
         private Task _ConfigurationTask;
-        private Task<Dictionary<OSSIndexProject, Tuple<IEnumerable<OSSIndexProjectConfigurationRule>, string>>> _ConfigurationRulesTask;
+        private List<Task<KeyValuePair<OSSIndexProject, IEnumerable<OSSIndexProjectConfigurationRule>>>> _ConfigurationRulesTask;
+        private object configuration_rules_lock = new object();
         #endregion
 
         #region Protected and private methods
-        protected int LoadDefaultConfigurationRules(out string exception_message)
+        protected int LoadDefaultConfigurationRules()
         {
-            exception_message = string.Empty;
             string rules_file_name = Path.Combine("Rules", this.ApplicationId + "." + "yml");
-            if (!File.Exists(rules_file_name)) return 0;
+            if (!File.Exists(rules_file_name)) throw new Exception(string.Format("The default rules file {0} does not exist.", rules_file_name));
             Deserializer yaml_deserializer = new Deserializer(namingConvention: new CamelCaseNamingConvention(), ignoreUnmatched: true);
             Dictionary<string, List<OSSIndexProjectConfigurationRule>> rules;
             using (StreamReader r = new StreamReader(rules_file_name))
@@ -338,15 +344,36 @@ namespace DevAudit.AuditLibrary
             }
             if (rules == null)
             {
-                return -1;
+                throw new Exception(string.Format("Parsing the default rules file {0} returned null.", rules_file_name));
             }
-            this._ConfigurationRulesForProject = new Dictionary<OSSIndexProject, IEnumerable<OSSIndexProjectConfigurationRule>>(rules.Count);
             foreach (KeyValuePair<string, List<OSSIndexProjectConfigurationRule>> kv in rules)
             {
-                OSSIndexProject p = new OSSIndexProject() { Name = kv.Key };
-                this._ConfigurationRulesForProject.Add(p, kv.Value);
+                this.AddConfigurationRules(kv.Key, kv.Value);
             }
             return rules.Count;
+        }
+
+        protected void AddConfigurationRules(OSSIndexProject project, IEnumerable<OSSIndexProjectConfigurationRule> rules)
+        {
+            lock (configuration_rules_lock)
+            {
+      
+                this._ConfigurationRulesForProject.Add(project, rules);
+            }
+        }
+
+        protected void AddConfigurationRules(string project_name, IEnumerable<OSSIndexProjectConfigurationRule> rules)
+        {
+            lock (configuration_rules_lock)
+            {
+
+                OSSIndexProject project = ArtifactProject.Values.Where(p => p.Name == project_name).FirstOrDefault();
+                if (project == null)
+                {
+                    project = new OSSIndexProject() { Name = project_name };
+                }
+                this._ConfigurationRulesForProject.Add(project, rules);
+            }
         }
         #endregion
 

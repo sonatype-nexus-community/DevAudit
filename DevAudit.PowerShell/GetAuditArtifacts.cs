@@ -33,7 +33,7 @@ namespace DevAudit.PowerShell
             {
                 WriteVerbose(string.Format("Searching OSS Index for {0} {1} packages...", base.PackageSource.Packages.Count(), base.PackageSource.PackageManagerLabel));
                 Task.WaitAll(base.PackageSource.ArtifactsTask.ToArray());
-                WriteVerbose(string.Format("\nFound {0} artifacts, {1} with an OSS Index project id.", base.PackageSource.Artifacts.Count(), base.PackageSource.ArtifactProjects.Count));
+                WriteVerbose(string.Format("\nFound {0} artifacts, {1} with an OSS Index project id.", base.PackageSource.Artifacts.Count(), base.PackageSource.ArtifactsWithProjects.Count));
             }
             catch (AggregateException ae)
             {

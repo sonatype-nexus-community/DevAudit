@@ -67,6 +67,11 @@ namespace DevAudit.AuditLibrary
             return this.Configuration;
         }
 
+        public override bool IsConfigurationRuleVersionInServerVersionRange(string configuration_rule_version, string server_version)
+        {
+            return (configuration_rule_version == server_version) || configuration_rule_version == ">0";
+        }
+
         public override string GetVersion()
         {
             HostEnvironment.ProcessStatus process_status;
