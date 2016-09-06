@@ -40,7 +40,7 @@ namespace DevAudit.AuditLibrary
 
         public override OSSIndexHttpClient HttpClient { get; } = new OSSIndexHttpClient("1.1");
 
-        public override string DefaultConfigurationFile { get; } = Path.Combine(DIR, "etc", "sshd", "sshd_config");
+        public override string DefaultConfigurationFile { get; } = Path.Combine(DIR, "etc", "ssh", "sshd_config");
         #endregion
 
         #region Public properties
