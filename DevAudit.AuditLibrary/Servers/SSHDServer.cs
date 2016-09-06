@@ -84,10 +84,10 @@ namespace DevAudit.AuditLibrary
                 {
                     process_output = process_error;
                 }
-                this.Version = process_output.Split(Environment.NewLine.ToCharArray())[1];
+                this.Version = process_error.Split(Environment.NewLine.ToCharArray(), StringSplitOptions.RemoveEmptyEntries)[1];
                 return this.Version;
             }
-            else if (!string.IsNullOrEmpty(process_error) && string.IsNullOrEmpty(process_output) && process_error.StartsWith("sshd: unknown option"))
+            else if (!string.IsNullOrEmpty(process_error) && string.IsNullOrEmpty(process_output) && process_error.Contains("unknown option"))
             {
                 this.Version = process_error.Split(Environment.NewLine.ToCharArray(), StringSplitOptions.RemoveEmptyEntries)[1];
                 return this.Version;
