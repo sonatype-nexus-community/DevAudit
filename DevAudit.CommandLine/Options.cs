@@ -53,6 +53,9 @@ namespace DevAudit.CommandLine
         [VerbOption("httpd", HelpText = "Audit an Apache Httpd server instance. Use the --root option to specify the root directory of the Httpd server instance, and the --config-file option to specify the configuration file otherwise conf/httpd.conf will be used.")]
         public Options Httpd { get; set; }
 
+        [VerbOption("nginx", HelpText = "Audit an Nginx server instance. Use the --root option to specify the root directory of the Httpd server instance, and the --config-file option to specify the configuration file otherwise conf/httpd.conf will be used.")]
+        public Options Nginx { get; set; }
+
         [Option('f', "file", Required = false, HelpText = "Specifies the file containing packages to be audited.")]
         public string File { get; set; }
 

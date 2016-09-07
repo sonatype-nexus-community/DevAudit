@@ -153,6 +153,11 @@ namespace DevAudit.CommandLine
                         Server = new HttpdServer(audit_options);
                         Source = Server as PackageSource;
                     }
+                    else if (verb == "nginx")
+                    {
+                        Server = new NginxServer(audit_options);
+                        Source = Server as PackageSource;
+                    }
                 }
                 catch (ArgumentException ae)
                 {
