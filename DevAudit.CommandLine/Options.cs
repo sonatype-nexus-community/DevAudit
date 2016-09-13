@@ -56,32 +56,29 @@ namespace DevAudit.CommandLine
         [VerbOption("nginx", HelpText = "Audit an Nginx server instance. Use the --root option to specify the root directory of the Httpd server instance, and the --config-file option to specify the configuration file otherwise conf/httpd.conf will be used.")]
         public Options Nginx { get; set; }
 
-        [Option('f', "file", Required = false, HelpText = "Specifies the file containing packages to be audited.")]
-        public string File { get; set; }
-
-        [Option('p', "list-packages", Required = false, HelpText = "Only list the local packages that will be audited.")]
-        public bool ListPackages { get; set; }
-
-        [Option('a', "list-artifacts", Required = false, HelpText = "Only list the artifacts corresponding to local packages found on OSS Index.")]
-        public bool ListArtifacts { get; set; }
-
-        [Option('c', "config-file", Required = false, HelpText = "Specifies the configuration file for the application server to be audited.")]
-        public string ConfigurationFile { get; set; }
-
-        [Option('l', "list-rules", Required = false, HelpText = "Only list the configuration rules for the application or application server found on OSS Index.")]
-        public bool ListRules { get; set; }
-
         [Option('n', "non-interact", Required = false, HelpText = "Disable any interctive console output (for redirecting console output to other devices.)")]
         public bool NonInteractive { get; set; }
 
-        [Option('z', "cache", Required = false, HelpText = "Cache results from querying OSS Index. Projects and vulnerabilities will be cached by default for 180 minutes or the duration specified by the --cache-ttl parameter.")]
-        public bool Cache { get; set; }
+        [Option('f', "file", Required = false, HelpText = "Specifies the file containing packages to be audited.")]
+        public string File { get; set; }
 
-        [Option('t', "cache-ttl", Required = false, HelpText = "Cache TTL - projects and vulnearabilities will be cached for the number of minutes specified here.")]
-        public string CacheTTL { get; set; }
+        [Option('s', "host", Required = false, HelpText = "Specifies the remote host that will be audited.")]
+        public string RemoteHost { get; set; }
 
-        [Option('k', "cache-dump", Required = false, HelpText = "Cache Dump - projects and vulnearabilities will be cached for the number of minutes specified here.")]
-        public bool CacheDump { get; set; }
+        [Option('u', "user", Required = false, HelpText = "Specifies the user name to login to the remote host.")]
+        public string RemoteUser { get; set; }
+
+        [Option('p', "password", Required = false, HelpText = "Specifies that a password will be typed for the user name to login to the remote host.")]
+        public bool RemotePassword { get; set; }
+
+        [Option('a', "use-agent", Required = false, HelpText = "Attempt to use an agent to retrieve the private key to login to the remote host.")]
+        public bool UseAgent { get; set; }
+
+        [Option('k', "key", Required = false, HelpText = "Specifies the private key file for the user to login to the remote host.")]
+        public string RemoteKey { get; set; }
+
+        [Option('c', "config-file", Required = false, HelpText = "Specifies the configuration file for the application server to be audited.")]
+        public string ConfigurationFile { get; set; }
 
         [Option('r', "root", Required = false, HelpText = "The root directory of the application instance to audit.")]
         public string RootDirectory { get; set; }
@@ -91,6 +88,24 @@ namespace DevAudit.CommandLine
 
         [Option('b', "application-binary", Required = false, HelpText = "The path to the application or server binary.")]
         public string ApplicationBinary { get; set; }
+
+        [Option("list-packages", Required = false, HelpText = "Only list the local packages that will be audited.")]
+        public bool ListPackages { get; set; }
+
+        [Option("list-artifacts", Required = false, HelpText = "Only list the artifacts corresponding to local packages found on OSS Index.")]
+        public bool ListArtifacts { get; set; }
+
+        [Option("list-rules", Required = false, HelpText = "Only list the configuration rules for the application or application server found on OSS Index.")]
+        public bool ListRules { get; set; }
+
+        [Option("cache", Required = false, HelpText = "Cache results from querying OSS Index. Projects and vulnerabilities will be cached by default for 180 minutes or the duration specified by the --cache-ttl parameter.")]
+        public bool Cache { get; set; }
+
+        [Option("cache-ttl", Required = false, HelpText = "Cache TTL - projects and vulnearabilities will be cached for the number of minutes specified here.")]
+        public string CacheTTL { get; set; }
+
+        [Option("cache-dump", Required = false, HelpText = "Cache Dump - projects and vulnearabilities will be cached for the number of minutes specified here.")]
+        public bool CacheDump { get; set; }
 
         [ParserState]
         public IParserState LastParserState { get; set; }

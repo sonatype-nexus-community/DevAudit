@@ -2,9 +2,12 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices;
+using System.Security;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Xml.Linq;
+
 using Alpheus;
 using YamlDotNet.Serialization;
 using YamlDotNet.Serialization.NamingConventions;
@@ -135,12 +138,15 @@ namespace DevAudit.AuditLibrary
 
         public Application(Dictionary<string, object> application_options)
         {
-            if (ReferenceEquals(application_options, null)) throw new ArgumentNullException("Application_options");
+            if (ReferenceEquals(application_options, null)) throw new ArgumentNullException("application_options");
             this.ApplicationOptions = application_options;
+            if (this.ApplicationOptions.Keys.Contains("RemoteHost"))
+            {
 
+            }
             if (!this.ApplicationOptions.ContainsKey("RootDirectory"))
             {
-                throw new ArgumentException(string.Format("The root application directory was not specified."), "Application_options");
+                throw new ArgumentException(string.Format("The root application directory was not specified."), "application_options");
             }
             else if (!Directory.Exists((string)this.ApplicationOptions["RootDirectory"]))
             {
@@ -162,7 +168,7 @@ namespace DevAudit.AuditLibrary
                 {
                     if (string.IsNullOrEmpty(f.Value))
                     {
-                        throw new ArgumentException(string.Format("The required application file {0} was not specified and no default path exists.", f), "Application_options");
+                        throw new ArgumentException(string.Format("The required application file {0} was not specified and no default path exists.", f), "application_options");
                     }
                     else
                     {
@@ -320,7 +326,6 @@ namespace DevAudit.AuditLibrary
             return "@" + Path.Combine(paths);
         }
 
-       
         #endregion
 
         #region Protected and private fields

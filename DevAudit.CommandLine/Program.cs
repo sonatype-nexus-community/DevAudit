@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
 using System.Linq;
+using System.Security;
 using System.Text;
 using System.Threading.Tasks;
 using System.Xml.Linq;
@@ -50,50 +51,88 @@ namespace DevAudit.CommandLine
             {
                 return (int)ExitCodes.INVALID_ARGUMENTS;
             }
-            else
+           
+            if (!string.IsNullOrEmpty(ProgramOptions.RemoteHost))
             {
-                if (!string.IsNullOrEmpty(ProgramOptions.File))
+                if (Uri.CheckHostName(ProgramOptions.RemoteHost) == UriHostNameType.Unknown)
                 {
-                    if (!File.Exists(ProgramOptions.File))
+                    PrintErrorMessage("Unknown host name type: {0}.", ProgramOptions.RemoteHost);
+                    return (int)ExitCodes.INVALID_ARGUMENTS;
+                }
+                else
+                {
+                    audit_options.Add("RemoteHost", ProgramOptions.RemoteHost);
+                }
+                if (!string.IsNullOrEmpty(ProgramOptions.RemoteUser))
+                {
+                    audit_options.Add("RemoteUser", ProgramOptions.RemoteUser);
+                    if (ProgramOptions.RemotePassword)
                     {
-                        PrintErrorMessage("Error in parameter: Could not find file {0}.", ProgramOptions.File);
-                        return (int)ExitCodes.INVALID_ARGUMENTS;
+                        SecureString p = ReadPassword('*');
+                        audit_options.Add("RemotePass", p);
+                    }
+                    else if (!string.IsNullOrEmpty(ProgramOptions.RemoteKey))
+                    {
+                        if (!File.Exists(ProgramOptions.RemoteKey))
+                        {
+                            PrintErrorMessage("Error in parameter: Could not find file {0}.", ProgramOptions.RemoteKey);
+                            return (int)ExitCodes.INVALID_ARGUMENTS;
+                        }
+                        else
+                        {
+                            SecureString p = ReadPassword('*');
+                            audit_options.Add("RemoteKey", ProgramOptions.RemoteKey);
+                            audit_options.Add("RemoteKeyPassPhrase", p);
+                        }
                     }
                     else
                     {
-                        audit_options.Add("File", ProgramOptions.File);
+                        audit_options.Add("RemoteUseAgent", true);
                     }
                 }
-                if (ProgramOptions.Cache)
-                {
-                   audit_options.Add("Cache", true);
-                }
+            }
 
-                if (!string.IsNullOrEmpty(ProgramOptions.CacheTTL))
+            if (!string.IsNullOrEmpty(ProgramOptions.File))
+            {
+                if (!File.Exists(ProgramOptions.File))
                 {
-                    audit_options.Add("CacheTTL", ProgramOptions.CacheTTL);
+                    PrintErrorMessage("Error in parameter: Could not find file {0}.", ProgramOptions.File);
+                    return (int)ExitCodes.INVALID_ARGUMENTS;
                 }
-
-                if (!string.IsNullOrEmpty(ProgramOptions.RootDirectory))
+                else
                 {
-                    audit_options.Add("RootDirectory", ProgramOptions.RootDirectory);
+                    audit_options.Add("File", ProgramOptions.File);
                 }
+            }
 
-                if (!string.IsNullOrEmpty(ProgramOptions.DockerContainerId))
-                {
-                    audit_options.Add("DockerContainerId", ProgramOptions.DockerContainerId);
-                }
+            if (ProgramOptions.Cache)
+            {
+                audit_options.Add("Cache", true);
+            }
 
-                if (!string.IsNullOrEmpty(ProgramOptions.ConfigurationFile))
-                {
-                    audit_options.Add("ConfigurationFile", ProgramOptions.ConfigurationFile);
-                }
+            if (!string.IsNullOrEmpty(ProgramOptions.CacheTTL))
+            {
+                audit_options.Add("CacheTTL", ProgramOptions.CacheTTL);
+            }
 
-                if (!string.IsNullOrEmpty(ProgramOptions.ApplicationBinary))
-                {
-                    audit_options.Add("ApplicationBinary", ProgramOptions.ApplicationBinary);
-                }
+            if (!string.IsNullOrEmpty(ProgramOptions.RootDirectory))
+            {
+                audit_options.Add("RootDirectory", ProgramOptions.RootDirectory);
+            }
 
+            if (!string.IsNullOrEmpty(ProgramOptions.DockerContainerId))
+            {
+                audit_options.Add("DockerContainerId", ProgramOptions.DockerContainerId);
+            }
+
+            if (!string.IsNullOrEmpty(ProgramOptions.ConfigurationFile))
+            {
+                audit_options.Add("ConfigurationFile", ProgramOptions.ConfigurationFile);
+            }
+
+            if (!string.IsNullOrEmpty(ProgramOptions.ApplicationBinary))
+            {
+                audit_options.Add("ApplicationBinary", ProgramOptions.ApplicationBinary);
             }
             #endregion
 
@@ -510,6 +549,7 @@ namespace DevAudit.CommandLine
         static void AuditServer(out ExitCodes exit)
         {
             if (ReferenceEquals(Server, null)) throw new ArgumentNullException("Server");
+            Server.HostEnvironmentMessageHandler += Server_HostEnvironmentMessageHandler;
             PrintMessage("Scanning {0} version, modules, extensions, or plugins...", Server.ServerLabel);
             StartSpinner();
             string version;
@@ -654,6 +694,11 @@ namespace DevAudit.CommandLine
                 }
             }
             return;
+        }
+
+        private static void Server_HostEnvironmentMessageHandler(object sender, EnvironmentEventArgs e)
+        {
+            PrintMessageLine("Host environment message: {0}", e.Message);
         }
 
         static void PrintMessage(string format)
@@ -827,6 +872,44 @@ namespace DevAudit.CommandLine
                 PrintMessageLine(string.Empty);
             }
 
+        }
+
+        static SecureString ReadPassword(char mask)
+        {
+            const int ENTER = 13, BACKSP = 8, CTRLBACKSP = 127;
+            int[] FILTERED = { 0, 27, 9, 10 /*, 32 space, if you care */ }; // const
+
+
+            SecureString pass = new SecureString();
+
+            char c = (char) 0;
+            Console.Write("Password: ");
+            while ((c = Console.ReadKey(true).KeyChar) != ENTER)
+            {
+                if (((c == BACKSP) || (c == CTRLBACKSP)) && (pass.Length > 0))
+                {
+                    //Console.Write("\b \b");
+                    pass.RemoveAt(pass.Length - 1);
+
+                }
+                // Don't append * when length is 0 and backspace is selected
+                else if (((c == BACKSP) || (c == CTRLBACKSP)) && (pass.Length == 0))
+                {
+                }
+
+                // Don't append when a filtered char is detected
+                else if (FILTERED.Any(f => f == c))
+                {
+                }
+
+                // Append and write * mask
+                else
+                {
+                    pass.AppendChar(c);
+                    //Console.Write(mask);
+                }
+            }
+            return pass;
         }
 
         static void Program_UnhandledException(object sender, UnhandledExceptionEventArgs e)

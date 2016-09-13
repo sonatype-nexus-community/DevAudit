@@ -66,11 +66,11 @@ namespace DevAudit.AuditLibrary
 
         public override string GetVersion()
         {
-            HostEnvironment.ProcessStatus process_status;
+            AuditEnvironment.ProcessExecuteStatus process_status;
             string process_output;
             string process_error;
-            HostEnvironment.Execute(ApplicationBinary.FullName, "-v", out process_status, out process_output, out process_error);
-            if (process_status == HostEnvironment.ProcessStatus.Success && (process_output.Contains("nginx version: ") || process_error.Contains("nginx version: ")))
+            AuditEnvironment.Execute(ApplicationBinary.FullName, "-v", out process_status, out process_output, out process_error);
+            if (process_status == AuditEnvironment.ProcessExecuteStatus.Success && (process_output.Contains("nginx version: ") || process_error.Contains("nginx version: ")))
             {
                 if (!string.IsNullOrEmpty(process_error) && string.IsNullOrEmpty(process_output))
                 {

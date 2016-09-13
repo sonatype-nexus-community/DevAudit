@@ -14,7 +14,7 @@ using Sprache;
 
 namespace DevAudit.AuditLibrary
 {
-    public abstract class PackageSource : IDisposable
+    public abstract class PackageSource : AuditTarget, IDisposable
     {
         #region Public properties
         public abstract OSSIndexHttpClient HttpClient { get; }
@@ -249,10 +249,9 @@ namespace DevAudit.AuditLibrary
         #region Constructors
         public PackageSource() { }
 
-        public PackageSource(Dictionary<string, object> package_source_options)
+        public PackageSource(Dictionary<string, object> package_source_options) : base(package_source_options)
         {
-            this.PackageSourceOptions = package_source_options;
-
+            this.PackageSourceOptions = this.AuditOptions;
             if (this.PackageSourceOptions.ContainsKey("File"))
             {
                 this.PackageManagerConfigurationFile = (string)this.PackageSourceOptions["File"];

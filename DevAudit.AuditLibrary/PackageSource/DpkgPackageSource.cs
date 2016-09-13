@@ -44,9 +44,9 @@ namespace DevAudit.AuditLibrary
                 string command = @"dpkg-query";
                 string arguments = @"-W -f '${package} ${version}\\n'";
                 Regex process_output_pattern = new Regex(@"^(\S+)\s(\S+)$", RegexOptions.Compiled);
-                HostEnvironment.ProcessStatus process_status;
+                AuditEnvironment.ProcessExecuteStatus process_status;
                 string process_output, process_error;
-                if (HostEnvironment.Execute(command, arguments, out process_status, out process_output, out process_error))
+                if (AuditEnvironment.Execute(command, arguments, out process_status, out process_output, out process_error))
                 {
                     string[] p = process_output.Split("\n".ToCharArray());
                     for (int i = 0; i < p.Count(); i++)

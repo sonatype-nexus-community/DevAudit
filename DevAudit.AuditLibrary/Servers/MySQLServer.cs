@@ -71,11 +71,11 @@ namespace DevAudit.AuditLibrary
 
         public override string GetVersion()
         {
-            HostEnvironment.ProcessStatus process_status;
+            AuditEnvironment.ProcessExecuteStatus process_status;
             string process_output;
             string process_error;
-            HostEnvironment.Execute(this.ApplicationBinary.FullName, "-V", out process_status, out process_output, out process_error);
-            if (process_status == HostEnvironment.ProcessStatus.Success)
+            AuditEnvironment.Execute(this.ApplicationBinary.FullName, "-V", out process_status, out process_output, out process_error);
+            if (process_status == AuditEnvironment.ProcessExecuteStatus.Success)
             {
                 this.Version = process_output.Substring(process_output.IndexOf("Ver"));
                 return this.Version;

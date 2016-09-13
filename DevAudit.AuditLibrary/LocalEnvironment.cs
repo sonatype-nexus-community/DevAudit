@@ -9,23 +9,42 @@ using System.Threading.Tasks;
 
 namespace DevAudit.AuditLibrary
 {
-    public class HostEnvironment
+    public class LocalEnvironment : AuditEnvironment
     {
-        public enum ProcessStatus
+        #region Overriden members     
+        public override bool IsWindows
         {
-            Unknown = -99,
-            FileNotFound = -1,
-            Success = 0,
-            Error = 1
+            get
+            {
+                return Environment.OSVersion.Platform != PlatformID.Unix && Environment.OSVersion.Platform != PlatformID.MacOSX;
+            }
         }
 
-        public static bool Execute(string command, string arguments, 
-            out ProcessStatus process_status, out string process_output, out string process_error, Action<string> OutputDataReceived = null, Action<string> OutputErrorReceived = null)
+        public override bool IsUnix
         {
-            if (!File.Exists(command))
+            get
+            {
+                return Environment.OSVersion.Platform == PlatformID.Unix;
+            }
+        }
+        
+        public override bool FileExists(string file_path)
+        {
+            return File.Exists(file_path);
+        }
+
+        public override bool DirectoryExists(string dir_path)
+        {
+            return Directory.Exists(dir_path);
+        }
+
+        public override bool Execute(string command, string arguments, 
+            out ProcessExecuteStatus process_status, out string process_output, out string process_error, Action<string> OutputDataReceived = null, Action<string> OutputErrorReceived = null)
+        {
+            if (!FileExists(command))
             {
                 process_output = process_error = string.Empty;
-                process_status = ProcessStatus.FileNotFound;
+                process_status = ProcessExecuteStatus.FileNotFound;
                 return false;
             }
             FileInfo cf = new FileInfo(command);
@@ -73,11 +92,10 @@ namespace DevAudit.AuditLibrary
             {
                 if (e.Message == "The system cannot find the file specified")
                 {
-                    process_status = ProcessStatus.FileNotFound;
+                    process_status = ProcessExecuteStatus.FileNotFound;
                     process_err_sb.AppendLine (e.Message);
                     return false;
                 }
-
             }
             finally
             {
@@ -88,20 +106,22 @@ namespace DevAudit.AuditLibrary
 
             if ((process_exit_code.HasValue && process_exit_code.Value != 0))
             {
-                process_status = ProcessStatus.Error;
+                process_status = ProcessExecuteStatus.Error;
                 return false;
             }
             else if ((process_exit_code.HasValue && process_exit_code.Value == 0))
             {
-                process_status = ProcessStatus.Success;
+                process_status = ProcessExecuteStatus.Success;
                 return true;
             }
             else
             {
-                process_status = ProcessStatus.Unknown;
+                process_status = ProcessExecuteStatus.Unknown;
                 return false;
 
             }
         }
+        #endregion
+
     }
 }

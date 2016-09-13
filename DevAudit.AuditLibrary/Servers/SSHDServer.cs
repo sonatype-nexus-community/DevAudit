@@ -2,9 +2,9 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Security;
 using System.Text;
 using System.Threading.Tasks;
-
 using YamlDotNet.Serialization;
 using YamlDotNet.Serialization.NamingConventions;
 using Alpheus;
@@ -40,7 +40,7 @@ namespace DevAudit.AuditLibrary
 
         public override OSSIndexHttpClient HttpClient { get; } = new OSSIndexHttpClient("1.1");
 
-        public override string DefaultConfigurationFile { get; } = Path.Combine(DIR, "etc", "ssh", "sshd_config");
+        public override string DefaultConfigurationFile { get; } = LocateUnderRoot("etc", "ssh", "sshd_config");
         #endregion
 
         #region Public properties
@@ -74,11 +74,11 @@ namespace DevAudit.AuditLibrary
 
         public override string GetVersion()
         {
-            HostEnvironment.ProcessStatus process_status;
+            AuditEnvironment.ProcessExecuteStatus process_status;
             string process_output;
             string process_error;
-            HostEnvironment.Execute(this.ApplicationBinary.FullName, "-?", out process_status, out process_output, out process_error);
-            if (process_status == HostEnvironment.ProcessStatus.Success)
+            AuditEnvironment.Execute(this.ApplicationBinary.FullName, "-?", out process_status, out process_output, out process_error);
+            if (process_status == AuditEnvironment.ProcessExecuteStatus.Success)
             {
                 if (!string.IsNullOrEmpty(process_error) && string.IsNullOrEmpty(process_output))
                 {
@@ -100,6 +100,10 @@ namespace DevAudit.AuditLibrary
 
         public override IEnumerable<OSSIndexQueryObject> GetPackages(params string[] o)
         {
+            if (this.Modules == null)
+            {
+                this.GetModules();
+            }
             return this.Modules["sshd"];
         }
         
@@ -112,6 +116,15 @@ namespace DevAudit.AuditLibrary
         #region Constructors
         public SSHDServer(Dictionary<string, object> server_options) : base(server_options)
         {
+            if (this.ApplicationOptions.Keys.Contains("RemoteHost"))
+            {
+                if (this.ApplicationOptions.Keys.Contains("RemoteUser") && this.ApplicationOptions.Keys.Contains("RemotePass"))
+                {
+                    this.AuditEnvironment = new SshEnvironment((string)this.ApplicationOptions["RemoteHost"],
+                        (string)this.ApplicationOptions["RemoteUser"], ApplicationOptions["RemotePass"]);
+                }
+                
+            }
             if (this.ApplicationBinary != null)
             {
                 this.ApplicationFileSystemMap["sshd"] = this.ApplicationBinary;
@@ -119,7 +132,7 @@ namespace DevAudit.AuditLibrary
             else
             {
                 string fn = Environment.OSVersion.Platform == PlatformID.Unix || Environment.OSVersion.Platform == PlatformID.MacOSX
-                ? CombinePathsUnderRoot("sshd") : CombinePathsUnderRoot("sshd.exe");
+                ? CombinePathsUnderRoot("usr", "sbin", "sshd") : CombinePathsUnderRoot("usr", "sbin", "sshd.exe");
                 if (!File.Exists(fn))
                 {
                     throw new ArgumentException(string.Format("The server binary for SSHD was not specified and the default file path {0} does not exist.", fn));
