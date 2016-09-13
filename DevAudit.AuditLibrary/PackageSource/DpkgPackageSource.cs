@@ -76,8 +76,6 @@ namespace DevAudit.AuditLibrary
 
         public DpkgPackageSource(Dictionary<string, object> package_source_options) : base(package_source_options) { }
 
-        public DpkgPackageSource() : base() { }
-
         public override bool IsVulnerabilityVersionInPackageVersionRange(string vulnerability_version, string package_version)
         {
             return vulnerability_version == package_version;

@@ -102,7 +102,7 @@ namespace DevAudit.AuditLibrary
         #endregion
 
         #region Constructors
-        public NginxServer(Dictionary<string, object> server_options) : base(server_options)
+        public NginxServer(Dictionary<string, object> server_options, EventHandler<EnvironmentEventArgs> message_handler = null) : base(server_options, message_handler)
         {
             if (this.ApplicationBinary != null)
             {

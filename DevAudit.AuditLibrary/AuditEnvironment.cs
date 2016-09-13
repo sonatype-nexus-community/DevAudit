@@ -55,9 +55,36 @@ namespace DevAudit.AuditLibrary
             out ProcessExecuteStatus process_status, out string process_output, out string process_error, Action<string> OutputDataReceived = null, Action<string> OutputErrorReceived = null);
         #endregion
 
-        #region Protected and private properties
-        private StringBuilder ProcessOutputSB = new StringBuilder();
-        private StringBuilder ProcessErrorSB = new StringBuilder();
+        #region Public properties
+        public string ProcessOutput
+        {
+            get
+            {
+                return this.ProcessOutputSB.ToString();
+            }
+        }
         #endregion
+
+        #region Protected and private properties
+        protected StringBuilder ProcessOutputSB = new StringBuilder();
+        protected StringBuilder ProcessErrorSB = new StringBuilder();
+        protected string LineTerminator { get; set; }
+        #endregion
+
+        #region Constructors
+        public AuditEnvironment(EventHandler<EnvironmentEventArgs> message_handler)
+        {
+            if (this.IsWindows)
+            {
+                this.LineTerminator = "\r\n";
+            }
+            else
+            {
+                this.LineTerminator = "\n";
+            }
+            this.MessageHandler = message_handler;
+        }
+        #endregion
+
     }
 }

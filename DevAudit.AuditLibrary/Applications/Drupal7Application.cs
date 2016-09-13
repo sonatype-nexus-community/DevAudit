@@ -210,7 +210,7 @@ namespace DevAudit.AuditLibrary
         #endregion
 
         #region Constructors
-        public Drupal7Application(Dictionary<string, object> application_options) : base(application_options) {}
+        public Drupal7Application(Dictionary<string, object> application_options, EventHandler<EnvironmentEventArgs> message_handler = null) : base(application_options, message_handler) {}
         #endregion
 
     }

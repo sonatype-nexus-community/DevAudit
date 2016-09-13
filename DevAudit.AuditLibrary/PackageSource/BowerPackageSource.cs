@@ -51,8 +51,6 @@ namespace DevAudit.AuditLibrary
             else return r;
         }
 
-        public BowerPackageSource() : base() {}
-
         public BowerPackageSource(Dictionary<string, object> package_source_options) : base(package_source_options)
         {
             if (string.IsNullOrEmpty(this.PackageManagerConfigurationFile))

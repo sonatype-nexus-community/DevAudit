@@ -17,7 +17,6 @@ namespace DevAudit.AuditLibrary
 
         public override string PackageManagerLabel { get { return "NuGet"; } }
 
-        public NuGetPackageSource() : base() { }
         public NuGetPackageSource(Dictionary<string, object> package_source_options) : base(package_source_options)
         {
             if (string.IsNullOrEmpty(this.PackageManagerConfigurationFile))
@@ -30,8 +29,6 @@ namespace DevAudit.AuditLibrary
                 }
             }      
         }
-
-       
 
         //Get NuGet packages from reading packages.config
         public override IEnumerable<OSSIndexQueryObject> GetPackages(params string[] o)

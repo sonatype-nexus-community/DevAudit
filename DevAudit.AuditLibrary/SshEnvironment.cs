@@ -57,12 +57,12 @@ namespace DevAudit.AuditLibrary
             throw new NotImplementedException();
         }
 
-        public SshEnvironment(string host_name)
+        public SshEnvironment(EventHandler<EnvironmentEventArgs> message_handler, string host_name) : base(message_handler)
         {
             this.HostName = host_name;         
         }
 
-        public SshEnvironment(string host_name, string user, object pass) : this(host_name)
+        public SshEnvironment(EventHandler<EnvironmentEventArgs> message_handler, string host_name, string user, object pass) : this(message_handler, host_name)
         {
             
             string ssh_command = Environment.OSVersion.Platform == PlatformID.Win32NT ? "plink.exe" : "ssh";
@@ -82,7 +82,7 @@ namespace DevAudit.AuditLibrary
             SshSession = Expect.Spawn(s);
             Action<string> LogFileExists = (o) =>
             {
-                OnMessage(new EnvironmentEventArgs(EventMessageType.INFO, "Log file exists, overwriting."));
+                OnMessage(new EnvironmentEventArgs(EventMessageType.INFO, "Plink log file exists, overwriting."));
                 SshSession.Send("y");
             };
             Action<string> ConnectedToServer = (o) =>

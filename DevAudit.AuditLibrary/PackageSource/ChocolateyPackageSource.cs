@@ -94,7 +94,6 @@ namespace DevAudit.AuditLibrary
             return vulnerability_version == package_version;
         }
 
-        public ChocolateyPackageSource() : base() { }
         public ChocolateyPackageSource(Dictionary<string, object> package_source_options) : base(package_source_options) {}
 
 

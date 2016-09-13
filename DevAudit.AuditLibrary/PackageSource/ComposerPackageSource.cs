@@ -55,7 +55,6 @@ namespace DevAudit.AuditLibrary
 
         }
 
-        public ComposerPackageSource() : base() { }
         public ComposerPackageSource(Dictionary<string, object> package_source_options) : base(package_source_options)
         {            
             if (string.IsNullOrEmpty(this.PackageManagerConfigurationFile))

@@ -114,17 +114,8 @@ namespace DevAudit.AuditLibrary
         #endregion
 
         #region Constructors
-        public SSHDServer(Dictionary<string, object> server_options) : base(server_options)
+        public SSHDServer(Dictionary<string, object> server_options, EventHandler<EnvironmentEventArgs> message_handler = null) : base(server_options, message_handler)
         {
-            if (this.ApplicationOptions.Keys.Contains("RemoteHost"))
-            {
-                if (this.ApplicationOptions.Keys.Contains("RemoteUser") && this.ApplicationOptions.Keys.Contains("RemotePass"))
-                {
-                    this.AuditEnvironment = new SshEnvironment((string)this.ApplicationOptions["RemoteHost"],
-                        (string)this.ApplicationOptions["RemoteUser"], ApplicationOptions["RemotePass"]);
-                }
-                
-            }
             if (this.ApplicationBinary != null)
             {
                 this.ApplicationFileSystemMap["sshd"] = this.ApplicationBinary;

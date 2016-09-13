@@ -123,5 +123,8 @@ namespace DevAudit.AuditLibrary
         }
         #endregion
 
+        #region Constructors
+        public LocalEnvironment(EventHandler<EnvironmentEventArgs> message_handler) : base(message_handler) {}
+        #endregion
     }
 }

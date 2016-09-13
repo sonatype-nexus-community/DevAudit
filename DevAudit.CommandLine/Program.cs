@@ -147,11 +147,11 @@ namespace DevAudit.CommandLine
                     }
                     else if (verb == "msi")
                     {
-                        Source = new MSIPackageSource();
+                        Source = new MSIPackageSource(audit_options);
                     }
                     else if (verb == "choco")
                     {
-                        Source = new ChocolateyPackageSource();
+                        Source = new ChocolateyPackageSource(audit_options);
                     }
                     else if (verb == "bower")
                     {
@@ -159,7 +159,7 @@ namespace DevAudit.CommandLine
                     }
                     else if (verb == "oneget")
                     {
-                        Source = new OneGetPackageSource();
+                        Source = new OneGetPackageSource(audit_options);
                     }
                     else if (verb == "composer")
                     {
@@ -184,7 +184,7 @@ namespace DevAudit.CommandLine
                     }
                     else if (verb == "sshd")
                     {
-                        Server = new SSHDServer(audit_options);
+                        Server = new SSHDServer(audit_options, EnvironmentMessageHandler);
                         Source = Server as PackageSource;
                     }
                     else if (verb == "httpd")
@@ -549,7 +549,6 @@ namespace DevAudit.CommandLine
         static void AuditServer(out ExitCodes exit)
         {
             if (ReferenceEquals(Server, null)) throw new ArgumentNullException("Server");
-            Server.HostEnvironmentMessageHandler += Server_HostEnvironmentMessageHandler;
             PrintMessage("Scanning {0} version, modules, extensions, or plugins...", Server.ServerLabel);
             StartSpinner();
             string version;
@@ -696,9 +695,9 @@ namespace DevAudit.CommandLine
             return;
         }
 
-        private static void Server_HostEnvironmentMessageHandler(object sender, EnvironmentEventArgs e)
+        static void EnvironmentMessageHandler(object sender, EnvironmentEventArgs e)
         {
-            PrintMessageLine("Host environment message: {0}", e.Message);
+            PrintMessageLine(e.Message);
         }
 
         static void PrintMessage(string format)

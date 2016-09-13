@@ -247,9 +247,7 @@ namespace DevAudit.AuditLibrary
         #endregion
         
         #region Constructors
-        public PackageSource() { }
-
-        public PackageSource(Dictionary<string, object> package_source_options) : base(package_source_options)
+        public PackageSource(Dictionary<string, object> package_source_options, EventHandler<EnvironmentEventArgs> message_handler = null) : base(package_source_options, message_handler)
         {
             this.PackageSourceOptions = this.AuditOptions;
             if (this.PackageSourceOptions.ContainsKey("File"))

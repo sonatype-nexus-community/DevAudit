@@ -123,8 +123,6 @@ namespace DevAudit.AuditLibrary
 
         public OneGetPackageSource(Dictionary<string, object> package_source_options) : base(package_source_options) { }
 
-        public OneGetPackageSource() : base() { }
-
         public override bool IsVulnerabilityVersionInPackageVersionRange(string vulnerability_version, string package_version)
         {
             return vulnerability_version == package_version;
