@@ -9,8 +9,9 @@ namespace DevAudit.AuditLibrary
     public abstract class AuditTarget
     {
         #region Events
-        public event EventHandler<EnvironmentEventArgs> HostEnvironmentMessageHandler;
-        public event EventHandler<EnvironmentEventArgs> AuditEnvironmentMessageHandler;
+        protected event EventHandler<EnvironmentEventArgs> HostEnvironmentMessageHandler;
+        protected event EventHandler<EnvironmentEventArgs> AuditEnvironmentMessageHandler;
+        protected event EventHandler<EnvironmentEventArgs> ControllerMessageHandler;
         #endregion
 
         #region Public properties
@@ -22,11 +23,12 @@ namespace DevAudit.AuditLibrary
         #endregion
 
         #region Constructors
-        public AuditTarget(Dictionary<string, object> audit_options, EventHandler<EnvironmentEventArgs> message_handler = null)
+        public AuditTarget(Dictionary<string, object> audit_options, EventHandler<EnvironmentEventArgs> controller_message_handler = null)
         {
-            this.HostEnvironmentMessageHandler = message_handler;
             if (ReferenceEquals(audit_options, null)) throw new ArgumentNullException("audit_options");
             this.AuditOptions = audit_options;
+            this.ControllerMessageHandler = controller_message_handler;
+            this.HostEnvironmentMessageHandler = AuditTarget_HostEnvironmentMessageHandler;
             this.HostEnvironment = new LocalEnvironment(this.HostEnvironmentMessageHandler);
             if (this.AuditOptions.Keys.Contains("RemoteHost"))
             {
@@ -39,6 +41,13 @@ namespace DevAudit.AuditLibrary
 
             }
         }
+
+        private void AuditTarget_HostEnvironmentMessageHandler(object sender, EnvironmentEventArgs e)
+        {
+            e.Message = string.Format("Host environment message: ", e.Message);
+            this.ControllerMessageHandler.Invoke(sender, e);
+        }
+
         #endregion
     }
 }
