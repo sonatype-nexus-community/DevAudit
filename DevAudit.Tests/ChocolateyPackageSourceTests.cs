@@ -11,7 +11,7 @@ namespace DevAudit.Tests
 {
     public class ChocolateyPackageSourceTests
     {
-        protected PackageSource chocolatey = new ChocolateyPackageSource();
+        protected PackageSource chocolatey = new ChocolateyPackageSource(new Dictionary<string, object>());
 
         [Fact]
         public void CanGetOneGetPackages()

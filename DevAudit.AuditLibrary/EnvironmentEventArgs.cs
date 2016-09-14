@@ -25,5 +25,11 @@ namespace DevAudit.AuditLibrary
             this.MessageType = message_type;
             this.Message = message;
         }
+
+        public EnvironmentEventArgs(EventMessageType message_type, string message_format, params object[] m)
+        {
+            this.MessageType = message_type;
+            this.Message = string.Format(message_format, m);
+        }
     }
 }

@@ -11,7 +11,7 @@ namespace DevAudit.Tests
 {
     public class OneGetPackageSourceTests
     {
-        protected PackageSource oneget = new OneGetPackageSource();
+        protected PackageSource oneget = new OneGetPackageSource(new Dictionary<string, object>());
 
         [Fact]
         public void CanGetOneGetPackages()

@@ -11,7 +11,7 @@ namespace DevAudit.Tests
 {
     public class MSIPackageSourceTests
     {
-        protected PackageSource msi = new MSIPackageSource();
+        protected PackageSource msi = new MSIPackageSource(new Dictionary<string, object>());
 
         [Fact]
         public void CanGetMSIPackages()

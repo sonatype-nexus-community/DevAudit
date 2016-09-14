@@ -20,6 +20,8 @@ namespace DevAudit.AuditLibrary
         public Dictionary<string, object> AuditOptions { get; set; } = new Dictionary<string, object>();
         public AuditEnvironment HostEnvironment { get; protected set; }
         public AuditEnvironment AuditEnvironment { get; protected set; }
+        public bool HostEnvironmentInitialised { get; private set; } = false;
+        public bool AuditEnvironmentIntialised { get; private set; } = false;
         #endregion
 
         #region Constructors
@@ -30,21 +32,37 @@ namespace DevAudit.AuditLibrary
             this.ControllerMessageHandler = controller_message_handler;
             this.HostEnvironmentMessageHandler = AuditTarget_HostEnvironmentMessageHandler;
             this.HostEnvironment = new LocalEnvironment(this.HostEnvironmentMessageHandler);
+            this.HostEnvironmentInitialised = true;
             if (this.AuditOptions.Keys.Contains("RemoteHost"))
             {
                 if (this.AuditOptions.Keys.Contains("RemoteUser") && this.AuditOptions.Keys.Contains("RemotePass"))
                 {
-                    this.AuditEnvironment = new SshEnvironment(this.HostEnvironmentMessageHandler, (string)this.AuditOptions["RemoteHost"],
+                    SshEnvironment ssh_environment = new SshEnvironment(this.HostEnvironmentMessageHandler, (string)this.AuditOptions["RemoteHost"],
                         (string)this.AuditOptions["RemoteUser"], this.AuditOptions["RemotePass"]);
-
+                    if (ssh_environment.IsConnected)
+                    {
+                        this.AuditEnvironment = ssh_environment;
+                        this.AuditEnvironmentIntialised = true;
+                    }
+                    else
+                    {
+                        ssh_environment = null;
+                        this.AuditEnvironmentIntialised = false;
+                        throw new Exception("Failed to initialise audit environment.");
+                    }
                 }
-
             }
         }
 
         private void AuditTarget_HostEnvironmentMessageHandler(object sender, EnvironmentEventArgs e)
         {
-            e.Message = string.Format("Host environment message: ", e.Message);
+            e.Message = string.Format("Host environment message: {0}", e.Message);
+            this.ControllerMessageHandler.Invoke(sender, e);
+        }
+
+        private void AuditTarget_AuditEnvironmentMessageHandler(object sender, EnvironmentEventArgs e)
+        {
+            e.Message = string.Format("Audit environment message: {0}", e.Message);
             this.ControllerMessageHandler.Invoke(sender, e);
         }
 

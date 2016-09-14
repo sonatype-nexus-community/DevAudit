@@ -22,6 +22,7 @@ namespace DevAudit.CommandLine
         {
             SUCCESS = 0,
             INVALID_ARGUMENTS,
+            ERROR_CREATING_AUDIT_TARGET,
             NO_PACKAGE_MANAGER,
             ERROR_SCANNING_FOR_PACKAGES,
             ERROR_SEARCHING_OSS_INDEX,
@@ -37,6 +38,8 @@ namespace DevAudit.CommandLine
         static PackageSource Source { get; set; }
 
         static ApplicationServer Server { get; set; }
+
+        static Exception AuditLibraryException { get; set; }
 
         static Spinner Spinner { get; set; } =  null;
 
@@ -205,15 +208,24 @@ namespace DevAudit.CommandLine
                 }
                 catch (Exception e)
                 {
-                    PrintErrorMessage(e);
+                    AuditLibraryException = e;
                     return;
                 }
             });
 
             if (Source == null && Server == null)
             {
-                Console.WriteLine("No package source or application server specified or error parsing audit options.");
-                return (int)ExitCodes.INVALID_ARGUMENTS;
+                if (AuditLibraryException == null)
+                {
+                    Console.WriteLine("No package source or application server specified.");
+                    return (int)ExitCodes.INVALID_ARGUMENTS;
+                }
+                else
+                {
+                    PrintErrorMessage("Error initialzing audit library for audit target.");
+                    PrintErrorMessage(AuditLibraryException);
+                    return (int)ExitCodes.ERROR_CREATING_AUDIT_TARGET;
+                }
             }
             #endregion
 
@@ -908,6 +920,7 @@ namespace DevAudit.CommandLine
                     //Console.Write(mask);
                 }
             }
+            Console.Write(Environment.NewLine);
             return pass;
         }
 

@@ -5,6 +5,7 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Security;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 using ExpectNet;
@@ -17,6 +18,9 @@ namespace DevAudit.AuditLibrary
         public string HostName { get; private set; }
         public bool UsePageant { get; private set; }
         public bool UseSshAgent { get; private set; }
+        public string HostKey { get; private set; }
+        public bool IsConnected { get; private set; }
+        public string LastEvent { get; set; }
         #endregion
 
         private Session SshSession { get; set; }
@@ -64,9 +68,9 @@ namespace DevAudit.AuditLibrary
 
         public SshEnvironment(EventHandler<EnvironmentEventArgs> message_handler, string host_name, string user, object pass) : this(message_handler, host_name)
         {
-            
+
             string ssh_command = Environment.OSVersion.Platform == PlatformID.Win32NT ? "plink.exe" : "ssh";
-            string ssh_arguments = Environment.OSVersion.Platform == PlatformID.Win32NT ? string.Format("-ssh -l {0} -pw {1} -sshlog plink_ssh.log {2}", user, 
+            string ssh_arguments = Environment.OSVersion.Platform == PlatformID.Win32NT ? string.Format("-v -ssh -l {0} -pw {1} -sshlog plink_ssh.log {2}", user,
                 ToInsecureString(pass), host_name) : "";
             ProcessStartInfo psi = new ProcessStartInfo(ssh_command, ssh_arguments);
             psi.CreateNoWindow = true;
@@ -82,24 +86,104 @@ namespace DevAudit.AuditLibrary
             SshSession = Expect.Spawn(s);
             Action<string> LogFileExists = (o) =>
             {
-                OnMessage(new EnvironmentEventArgs(EventMessageType.INFO, "Plink log file exists, overwriting."));
+                Info("Plink log file exists, overwriting.");
                 SshSession.Send("y");
             };
+
             Action<string> ConnectedToServer = (o) =>
             {
-                OnMessage(new EnvironmentEventArgs(EventMessageType.INFO, "Connected to server."));
-                SshSession.Send("n");
+                Info("Connected to host {0}.", host_name);
             };
+
+            Action<string> FailedConnectToServer = (o) =>
+            {
+                Info("Failed to connect to host {0}.", host_name);
+                this.IsConnected = false;
+                return;
+            };
+
+            Action<string> GotHostKeyFingerprint = (o) =>
+            {
+                string lt = Environment.OSVersion.Platform == PlatformID.Win32NT ? "\r\n" : "\n";
+                Match m = Regex.Match(o, "Host key fingerprint is:" + lt + "([\\w\\-\\d\\s\\:]+)" + lt);
+                if (m.Success && m.Groups.Count == 2)
+                {
+                    this.HostKey = m.Groups[1].Value;
+                    Success("Host key: {0}", this.HostKey);
+                }
+                else
+                {
+                    WaitAndContinueSession(lt, (hk) =>
+                    {
+                        Match nm = Regex.Match(hk, "([\\w\\-\\d\\s\\:]+)" + lt);
+                        if (nm.Success && nm.Groups.Count == 2)
+                        {
+                            this.HostKey = nm.Groups[1].Value;
+                            Success("Host key: {0}", this.HostKey);
+                        }
+                        else
+                        {
+                            throw new Exception("Could not parse host key from output: " + o + hk);
+                        }
+
+                    });
+                }
+            };
+
             Action<string> ServerKeyNotCached = (o) =>
             {
-                OnMessage(new EnvironmentEventArgs(EventMessageType.INFO, "server key not cached."));
+                Warning("Server key not cached. The host key is not trusted.");
                 SshSession.Send("n");
             };
+
+            Action<string> AccessGranted = (o) =>
+            {
+                this.HostName = host_name;
+                this.IsConnected = true;
+            };
+
+            Action<string> AccessDenied = (o) =>
+            {
+                if (o.Contains("Password authentication failed"))
+                {
+                    this.IsConnected = false;
+                    Error("The user name or password is incorrect.");
+                    Error("Could not connect to host {0}.", host_name);
+                }
+            };
             WaitAndContinueSession("The session log file \"plink_ssh.log\" already exists.", LogFileExists);
-            WaitAndContinueSession("The server's host key is not cached in the registry.", ServerKeyNotCached);
-            
-            WaitAndContinueSession("Using SSH protocol version 2", ConnectedToServer, 2500);
-            
+            if (!WaitAndContinueSession("Using SSH protocol version 2", ConnectedToServer, 5000))
+            {
+                Error("Failed to connect to host {0}.", host_name);
+                this.IsConnected = false;
+                Error("Failed to initialise SSH audit environment.");
+                return;
+            }
+            if (!WaitAndContinueSession("Host key fingerprint is:", GotHostKeyFingerprint, 5000))
+            {
+                throw new Exception("Failed to get host key.");
+            }
+            WaitAndContinueSession("Store key in cache?", ServerKeyNotCached);
+            if (WaitAndContinueSession("Access granted", AccessGranted, 5000))
+            {
+                return;
+            }
+            else
+            {
+                if (WaitAndContinueSession("Access denied", AccessDenied))
+                {
+                    Error("Failed to initialise SSH audit environment.");
+                    return;
+                }
+                else
+                {
+                    this.IsConnected = false;
+                    Error("Could not connect to host {0}.", host_name);
+                    Error("Failed to initialise SSH audit environment.");
+                    return;
+                }
+
+            }
         }
 
 

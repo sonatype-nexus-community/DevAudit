@@ -86,5 +86,32 @@ namespace DevAudit.AuditLibrary
         }
         #endregion
 
+        #region Protected and private methods
+        protected void Message(EventMessageType message_type, string message_format, params object[] message)
+        {
+            OnMessage(new EnvironmentEventArgs(message_type, message_format, message));
+        }
+
+        protected void Info(string message_format, params object[] message)
+        {
+            OnMessage(new EnvironmentEventArgs(EventMessageType.INFO, "[INFO] " + message_format, message));
+        }
+
+        protected void Error(string message_format, params object[] message)
+        {
+            OnMessage(new EnvironmentEventArgs(EventMessageType.ERROR, "[ERROR] " + message_format, message));
+        }
+
+        protected void Success(string message_format, params object[] message)
+        {
+            OnMessage(new EnvironmentEventArgs(EventMessageType.SUCCESS, "[SUCCESS] " + message_format, message));
+        }
+
+        protected void Warning(string message_format, params object[] message)
+        {
+            OnMessage(new EnvironmentEventArgs(EventMessageType.WARNING, "[WARN] " + message_format, message));
+        }
+        #endregion
+
     }
 }
