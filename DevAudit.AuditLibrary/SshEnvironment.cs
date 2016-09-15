@@ -68,9 +68,9 @@ namespace DevAudit.AuditLibrary
 
         public SshEnvironment(EventHandler<EnvironmentEventArgs> message_handler, string host_name, string user, object pass) : this(message_handler, host_name)
         {
-
+            Info("Password: ", ToInsecureString(pass));
             string ssh_command = Environment.OSVersion.Platform == PlatformID.Win32NT ? "plink.exe" : "ssh";
-            string ssh_arguments = Environment.OSVersion.Platform == PlatformID.Win32NT ? string.Format("-v -ssh -l {0} -pw {1} -sshlog plink_ssh.log {2}", user,
+            string ssh_arguments = Environment.OSVersion.Platform == PlatformID.Win32NT ? string.Format("-v -ssh -l {0} -pw \"{1}\" -sshlog plink_ssh.log {2}", user,
                 ToInsecureString(pass), host_name) : "";
             ProcessStartInfo psi = new ProcessStartInfo(ssh_command, ssh_arguments);
             psi.CreateNoWindow = true;
@@ -113,7 +113,7 @@ namespace DevAudit.AuditLibrary
                 }
                 else
                 {
-                    WaitAndContinueSession(lt, (hk) =>
+                    SshSession.Expect.Contains(lt, (hk) =>
                     {
                         Match nm = Regex.Match(hk, "([\\w\\-\\d\\s\\:]+)" + lt);
                         if (nm.Success && nm.Groups.Count == 2)
@@ -151,26 +151,27 @@ namespace DevAudit.AuditLibrary
                     Error("Could not connect to host {0}.", host_name);
                 }
             };
-            WaitAndContinueSession("The session log file \"plink_ssh.log\" already exists.", LogFileExists);
-            if (!WaitAndContinueSession("Using SSH protocol version 2", ConnectedToServer, 5000))
+
+            SshSession.Expect.Contains("The session log file \"plink_ssh.log\" already exists.", LogFileExists);
+            if (!SshSession.Expect.Contains("Using SSH protocol version 2", ConnectedToServer, 5000).IsMatch)
             {
                 Error("Failed to connect to host {0}.", host_name);
                 this.IsConnected = false;
                 Error("Failed to initialise SSH audit environment.");
                 return;
             }
-            if (!WaitAndContinueSession("Host key fingerprint is:", GotHostKeyFingerprint, 5000))
+            if (!SshSession.Expect.Contains("Host key fingerprint is:", GotHostKeyFingerprint, 5000).IsMatch)
             {
                 throw new Exception("Failed to get host key.");
             }
-            WaitAndContinueSession("Store key in cache?", ServerKeyNotCached);
-            if (WaitAndContinueSession("Access granted", AccessGranted, 5000))
+            SshSession.Expect.Contains("Store key in cache?", ServerKeyNotCached);
+            if (SshSession.Expect.Contains("Access granted", AccessGranted, 5000).IsMatch)
             {
                 return;
             }
             else
             {
-                if (WaitAndContinueSession("Access denied", AccessDenied))
+                if (SshSession.Expect.Contains("Access denied", AccessDenied).IsMatch)
                 {
                     Error("Failed to initialise SSH audit environment.");
                     return;
@@ -184,22 +185,7 @@ namespace DevAudit.AuditLibrary
                 }
 
             }
-        }
-
-
-        public bool WaitAndContinueSession(string expected, Action<string> handler, int timeout = 100)
-        {
-            if (this.SshSession == null) throw new InvalidOperationException("The current Expect Session is null.");
-            this.SshSession.Timeout = timeout;
-            try
-            {
-                this.SshSession.Expect(expected, new ExpectedHandlerWithOutput(handler));
-                return true;
-            }
-            catch (TimeoutException)
-            {
-                return false;
-            }
+            
         }
 
         public string ToInsecureString(object o)

@@ -138,10 +138,6 @@ namespace DevAudit.AuditLibrary
         {
             if (ReferenceEquals(application_options, null)) throw new ArgumentNullException("application_options");
             this.ApplicationOptions = application_options;
-            if (this.ApplicationOptions.Keys.Contains("RemoteHost"))
-            {
-
-            }
             if (!this.ApplicationOptions.ContainsKey("RootDirectory"))
             {
                 throw new ArgumentException(string.Format("The root application directory was not specified."), "application_options");

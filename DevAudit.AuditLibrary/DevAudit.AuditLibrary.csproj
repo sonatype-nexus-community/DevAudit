@@ -52,16 +52,8 @@
       <HintPath>..\packages\CSharpTest.Net.Library.2.14.126.467\lib\net45\CSharpTest.Net.Library.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="Expect.NET, Version=2.0.1.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Expect.NET.2.0.1\lib\net45\Expect.NET.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
     <Reference Include="INIFileParser, Version=2.3.0.0, Culture=neutral, PublicKeyToken=79af7b307b65cf3c, processorArchitecture=MSIL">
       <HintPath>..\packages\ini-parser.2.3.0\lib\net20\INIFileParser.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="MedallionShell, Version=1.1.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\MedallionShell.1.1.0\lib\net45\MedallionShell.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="Newtonsoft.Json, Version=9.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
@@ -99,7 +91,6 @@
     <Compile Include="AuditTargetEventArgs.cs" />
     <Compile Include="BsonSerializer.cs" />
     <Compile Include="Docker.cs" />
-    <Compile Include="ConsoleProcess.cs" />
     <Compile Include="AuditTarget.cs" />
     <Compile Include="LocalEnvironment.cs" />
     <Compile Include="OSSIndexArtifact.cs" />
@@ -182,6 +173,12 @@
   <ItemGroup>
     <Folder Include="Configurations\" />
     <Folder Include="Examples\Drupal\core\modules\" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\Expect.NET\Expect.NET\Expect.csproj">
+      <Project>{8aa52b5e-db66-4b0b-aaba-9e6900bc3d5a}</Project>
+      <Name>Expect</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

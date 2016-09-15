@@ -890,7 +890,7 @@ namespace DevAudit.CommandLine
             const int ENTER = 13, BACKSP = 8, CTRLBACKSP = 127;
             int[] FILTERED = { 0, 27, 9, 10 /*, 32 space, if you care */ }; // const
 
-
+            string debug = "";
             SecureString pass = new SecureString();
 
             char c = (char) 0;
@@ -901,6 +901,7 @@ namespace DevAudit.CommandLine
                 {
                     //Console.Write("\b \b");
                     pass.RemoveAt(pass.Length - 1);
+                    debug.Remove(debug.Length - 1);
 
                 }
                 // Don't append * when length is 0 and backspace is selected
@@ -917,6 +918,7 @@ namespace DevAudit.CommandLine
                 else
                 {
                     pass.AppendChar(c);
+                    debug += c;
                     //Console.Write(mask);
                 }
             }
