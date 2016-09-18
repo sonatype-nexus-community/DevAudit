@@ -11,14 +11,9 @@ namespace DevAudit.AuditLibrary
     {
         #region Public abstract properties
         public abstract string ServerId { get; }
-
         public abstract string ServerLabel { get; }
-
         public abstract Dictionary<string, string> OptionalFileLocations { get; }
-
         public abstract Dictionary<string, string> OptionalDirectoryLocations { get; }
-
-        public abstract string DefaultConfigurationFile { get; }
         #endregion
 
         #region Public abstract methods
@@ -26,7 +21,7 @@ namespace DevAudit.AuditLibrary
         #endregion
 
         #region Public properties
-        //public Dictionary<string, FileSystemInfo> ServerFileSystemMap { get; } = new Dictionary<string, FileSystemInfo>();
+        public string DefaultConfigurationFile { get; protected set; }
 
         public FileInfo ConfigurationFile
         {
@@ -35,7 +30,6 @@ namespace DevAudit.AuditLibrary
                 return (FileInfo)this.ApplicationFileSystemMap["ConfigurationFile"];
             }
         }
-
 
         public string Version { get; set; }
 
@@ -46,49 +40,62 @@ namespace DevAudit.AuditLibrary
         public ApplicationServer(Dictionary<string, object> server_options, EventHandler<EnvironmentEventArgs> message_handler = null) : base(server_options, message_handler)
         {
             if (ReferenceEquals(server_options, null)) throw new ArgumentNullException("server_options");
-            this.ServerOptions = server_options;
-           
-            if (!this.ServerOptions.ContainsKey("ConfigurationFile") && string.IsNullOrEmpty(this.DefaultConfigurationFile))
+            this.ServerOptions = server_options;  
+        }
+
+        public ApplicationServer(Dictionary<string, object> server_options, Dictionary<PlatformID, string[]> default_configuration_file_path, EventHandler<EnvironmentEventArgs> message_handler = null) : base(server_options, message_handler)
+        {
+            if (default_configuration_file_path == null) throw new ArgumentNullException("default_configuration_file");
+            InitialiseConfigurationFile(default_configuration_file_path);
+        }
+
+        public ApplicationServer(Dictionary<string, object> server_options, string[] default_configuration_file_path, EventHandler<EnvironmentEventArgs> message_handler = null) : base(server_options, message_handler)
+        {
+            if (default_configuration_file_path == null) throw new ArgumentNullException("default_configuration_file");
+            InitialiseConfigurationFile(default_configuration_file_path);
+        }
+
+
+        #endregion
+
+        #region Protected methods
+        protected void InitialiseConfigurationFile(string[] default_configuration_file_path)
+        {
+            this.DefaultConfigurationFile = CombinePath(default_configuration_file_path);
+            if (!this.ServerOptions.ContainsKey("ConfigurationFile") && !string.IsNullOrEmpty(this.DefaultConfigurationFile))
             {
-                throw new ArgumentException(string.Format("The server configuration file was not specified and no default configuration file can be used."), "server_options");
-            }
-            else if (!this.ServerOptions.ContainsKey("ConfigurationFile") && !string.IsNullOrEmpty(this.DefaultConfigurationFile))
-            {
-                string cf;
-                if (this.DefaultConfigurationFile.First() == '@')
+                if (this.AuditEnvironment.FileExists(this.DefaultConfigurationFile))
                 {
-                    cf = Path.Combine(this.RootDirectory.FullName, this.DefaultConfigurationFile.Substring(1));
+                    this.ApplicationFileSystemMap.Add("ConfigurationFile", new AuditFileInfo(this.AuditEnvironment, this.DefaultConfigurationFile));
                 }
                 else
                 {
-                    cf = this.DefaultConfigurationFile;
-                }
-                if (File.Exists(cf))
-                {
-                    this.ApplicationFileSystemMap.Add("ConfigurationFile", new FileInfo(cf));
-                }
-                else
-                {
-                    throw new ArgumentException(string.Format("The server configuration file was not specified and the default configuration file {0} could not be found.", cf), "server_options");
+                    throw new ArgumentException(string.Format("The server configuration file was not specified and the default configuration file {0} could not be found.", this.DefaultConfigurationFile), "server_options");
                 }
             }
             else
             {
-                string cf = (string)this.ServerOptions["ConfigurationFile"];
-                if (cf.StartsWith("@"))
+                string cf = CombinePath((string)this.ServerOptions["ConfigurationFile"]);
+                if (this.AuditEnvironment.FileExists(cf))
                 {
-                    cf = Path.Combine(this.RootDirectory.FullName, cf.Substring(1));
-                }
-                if (File.Exists(cf))
-                {
-                    this.ApplicationFileSystemMap.Add("ConfigurationFile", new FileInfo(cf));
+                    this.ApplicationFileSystemMap.Add("ConfigurationFile", new AuditFileInfo(this.AuditEnvironment, cf));
                 }
                 else
                 {
                     throw new ArgumentException(string.Format("The server configuration file {0} was not found.", cf), "server_options");
                 }
-            }           
+            }
         }
+
+        protected void InitialiseConfigurationFile(Dictionary<PlatformID, string[]> default_configuration_file_path)
+        {
+            if (!default_configuration_file_path.Keys.Contains(this.AuditEnvironment.OS.Platform))
+            {
+                throw new ArgumentException("No default configuration file for current audit environment specified.");
+            }
+            this.InitialiseConfigurationFile(default_configuration_file_path[this.AuditEnvironment.OS.Platform]);
+        }
+
         #endregion
 
         #region Private fields

@@ -37,12 +37,13 @@ namespace DevAudit.AuditLibrary
             {
                 if (this.AuditOptions.Keys.Contains("RemoteUser") && this.AuditOptions.Keys.Contains("RemotePass"))
                 {
-                    SshEnvironment ssh_environment = new SshEnvironment(this.HostEnvironmentMessageHandler, (string)this.AuditOptions["RemoteHost"],
-                        (string)this.AuditOptions["RemoteUser"], this.AuditOptions["RemotePass"]);
+                    SshEnvironment ssh_environment = new SshEnvironment(this.HostEnvironmentMessageHandler,(string)this.AuditOptions["RemoteHost"],
+                        (string)this.AuditOptions["RemoteUser"], this.AuditOptions["RemotePass"], new OperatingSystem(PlatformID.Unix, new Version(0, 0)));
                     if (ssh_environment.IsConnected)
                     {
                         this.AuditEnvironment = ssh_environment;
                         this.AuditEnvironmentIntialised = true;
+                        this.AuditEnvironmentMessageHandler = AuditTarget_AuditEnvironmentMessageHandler;
                     }
                     else
                     {
@@ -56,13 +57,13 @@ namespace DevAudit.AuditLibrary
 
         private void AuditTarget_HostEnvironmentMessageHandler(object sender, EnvironmentEventArgs e)
         {
-            e.Message = string.Format("Host environment message: {0}", e.Message);
+            e.Message = string.Format("[HOST] {0}", e.Message);
             this.ControllerMessageHandler.Invoke(sender, e);
         }
 
         private void AuditTarget_AuditEnvironmentMessageHandler(object sender, EnvironmentEventArgs e)
         {
-            e.Message = string.Format("Audit environment message: {0}", e.Message);
+            e.Message = string.Format("[AUDIT] {0}", e.Message);
             this.ControllerMessageHandler.Invoke(sender, e);
         }
 

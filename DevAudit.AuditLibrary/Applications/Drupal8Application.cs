@@ -27,18 +27,9 @@ namespace DevAudit.AuditLibrary
 
         public override OSSIndexHttpClient HttpClient { get; } = new OSSIndexHttpClient("1.1");
        
-        public override Dictionary<string, string> RequiredDirectoryLocations { get; } = new Dictionary<string, string>()
-        {
-            { "CoreModulesDirectory", LocateUnderRoot("core", "modules") },
-            { "ContribModulesDirectory", LocateUnderRoot("modules") },
-            { "DefaultSiteDirectory", LocateUnderRoot("sites", "default") },
-        };
+        public override Dictionary<string, string> RequiredDirectoryLocations { get; } = new Dictionary<string, string>();
 
-        public override Dictionary<string, string> RequiredFileLocations { get; } = new Dictionary<string, string>()
-        {
-            { "ChangeLog", LocateUnderRoot("core", "CHANGELOG.TXT") },
-            { "CorePackagesFile", LocateUnderRoot("core", "composer.json") }
-        };
+        public override Dictionary<string, string> RequiredFileLocations { get; }
 
         #endregion
 
@@ -51,19 +42,19 @@ namespace DevAudit.AuditLibrary
             }
         }
 
-        public DirectoryInfo ContribModulesDirectory
+        public AuditDirectoryInfo ContribModulesDirectory
         {
             get
             {
-                return (DirectoryInfo)this.ApplicationFileSystemMap["ContribModulesDirectory"];
+                return (AuditDirectoryInfo)this.ApplicationFileSystemMap["ContribModulesDirectory"];
             }
         }
 
-        public DirectoryInfo SitesAllModulesDirectory
+        public AuditDirectoryInfo SitesAllModulesDirectory
         {
             get
             {
-                DirectoryInfo sites_all;
+                AuditDirectoryInfo sites_all;
                 if ((sites_all = this.RootDirectory.GetDirectories(Path.Combine("sites", "all")).FirstOrDefault()) != null)
                 {
                     return sites_all.GetDirectories(Path.Combine("modules")).FirstOrDefault();
@@ -100,7 +91,7 @@ namespace DevAudit.AuditLibrary
             }
             Dictionary<string, IEnumerable<OSSIndexQueryObject>> modules = new Dictionary<string, IEnumerable<OSSIndexQueryObject>>();            
             List<FileInfo> core_module_files = RecursiveFolderScan(this.CoreModulesDirectory, "*.info.yml").Where(f => !f.Name.Contains("_test") && !f.Name.Contains("test_")).ToList();
-            List<FileInfo> contrib_module_files = RecursiveFolderScan(this.ContribModulesDirectory, "*.info.yml").Where(f => !f.Name.Contains("_test") && !f.Name.Contains("test_")).ToList();
+            List<FileInfo> contrib_module_files = null; //TODO RecursiveFolderScan(this.ContribModulesDirectory, "*.info.yml").Where(f => !f.Name.Contains("_test") && !f.Name.Contains("test_")).ToList();
             //this.CoreModulesDirectory.GetFileSystemInfos("*.info.yml", SearchOption.AllDirectories)
             //.Where(f => !f.Name.Contains("_test") && !f.Name.Contains("test_")).ToList();
             //List<FileSystemInfo> contrib_module_files = this.ContribModulesDirectory.GetFileSystemInfos("*.info.yml", SearchOption.AllDirectories)
@@ -145,7 +136,7 @@ namespace DevAudit.AuditLibrary
             {
                 //                List<FileSystemInfo> sites_all_contrib_modules_files = this.SitesAllModulesDirectory.GetFileSystemInfos("*.info.yml", SearchOption.AllDirectories)
                 //                    .Where(f => !f.Name.Contains("_test") && !f.Name.Contains("test_")).ToList();
-                List<FileInfo> sites_all_contrib_modules_files = RecursiveFolderScan(this.SitesAllModulesDirectory, "*.info.yml").Where(f => !f.Name.Contains("_test") && !f.Name.Contains("test_")).ToList();
+                List<FileInfo> sites_all_contrib_modules_files = null; //RecursiveFolderScan(this.SitesAllModulesDirectory, "*.info.yml").Where(f => !f.Name.Contains("_test") && !f.Name.Contains("test_")).ToList();
                 if (sites_all_contrib_modules_files.Count > 0)
                 {
                     List<OSSIndexQueryObject> sites_all_contrib_modules = new List<OSSIndexQueryObject>(sites_all_contrib_modules_files.Count + 1);
@@ -220,7 +211,21 @@ namespace DevAudit.AuditLibrary
         #endregion
 
         #region Constructors
-        public Drupal8Application(Dictionary<string, object> application_options, EventHandler<EnvironmentEventArgs> message_handler = null) : base(application_options, message_handler) {}
+        public Drupal8Application(Dictionary<string, object> application_options, EventHandler<EnvironmentEventArgs> message_handler = null) : base(application_options, message_handler)
+        {
+            this.RequiredDirectoryLocations = new Dictionary<string, string>()
+            {
+                { "CoreModulesDirectory", LocatePathUnderRoot("core", "modules") },
+                { "ContribModulesDirectory", LocatePathUnderRoot("modules") },
+                { "DefaultSiteDirectory", LocatePathUnderRoot("sites", "default") }
+            };
+
+            this.RequiredFileLocations = new Dictionary<string, string>()
+            {
+                { "ChangeLog", LocatePathUnderRoot("core", "CHANGELOG.TXT") },
+                { "CorePackagesFile", LocatePathUnderRoot("core", "composer.json") }
+            };
+        }
         #endregion
 
         #region Private fields

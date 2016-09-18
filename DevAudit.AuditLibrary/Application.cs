@@ -36,15 +36,15 @@ namespace DevAudit.AuditLibrary
         #region Public properties
         public Dictionary<string, FileSystemInfo> ApplicationFileSystemMap { get; } = new Dictionary<string, FileSystemInfo>();
 
-        public DirectoryInfo RootDirectory
+        public AuditDirectoryInfo RootDirectory
         {
             get
             {
-                return (DirectoryInfo)this.ApplicationFileSystemMap["RootDirectory"];
+                return (AuditDirectoryInfo) this.ApplicationFileSystemMap["RootDirectory"];
             }
         }
 
-        public FileInfo ApplicationBinary { get; protected set; }
+        public AuditFileInfo ApplicationBinary { get; protected set; }
 
         public Dictionary<string, IEnumerable<OSSIndexQueryObject>> Modules { get; set; }
 
@@ -142,22 +142,17 @@ namespace DevAudit.AuditLibrary
             {
                 throw new ArgumentException(string.Format("The root application directory was not specified."), "application_options");
             }
-            else if (!Directory.Exists((string)this.ApplicationOptions["RootDirectory"]))
+            else if (!this.AuditEnvironment.DirectoryExists((string)this.ApplicationOptions["RootDirectory"]))
             {
                 throw new ArgumentException(string.Format("The root application directory {0} was not found.", this.ApplicationOptions["RootDirectory"]), "application_options");
             }
             else
             {
-                this.ApplicationFileSystemMap.Add("RootDirectory", new DirectoryInfo((string)this.ApplicationOptions["RootDirectory"]));
+                this.ApplicationFileSystemMap.Add("RootDirectory", new AuditDirectoryInfo(this.AuditEnvironment, (string)this.ApplicationOptions["RootDirectory"]));
             }
 
             foreach (KeyValuePair<string, string> f in RequiredFileLocations)
             {
-                string fn = f.Value;
-                if (f.Value.StartsWith("@"))
-                {
-                    fn = Path.Combine(this.RootDirectory.FullName, f.Value.Substring(1));
-                }
                 if (!this.ApplicationOptions.ContainsKey(f.Key))
                 {
                     if (string.IsNullOrEmpty(f.Value))
@@ -166,43 +161,36 @@ namespace DevAudit.AuditLibrary
                     }
                     else
                     {
-                        if (!File.Exists(fn))
+                        string fn = CombinePath(f.Value);
+                        if (!this.AuditEnvironment.FileExists(fn))
                         {
                             throw new ArgumentException(string.Format("The default path {0} for required application file {1} does not exist.",
                                 fn, f.Key), "RequiredFileLocations");
                         }
                         else
                         {
-                            this.ApplicationFileSystemMap.Add(f.Key, new FileInfo(fn));
+                            this.ApplicationFileSystemMap.Add(f.Key, new AuditFileInfo(this.AuditEnvironment, fn));
                         }
                     }
 
                 }
                 else
                 {
-                    fn = (string)ApplicationOptions[f.Key];
-                    if (fn.StartsWith("@"))
-                    {
-                        fn = Path.Combine(this.RootDirectory.FullName, fn.Substring(1));
-                    }
-                    if (!File.Exists(fn))
+                    string fn = CombinePath((string) ApplicationOptions[f.Key]);
+                    if (!this.AuditEnvironment.FileExists(fn))
                     {
                         throw new ArgumentException(string.Format("The required application file {0} was not found.", f), "application_options");
                     }
                     else
                     {
-                        this.ApplicationFileSystemMap.Add(f.Key, new FileInfo(fn));
+                        this.ApplicationFileSystemMap.Add(f.Key, new AuditFileInfo(this.AuditEnvironment, fn));
                     }
                 }
             }
 
             foreach (KeyValuePair<string, string> d in RequiredDirectoryLocations)
             {
-                string dn = d.Value;
-                if (dn.StartsWith("@"))
-                {
-                    dn = Path.Combine(this.RootDirectory.FullName, dn.Substring(1));
-                }
+                string dn = CombinePath(d.Value);
                 if (!this.ApplicationOptions.ContainsKey(d.Key))
                 {
                     if (string.IsNullOrEmpty(d.Value))
@@ -211,81 +199,90 @@ namespace DevAudit.AuditLibrary
                     }
                     else
                     {
-                        if (!Directory.Exists(dn))
+                        if (!this.AuditEnvironment.DirectoryExists(dn))
                         {
                             throw new ArgumentException(string.Format("The default path {0} for required application directory {1} does not exist.",
                                 dn, d.Key), "RequiredDirectoryLocations");
                         }
                         else
                         {
-                            this.ApplicationFileSystemMap.Add(d.Key, new DirectoryInfo(dn));
+                            this.ApplicationFileSystemMap.Add(d.Key, new AuditDirectoryInfo(this.AuditEnvironment, dn));
                         }
                     }
 
                 }
                 else
                 {
-                    dn = (string)ApplicationOptions[d.Key];
-                    if (dn.StartsWith("@"))
+                    dn = CombinePath((string) ApplicationOptions[d.Key]);
+                    if (!this.AuditEnvironment.DirectoryExists(dn))
                     {
-                        dn = Path.Combine(this.RootDirectory.FullName, dn.Substring(1));
-                    }
-
-                    if (!Directory.Exists(dn))
-                    {
-                        throw new ArgumentException(string.Format("The required Application directory {0} was not found.", dn), "application_options");
+                        throw new ArgumentException(string.Format("The required application directory {0} was not found.", dn), "application_options");
                     }
                     else
                     {
-                        this.ApplicationFileSystemMap.Add(d.Key, new DirectoryInfo(dn));
+                        this.ApplicationFileSystemMap.Add(d.Key, new AuditDirectoryInfo(this.AuditEnvironment, dn));
                     }
                 }
             }
 
             if (this.ApplicationOptions.ContainsKey("ApplicationBinary"))
             {
-                string fn = (string) this.ApplicationOptions["ApplicationBinary"];
-                if (fn.StartsWith("@"))
-                {
-                    fn = CombinePathsUnderRoot(fn.Substring(1));
-                }
-                if (!File.Exists(fn))
+                string fn = CombinePath((string) this.ApplicationOptions["ApplicationBinary"]);
+                if (!this.AuditEnvironment.FileExists(fn))
                 {
                     throw new ArgumentException(string.Format("The specified application binary does not exist."), "application_options");
                 }
                 else
                 {
-                    this.ApplicationBinary = new FileInfo(fn);
+                    this.ApplicationBinary = new AuditFileInfo(this.AuditEnvironment, fn);
                 }
             }
         }
         #endregion
 
         #region Public methods
-
-        public string CombinePathsUnderRoot(params string[] paths)
+        public string CombinePath(params string[] paths)
         {
-            return Path.Combine(this.RootDirectory.FullName, Path.Combine(paths));
+            if (paths == null || paths.Count() == 0)
+            {
+                throw new ArgumentOutOfRangeException("path", "paths must be non-null or at least length 1.");
+            }
+            if (this.AuditEnvironment.OS.Platform == PlatformID.Unix || this.AuditEnvironment.OS.Platform == PlatformID.MacOSX)
+            {
+                List<string> paths_list = new List<string>(paths.Length + 1);
+                if (paths.First() == "@")
+                {
+                    paths[0] = this.RootDirectory.FullName == "/" ? "" : this.RootDirectory.FullName;
+                }
+                paths_list.AddRange(paths);
+                return paths_list.Aggregate((p, n) => p + "/" + n);
+            }
+            else
+            {
+                if (paths.First() == "@")
+                {
+                    paths[0] = this.RootDirectory.FullName;
+                    return Path.Combine(paths);
+                }
+                else
+                {
+                    return Path.Combine(paths);
+                }
+            }
         }
 
-        public Dictionary<string, bool> FilesExist(List<string> paths)
+        public string LocatePathUnderRoot(params string[] paths)
         {
-            throw new NotImplementedException();
-        }
+            if (this.AuditEnvironment.OS.Platform == PlatformID.Unix || this.AuditEnvironment.OS.Platform == PlatformID.MacOSX)
+            {
+                return "@" + paths.Aggregate((p, n) => p + "/" + n);
+            }
+            else
+            {
 
-        public bool FileContains(string path, string value)
-        {
-            throw new NotImplementedException();
-        }
-
-        public bool FileIsWritable(string path)
-        {
-            throw new NotImplementedException();
-        }
-
-        public bool WindowsRegistryKeyExists(string path)
-        {
-            throw new NotImplementedException();
+                return "@" + Path.Combine(paths);
+            }
+                
         }
 
         public Dictionary<OSSIndexProjectConfigurationRule, Tuple<bool, List<string>, string>> EvaluateProjectConfigurationRules(IEnumerable<OSSIndexProjectConfigurationRule> rules)
@@ -315,10 +312,11 @@ namespace DevAudit.AuditLibrary
             return results;
         }
 
-        public static string LocateUnderRoot(params string[] paths)
+        public static List<AuditFileInfo> RecursiveFolderScan(AuditDirectoryInfo dir, string pattern)
         {
-            return "@" + Path.Combine(paths);
+            throw new NotImplementedException();
         }
+
 
         #endregion
 

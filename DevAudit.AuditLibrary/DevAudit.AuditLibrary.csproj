@@ -88,6 +88,8 @@
     <Compile Include="Applications\Drupal8Application.cs" />
     <Compile Include="Applications\DrupalModuleInfo.cs" />
     <Compile Include="AuditEnvironment.cs" />
+    <Compile Include="AuditDirectoryInfo.cs" />
+    <Compile Include="AuditFileInfo.cs" />
     <Compile Include="AuditTargetEventArgs.cs" />
     <Compile Include="BsonSerializer.cs" />
     <Compile Include="Docker.cs" />

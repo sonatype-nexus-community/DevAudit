@@ -24,31 +24,39 @@ namespace DevAudit.AuditLibrary
         #endregion
 
         private Session SshSession { get; set; }
-
+        private Action<string> FileFound;
+        private Action<string> FileNotFound;
+        private Action<string> DirectoryFound;
+        private Action<string> DirectoryNotFound;
         #region Overriden members     
-        public override bool IsWindows
+        public override bool FileExists(string file_path)
         {
-            get
+            if (!this.IsConnected) throw new InvalidOperationException("The SSH session is not connected.");
+            this.SshSession.Send.String("stat " + file_path + LineTerminator);
+            List<IResult> result = this.SshSession.Expect.ContainsEither("regular file", FileFound, "No such file or directory", FileNotFound, 6000, 5, true);
+            if (result[0].IsMatch)
+            {
+                return true;
+            }
+            else
             {
                 return false;
             }
         }
 
-        public override bool IsUnix
+        public override bool DirectoryExists(string dir_path)
         {
-            get
+            if (!this.IsConnected) throw new InvalidOperationException("The SSH session is not connected.");
+            this.SshSession.Send.String("stat " + dir_path + LineTerminator);
+            List<IResult> result = this.SshSession.Expect.ContainsEither("directory", FileFound, "No such file or directory", FileNotFound, 6000, 5, true);
+            if (result[0].IsMatch)
             {
                 return true;
             }
-        }
-        public override bool FileExists(string file_path)
-        {
-            throw new NotImplementedException();
-        }
-
-        public override bool DirectoryExists(string dir_path)
-        {
-            throw new NotImplementedException();
+            else
+            {
+                return false;
+            }
         }
 
         public override bool Execute(string command, string arguments, out ProcessExecuteStatus process_status, out string process_output, out string process_error, Action<string> OutputDataReceived = null, Action<string> OutputErrorReceived = null)
@@ -56,18 +64,31 @@ namespace DevAudit.AuditLibrary
             throw new NotImplementedException();
         }
         #endregion
-        public bool Spawn(string command, string arguments, out ProcessExecuteStatus process_status, out string process_output, out string process_error, Action<string> OutputDataReceived = null, Action<string> OutputErrorReceived = null)
+
+        public SshEnvironment(EventHandler<EnvironmentEventArgs> message_handler, OperatingSystem os, string host_name) : base(message_handler, os)
         {
-            throw new NotImplementedException();
+            this.HostName = host_name;
+            FileFound = (o) =>
+            {
+                Info("stat returned file exists.");
+            };
+            FileNotFound = (o) =>
+            {
+                Info("stat returns file does not exist.");
+            };
+            DirectoryFound = (o) =>
+            {
+                Info("stat returned directory exists.");
+            };
+            DirectoryNotFound = (o) =>
+            {
+                Info("stat returns directory does not exist.");
+            };
         }
 
-        public SshEnvironment(EventHandler<EnvironmentEventArgs> message_handler, string host_name) : base(message_handler)
+        public SshEnvironment(EventHandler<EnvironmentEventArgs> message_handler, string host_name, string user, object pass, OperatingSystem os) : this(message_handler, os, host_name)
         {
-            this.HostName = host_name;         
-        }
 
-        public SshEnvironment(EventHandler<EnvironmentEventArgs> message_handler, string host_name, string user, object pass) : this(message_handler, host_name)
-        {
             Info("Password: ", ToInsecureString(pass));
             string ssh_command = Environment.OSVersion.Platform == PlatformID.Win32NT ? "plink.exe" : "ssh";
             string ssh_arguments = Environment.OSVersion.Platform == PlatformID.Win32NT ? string.Format("-v -ssh -l {0} -pw \"{1}\" -sshlog plink_ssh.log {2}", user,
@@ -83,11 +104,11 @@ namespace DevAudit.AuditLibrary
             p.OutputDataReceived += OnOutputDataReceived;
             p.ErrorDataReceived += OnErrorDataReceived;
             ProcessSpawnable s = new ProcessSpawnable(p);
-            SshSession = Expect.Spawn(s);
+            SshSession = Expect.Spawn(s, this.LineTerminator);
             Action<string> LogFileExists = (o) =>
             {
                 Info("Plink log file exists, overwriting.");
-                SshSession.Send("y");
+                SshSession.Send.Char('y');
             };
 
             Action<string> ConnectedToServer = (o) =>
@@ -133,59 +154,61 @@ namespace DevAudit.AuditLibrary
             Action<string> ServerKeyNotCached = (o) =>
             {
                 Warning("Server key not cached. The host key is not trusted.");
-                SshSession.Send("n");
+                SshSession.Send.Char('n');
             };
 
             Action<string> AccessGranted = (o) =>
             {
                 this.HostName = host_name;
                 this.IsConnected = true;
+                Success("Password authentication succeded.");
+                Success("Connected to host {0}.", host_name);
+                return;
             };
 
-            Action<string> AccessDenied = (o) =>
+            Action<string> PasswordAuthenticationFailed = (o) =>
             {
                 if (o.Contains("Password authentication failed"))
                 {
                     this.IsConnected = false;
-                    Error("The user name or password is incorrect.");
-                    Error("Could not connect to host {0}.", host_name);
+                    Error("The user name or password is incorrect. Could not connect to host {0}.", host_name);
                 }
             };
 
+            Action<string> AccessDenied = (o) =>
+            {
+                this.IsConnected = false;
+                Error("Unknown error in authentication. Access denied.");
+                return;
+            };
+
             SshSession.Expect.Contains("The session log file \"plink_ssh.log\" already exists.", LogFileExists);
-            if (!SshSession.Expect.Contains("Using SSH protocol version 2", ConnectedToServer, 5000).IsMatch)
+            if (!SshSession.Expect.Contains("Using SSH protocol version 2", ConnectedToServer, 1000, 10).IsMatch)
             {
                 Error("Failed to connect to host {0}.", host_name);
                 this.IsConnected = false;
                 Error("Failed to initialise SSH audit environment.");
                 return;
             }
-            if (!SshSession.Expect.Contains("Host key fingerprint is:", GotHostKeyFingerprint, 5000).IsMatch)
+            if (!SshSession.Expect.Contains("Host key fingerprint is:", GotHostKeyFingerprint, 1000, 10).IsMatch)
             {
                 throw new Exception("Failed to get host key.");
             }
             SshSession.Expect.Contains("Store key in cache?", ServerKeyNotCached);
-            if (SshSession.Expect.Contains("Access granted", AccessGranted, 5000).IsMatch)
+            List<IResult> access = SshSession.Expect.ContainsEither("Access granted", AccessGranted, "Password authentication failed", PasswordAuthenticationFailed, 5000);
+            if (access[0].IsMatch)
             {
+                this.IsConnected = true;
+                Success("SSH audit environment initalised."); return;
+            }
+            else if (access[1].IsMatch || SshSession.Expect.Contains("Access denied", AccessDenied, 100, 5).IsMatch)
+            {
+                this.IsConnected = false;
+                Error("Access denied to host {0}.", host_name);
+                Error("Failed to initialise SSH audit environment.");
                 return;
             }
-            else
-            {
-                if (SshSession.Expect.Contains("Access denied", AccessDenied).IsMatch)
-                {
-                    Error("Failed to initialise SSH audit environment.");
-                    return;
-                }
-                else
-                {
-                    this.IsConnected = false;
-                    Error("Could not connect to host {0}.", host_name);
-                    Error("Failed to initialise SSH audit environment.");
-                    return;
-                }
-
-            }
-            
+            else throw new Exception("Could not parse SSH command output.");
         }
 
         public string ToInsecureString(object o)

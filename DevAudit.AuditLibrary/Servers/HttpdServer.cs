@@ -42,8 +42,6 @@ namespace DevAudit.AuditLibrary
         public override string PackageManagerLabel { get { return "Apache Httpd"; } }
 
         public override OSSIndexHttpClient HttpClient { get; } = new OSSIndexHttpClient("1.1");
-
-        public override string DefaultConfigurationFile { get; } = LocateUnderRoot("conf", "httpd.conf");
         #endregion
 
         #region Public properties
@@ -108,7 +106,12 @@ namespace DevAudit.AuditLibrary
         #endregion
 
         #region Constructors
-        public HttpdServer(Dictionary<string, object> server_options, EventHandler<EnvironmentEventArgs> message_handler = null) : base(server_options, message_handler)
+        public HttpdServer(Dictionary<string, object> server_options, EventHandler<EnvironmentEventArgs> message_handler = null) : base(server_options, new Dictionary<PlatformID, string[]>()
+            {
+                { PlatformID.Unix, new string[] { "@", "etc", "apache2", "apache2.conf" } },
+                { PlatformID.MacOSX, new string[] { "@", "etc", "apache2", "apache2.conf" } },
+                { PlatformID.Win32NT, new string[] { "@", "conf", "httpd.conf" } }
+            }, message_handler)
         {
             if (this.ApplicationBinary != null)
             {
@@ -117,14 +120,14 @@ namespace DevAudit.AuditLibrary
             else
             {
                 string fn = Environment.OSVersion.Platform == PlatformID.Unix || Environment.OSVersion.Platform == PlatformID.MacOSX
-                ? CombinePathsUnderRoot("bin", "httpd") : CombinePathsUnderRoot("bin", "httpd.exe");
+                ? CombinePath("@", "bin", "httpd") : CombinePath("@", "bin", "httpd.exe");
                 if (!File.Exists(fn))
                 {
                     throw new ArgumentException(string.Format("The server binary for Apache Httpd was not specified and the default file path {0} does not exist.", fn));
                 }
                 else
                 {
-                    this.ApplicationBinary = new FileInfo(fn);
+                    this.ApplicationBinary = new AuditFileInfo(this.AuditEnvironment, fn);
                     this.ApplicationFileSystemMap["httpd"] = this.ApplicationBinary;
                 }
             }

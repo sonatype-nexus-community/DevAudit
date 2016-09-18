@@ -47,8 +47,6 @@ namespace DevAudit.AuditLibrary
         #endregion
 
         #region Abstract properties
-        public abstract bool IsWindows { get; }
-        public abstract bool IsUnix { get; }
         public abstract bool FileExists(string file_path);
         public abstract bool DirectoryExists(string dir_path);
         public abstract bool Execute(string command, string arguments,
@@ -56,6 +54,37 @@ namespace DevAudit.AuditLibrary
         #endregion
 
         #region Public properties
+        public bool IsWindows
+        {
+            get
+            {
+                if (this.OS != null && this.OS.Platform == PlatformID.Win32NT)
+                {
+                    return true;
+                }
+                else
+                {
+                    return false;
+                }
+            }
+        }
+
+        public bool IsUnix
+        {
+            get
+            {
+                if (this.OS != null && this.OS.Platform == PlatformID.Unix)
+                {
+                    return true;
+                }
+                else
+                {
+                    return false;
+                }
+            }
+        }
+
+
         public string ProcessOutput
         {
             get
@@ -63,6 +92,8 @@ namespace DevAudit.AuditLibrary
                 return this.ProcessOutputSB.ToString();
             }
         }
+
+        public OperatingSystem OS { get; protected set; }       
         #endregion
 
         #region Protected and private properties
@@ -72,9 +103,10 @@ namespace DevAudit.AuditLibrary
         #endregion
 
         #region Constructors
-        public AuditEnvironment(EventHandler<EnvironmentEventArgs> message_handler)
+        public AuditEnvironment(EventHandler<EnvironmentEventArgs> message_handler, OperatingSystem os)
         {
-            if (this.IsWindows)
+            this.OS = os;
+            if (OS.Platform == PlatformID.Win32NT)
             {
                 this.LineTerminator = "\r\n";
             }

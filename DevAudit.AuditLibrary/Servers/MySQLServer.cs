@@ -41,8 +41,6 @@ namespace DevAudit.AuditLibrary
         public override string PackageManagerLabel { get { return "MySQL"; } }
 
         public override OSSIndexHttpClient HttpClient { get; } = new OSSIndexHttpClient("1.1");
-
-        public override string DefaultConfigurationFile { get; } = "@my.ini";
         #endregion
 
         #region Public properties
@@ -103,7 +101,12 @@ namespace DevAudit.AuditLibrary
         #endregion
 
         #region Constructors
-        public MySQLServer(Dictionary<string, object> server_options, EventHandler<EnvironmentEventArgs> message_handler = null) : base(server_options, message_handler)
+        public MySQLServer(Dictionary<string, object> server_options, EventHandler<EnvironmentEventArgs> message_handler = null) : base(server_options, new Dictionary<PlatformID, string[]>()
+            {
+                { PlatformID.Unix, new string[] { "@", "etc", "mysql", "my.conf" } },
+                { PlatformID.MacOSX, new string[] { "@", "etc", "mysql", "my.conf" } },
+                { PlatformID.Win32NT, new string[] { "@", "my.ini" } }
+            }, message_handler)
         {
             if (this.ApplicationBinary != null)
             {
@@ -112,14 +115,14 @@ namespace DevAudit.AuditLibrary
             else
             {
                 string fn = Environment.OSVersion.Platform == PlatformID.Unix || Environment.OSVersion.Platform == PlatformID.MacOSX
-                ? CombinePathsUnderRoot("bin", "mysql") : CombinePathsUnderRoot("bin", "mysql.exe");
+                ? CombinePath("bin", "mysql") : CombinePath("bin", "mysql.exe");
                 if (!File.Exists(fn))
                 {
                     throw new ArgumentException(string.Format("The server binary for SSHD was not specified and the default file path {0} does not exist.", fn));
                 }
                 else
                 {
-                    this.ApplicationBinary = new FileInfo(fn);
+                    this.ApplicationBinary = new AuditFileInfo(this.AuditEnvironment, fn);
                     this.ApplicationFileSystemMap["mysql"] = this.ApplicationBinary;
                 }
             }

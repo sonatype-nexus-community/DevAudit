@@ -36,8 +36,6 @@ namespace DevAudit.AuditLibrary
 
         public override OSSIndexHttpClient HttpClient { get; } = new OSSIndexHttpClient("1.1");
 
-        public override string DefaultConfigurationFile { get; } = Environment.OSVersion.Platform == PlatformID.Unix || Environment.OSVersion.Platform == PlatformID.MacOSX
-                ? Path.Combine(DIR, "etc", "nginx", "nginx.conf") : LocateUnderRoot("conf", "nginx.conf"); 
         #endregion
 
         #region Public properties
@@ -102,7 +100,12 @@ namespace DevAudit.AuditLibrary
         #endregion
 
         #region Constructors
-        public NginxServer(Dictionary<string, object> server_options, EventHandler<EnvironmentEventArgs> message_handler = null) : base(server_options, message_handler)
+        public NginxServer(Dictionary<string, object> server_options, EventHandler<EnvironmentEventArgs> message_handler = null) : base(server_options, new Dictionary<PlatformID, string[]>()
+            {
+                { PlatformID.Unix, new string[] { "@", "etc", "nginx", "nginx.conf" } },
+                { PlatformID.MacOSX, new string[] { "@", "etc", "nginx", "nginx.conf" } },
+                { PlatformID.Win32NT, new string[] { "@", "conf", "nginx.conf" } }
+            }, message_handler)
         {
             if (this.ApplicationBinary != null)
             {
@@ -111,14 +114,14 @@ namespace DevAudit.AuditLibrary
             else
             {
                 string fn = Environment.OSVersion.Platform == PlatformID.Unix || Environment.OSVersion.Platform == PlatformID.MacOSX
-                ? CombinePathsUnderRoot("nginx") : CombinePathsUnderRoot("nginx.exe");
-                if (!File.Exists(fn))
+                ? CombinePath("@", "nginx") : CombinePath("@", "nginx.exe");
+                if (!this.AuditEnvironment.FileExists(fn))
                 {
                     throw new ArgumentException(string.Format("The server binary for Nginx was not specified and the default file path {0} does not exist.", fn));
                 }
                 else
                 {
-                    this.ApplicationBinary = new FileInfo(fn);
+                    this.ApplicationBinary = new AuditFileInfo(this.AuditEnvironment, fn);
                     this.ApplicationFileSystemMap["nginx"] = this.ApplicationBinary;
                 }
             }

@@ -12,22 +12,6 @@ namespace DevAudit.AuditLibrary
     public class LocalEnvironment : AuditEnvironment
     {
         #region Overriden members     
-        public override bool IsWindows
-        {
-            get
-            {
-                return Environment.OSVersion.Platform != PlatformID.Unix && Environment.OSVersion.Platform != PlatformID.MacOSX;
-            }
-        }
-
-        public override bool IsUnix
-        {
-            get
-            {
-                return Environment.OSVersion.Platform == PlatformID.Unix;
-            }
-        }
-        
         public override bool FileExists(string file_path)
         {
             return File.Exists(file_path);
@@ -124,7 +108,7 @@ namespace DevAudit.AuditLibrary
         #endregion
 
         #region Constructors
-        public LocalEnvironment(EventHandler<EnvironmentEventArgs> message_handler) : base(message_handler) {}
+        public LocalEnvironment(EventHandler<EnvironmentEventArgs> message_handler) : base(message_handler, Environment.OSVersion) {}
         #endregion
     }
 }

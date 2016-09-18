@@ -29,12 +29,7 @@ namespace DevAudit.AuditLibrary
 
         public override OSSIndexHttpClient HttpClient { get; } = new OSSIndexHttpClient("1.1");
 
-        public override Dictionary<string, string> RequiredDirectoryLocations { get; } = new Dictionary<string, string>()
-        {
-            { "CoreModulesDirectory", LocateUnderRoot("modules") },
-            { "ContribModulesDirectory", LocateUnderRoot("sites", "all", "modules") },
-            { "DefaultSiteDirectory", LocateUnderRoot("sites", "default") },
-        };
+        public override Dictionary<string, string> RequiredDirectoryLocations { get; } 
 
         public override Dictionary<string, string> RequiredFileLocations { get; } = new Dictionary<string, string>();
         #endregion
@@ -48,19 +43,19 @@ namespace DevAudit.AuditLibrary
             }
         }
 
-        public DirectoryInfo ContribModulesDirectory
+        public AuditDirectoryInfo ContribModulesDirectory
         {
             get
             {
-                return (DirectoryInfo)this.ApplicationFileSystemMap["ContribModulesDirectory"];
+                return (AuditDirectoryInfo)this.ApplicationFileSystemMap["ContribModulesDirectory"];
             }
         }
 
-        public DirectoryInfo SitesAllModulesDirectory
+        public AuditDirectoryInfo SitesAllModulesDirectory
         {
             get
             {
-                DirectoryInfo sites_all;
+                AuditDirectoryInfo sites_all;
                 if ((sites_all = this.RootDirectory.GetDirectories(Path.Combine("sites", "all")).FirstOrDefault()) != null)
                 {
                     return sites_all.GetDirectories(Path.Combine("modules")).FirstOrDefault();
@@ -75,7 +70,7 @@ namespace DevAudit.AuditLibrary
         {
             Dictionary<string, IEnumerable<OSSIndexQueryObject>> modules = new Dictionary<string, IEnumerable<OSSIndexQueryObject>>();
             List<FileInfo> core_module_files = RecursiveFolderScan(this.CoreModulesDirectory, "*.info").Where(f => !f.Name.Contains("_test") && !f.Name.Contains("test_")).ToList();
-            List<FileInfo> contrib_module_files = RecursiveFolderScan(this.ContribModulesDirectory, "*.info").Where(f => !f.Name.Contains("_test") && !f.Name.Contains("test_")).ToList();
+            List<FileInfo> contrib_module_files = null;//TODO RecursiveFolderScan(this.ContribModulesDirectory, "*.info").Where(f => !f.Name.Contains("_test") && !f.Name.Contains("test_")).ToList();
             List<OSSIndexQueryObject> core_modules = new List<OSSIndexQueryObject>(core_module_files.Count + 1);
             List<OSSIndexQueryObject> contrib_modules = new List<OSSIndexQueryObject>(contrib_module_files.Count);
             List<OSSIndexQueryObject> all_modules = new List<OSSIndexQueryObject>(core_module_files.Count + 1);
@@ -144,7 +139,7 @@ namespace DevAudit.AuditLibrary
             }
             if (this.SitesAllModulesDirectory != null)
             {
-                List<FileInfo> sites_all_contrib_modules_files = RecursiveFolderScan(this.SitesAllModulesDirectory, "*.info").Where(f => !f.Name.Contains("_test") && !f.Name.Contains("test_")).ToList();
+                List<FileInfo> sites_all_contrib_modules_files = null;//TODO RecursiveFolderScan(this.SitesAllModulesDirectory, "*.info").Where(f => !f.Name.Contains("_test") && !f.Name.Contains("test_")).ToList();
                 if (sites_all_contrib_modules_files.Count > 0)
                 {
                     List<OSSIndexQueryObject> sites_all_contrib_modules = new List<OSSIndexQueryObject>(sites_all_contrib_modules_files.Count + 1);
@@ -210,7 +205,15 @@ namespace DevAudit.AuditLibrary
         #endregion
 
         #region Constructors
-        public Drupal7Application(Dictionary<string, object> application_options, EventHandler<EnvironmentEventArgs> message_handler = null) : base(application_options, message_handler) {}
+        public Drupal7Application(Dictionary<string, object> application_options, EventHandler<EnvironmentEventArgs> message_handler = null) : base(application_options, message_handler)
+        {
+            this.RequiredDirectoryLocations = new Dictionary<string, string>()
+        {
+            { "CoreModulesDirectory", LocatePathUnderRoot("modules") },
+            { "ContribModulesDirectory", LocatePathUnderRoot("sites", "all", "modules") },
+            { "DefaultSiteDirectory", LocatePathUnderRoot("sites", "default") },
+        };
+        }
         #endregion
 
     }
