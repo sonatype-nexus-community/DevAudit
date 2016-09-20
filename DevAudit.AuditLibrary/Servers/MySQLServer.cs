@@ -59,7 +59,11 @@ namespace DevAudit.AuditLibrary
 
         protected override IConfiguration GetConfiguration()
         {
-            MySQL mysql = new MySQL(this.ConfigurationFile.FullName);
+            MySQL mysql = new MySQL(this.ConfigurationFile.FullName, true, true, (parent, path) =>
+            {
+                return this.ConfigurationFile.ReadAsText();
+            });
+            ;
             if (mysql.ParseSucceded)
             {
                 this.Configuration = mysql;
@@ -114,9 +118,9 @@ namespace DevAudit.AuditLibrary
             }
             else
             {
-                string fn = Environment.OSVersion.Platform == PlatformID.Unix || Environment.OSVersion.Platform == PlatformID.MacOSX
-                ? CombinePath("bin", "mysql") : CombinePath("bin", "mysql.exe");
-                if (!File.Exists(fn))
+                string fn = this.AuditEnvironment.OS.Platform == PlatformID.Unix || this.AuditEnvironment.OS.Platform == PlatformID.MacOSX
+                ? CombinePath("@", "usr", "bin", "mysql") : CombinePath("bin", "mysql.exe");
+                if (!this.AuditEnvironment.FileExists(fn))
                 {
                     throw new ArgumentException(string.Format("The server binary for SSHD was not specified and the default file path {0} does not exist.", fn));
                 }

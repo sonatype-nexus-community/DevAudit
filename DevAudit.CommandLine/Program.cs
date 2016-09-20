@@ -186,7 +186,7 @@ namespace DevAudit.CommandLine
                     }
                     else if (verb == "mysql")
                     {
-                        Server = new MySQLServer(audit_options);
+                        Server = new MySQLServer(audit_options, EnvironmentMessageHandler);
                         Source = Server as PackageSource;
                     }
                     else if (verb == "sshd")

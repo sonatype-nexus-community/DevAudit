@@ -28,12 +28,13 @@ namespace DevAudit.AuditLibrary
         private Action<string> FileNotFound;
         private Action<string> DirectoryFound;
         private Action<string> DirectoryNotFound;
+
         #region Overriden members     
         public override bool FileExists(string file_path)
         {
             if (!this.IsConnected) throw new InvalidOperationException("The SSH session is not connected.");
-            this.SshSession.Send.String("stat " + file_path + LineTerminator);
-            List<IResult> result = this.SshSession.Expect.ContainsEither("regular file", FileFound, "No such file or directory", FileNotFound, 6000, 5, true);
+            this.SshSession.Send.String("ls " + file_path + LineTerminator);
+            List<IResult> result = this.SshSession.Expect.ContainsEither(file_path, FileFound, "No such file or directory", FileNotFound, 6000, 5, true);
             if (result[0].IsMatch)
             {
                 return true;
@@ -84,11 +85,11 @@ namespace DevAudit.AuditLibrary
             this.HostName = host_name;
             FileFound = (o) =>
             {
-                Debug("stat returned file exists.");
+                Debug("ls returned file exists.");
             };
             FileNotFound = (o) =>
             {
-                Debug("stat returns file does not exist.");
+                Debug("ls returns file does not exist.");
             };
             DirectoryFound = (o) =>
             {

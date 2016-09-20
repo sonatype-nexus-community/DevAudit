@@ -1,0 +1,15 @@
+﻿---
+mysql:
+    -   id: 1
+        title: Just a placeholder
+        xpathtest: not(/Httpd/ServerSignature='Off') and not(/Httpd/ServerTokens='Prod')
+        summary: |
+           When you install Apache with source or any other package installers like yum, it displays the version of your Apache web server installed on your server 
+           with the Operating system name of your server in Errors. 
+           It also shows the information about Apache modules installed in your server.
+        resolution: |
+            Add ServerSignature=Off directive to configuration value. 
+            Add ServerTokens=Prod directive to configuration file.
+        urls:
+            -   http://www.tecmint.com/apache-security-tips/
+       

@@ -57,7 +57,6 @@ namespace DevAudit.AuditLibrary
 
         protected override IConfiguration GetConfiguration()
         {
-            
             SSHD sshd = new SSHD(this.ConfigurationFile.FullName, true, true, (parent, path) =>
                 {
                     return this.ConfigurationFile.ReadAsText();
