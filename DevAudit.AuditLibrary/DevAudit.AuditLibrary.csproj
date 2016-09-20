@@ -183,7 +183,7 @@
     <Folder Include="Examples\Drupal\core\modules\" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\Expect.NET\Expect.NET\Expect.csproj">
+    <ProjectReference Include="..\Expect.NET\Expect.csproj">
       <Project>{8aa52b5e-db66-4b0b-aaba-9e6900bc3d5a}</Project>
       <Name>Expect</Name>
     </ProjectReference>

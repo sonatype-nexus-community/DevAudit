@@ -1,16 +1,16 @@
-﻿using System.Reflection;
+using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
 // General Information about an assembly is controlled through the following 
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle("DevAudit.AuditLibrary")]
-[assembly: AssemblyDescription("DevAudit core audit library.")]
+[assembly: AssemblyTitle("Expect for .NET")]
+[assembly: AssemblyDescription("Port of expect scripting language functionality to .NET")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("Vör Security")]
-[assembly: AssemblyProduct("DevAudit")]
-[assembly: AssemblyCopyright("Copyright ©  2016")]
+[assembly: AssemblyCompany("")]
+[assembly: AssemblyProduct("Expect.NET")]
+[assembly: AssemblyCopyright("Copyright �  2014")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
@@ -20,7 +20,12 @@ using System.Runtime.InteropServices;
 [assembly: ComVisible(false)]
 
 // The following GUID is for the ID of the typelib if this project is exposed to COM
-[assembly: Guid("36f663f6-4b5c-441f-b11a-9cc556d1c1fe")]
+[assembly: Guid("396eff6b-a0d9-4e2c-97bd-abce656dadda")]
+
+
+[assembly: InternalsVisibleTo("Expect.Test")]
+[assembly: InternalsVisibleTo("DynamicProxyGenAssembly2")]
+
 
 // Version information for an assembly consists of the following four values:
 //
@@ -31,6 +36,6 @@ using System.Runtime.InteropServices;
 //
 // You can specify all the values or you can default the Build and Revision Numbers 
 // by using the '*' as shown below:
-// [assembly: AssemblyVersion("1.0.*")]
-[assembly: AssemblyVersion("0.1.7.2")]
-[assembly: AssemblyFileVersion("0.1.7.2")]
+// [assembly: AssemblyVersion("1.2.1.")]
+[assembly: AssemblyVersion("2.1.0.0")]
+[assembly: AssemblyFileVersion("2.1.0.0")]
