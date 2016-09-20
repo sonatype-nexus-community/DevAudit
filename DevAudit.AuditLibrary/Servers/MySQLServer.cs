@@ -73,7 +73,7 @@ namespace DevAudit.AuditLibrary
             string process_output;
             string process_error;
             AuditEnvironment.Execute(this.ApplicationBinary.FullName, "-V", out process_status, out process_output, out process_error);
-            if (process_status == AuditEnvironment.ProcessExecuteStatus.Success)
+            if (process_status == AuditEnvironment.ProcessExecuteStatus.Completed)
             {
                 this.Version = process_output.Substring(process_output.IndexOf("Ver"));
                 return this.Version;

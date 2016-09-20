@@ -34,7 +34,7 @@ namespace DevAudit.AuditLibrary
         #endregion
 
         #region Public properties
-        public Dictionary<string, FileSystemInfo> ApplicationFileSystemMap { get; } = new Dictionary<string, FileSystemInfo>();
+        public Dictionary<string, IFileSystemInfo> ApplicationFileSystemMap { get; } = new Dictionary<string, IFileSystemInfo>();
 
         public AuditDirectoryInfo RootDirectory
         {

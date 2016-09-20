@@ -13,7 +13,7 @@ namespace DevAudit.AuditLibrary
         {
             Unknown = -99,
             FileNotFound = -1,
-            Success = 0,
+            Completed = 0,
             Error = 1
         }
 
@@ -46,7 +46,7 @@ namespace DevAudit.AuditLibrary
         }
         #endregion
 
-        #region Abstract properties
+        #region Abstract properties and methods
         public abstract bool FileExists(string file_path);
         public abstract bool DirectoryExists(string dir_path);
         public abstract bool Execute(string command, string arguments,
@@ -84,6 +84,7 @@ namespace DevAudit.AuditLibrary
             }
         }
 
+        public string PathSeparator { get; protected set; } = string.Empty;
 
         public string ProcessOutput
         {
@@ -96,12 +97,6 @@ namespace DevAudit.AuditLibrary
         public OperatingSystem OS { get; protected set; }       
         #endregion
 
-        #region Protected and private properties
-        protected StringBuilder ProcessOutputSB = new StringBuilder();
-        protected StringBuilder ProcessErrorSB = new StringBuilder();
-        protected string LineTerminator { get; set; }
-        #endregion
-
         #region Constructors
         public AuditEnvironment(EventHandler<EnvironmentEventArgs> message_handler, OperatingSystem os)
         {
@@ -109,39 +104,52 @@ namespace DevAudit.AuditLibrary
             if (OS.Platform == PlatformID.Win32NT)
             {
                 this.LineTerminator = "\r\n";
+                this.PathSeparator = "\\";
             }
             else
             {
                 this.LineTerminator = "\n";
+                this.PathSeparator = "/";
             }
             this.MessageHandler = message_handler;
         }
         #endregion
 
-        #region Protected and private methods
-        protected void Message(EventMessageType message_type, string message_format, params object[] message)
+        #region Protected and private properties
+        protected StringBuilder ProcessOutputSB = new StringBuilder();
+        protected StringBuilder ProcessErrorSB = new StringBuilder();
+        protected string LineTerminator { get; set; }
+        #endregion
+
+        #region Internal methods
+        internal void Message(EventMessageType message_type, string message_format, params object[] message)
         {
             OnMessage(new EnvironmentEventArgs(message_type, message_format, message));
         }
 
-        protected void Info(string message_format, params object[] message)
+        internal void Info(string message_format, params object[] message)
         {
             OnMessage(new EnvironmentEventArgs(EventMessageType.INFO, "[INFO] " + message_format, message));
         }
 
-        protected void Error(string message_format, params object[] message)
+        internal void Error(string message_format, params object[] message)
         {
             OnMessage(new EnvironmentEventArgs(EventMessageType.ERROR, "[ERROR] " + message_format, message));
         }
 
-        protected void Success(string message_format, params object[] message)
+        internal void Success(string message_format, params object[] message)
         {
             OnMessage(new EnvironmentEventArgs(EventMessageType.SUCCESS, "[SUCCESS] " + message_format, message));
         }
 
-        protected void Warning(string message_format, params object[] message)
+        internal void Warning(string message_format, params object[] message)
         {
             OnMessage(new EnvironmentEventArgs(EventMessageType.WARNING, "[WARN] " + message_format, message));
+        }
+
+        internal void Debug(string message_format, params object[] message)
+        {
+            OnMessage(new EnvironmentEventArgs(EventMessageType.WARNING, "[DEBUG] " + message_format, message));
         }
         #endregion
 

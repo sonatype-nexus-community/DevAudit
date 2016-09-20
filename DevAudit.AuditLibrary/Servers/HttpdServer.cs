@@ -74,7 +74,7 @@ namespace DevAudit.AuditLibrary
             string process_output;
             string process_error;
             AuditEnvironment.Execute(ApplicationBinary.FullName, "-v", out process_status, out process_output, out process_error);
-            if (process_status == AuditEnvironment.ProcessExecuteStatus.Success)
+            if (process_status == AuditEnvironment.ProcessExecuteStatus.Completed)
             {
                 if (!string.IsNullOrEmpty(process_error) && string.IsNullOrEmpty(process_output))
                 {

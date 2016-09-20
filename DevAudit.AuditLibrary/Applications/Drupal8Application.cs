@@ -34,11 +34,11 @@ namespace DevAudit.AuditLibrary
         #endregion
 
         #region Public properties
-        public DirectoryInfo CoreModulesDirectory
+        public AuditDirectoryInfo CoreModulesDirectory
         {
             get
             {
-                return (DirectoryInfo) this.ApplicationFileSystemMap["CoreModulesDirectory"];
+                return (AuditDirectoryInfo) this.ApplicationFileSystemMap["CoreModulesDirectory"];
             }
         }
 
@@ -63,11 +63,11 @@ namespace DevAudit.AuditLibrary
             }
         }
 
-        public FileInfo CorePackagesFile
+        public AuditFileInfo CorePackagesFile
         {
             get
             {
-                return (FileInfo) this.ApplicationFileSystemMap["CorePackagesFile"];
+                return (AuditFileInfo) this.ApplicationFileSystemMap["CorePackagesFile"];
             }
         }
         #endregion
@@ -75,7 +75,7 @@ namespace DevAudit.AuditLibrary
         #region Overriden methods
         protected override Dictionary<string, IEnumerable<OSSIndexQueryObject>> GetModules()
         {
-            FileInfo changelog = this.ApplicationFileSystemMap["ChangeLog"] as FileInfo;
+            FileInfo changelog = null; //TODO this.ApplicationFileSystemMap["ChangeLog"] as FileInfo;
             string l = string.Empty;
             string core_version = "8.x";
             using (StreamReader r = new StreamReader(changelog.OpenRead()))
@@ -89,8 +89,8 @@ namespace DevAudit.AuditLibrary
             {
                 core_version = l.Split(',')[0].Substring(7);
             }
-            Dictionary<string, IEnumerable<OSSIndexQueryObject>> modules = new Dictionary<string, IEnumerable<OSSIndexQueryObject>>();            
-            List<FileInfo> core_module_files = RecursiveFolderScan(this.CoreModulesDirectory, "*.info.yml").Where(f => !f.Name.Contains("_test") && !f.Name.Contains("test_")).ToList();
+            Dictionary<string, IEnumerable<OSSIndexQueryObject>> modules = new Dictionary<string, IEnumerable<OSSIndexQueryObject>>();
+            List<FileInfo> core_module_files = null; //TODO RecursiveFolderScan(this.CoreModulesDirectory, "*.info.yml").Where(f => !f.Name.Contains("_test") && !f.Name.Contains("test_")).ToList();
             List<FileInfo> contrib_module_files = null; //TODO RecursiveFolderScan(this.ContribModulesDirectory, "*.info.yml").Where(f => !f.Name.Contains("_test") && !f.Name.Contains("test_")).ToList();
             //this.CoreModulesDirectory.GetFileSystemInfos("*.info.yml", SearchOption.AllDirectories)
             //.Where(f => !f.Name.Contains("_test") && !f.Name.Contains("test_")).ToList();

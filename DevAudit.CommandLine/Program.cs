@@ -69,10 +69,14 @@ namespace DevAudit.CommandLine
                 if (!string.IsNullOrEmpty(ProgramOptions.RemoteUser))
                 {
                     audit_options.Add("RemoteUser", ProgramOptions.RemoteUser);
-                    if (ProgramOptions.RemotePassword)
+                    if (ProgramOptions.EnterRemotePassword)
                     {
                         SecureString p = ReadPassword('*');
                         audit_options.Add("RemotePass", p);
+                    }
+                    else if (!string.IsNullOrEmpty(ProgramOptions.RemotePasswordText))
+                    {
+                        audit_options.Add("RemotePass", ToSecureString(ProgramOptions.RemotePasswordText));
                     }
                     else if (!string.IsNullOrEmpty(ProgramOptions.RemoteKey))
                     {
@@ -709,12 +713,21 @@ namespace DevAudit.CommandLine
 
         static void EnvironmentMessageHandler(object sender, EnvironmentEventArgs e)
         {
-            PrintMessageLine(e.Message);
-        }
-
-        static void PrintMessage(string format)
-        {
-            Console.Write(format);
+            if (Spinner != null)
+            {
+                PauseSpinner();
+                int original_left = Console.CursorLeft;
+                int original_top = Console.CursorTop;
+                Console.SetCursorPosition(0, original_top);
+                PrintMessageLine(e.Message);
+                //Console.SetCursorPosition(original_left, original_top - e.Message.Split(Environment.NewLine.ToCharArray()).Count());
+                UnPauseSpinner();
+            }
+            else
+            {
+                PrintMessageLine(e.Message);
+            }
+            
         }
 
         static void PrintMessage(string format, params object[] args)
@@ -724,18 +737,7 @@ namespace DevAudit.CommandLine
 
         static void PrintMessage(ConsoleColor color, string format)
         {
-            if (!ProgramOptions.NonInteractive)
-            {
-                ConsoleColor o = Console.ForegroundColor;
-                Console.ForegroundColor = color;
-                PrintMessage(format);
-                Console.ForegroundColor = o;
-            }
-            else
-            {
-                Console.Write(format);
-            }
-        }
+                  }
 
         static void PrintMessage(ConsoleColor color, string format, params object[] args)
         {
@@ -885,6 +887,24 @@ namespace DevAudit.CommandLine
 
         }
 
+        static void UnPauseSpinner()
+        {
+            if (!ProgramOptions.NonInteractive)
+            {
+                Spinner.Start();
+            }
+        }
+
+        static void PauseSpinner()
+        {
+            if (!ProgramOptions.NonInteractive)
+            {
+                if (ReferenceEquals(null, Spinner)) throw new ArgumentNullException();
+                Spinner.Stop();
+            }
+
+        }
+
         static SecureString ReadPassword(char mask)
         {
             const int ENTER = 13, BACKSP = 8, CTRLBACKSP = 127;
@@ -925,6 +945,18 @@ namespace DevAudit.CommandLine
             Console.Write(Environment.NewLine);
             return pass;
         }
+
+        public static SecureString ToSecureString(string s)
+        {
+            SecureString r = new SecureString();
+            foreach (char c in s)
+            {
+                r.AppendChar(c);
+            }
+            r.MakeReadOnly();
+            return r;
+        }
+
 
         static void Program_UnhandledException(object sender, UnhandledExceptionEventArgs e)
         {

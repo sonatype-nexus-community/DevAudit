@@ -61,7 +61,21 @@ namespace DevAudit.AuditLibrary
 
         public override bool Execute(string command, string arguments, out ProcessExecuteStatus process_status, out string process_output, out string process_error, Action<string> OutputDataReceived = null, Action<string> OutputErrorReceived = null)
         {
-            throw new NotImplementedException();
+            if (!this.IsConnected) throw new InvalidOperationException("The SSH session is not connected.");
+            process_status = ProcessExecuteStatus.Unknown;
+            process_output = "";
+            process_error = "";
+            if (this.SshSession.Send.Command(command + " " + arguments, out process_output, 5000))
+            {
+                Debug("Send command {0} returned true, output: {1}", command + " " + arguments, process_output);
+                process_status = ProcessExecuteStatus.Completed;
+                return true;
+            }
+            else
+            {
+                process_status = ProcessExecuteStatus.Error;
+                return false;
+            }
         }
         #endregion
 
@@ -70,19 +84,19 @@ namespace DevAudit.AuditLibrary
             this.HostName = host_name;
             FileFound = (o) =>
             {
-                Info("stat returned file exists.");
+                Debug("stat returned file exists.");
             };
             FileNotFound = (o) =>
             {
-                Info("stat returns file does not exist.");
+                Debug("stat returns file does not exist.");
             };
             DirectoryFound = (o) =>
             {
-                Info("stat returned directory exists.");
+                Debug("stat returned directory exists.");
             };
             DirectoryNotFound = (o) =>
             {
-                Info("stat returns directory does not exist.");
+                Debug("stat returns directory does not exist.");
             };
         }
 
@@ -91,7 +105,7 @@ namespace DevAudit.AuditLibrary
 
             Info("Password: ", ToInsecureString(pass));
             string ssh_command = Environment.OSVersion.Platform == PlatformID.Win32NT ? "plink.exe" : "ssh";
-            string ssh_arguments = Environment.OSVersion.Platform == PlatformID.Win32NT ? string.Format("-v -ssh -l {0} -pw \"{1}\" -sshlog plink_ssh.log {2}", user,
+            string ssh_arguments = Environment.OSVersion.Platform == PlatformID.Win32NT ? string.Format("-v -ssh -2 -l {0} -pw \"{1}\" -sshlog plink_ssh.log {2}", user,
                 ToInsecureString(pass), host_name) : "";
             ProcessStartInfo psi = new ProcessStartInfo(ssh_command, ssh_arguments);
             psi.CreateNoWindow = true;

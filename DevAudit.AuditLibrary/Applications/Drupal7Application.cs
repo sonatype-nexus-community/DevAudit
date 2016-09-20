@@ -35,11 +35,11 @@ namespace DevAudit.AuditLibrary
         #endregion
 
         #region Public properties
-        public DirectoryInfo CoreModulesDirectory
+        public AuditDirectoryInfo CoreModulesDirectory
         {
             get
             {
-                return (DirectoryInfo)this.ApplicationFileSystemMap["CoreModulesDirectory"];
+                return (AuditDirectoryInfo)this.ApplicationFileSystemMap["CoreModulesDirectory"];
             }
         }
 
@@ -69,7 +69,7 @@ namespace DevAudit.AuditLibrary
         protected override Dictionary<string, IEnumerable<OSSIndexQueryObject>> GetModules()
         {
             Dictionary<string, IEnumerable<OSSIndexQueryObject>> modules = new Dictionary<string, IEnumerable<OSSIndexQueryObject>>();
-            List<FileInfo> core_module_files = RecursiveFolderScan(this.CoreModulesDirectory, "*.info").Where(f => !f.Name.Contains("_test") && !f.Name.Contains("test_")).ToList();
+            List<FileInfo> core_module_files = null;//RecursiveFolderScan(this.CoreModulesDirectory, "*.info").Where(f => !f.Name.Contains("_test") && !f.Name.Contains("test_")).ToList();
             List<FileInfo> contrib_module_files = null;//TODO RecursiveFolderScan(this.ContribModulesDirectory, "*.info").Where(f => !f.Name.Contains("_test") && !f.Name.Contains("test_")).ToList();
             List<OSSIndexQueryObject> core_modules = new List<OSSIndexQueryObject>(core_module_files.Count + 1);
             List<OSSIndexQueryObject> contrib_modules = new List<OSSIndexQueryObject>(contrib_module_files.Count);

@@ -23,11 +23,11 @@ namespace DevAudit.AuditLibrary
         #region Public properties
         public string DefaultConfigurationFile { get; protected set; }
 
-        public FileInfo ConfigurationFile
+        public AuditFileInfo ConfigurationFile
         {
             get
             {
-                return (FileInfo)this.ApplicationFileSystemMap["ConfigurationFile"];
+                return (AuditFileInfo)this.ApplicationFileSystemMap["ConfigurationFile"];
             }
         }
 

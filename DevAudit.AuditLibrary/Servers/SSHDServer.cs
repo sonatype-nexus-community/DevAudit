@@ -57,7 +57,11 @@ namespace DevAudit.AuditLibrary
 
         protected override IConfiguration GetConfiguration()
         {
-            SSHD sshd = new SSHD(this.ConfigurationFile.FullName);
+            
+            SSHD sshd = new SSHD(this.ConfigurationFile.FullName, true, true, (parent, path) =>
+                {
+                    return this.ConfigurationFile.ReadAsText();
+                });
             if (sshd.ParseSucceded)
             {
                 this.Configuration = sshd;
@@ -76,18 +80,18 @@ namespace DevAudit.AuditLibrary
             string process_output;
             string process_error;
             AuditEnvironment.Execute(this.ApplicationBinary.FullName, "-?", out process_status, out process_output, out process_error);
-            if (process_status == AuditEnvironment.ProcessExecuteStatus.Success)
+            if (process_status == AuditEnvironment.ProcessExecuteStatus.Completed)
             {
                 if (!string.IsNullOrEmpty(process_error) && string.IsNullOrEmpty(process_output))
                 {
                     process_output = process_error;
                 }
-                this.Version = process_error.Split(Environment.NewLine.ToCharArray(), StringSplitOptions.RemoveEmptyEntries)[1];
+                this.Version = process_output.Split("\n".ToCharArray(), StringSplitOptions.RemoveEmptyEntries)[1];
                 return this.Version;
             }
             else if (!string.IsNullOrEmpty(process_error) && string.IsNullOrEmpty(process_output) && process_error.Contains("unknown option"))
             {
-                this.Version = process_error.Split(Environment.NewLine.ToCharArray(), StringSplitOptions.RemoveEmptyEntries)[1];
+                this.Version = process_error.Split("\n".ToCharArray(), StringSplitOptions.RemoveEmptyEntries)[1];
                 return this.Version;
             }
             else

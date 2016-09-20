@@ -37,13 +37,15 @@ namespace DevAudit.AuditLibrary
             {
                 if (this.AuditOptions.Keys.Contains("RemoteUser") && this.AuditOptions.Keys.Contains("RemotePass"))
                 {
-                    SshEnvironment ssh_environment = new SshEnvironment(this.HostEnvironmentMessageHandler,(string)this.AuditOptions["RemoteHost"],
+                    SshEnvironment ssh_environment = new SshEnvironment(this.HostEnvironmentMessageHandler, (string)this.AuditOptions["RemoteHost"],
                         (string)this.AuditOptions["RemoteUser"], this.AuditOptions["RemotePass"], new OperatingSystem(PlatformID.Unix, new Version(0, 0)));
                     if (ssh_environment.IsConnected)
                     {
                         this.AuditEnvironment = ssh_environment;
                         this.AuditEnvironmentIntialised = true;
                         this.AuditEnvironmentMessageHandler = AuditTarget_AuditEnvironmentMessageHandler;
+                        this.AuditEnvironment.MessageHandler -= HostEnvironmentMessageHandler;
+                        this.AuditEnvironment.MessageHandler += this.AuditEnvironmentMessageHandler;
                     }
                     else
                     {

@@ -69,7 +69,11 @@ namespace DevAudit.CommandLine
         public string RemoteUser { get; set; }
 
         [Option('p', "password", Required = false, HelpText = "Specifies that a password will be typed for the user name to login to the remote host.")]
-        public bool RemotePassword { get; set; }
+        public bool EnterRemotePassword { get; set; }
+
+        [Option("password-text", Required = false, HelpText = "Specifies that a password will be typed for the user name to login to the remote host.")]
+        public string RemotePasswordText { get; set; }
+
 
         [Option('a', "use-agent", Required = false, HelpText = "Attempt to use an agent to retrieve the private key to login to the remote host.")]
         public bool UseAgent { get; set; }

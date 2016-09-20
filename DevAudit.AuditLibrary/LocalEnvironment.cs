@@ -95,7 +95,7 @@ namespace DevAudit.AuditLibrary
             }
             else if ((process_exit_code.HasValue && process_exit_code.Value == 0))
             {
-                process_status = ProcessExecuteStatus.Success;
+                process_status = ProcessExecuteStatus.Completed;
                 return true;
             }
             else
