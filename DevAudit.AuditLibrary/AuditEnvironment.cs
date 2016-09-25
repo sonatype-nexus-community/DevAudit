@@ -9,6 +9,22 @@ using System.Threading.Tasks;
 using Alpheus.IO;
 namespace DevAudit.AuditLibrary
 {
+    public enum EventMessageType
+    {
+        SUCCESS = 0,
+        ERROR = 1,
+        INFO = 2,
+        WARNING = 3,
+        DEBUG = 4
+    }
+
+    public struct CallerInformation
+    {
+        public string Name;
+        public string File;
+        public int LineNumber;
+    }
+
     public abstract class AuditEnvironment
     {
         public enum ProcessExecuteStatus
@@ -133,27 +149,47 @@ namespace DevAudit.AuditLibrary
 
         internal void Info(string message_format, params object[] message)
         {
-            OnMessage(new EnvironmentEventArgs(EventMessageType.INFO, "[INFO] " + message_format, message));
+            OnMessage(new EnvironmentEventArgs(EventMessageType.INFO, message_format, message));
         }
 
         internal void Error(string message_format, params object[] message)
         {
-            OnMessage(new EnvironmentEventArgs(EventMessageType.ERROR, "[ERROR] " + message_format, message));
+            OnMessage(new EnvironmentEventArgs(EventMessageType.ERROR, message_format, message));
         }
+
+        internal void Error(CallerInformation caller, string message_format, params object[] message)
+        {
+            OnMessage(new EnvironmentEventArgs(caller, EventMessageType.ERROR, message_format, message));
+        }
+
 
         internal void Success(string message_format, params object[] message)
         {
-            OnMessage(new EnvironmentEventArgs(EventMessageType.SUCCESS, "[SUCCESS] " + message_format, message));
+            OnMessage(new EnvironmentEventArgs(EventMessageType.SUCCESS, message_format, message));
         }
 
         internal void Warning(string message_format, params object[] message)
         {
-            OnMessage(new EnvironmentEventArgs(EventMessageType.WARNING, "[WARN] " + message_format, message));
+            OnMessage(new EnvironmentEventArgs(EventMessageType.WARNING, message_format, message));
         }
 
         internal void Debug(string message_format, params object[] message)
         {
-            OnMessage(new EnvironmentEventArgs(EventMessageType.WARNING, "[DEBUG] " + message_format, message));
+            OnMessage(new EnvironmentEventArgs(EventMessageType.DEBUG, message_format, message));
+        }
+
+        internal void Debug(CallerInformation caller, string message_format, params object[] message)
+        {
+            OnMessage(new EnvironmentEventArgs(caller, EventMessageType.DEBUG, message_format, message));
+        }
+
+        internal CallerInformation Here([CallerMemberName] string memberName = "", [CallerFilePath] string fileName = "", [CallerLineNumber] int lineNumber = 0)
+        {
+            CallerInformation c;
+            c.Name = memberName;
+            c.File = fileName;
+            c.LineNumber = lineNumber;
+            return c;
         }
         #endregion
 

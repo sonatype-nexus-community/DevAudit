@@ -41,10 +41,27 @@ namespace DevAudit.CommandLine
 
         static Exception AuditLibraryException { get; set; }
 
-        static Spinner Spinner { get; set; } =  null;
+        static Spinner Spinner { get; set; }
+
+        static CC.StyleSheet MessageStyleSheet { get; set; }
+
+        static ConsoleColor OriginalConsoleForeColor;
+
+        static Dictionary<EventMessageType, ConsoleColor> ConsoleMessageColors = new Dictionary<EventMessageType, ConsoleColor>()
+        {
+            {EventMessageType.ERROR, ConsoleColor.DarkRed },
+            {EventMessageType.SUCCESS, ConsoleColor.Cyan },
+            {EventMessageType.WARNING, ConsoleColor.DarkYellow },
+            { EventMessageType.DEBUG, ConsoleColor.Blue }
+        };
 
         static int Main(string[] args)
         {
+            #region Setup console colors
+            ConsoleMessageColors.Add(EventMessageType.INFO, Console.ForegroundColor);
+            OriginalConsoleForeColor = Console.ForegroundColor;
+            #endregion
+
             #region Handle command line options
             if (!CL.Parser.Default.ParseArguments(args, ProgramOptions))
             {
@@ -718,16 +735,15 @@ namespace DevAudit.CommandLine
             if (Spinner != null)
             {
                 Spinner.Stop();
-                /*
-                int original_left = Console.CursorLeft;
-                int original_top = Console.CursorTop;
-                Console.SetCursorPosition(0, original_top);
-                PrintMessageLine(e.Message);
-                //Console.SetCursorPosition(original_left, original_top - e.Message.Split(Environment.NewLine.ToCharArray()).Count());
-                UnPauseSpinner();
-                */
             }
-            PrintMessageLine(e.Message);
+            if (e.MessageType == EventMessageType.DEBUG && !ProgramOptions.EnableDebug)
+            {
+                return;
+            }
+            else
+            {
+                PrintMessageLine(ConsoleMessageColors[e.MessageType], "{0:HH:mm:ss} [{1}] [{2}] {3}", e.DateTime, e.EnvironmentLocation, e.MessageType.ToString(), e.Message);
+            }
         }
 
         static void PrintMessage(string format, params object[] args)

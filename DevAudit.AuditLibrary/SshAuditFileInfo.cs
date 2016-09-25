@@ -108,7 +108,7 @@ namespace DevAudit.AuditLibrary
         #region Overriden methods
         public override IFileInfo Create(string file_path)
         {
-            return new SshAuditFileInfo(this.SshAuditEnvironment , file_path);
+            throw new NotImplementedException();
         }
 
         public override bool PathExists(string file_path)
@@ -128,10 +128,19 @@ namespace DevAudit.AuditLibrary
         public override string ReadAsText()
         {
             string o = this.EnvironmentExecute("cat", this.FullName);
+
             if (!string.IsNullOrEmpty(o))
             {
-                this.AuditEnvironment.Debug("Read {0} characters from file {1}.", o.Length, this.FullName);
-                return o;
+                if (o == string.Format("cat: {0}: No such file or directory", this.FullName))
+                {
+                    EnvironmentCommandError("Access denied reading {0}.", this.FullName);
+                    return string.Empty;
+                }
+                else
+                {
+                    this.AuditEnvironment.Debug("Read {0} characters from file {1}.", o.Length, this.FullName);
+                    return o;
+                }
             }
             else
             {

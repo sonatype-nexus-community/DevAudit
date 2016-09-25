@@ -73,13 +73,14 @@ namespace DevAudit.AuditLibrary
 
         public override bool Execute(string command, string arguments, out ProcessExecuteStatus process_status, out string process_output, out string process_error, Action<string> OutputDataReceived = null, Action<string> OutputErrorReceived = null)
         {
+            CallerInformation here = Here();
             if (!this.IsConnected) throw new InvalidOperationException("The SSH session is not connected.");
             process_status = ProcessExecuteStatus.Unknown;
             process_output = "";
             process_error = "";
             if (this.SshSession.Send.Command(command + " " + arguments, out process_output, 5000))
             {
-                Debug("Send command {0} returned true, output: {1}", command + " " + arguments, process_output);
+                Debug(here, "Send command {0} returned true, output: {1}", command + " " + arguments, process_output);
                 process_status = ProcessExecuteStatus.Completed;
                 return true;
             }

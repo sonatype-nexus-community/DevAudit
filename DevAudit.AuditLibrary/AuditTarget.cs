@@ -59,13 +59,13 @@ namespace DevAudit.AuditLibrary
 
         private void AuditTarget_HostEnvironmentMessageHandler(object sender, EnvironmentEventArgs e)
         {
-            e.Message = string.Format("[HOST] {0}", e.Message);
+            e.EnvironmentLocation = "HOST";
             this.ControllerMessageHandler.Invoke(sender, e);
         }
 
         private void AuditTarget_AuditEnvironmentMessageHandler(object sender, EnvironmentEventArgs e)
         {
-            e.Message = string.Format("[AUDIT] {0}", e.Message);
+            e.EnvironmentLocation = "AUDIT";
             this.ControllerMessageHandler.Invoke(sender, e);
         }
 
