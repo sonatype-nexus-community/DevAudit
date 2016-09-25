@@ -12,10 +12,7 @@ namespace DevAudit.CommandLine
 {
     class Options
     {
-        public Options()
-        {            
-            
-        }
+        public Options() {}
 
         [VerbOption("nuget", HelpText = "Audit NuGet packages. Use the --file option to specify a particular packages.config file otherwise the one in the current directory will be used.")]
         public Options AuditNuGet { get; set; }
@@ -56,6 +53,9 @@ namespace DevAudit.CommandLine
         [VerbOption("nginx", HelpText = "Audit an Nginx server instance. Use the --root option to specify the root directory of the Httpd server instance, and the --config-file option to specify the configuration file otherwise conf/httpd.conf will be used.")]
         public Options Nginx { get; set; }
 
+        [Option('d', "enable-debug", Required = false, HelpText = "Enable printing debug messages and other behavior useful for debugging the program.")]
+        public bool EnableDebug { get; set; }
+
         [Option('n', "non-interact", Required = false, HelpText = "Disable any interctive console output (for redirecting console output to other devices.)")]
         public bool NonInteractive { get; set; }
 
@@ -74,6 +74,8 @@ namespace DevAudit.CommandLine
         [Option("password-text", Required = false, HelpText = "Specifies that a password will be typed for the user name to login to the remote host.")]
         public string RemotePasswordText { get; set; }
 
+        [Option("connect-timeout", Required = false, HelpText = "Specifies the timeout for network connection. Default")]
+        public int NetworkConnectTimeout { get; set; }
 
         [Option('a', "use-agent", Required = false, HelpText = "Attempt to use an agent to retrieve the private key to login to the remote host.")]
         public bool UseAgent { get; set; }
@@ -87,7 +89,7 @@ namespace DevAudit.CommandLine
         [Option('r', "root", Required = false, HelpText = "The root directory of the application instance to audit.")]
         public string RootDirectory { get; set; }
 
-        [Option('d', "docker-container", Required = false, HelpText = "Run the audit on a docker container with this id. The command line docker tools are used to execute the required commands on the docker container.")]
+        [Option("docker-container", Required = false, HelpText = "Run the audit on a docker container with this id. The command line docker tools are used to execute the required commands on the docker container.")]
         public string DockerContainerId { get; set; }
 
         [Option('b', "application-binary", Required = false, HelpText = "The path to the application or server binary.")]

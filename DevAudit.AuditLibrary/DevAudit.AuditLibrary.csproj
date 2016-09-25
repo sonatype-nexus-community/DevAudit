@@ -40,8 +40,8 @@
     <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Alpheus.Core, Version=0.1.7.1, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Alpheus.0.1.7.1\lib\net45\Alpheus.Core.dll</HintPath>
+    <Reference Include="Alpheus.Core, Version=0.1.7.2, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Alpheus.0.1.7.2\lib\net45\Alpheus.Core.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="CSharpTest.Net.BPlusTree, Version=2.14.126.467, Culture=neutral, PublicKeyToken=06aee00cce822474, processorArchitecture=MSIL">
@@ -87,6 +87,11 @@
     <Compile Include="Applications\Drupal7Application.cs" />
     <Compile Include="Applications\Drupal8Application.cs" />
     <Compile Include="Applications\DrupalModuleInfo.cs" />
+    <Compile Include="AuditFileSystemInfo.cs" />
+    <Compile Include="LocalAuditDirectoryInfo.cs" />
+    <Compile Include="LocalAuditFileInfo.cs" />
+    <Compile Include="SshAuditFileInfo.cs" />
+    <Compile Include="SshAuditDirectoryInfo.cs" />
     <Compile Include="AuditEnvironment.cs" />
     <Compile Include="AuditDirectoryInfo.cs" />
     <Compile Include="AuditFileInfo.cs" />
@@ -94,9 +99,6 @@
     <Compile Include="BsonSerializer.cs" />
     <Compile Include="Docker.cs" />
     <Compile Include="AuditTarget.cs" />
-    <Compile Include="IDirectoryInfo.cs" />
-    <Compile Include="IFileInfo.cs" />
-    <Compile Include="IFileSystemInfo.cs" />
     <Compile Include="LocalEnvironment.cs" />
     <Compile Include="OSSIndexArtifact.cs" />
     <Compile Include="OSSIndexProjectConfigurationRule.cs" />
@@ -121,7 +123,7 @@
     <Compile Include="Servers\HttpdServer.cs" />
     <Compile Include="Servers\SSHDServer.cs" />
     <Compile Include="Servers\MySQLServer.cs" />
-    <Compile Include="SshEnvironment.cs" />
+    <Compile Include="SshAuditEnvironment.cs" />
     <Compile Include="EnvironmentEventArgs.cs" />
     <Compile Include="SshEnvironmentEventArgs.cs" />
   </ItemGroup>

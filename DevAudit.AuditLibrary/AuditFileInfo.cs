@@ -5,142 +5,37 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
+using Alpheus.IO;
+
 namespace DevAudit.AuditLibrary
 {
-    public class AuditFileInfo : IFileInfo
+    public abstract class AuditFileInfo : AuditFileSystemInfo, IFileInfo
     {
-        public AuditEnvironment AuditEnvironment { get; protected set; }
+        #region Abstract properties
+        public abstract string DirectoryName { get; }
+        public abstract IDirectoryInfo Directory { get; }
+        public abstract bool IsReadOnly { get; }
+        public abstract long Length { get; }
+        public abstract DateTime LastWriteTimeUtc { get; }
+        #endregion
 
-        public string FullName
-        {
-            get
-            {
-                return _FullName;
-            }
-        }
-        
-        public string Name
-        {
-            get
-            {
-                return _FullName;
-            }
-        }
+        #region Abstract methods
+        public abstract string ReadAsText();
+        public abstract bool PathExists(string file_path);
+        public abstract IFileInfo Create(string file_path);
+        #endregion
 
-        public bool IsReadOnly { get; set; }
-
-        public long Length
-        {
-            get
-            {
-                if (_Length == -1)
-                {
-                    string c = this.ReadAsText();
-                    if (!string.IsNullOrEmpty(c))
-                    {
-                        this._Length = c.Length;
-                    }
-                    else
-                    {
-                        EnvironmentCommandError("Could not get parent directory for {0}.", this.FullName);
-                    }
-                }
-                return this._Length;
-            }
-        }
-        public IDirectoryInfo Directory
-        {
-            get
-            {
-                if (this._Directory == null)
-                {
-                    string o = this.EnvironmentExecute("dirname", this.FullName);
-                    if (!string.IsNullOrEmpty(o))
-                    {
-                        this._Directory = new AuditDirectoryInfo(this.AuditEnvironment, o);
-                    }
-                    else
-                    {
-                        EnvironmentCommandError("Could not get parent directory for {0}.", this.FullName);
-                    }
-                }
-                return this._Directory;
-            }
-        }
-
-        public string DirectoryName
-        {
-            get
-            {
-                if (this.Directory != null)
-                {
-                    return this.Directory.Name;
-                }
-                else
-                {
-                    EnvironmentCommandError("Could not get directory name for {0}.", this.FullName);
-                    return string.Empty;
-                }
-            }
-        }
-
-        public string ReadAsText()
-        {
-            string o = this.EnvironmentExecute("cat", this.FullName);
-            if (!string.IsNullOrEmpty(o))
-            {
-                this.AuditEnvironment.Debug("Read {0} characters from file {1}.", o.Length, this.FullName);
-                return o;
-            }
-            else
-            {
-                EnvironmentCommandError("Could not read as text {0}.", this.FullName);
-                return null;
-            }
-        }       
-
-        public AuditFileInfo(AuditEnvironment env, string full_name)
+        #region Constructors
+        public AuditFileInfo(AuditEnvironment env, string file_path)
         {
             this.AuditEnvironment = env;
-            this._FullName = full_name;
+            this.FullName = file_path;
+            this.PathSeparator = this.AuditEnvironment.OS.Platform == PlatformID.Win32NT ? "\\" : "/";
+            this.Name = this.GetPathComponents().Last();
         }
+        #endregion
 
-        public bool Exists
-        {
-            get
-            {
-                return this.AuditEnvironment.FileExists(this.Name);
-            }
-        }
-
-        #region Private and protected members
-        protected string _FullName;
-        protected AuditDirectoryInfo _Directory = null;
-        public long _Length = -1;
-
-        protected string EnvironmentExecute(string command, string args)
-        {
-            AuditEnvironment.ProcessExecuteStatus process_status;
-            string process_output = "";
-            string process_error = "";
-            if (this.AuditEnvironment.Execute(command, args, out process_status, out process_output, out process_error))
-            {
-                this.AuditEnvironment.Debug("Execute {0} returned {1}.", command + " " + args, process_output);
-                return process_output;
-            }
-
-            else
-            {
-                this.AuditEnvironment.Debug("Execute returned false for {0}", command + " " + args);
-                return string.Empty;
-            }
-
-        }
-
-        protected void EnvironmentCommandError(string message_format, params object[] m)
-        {
-            this.AuditEnvironment.Error(message_format, m);
-        }
+        #region Protected methods
         #endregion
     }
 }

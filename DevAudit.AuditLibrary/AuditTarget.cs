@@ -37,7 +37,7 @@ namespace DevAudit.AuditLibrary
             {
                 if (this.AuditOptions.Keys.Contains("RemoteUser") && this.AuditOptions.Keys.Contains("RemotePass"))
                 {
-                    SshEnvironment ssh_environment = new SshEnvironment(this.HostEnvironmentMessageHandler, (string)this.AuditOptions["RemoteHost"],
+                    SshAuditEnvironment ssh_environment = new SshAuditEnvironment(this.HostEnvironmentMessageHandler, (string)this.AuditOptions["RemoteHost"],
                         (string)this.AuditOptions["RemoteUser"], this.AuditOptions["RemotePass"], new OperatingSystem(PlatformID.Unix, new Version(0, 0)));
                     if (ssh_environment.IsConnected)
                     {

@@ -9,10 +9,10 @@ using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 using ExpectNet;
-
+using Alpheus.IO;
 namespace DevAudit.AuditLibrary
 {
-    public class SshEnvironment : AuditEnvironment
+    public class SshAuditEnvironment : AuditEnvironment
     {
         #region Public properties
         public string HostName { get; private set; }
@@ -21,6 +21,7 @@ namespace DevAudit.AuditLibrary
         public string HostKey { get; private set; }
         public bool IsConnected { get; private set; }
         public string LastEvent { get; set; }
+        public int NetwrokConnectTimeout { get; private set; } = 3000;
         #endregion
 
         private Session SshSession { get; set; }
@@ -30,6 +31,16 @@ namespace DevAudit.AuditLibrary
         private Action<string> DirectoryNotFound;
 
         #region Overriden members     
+        public override AuditFileInfo ConstructFile(string file_path)
+        {
+            return new SshAuditFileInfo(this, file_path);
+        }
+
+        public override AuditDirectoryInfo ConstructDirectory(string dir_path)
+        {
+            return new SshAuditDirectoryInfo(this, dir_path);
+        }
+
         public override bool FileExists(string file_path)
         {
             if (!this.IsConnected) throw new InvalidOperationException("The SSH session is not connected.");
@@ -80,7 +91,7 @@ namespace DevAudit.AuditLibrary
         }
         #endregion
 
-        public SshEnvironment(EventHandler<EnvironmentEventArgs> message_handler, OperatingSystem os, string host_name) : base(message_handler, os)
+        public SshAuditEnvironment(EventHandler<EnvironmentEventArgs> message_handler, OperatingSystem os, string host_name) : base(message_handler, os)
         {
             this.HostName = host_name;
             FileFound = (o) =>
@@ -101,10 +112,8 @@ namespace DevAudit.AuditLibrary
             };
         }
 
-        public SshEnvironment(EventHandler<EnvironmentEventArgs> message_handler, string host_name, string user, object pass, OperatingSystem os) : this(message_handler, os, host_name)
+        public SshAuditEnvironment(EventHandler<EnvironmentEventArgs> message_handler, string host_name, string user, object pass, OperatingSystem os) : this(message_handler, os, host_name)
         {
-
-            Info("Password: ", ToInsecureString(pass));
             string ssh_command = Environment.OSVersion.Platform == PlatformID.Win32NT ? "plink.exe" : "ssh";
             string ssh_arguments = Environment.OSVersion.Platform == PlatformID.Win32NT ? string.Format("-v -ssh -2 -l {0} -pw \"{1}\" -sshlog plink_ssh.log {2}", user,
                 ToInsecureString(pass), host_name) : "";

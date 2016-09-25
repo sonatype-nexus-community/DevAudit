@@ -34,7 +34,7 @@ namespace DevAudit.AuditLibrary
         #endregion
 
         #region Public properties
-        public Dictionary<string, IFileSystemInfo> ApplicationFileSystemMap { get; } = new Dictionary<string, IFileSystemInfo>();
+        public Dictionary<string, AuditFileSystemInfo> ApplicationFileSystemMap { get; } = new Dictionary<string, AuditFileSystemInfo>();
 
         public AuditDirectoryInfo RootDirectory
         {
@@ -148,7 +148,7 @@ namespace DevAudit.AuditLibrary
             }
             else
             {
-                this.ApplicationFileSystemMap.Add("RootDirectory", new AuditDirectoryInfo(this.AuditEnvironment, (string)this.ApplicationOptions["RootDirectory"]));
+                this.ApplicationFileSystemMap.Add("RootDirectory", this.AuditEnvironment.ConstructDirectory((string)this.ApplicationOptions["RootDirectory"]));
             }
 
             foreach (KeyValuePair<string, string> f in RequiredFileLocations)
@@ -169,7 +169,7 @@ namespace DevAudit.AuditLibrary
                         }
                         else
                         {
-                            this.ApplicationFileSystemMap.Add(f.Key, new AuditFileInfo(this.AuditEnvironment, fn));
+                            this.ApplicationFileSystemMap.Add(f.Key, this.AuditEnvironment.ConstructFile(fn));
                         }
                     }
 
@@ -183,7 +183,7 @@ namespace DevAudit.AuditLibrary
                     }
                     else
                     {
-                        this.ApplicationFileSystemMap.Add(f.Key, new AuditFileInfo(this.AuditEnvironment, fn));
+                        this.ApplicationFileSystemMap.Add(f.Key, this.AuditEnvironment.ConstructFile(fn));
                     }
                 }
             }
@@ -206,7 +206,7 @@ namespace DevAudit.AuditLibrary
                         }
                         else
                         {
-                            this.ApplicationFileSystemMap.Add(d.Key, new AuditDirectoryInfo(this.AuditEnvironment, dn));
+                            this.ApplicationFileSystemMap.Add(d.Key, this.AuditEnvironment.ConstructDirectory(dn));
                         }
                     }
 
@@ -220,7 +220,7 @@ namespace DevAudit.AuditLibrary
                     }
                     else
                     {
-                        this.ApplicationFileSystemMap.Add(d.Key, new AuditDirectoryInfo(this.AuditEnvironment, dn));
+                        this.ApplicationFileSystemMap.Add(d.Key, this.AuditEnvironment.ConstructDirectory(dn));
                     }
                 }
             }
@@ -234,7 +234,7 @@ namespace DevAudit.AuditLibrary
                 }
                 else
                 {
-                    this.ApplicationBinary = new AuditFileInfo(this.AuditEnvironment, fn);
+                    this.ApplicationBinary = this.AuditEnvironment.ConstructFile(fn);
                 }
             }
         }

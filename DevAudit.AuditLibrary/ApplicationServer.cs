@@ -22,7 +22,8 @@ namespace DevAudit.AuditLibrary
 
         #region Public properties
         public string DefaultConfigurationFile { get; protected set; }
-
+      
+  
         public AuditFileInfo ConfigurationFile
         {
             get
@@ -66,7 +67,7 @@ namespace DevAudit.AuditLibrary
             {
                 if (this.AuditEnvironment.FileExists(this.DefaultConfigurationFile))
                 {
-                    this.ApplicationFileSystemMap.Add("ConfigurationFile", new AuditFileInfo(this.AuditEnvironment, this.DefaultConfigurationFile));
+                    this.ApplicationFileSystemMap.Add("ConfigurationFile", this.AuditEnvironment.ConstructFile(this.DefaultConfigurationFile));
                 }
                 else
                 {
@@ -78,7 +79,7 @@ namespace DevAudit.AuditLibrary
                 string cf = CombinePath((string)this.ServerOptions["ConfigurationFile"]);
                 if (this.AuditEnvironment.FileExists(cf))
                 {
-                    this.ApplicationFileSystemMap.Add("ConfigurationFile", new AuditFileInfo(this.AuditEnvironment, cf));
+                    this.ApplicationFileSystemMap.Add("ConfigurationFile", this.AuditEnvironment.ConstructFile(cf));
                 }
                 else
                 {
@@ -95,7 +96,6 @@ namespace DevAudit.AuditLibrary
             }
             this.InitialiseConfigurationFile(default_configuration_file_path[this.AuditEnvironment.OS.Platform]);
         }
-
         #endregion
 
         #region Private fields

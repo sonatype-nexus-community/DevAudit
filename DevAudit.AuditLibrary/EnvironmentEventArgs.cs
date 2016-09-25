@@ -15,12 +15,18 @@ namespace DevAudit.AuditLibrary
         DEBUG = 4
     }
 
+    public struct EventLocation
+    {
+        string file;
+    }
+
     public class EnvironmentEventArgs
     {
         public EventMessageType MessageType { get; protected set; }
 
         public string Message { get; set; }
 
+        public DateTime DateTime { get; set; }
         public EnvironmentEventArgs(EventMessageType message_type, string message)
         {
             this.MessageType = message_type;

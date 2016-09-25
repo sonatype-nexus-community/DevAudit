@@ -45,16 +45,18 @@ namespace DevAudit.CommandLine
 
         static int Main(string[] args)
         {
-            AppDomain.CurrentDomain.UnhandledException += Program_UnhandledException;
-
             #region Handle command line options
-            Dictionary<string, object> audit_options = new Dictionary<string, object>();
-            
             if (!CL.Parser.Default.ParseArguments(args, ProgramOptions))
             {
                 return (int)ExitCodes.INVALID_ARGUMENTS;
             }
-           
+            Dictionary<string, object> audit_options = new Dictionary<string, object>();
+
+            if (!ProgramOptions.EnableDebug)
+            {
+                AppDomain.CurrentDomain.UnhandledException += Program_UnhandledException;
+            }
+   
             if (!string.IsNullOrEmpty(ProgramOptions.RemoteHost))
             {
                 if (Uri.CheckHostName(ProgramOptions.RemoteHost) == UriHostNameType.Unknown)
@@ -715,19 +717,17 @@ namespace DevAudit.CommandLine
         {
             if (Spinner != null)
             {
-                PauseSpinner();
+                Spinner.Stop();
+                /*
                 int original_left = Console.CursorLeft;
                 int original_top = Console.CursorTop;
                 Console.SetCursorPosition(0, original_top);
                 PrintMessageLine(e.Message);
                 //Console.SetCursorPosition(original_left, original_top - e.Message.Split(Environment.NewLine.ToCharArray()).Count());
                 UnPauseSpinner();
+                */
             }
-            else
-            {
-                PrintMessageLine(e.Message);
-            }
-            
+            PrintMessageLine(e.Message);
         }
 
         static void PrintMessage(string format, params object[] args)

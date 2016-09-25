@@ -126,7 +126,7 @@ namespace DevAudit.AuditLibrary
                 }
                 else
                 {
-                    this.ApplicationBinary = new AuditFileInfo(this.AuditEnvironment, fn);
+                    this.ApplicationBinary = this.AuditEnvironment.ConstructFile(fn);
                     this.ApplicationFileSystemMap["mysql"] = this.ApplicationBinary;
                 }
             }

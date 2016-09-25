@@ -10,6 +10,7 @@ using YamlDotNet.Serialization;
 using YamlDotNet.Serialization.NamingConventions;
 using Versatile;
 using Alpheus;
+using Alpheus.IO;
 
 namespace DevAudit.AuditLibrary
 {
@@ -54,10 +55,10 @@ namespace DevAudit.AuditLibrary
         {
             get
             {
-                AuditDirectoryInfo sites_all;
+                IDirectoryInfo sites_all;
                 if ((sites_all = this.RootDirectory.GetDirectories(Path.Combine("sites", "all")).FirstOrDefault()) != null)
                 {
-                    return sites_all.GetDirectories(Path.Combine("modules")).FirstOrDefault();
+                    return (AuditDirectoryInfo) sites_all.GetDirectories(Path.Combine("modules")).FirstOrDefault();
                 }
                 else return null;
             }

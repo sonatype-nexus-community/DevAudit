@@ -1,10 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Runtime.CompilerServices;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
+using Alpheus.IO;
 namespace DevAudit.AuditLibrary
 {
     public abstract class AuditEnvironment
@@ -51,6 +53,8 @@ namespace DevAudit.AuditLibrary
         public abstract bool DirectoryExists(string dir_path);
         public abstract bool Execute(string command, string arguments,
             out ProcessExecuteStatus process_status, out string process_output, out string process_error, Action<string> OutputDataReceived = null, Action<string> OutputErrorReceived = null);
+        public abstract AuditFileInfo ConstructFile(string file_path);
+        public abstract AuditDirectoryInfo ConstructDirectory(string dir_path);
         #endregion
 
         #region Public properties

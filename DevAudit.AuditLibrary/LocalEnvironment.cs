@@ -7,11 +7,22 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
+
 namespace DevAudit.AuditLibrary
 {
     public class LocalEnvironment : AuditEnvironment
     {
-        #region Overriden members     
+        #region Overriden members
+        public override AuditDirectoryInfo ConstructDirectory(string dir_path)
+        {
+            return new LocalAuditDirectoryInfo(this, dir_path);
+        }
+
+        public override AuditFileInfo ConstructFile(string file_path)
+        {
+            return new LocalAuditFileInfo(this, file_path);
+        }
+
         public override bool FileExists(string file_path)
         {
             return File.Exists(file_path);
@@ -109,6 +120,7 @@ namespace DevAudit.AuditLibrary
 
         #region Constructors
         public LocalEnvironment(EventHandler<EnvironmentEventArgs> message_handler) : base(message_handler, Environment.OSVersion) {}
+        public LocalEnvironment() : base(null, Environment.OSVersion) { }
         #endregion
     }
 }

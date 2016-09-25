@@ -7,7 +7,9 @@ using System.Text;
 using System.Threading.Tasks;
 using YamlDotNet.Serialization;
 using YamlDotNet.Serialization.NamingConventions;
+
 using Alpheus;
+using Alpheus.IO;
 
 namespace DevAudit.AuditLibrary
 {
@@ -57,10 +59,7 @@ namespace DevAudit.AuditLibrary
 
         protected override IConfiguration GetConfiguration()
         {
-            SSHD sshd = new SSHD(this.ConfigurationFile.FullName, true, true, (parent, path) =>
-                {
-                    return this.ConfigurationFile.ReadAsText();
-                });
+            SSHD sshd = new SSHD(this.ConfigurationFile);
             if (sshd.ParseSucceded)
             {
                 this.Configuration = sshd;
@@ -136,7 +135,7 @@ namespace DevAudit.AuditLibrary
                 }
                 else
                 {
-                    this.ApplicationBinary = new AuditFileInfo(this.AuditEnvironment, fn);
+                    this.ApplicationBinary = this.AuditEnvironment.ConstructFile(fn);
                     this.ApplicationFileSystemMap["sshd"] = this.ApplicationBinary;
                 }
             }

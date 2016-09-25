@@ -5,116 +5,37 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
+using Alpheus.IO;
+
 namespace DevAudit.AuditLibrary
 {
-    public class AuditDirectoryInfo : FileSystemInfo, IDirectoryInfo
+    public abstract class AuditDirectoryInfo : AuditFileSystemInfo, IDirectoryInfo
     {
-        public AuditEnvironment AuditEnvironment { get; protected set; }
+        #region Abstract properties
+        public abstract IDirectoryInfo Root { get; }
+        public abstract IDirectoryInfo Parent { get; }
+        #endregion
 
-        #region Overriden members
+        #region Abstract methods
+        public abstract IDirectoryInfo[] GetDirectories();
+        public abstract IDirectoryInfo[] GetDirectories(string search_path);
+        public abstract IDirectoryInfo[] GetDirectories(string search_pattern, SearchOption search_option);
+        public abstract IFileInfo[] GetFiles();
+        public abstract IFileInfo[] GetFiles(string searchPattern);
+        public abstract IFileInfo[] GetFiles(string searchPattern, SearchOption searchOption);
+        #endregion
 
-        public string DirectoryName
+        #region Constructors
+        public AuditDirectoryInfo(AuditEnvironment env, string dir_path)
         {
-            get
-            {
-                return _Name;
-            }
-        }
-
-        public long Length
-        {
-            get
-            {
-                throw new NotImplementedException();
-            }
-        }
-
-        public bool IsReadOnly
-        {
-            get;
-            set;
-        }
-
-        public override string FullName
-        {
-            get
-            {
-                return _Name;
-            }
-        }
-        
-        public override string Name
-        {
-            get
-            {
-                return _Name;
-            }
-        }
-
-        public override bool Exists
-        {
-            get
-            {
-                throw new NotImplementedException();
-            }
-        }
-
-
-        public override void Delete()
-        {
-            throw new NotImplementedException();
-
+            this.FullName = dir_path;
+            this.AuditEnvironment = env;
+            this.PathSeparator = this.AuditEnvironment.OS.Platform == PlatformID.Win32NT ? "\\" : "/";
+            this.Name = this.GetPathComponents().Last();
         }
         #endregion
 
-        public IEnumerable<AuditDirectoryInfo> GetDirectories(string path)
-        {
-            
-            string o = this.EnvironmentExecute("find", string.Format("{0} -type d -name \"*\"", path));
-            if (!string.IsNullOrEmpty(o))
-            {
-                return null;
-            }
-            else
-            {
-                EnvironmentCommandError("Could not get directories in {0} for path {1}.", this.FullName, path);
-                return null;
-            }
-
-          
-        }
-        public AuditDirectoryInfo(AuditEnvironment env, string name)
-        {
-            this.AuditEnvironment = env;
-            this._Name = name;
-        }
-
-        #region Private and protecte members
-        protected string _Name;
-        protected string EnvironmentExecute(string command, string args)
-        {
-            AuditEnvironment.ProcessExecuteStatus process_status;
-            string process_output = "";
-            string process_error = "";
-            if (this.AuditEnvironment.Execute(command, args, out process_status, out process_output, out process_error))
-            {
-                this.AuditEnvironment.Debug("Execute {0} returned {1}.", command + " " + args, process_output);
-                return process_output;
-            }
-
-            else
-            {
-                this.AuditEnvironment.Debug("Execute returned false for {0}", command + " " + args);
-                return string.Empty;
-            }
-
-        }
-
-        protected void EnvironmentCommandError(string message_format, params object[] m)
-        {
-            this.AuditEnvironment.Error(message_format, m);
-        }
-
+        #region Protected methods
         #endregion
     }
 }
