@@ -21,7 +21,7 @@ namespace DevAudit.AuditLibrary
 
         public override IFileInfo Create(string file_path)
         {
-            throw new NotImplementedException();
+            return new LocalAuditFileInfo(this.LocalAuditEnvironment, file_path);
         }
 
         public override IDirectoryInfo Directory
@@ -85,13 +85,18 @@ namespace DevAudit.AuditLibrary
 
         public LocalAuditFileInfo(LocalEnvironment env, string file_path) : base(env, file_path)
         {
+            this.LocalAuditEnvironment = env;
             this.file = new FileInfo(file_path);
         }
 
-        public LocalAuditFileInfo(LocalEnvironment env, FileInfo f) : base(env, f.FullName) {}
+        public LocalAuditFileInfo(LocalEnvironment env, FileInfo f) : base(env, f.FullName)
+        {
+            this.LocalAuditEnvironment = env;
+        }
 
         #region Protected fields
         private FileInfo file;
+        private LocalEnvironment LocalAuditEnvironment { get; set; }
         #endregion
     }
 }
