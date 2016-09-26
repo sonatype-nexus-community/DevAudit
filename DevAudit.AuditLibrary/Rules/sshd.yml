@@ -24,11 +24,11 @@ sshd:
         title:  Port is set to default (Port)
         xpathtest:  /SSHD/Values/Port='22' 
         summary: |
-            By default ssh runs on port 22. Most of the attackers will check if a server is open on port 22, and will randomly use brute force to login to the server using several username and password combination.
+            By default ssh runs on port 22. Most of the attackers will check if a server is open on port 22, 
+            and will randomly use brute force to login to the server using several username and password combination.
             If you change the port # to something different, others need to know exactly what port to use to login to the server using ssh.  
         resolution: |
-            Add directives like the following to configuration file: Port 773.
-            This will result in ssh listening on port 773.
+            Add directives like the following to configuration file: Port 773. This will result in ssh listening on port 773.
         urls:
             -   http://www.thegeekstuff.com/2011/05/openssh-options/
     -   id: 4
@@ -37,7 +37,7 @@ sshd:
         summary: |
             SSH can emulate the behavior of the obsolete rsh command. You should always disable insecure access via RSH.
         resolution: |
-            Add IgnoreRhosts=yes directive.
+            Add IgnoreRhosts=yes directive to configuration file.
         urls:
             -   http://www.thegeekstuff.com/2011/05/openssh-options/
 

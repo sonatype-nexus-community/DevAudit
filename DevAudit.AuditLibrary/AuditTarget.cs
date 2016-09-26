@@ -35,9 +35,19 @@ namespace DevAudit.AuditLibrary
             this.HostEnvironmentInitialised = true;
             if (this.AuditOptions.Keys.Contains("RemoteHost"))
             {
+                string client;
+                if (this.HostEnvironment.OS.Platform == PlatformID.Win32NT)
+                {
+                    client = this.AuditOptions.Keys.Contains("WindowsUsePlink") ? "plink" : "openssh";
+                }
+                else
+                {
+                    client = "openssh";
+                }
                 if (this.AuditOptions.Keys.Contains("RemoteUser") && this.AuditOptions.Keys.Contains("RemotePass"))
                 {
-                    SshAuditEnvironment ssh_environment = new SshAuditEnvironment(this.HostEnvironmentMessageHandler, (string)this.AuditOptions["RemoteHost"],
+
+                    SshAuditEnvironment ssh_environment = new SshAuditEnvironment(this.HostEnvironmentMessageHandler, client, (string)this.AuditOptions["RemoteHost"],
                         (string)this.AuditOptions["RemoteUser"], this.AuditOptions["RemotePass"], new OperatingSystem(PlatformID.Unix, new Version(0, 0)));
                     if (ssh_environment.IsConnected)
                     {

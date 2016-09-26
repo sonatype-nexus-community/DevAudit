@@ -41,7 +41,7 @@ namespace ExpectNet
             this.Timeout = timeout;
         }
 
-        private IResult _Expect(IMatch matcher, Action<string> handler, int timeout = 0, bool timeout_throws = false)
+        private IResult _Expect(IMatch matcher, Action<IResult> handler, int timeout = 0, bool timeout_throws = false)
         {
             if (timeout == 0) timeout = this.Timeout;
             var tokenSource = new CancellationTokenSource();
@@ -61,7 +61,7 @@ namespace ExpectNet
             }, ct);
             if (task.Wait(timeout, ct))
             {
-                handler?.Invoke(matchOutputBuilder.ToString());
+                handler?.Invoke(result);
                 return result;
             }
             else
@@ -79,12 +79,12 @@ namespace ExpectNet
             }
         }
 
-        private IResult _Expect(IMatch matcher, Action<string> handler)
+        private IResult _Expect(IMatch matcher, Action<IResult> handler)
         {
             return this._Expect(matcher, handler, this.Timeout, false);
         }
 
-        private IResult _Expect(IMatch matcher, Action<string> handler, int timeout, int retries)
+        private IResult _Expect(IMatch matcher, Action<IResult> handler, int timeout, int retries)
         {
             IResult result = null; ;
             for (int i = 1; i <= retries; i++)
@@ -141,12 +141,12 @@ namespace ExpectNet
             return result;
         }
 
-        private List<IResult> _Expect(List<Tuple<IMatch, Action<string>>> matchers, int timeout = 0, bool timeout_throws = false)
+        private List<IResult> _Expect(List<Tuple<IMatch, Action<IResult>>> matchers, int timeout = 0, bool timeout_throws = false)
         {
             if (timeout == 0) timeout = this.Timeout;
             CancellationTokenSource tokenSource = new CancellationTokenSource();
             CancellationToken ct = tokenSource.Token;
-            List<Tuple<IResult, Action<string>>> results = matchers.Select(m => new Tuple<IResult, Action<string>>(m.Item1 as IResult, m.Item2)).ToList();
+            List<Tuple<IResult, Action<IResult>>> results = matchers.Select(m => new Tuple<IResult, Action<IResult>>(m.Item1 as IResult, m.Item2)).ToList();
             StringBuilder matchOutputBuilder = new StringBuilder(1000);
             Task task = Task.Run(() =>
             {
@@ -154,12 +154,12 @@ namespace ExpectNet
                 {
                     string output = _spawnable.Read();
                     matchOutputBuilder.Append(output);
-                    foreach (Tuple<IResult, Action<string>> r in results)
+                    foreach (Tuple<IResult, Action<IResult>> r in results)
                     {
                         (r.Item1 as IMatch).Execute(matchOutputBuilder.ToString());
                         if (r.Item1.IsMatch)
                         {
-                            r.Item2?.Invoke(matchOutputBuilder.ToString());
+                            r.Item2?.Invoke(r.Item1);
                             break;
                         }
                     }
@@ -183,7 +183,7 @@ namespace ExpectNet
             }
         }
 
-        private List<IResult> _Expect(List<Tuple<IMatch, Action<string>>> matchers, int timeout, int retries, bool timeout_throws = false)
+        private List<IResult> _Expect(List<Tuple<IMatch, Action<IResult>>> matchers, int timeout, int retries, bool timeout_throws = false)
         {
             List<IResult> result = null; ;
             for (int i = 1; i <= retries; i++)
@@ -201,7 +201,37 @@ namespace ExpectNet
             }
         }
 
-        private async Task<IResult> _ExpectAsync(IMatch matcher, Action<string> handler, int timeout = 0, bool timeout_throws = false)
+        private IResult _ExpectElse(IMatch matcher, Action<IResult> handler_if, Action<IResult> handler_else, int timeout = 0)
+        {
+            if (timeout == 0) timeout = this.Timeout;
+            var tokenSource = new CancellationTokenSource();
+            CancellationToken ct = tokenSource.Token;
+            IResult result = matcher;
+            StringBuilder matchOutputBuilder = new StringBuilder();
+            Task task = Task.Run(() =>
+            {
+                while (!ct.IsCancellationRequested && !matcher.IsMatch)
+                {
+                    matchOutputBuilder.Append(_spawnable.Read());
+                    if (!matcher.Execute(matchOutputBuilder.ToString()))
+                    {
+                        Thread.Sleep(Delay);
+                    }
+                }
+            }, ct);
+            if (task.Wait(timeout, ct))
+            {
+                handler_if?.Invoke(result);
+                return result;
+            }
+            else
+            {
+                handler_else?.Invoke(result);
+                return result;
+            }            
+        }
+
+        private async Task<IResult> _ExpectAsync(IMatch matcher, Action<IResult> handler, int timeout = 0, bool timeout_throws = false)
         {
             IResult result = matcher;
             Task timeoutTask = null;
@@ -227,7 +257,7 @@ namespace ExpectNet
                 matcher.Execute(matchOutputBuilder.ToString());
                 if (result.IsMatch)
                 {
-                    handler?.Invoke(matchOutputBuilder.ToString());
+                    handler?.Invoke(result);
                 }
             }
             else
@@ -237,7 +267,7 @@ namespace ExpectNet
             return result;
         }
 
-        private async Task<IResult> _ExpectAsync(IMatch matcher, Action<string> handler)
+        private async Task<IResult> _ExpectAsync(IMatch matcher, Action<IResult> handler)
         {
             return await this._ExpectAsync(matcher, handler, this.Timeout, false);
         }
@@ -256,32 +286,37 @@ namespace ExpectNet
                 this.Session = parent;
             }
 
-            public IResult Contains(string query, Action<string> handler, int? timeout = null, int? retries = null)
+            public IResult Contains(string query, Action<IResult> handler, int? timeout = null, int? retries = null)
             {
                 return Session._Expect(new StringContainsMatch(query), handler, timeout.HasValue ? timeout.Value : this.Session.Timeout, retries.HasValue ? retries.Value : 1);
             }
 
-            public List<IResult> ContainsEither(string query1, Action<string> handler1, string query2, Action<string> handler2, int? timeout = null, bool timeout_throws = false)
+            public IResult ContainsElse(string query, Action<IResult> if_handler, Action<IResult> else_handler, int? timeout = null)
             {
-                List<Tuple<IMatch, Action<string>>> q = new List<Tuple<IMatch, Action<string>>>()
+                return Session._ExpectElse(new StringContainsMatch(query), if_handler, else_handler, timeout.HasValue ? timeout.Value : this.Session.Timeout);
+            }
+
+            public List<IResult> ContainsEither(string query1, Action<IResult> handler1, string query2, Action<IResult> handler2, int? timeout = null, bool timeout_throws = false)
+            {
+                List<Tuple<IMatch, Action<IResult>>> q = new List<Tuple<IMatch, Action<IResult>>>()
                 {
-                    new Tuple<IMatch, Action<string>>(new StringContainsMatch(query1), handler1),
-                    new Tuple<IMatch, Action<string>>(new StringContainsMatch(query2), handler2)
+                    new Tuple<IMatch, Action<IResult>>(new StringContainsMatch(query1), handler1),
+                    new Tuple<IMatch, Action<IResult>>(new StringContainsMatch(query2), handler2)
                 };
                 return Session._Expect(q, timeout.HasValue ? timeout.Value : this.Session.Timeout, timeout_throws);
             }
 
-            public List<IResult> ContainsEither(string query1, Action<string> handler1, string query2, Action<string> handler2, int timeout, int retries, bool timeout_throws = false)
+            public List<IResult> ContainsEither(string query1, Action<IResult> handler1, string query2, Action<IResult> handler2, int timeout, int retries, bool timeout_throws = false)
             {
-                List<Tuple<IMatch, Action<string>>> q = new List<Tuple<IMatch, Action<string>>>()
+                List<Tuple<IMatch, Action<IResult>>> q = new List<Tuple<IMatch, Action<IResult>>>()
                 {
-                    new Tuple<IMatch, Action<string>>(new StringContainsMatch(query1), handler1),
-                    new Tuple<IMatch, Action<string>>(new StringContainsMatch(query2), handler2)
+                    new Tuple<IMatch, Action<IResult>>(new StringContainsMatch(query1), handler1),
+                    new Tuple<IMatch, Action<IResult>>(new StringContainsMatch(query2), handler2)
                 };
                 return Session._Expect(q, timeout, retries, timeout_throws);
             }
 
-            public IResult Regex(string query, Action<string> handler, int? timeout = null)
+            public IResult Regex(string query, Action<IResult> handler, int? timeout = null)
             {
                 return Session._Expect(new RegexMatch(query), handler, timeout.HasValue ? timeout.Value : this.Session.Timeout);
             }

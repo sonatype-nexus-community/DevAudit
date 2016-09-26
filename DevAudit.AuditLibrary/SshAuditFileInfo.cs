@@ -117,7 +117,7 @@ namespace DevAudit.AuditLibrary
 
         public override bool PathExists(string file_path)
         {
-            string result = this.EnvironmentExecute("test", "-f " + file_path + " && echo Yes || echo No");
+            string result = this.EnvironmentExecute("test", "-f " + file_path + " && echo \"Yes\" || echo \"No\"");
             if (result == "Yes" || result == "No")
             {
                 return result == "Yes" ? true : false;
@@ -142,7 +142,7 @@ namespace DevAudit.AuditLibrary
                 }
                 else
                 {
-                    this.AuditEnvironment.Debug("Read {0} characters from file {1}.", o.Length, this.FullName);
+                    this.AuditEnvironment.Debug(this.AuditEnvironment.Here(), "Read {0} characters from file {1}.", o.Length, this.FullName);
                     return o;
                 }
             }

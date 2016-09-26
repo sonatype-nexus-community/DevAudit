@@ -89,6 +89,12 @@ namespace DevAudit.CommandLine
         [Option('r', "root", Required = false, HelpText = "The root directory of the application instance to audit.")]
         public string RootDirectory { get; set; }
 
+        [Option("use-openssh", Required = false, HelpText = "On Windows use the OpenSSH SSH client bundled with DevAudit.")]
+        public bool WindowsUseOpenSsh { get; set; }
+
+        [Option("use-plink", Required = false, HelpText = "On Windows use the Plink SSH client bundled with DevAudit.")]
+        public bool WindowsUsePlink { get; set; }
+
         [Option("docker-container", Required = false, HelpText = "Run the audit on a docker container with this id. The command line docker tools are used to execute the required commands on the docker container.")]
         public string DockerContainerId { get; set; }
 

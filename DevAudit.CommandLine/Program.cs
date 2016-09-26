@@ -85,6 +85,16 @@ namespace DevAudit.CommandLine
                 {
                     audit_options.Add("RemoteHost", ProgramOptions.RemoteHost);
                 }
+
+                if (ProgramOptions.WindowsUseOpenSsh)
+                {
+                    audit_options.Add("WindowsUseOpenSsh", true);
+                }
+                else if (ProgramOptions.WindowsUsePlink)
+                {
+                    audit_options.Add("WindowsUsePlink", true);
+                }
+
                 if (!string.IsNullOrEmpty(ProgramOptions.RemoteUser))
                 {
                     audit_options.Add("RemoteUser", ProgramOptions.RemoteUser);
