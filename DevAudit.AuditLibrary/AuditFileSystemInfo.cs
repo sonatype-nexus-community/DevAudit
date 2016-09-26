@@ -28,13 +28,12 @@ namespace DevAudit.AuditLibrary
             string process_error = "";
             if (this.AuditEnvironment.Execute(command, args, out process_status, out process_output, out process_error))
             {
-                this.AuditEnvironment.Debug("Execute {0} returned {1}.", command + " " + args, process_output);
                 return process_output;
             }
 
             else
             {
-                this.AuditEnvironment.Debug("Execute returned false for {0}", command + " " + args);
+                this.AuditEnvironment.Debug(this.AuditEnvironment.Here(), "Execute returned false for {0}", command + " " + args);
                 return string.Empty;
             }
 
@@ -55,6 +54,5 @@ namespace DevAudit.AuditLibrary
             return this.FullName.Split(this.PathSeparator.ToArray()).ToArray();
         }
         #endregion
-
     }
 }

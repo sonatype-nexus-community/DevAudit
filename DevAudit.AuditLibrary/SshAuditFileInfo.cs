@@ -66,8 +66,7 @@ namespace DevAudit.AuditLibrary
                 }
                 else
                 {
-                    CallerInformation caller = this.AuditEnvironment.Here();
-                    EnvironmentCommandError(caller, "Could not parse result of {0} as DateTime: {1}.", cmd + " " + args, d);
+                    EnvironmentCommandError(this.AuditEnvironment.Here(), "Could not parse result of {0} as DateTime: {1}.", cmd + " " + args, d);
                     return new DateTime(1000, 1, 1);
                 }
             }
@@ -113,15 +112,15 @@ namespace DevAudit.AuditLibrary
         #region Overriden methods
         public override IFileInfo Create(string file_path)
         {
-            throw new NotImplementedException();
+            return this.SshAuditEnvironment.ConstructFile(file_path);
         }
 
         public override bool PathExists(string file_path)
         {
-            string result = this.EnvironmentExecute("test", "-f " + file_path + " && echo true || echo false");
-            if (result == "true" || result == "false")
+            string result = this.EnvironmentExecute("test", "-f " + file_path + " && echo Yes || echo No");
+            if (result == "Yes" || result == "No")
             {
-                return Convert.ToBoolean(result);
+                return result == "Yes" ? true : false;
             }
             else
             {

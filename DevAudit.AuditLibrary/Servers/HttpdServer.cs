@@ -60,7 +60,7 @@ namespace DevAudit.AuditLibrary
 
         protected override IConfiguration GetConfiguration()
         {
-            Httpd httpd = new Httpd(this.ConfigurationFile.FullName);
+            Httpd httpd = new Httpd(this.ConfigurationFile);
             if (httpd.ParseSucceded)
             {
                 this.Configuration = httpd;

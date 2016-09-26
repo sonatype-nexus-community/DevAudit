@@ -54,7 +54,7 @@ namespace DevAudit.AuditLibrary
 
         protected override IConfiguration GetConfiguration()
         {
-            Nginx nginx = new Nginx(this.ConfigurationFile.FullName);
+            Nginx nginx = new Nginx(this.ConfigurationFile);
             if (nginx.ParseSucceded)
             {
                 this.Configuration = nginx;
@@ -113,8 +113,8 @@ namespace DevAudit.AuditLibrary
             }
             else
             {
-                string fn = Environment.OSVersion.Platform == PlatformID.Unix || Environment.OSVersion.Platform == PlatformID.MacOSX
-                ? CombinePath("@", "nginx") : CombinePath("@", "nginx.exe");
+                string fn = this.AuditEnvironment.OS.Platform == PlatformID.Unix || Environment.OSVersion.Platform == PlatformID.MacOSX
+                ? CombinePath("@", "usr", "bin", "nginx") : CombinePath("@", "nginx.exe");
                 if (!this.AuditEnvironment.FileExists(fn))
                 {
                     throw new ArgumentException(string.Format("The server binary for Nginx was not specified and the default file path {0} does not exist.", fn));
