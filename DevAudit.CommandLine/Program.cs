@@ -215,12 +215,12 @@ namespace DevAudit.CommandLine
                     }
                     else if (verb == "httpd")
                     {
-                        Server = new HttpdServer(audit_options);
+                        Server = new HttpdServer(audit_options, EnvironmentMessageHandler);
                         Source = Server as PackageSource;
                     }
                     else if (verb == "nginx")
                     {
-                        Server = new NginxServer(audit_options);
+                        Server = new NginxServer(audit_options, EnvironmentMessageHandler);
                         Source = Server as PackageSource;
                     }
                 }
@@ -590,7 +590,6 @@ namespace DevAudit.CommandLine
             exit = ExitCodes.ERROR_SCANNING_SERVER_VERSION;
             try
             {
-
                 version = Server.GetVersion();
                 exit = ExitCodes.ERROR_SCANNING_FOR_PACKAGES;
                 Server.ModulesTask.Wait();
@@ -661,27 +660,6 @@ namespace DevAudit.CommandLine
             {
                 StopSpinner();
             }
-            /*
-            if (ProgramOptions.ListArtifacts)
-            {
-                int i = 1;
-                foreach (OSSIndexArtifact artifact in Source.Artifacts)
-                {
-                    PrintMessage("[{0}/{1}] {2} ({3}) ", i++, Source.Artifacts.Count(), artifact.PackageName,
-                        !string.IsNullOrEmpty(artifact.Version) ? artifact.Version : string.Format("No version reported for package version {0}", artifact.Package.Version));
-                    if (!string.IsNullOrEmpty(artifact.ProjectId))
-                    {
-                        PrintMessage(ConsoleColor.Blue, artifact.ProjectId + "\n");
-                    }
-                    else
-                    {
-                        PrintMessage(ConsoleColor.DarkRed, "No project id found.\n");
-                    }
-                }
-                exit = ExitCodes.SUCCESS;
-                return;
-            }
-            */
             if (Server.ProjectConfigurationRules.Count() == 0)
             {
                 exit = ExitCodes.SUCCESS;
@@ -742,7 +720,26 @@ namespace DevAudit.CommandLine
             }
             else
             {
-                PrintMessageLine(ConsoleMessageColors[e.MessageType], "{0:HH:mm:ss} [{1}] [{2}] {3}", e.DateTime, e.EnvironmentLocation, e.MessageType.ToString(), e.Message);
+                if (ProgramOptions.NonInteractive)
+                {
+                    PrintMessageLine("{0:HH:mm:ss} [{1}] [{2}] {3}", e.DateTime, e.EnvironmentLocation, e.MessageType.ToString(), e.Message);
+                }
+                else
+                {
+                    PrintMessageLine(ConsoleMessageColors[e.MessageType], "{0:HH:mm:ss} [{1}] [{2}] {3}", e.DateTime, e.EnvironmentLocation, e.MessageType.ToString(), e.Message);
+                }
+                if (e.Caller.HasValue && ProgramOptions.EnableDebug)
+                {
+                    if (ProgramOptions.NonInteractive)
+                    {
+                        PrintMessageLine("Caller: {0}\nLine: {1}\nFile: {2}", e.Caller.Value.Name, e.Caller.Value.LineNumber, e.Caller.Value.File);
+                    }
+                    else
+                    {
+                        PrintMessageLine(ConsoleMessageColors[e.MessageType], "Caller: {0}\nLine: {1}\nFile: {2}", e.Caller.Value.Name,
+                            e.Caller.Value.LineNumber, e.Caller.Value.File);
+                    }
+                }
             }
         }
 
@@ -750,10 +747,6 @@ namespace DevAudit.CommandLine
         {
             Console.Write(format, args);
         }
-
-        static void PrintMessage(ConsoleColor color, string format)
-        {
-                  }
 
         static void PrintMessage(ConsoleColor color, string format, params object[] args)
         {

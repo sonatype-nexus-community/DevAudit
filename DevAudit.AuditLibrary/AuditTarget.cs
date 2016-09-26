@@ -55,6 +55,16 @@ namespace DevAudit.AuditLibrary
                     }
                 }
             }
+            else if (this.AuditOptions.Keys.Contains("RemoteUser") || this.AuditOptions.Keys.Contains("RemotePass"))
+            {
+                throw new Exception("A remote host name must be specified.");
+            }
+            else
+            {
+                this.AuditEnvironmentMessageHandler = AuditTarget_AuditEnvironmentMessageHandler;
+                this.AuditEnvironment = new LocalEnvironment(this.AuditEnvironmentMessageHandler);
+                this.AuditEnvironmentIntialised = true;
+            }
         }
 
         private void AuditTarget_HostEnvironmentMessageHandler(object sender, EnvironmentEventArgs e)

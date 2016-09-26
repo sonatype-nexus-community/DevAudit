@@ -11,7 +11,7 @@ namespace DevAudit.AuditLibrary
         public EventMessageType MessageType { get; protected set; }
         public string Message { get; protected set; }
         public DateTime DateTime { get; protected set; } = DateTime.UtcNow;
-        public CallerInformation Caller { get; protected set; }
+        public CallerInformation? Caller { get; protected set; }
         public string EnvironmentLocation { get; internal set; }
 
         public EnvironmentEventArgs(EventMessageType message_type, string message)

@@ -20,17 +20,9 @@ namespace DevAudit.AuditLibrary
 
         public override string ApplicationLabel { get { return "MySQL"; } }
 
-        public override Dictionary<string, string> RequiredDirectoryLocations { get; } = new Dictionary<string, string>()
-        {
-            //{ "bin", "@bin" }
-        };
+        public override Dictionary<string, string> RequiredDirectoryLocations { get; } = new Dictionary<string, string>() {};
 
-        public override Dictionary<string, string> RequiredFileLocations { get; } = new Dictionary<string, string>()
-        {
-            //{ "mysql",  Environment.OSVersion.Platform == PlatformID.Unix || Environment.OSVersion.Platform == PlatformID.MacOSX 
-            //    ? "@" + Path.Combine("bin", "mysql") :  "@" + Path.Combine("bin", "mysql.exe")},
-            
-        };
+        public override Dictionary<string, string> RequiredFileLocations { get; } = new Dictionary<string, string>() {};
 
         public override Dictionary<string, string> OptionalDirectoryLocations { get; } = new Dictionary<string, string>();
 
@@ -41,9 +33,6 @@ namespace DevAudit.AuditLibrary
         public override string PackageManagerLabel { get { return "MySQL"; } }
 
         public override OSSIndexHttpClient HttpClient { get; } = new OSSIndexHttpClient("1.1");
-        #endregion
-
-        #region Public properties
         #endregion
 
         #region Overriden methods
@@ -59,10 +48,7 @@ namespace DevAudit.AuditLibrary
 
         protected override IConfiguration GetConfiguration()
         {
-            MySQL mysql = new MySQL(this.ConfigurationFile.FullName, true, true, (parent, path) =>
-            {
-                return this.ConfigurationFile.ReadAsText();
-            });
+            MySQL mysql = new MySQL(this.ConfigurationFile);
             ;
             if (mysql.ParseSucceded)
             {
@@ -119,7 +105,7 @@ namespace DevAudit.AuditLibrary
             else
             {
                 string fn = this.AuditEnvironment.OS.Platform == PlatformID.Unix || this.AuditEnvironment.OS.Platform == PlatformID.MacOSX
-                ? CombinePath("@", "usr", "bin", "mysql") : CombinePath("bin", "mysql.exe");
+                ? CombinePath("@", "usr", "bin", "mysql") : CombinePath("@", "bin", "mysql.exe");
                 if (!this.AuditEnvironment.FileExists(fn))
                 {
                     throw new ArgumentException(string.Format("The server binary for SSHD was not specified and the default file path {0} does not exist.", fn));

@@ -64,31 +64,11 @@ namespace DevAudit.AuditLibrary
             }
         }
 
-        public override string FullName
-        {
-            get
-            {
-                return this.file.FullName;
-            }
+        public override string FullName { get; protected set; }
+      
 
-            protected set
-            {
-                throw new NotSupportedException();
-            }
-        }
-
-        public override string Name
-        {
-            get
-            {
-                return this.file.Name;
-            }
-
-            protected set
-            {
-                throw new NotSupportedException();
-            }
-        }
+        public override string Name { get; protected set; }
+    
 
         public override DateTime LastWriteTimeUtc
         {

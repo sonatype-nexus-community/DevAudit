@@ -10,8 +10,8 @@ namespace DevAudit.AuditLibrary
     public abstract class AuditFileSystemInfo : IFileSystemInfo
     {
         #region Properties
-        public virtual string FullName { get; protected set; }
-        public virtual string Name { get; protected set; }
+        public abstract string FullName { get; protected set; }
+        public abstract string Name { get; protected set; }
         public string PathSeparator { get; protected set; }
         public AuditEnvironment AuditEnvironment { get; protected set; }
         #endregion
@@ -40,9 +40,9 @@ namespace DevAudit.AuditLibrary
 
         }
 
-        protected void EnvironmentCommandError(string message_format, params object[] m)
+        protected void EnvironmentCommandError(CallerInformation caller, string message_format, params object[] m)
         {
-            this.AuditEnvironment.Error(message_format, m);
+            this.AuditEnvironment.Error(caller, message_format, m);
         }
 
         protected string CombinePaths(params string[] paths)

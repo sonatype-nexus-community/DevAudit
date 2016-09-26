@@ -12,6 +12,10 @@ namespace DevAudit.AuditLibrary
     public class SshAuditFileInfo : AuditFileInfo
     {
         #region Overriden properties
+        public override string FullName { get; protected set; }
+
+        public override string Name { get; protected set; }
+
         public override bool IsReadOnly
         {
             get
@@ -40,7 +44,7 @@ namespace DevAudit.AuditLibrary
                     }
                     else
                     {
-                        EnvironmentCommandError("Could not read {0} as text.", this.FullName);
+                        EnvironmentCommandError(this.AuditEnvironment.Here(), "Could not read {0} as text.", this.FullName);
                     }
                 }
                 return this._Length.HasValue ? this._Length.Value : -1;
@@ -62,7 +66,8 @@ namespace DevAudit.AuditLibrary
                 }
                 else
                 {
-                    EnvironmentCommandError("Could not parse result of {0} as DateTime: {1}.", cmd + " " + args, d);
+                    CallerInformation caller = this.AuditEnvironment.Here();
+                    EnvironmentCommandError(caller, "Could not parse result of {0} as DateTime: {1}.", cmd + " " + args, d);
                     return new DateTime(1000, 1, 1);
                 }
             }
@@ -81,7 +86,7 @@ namespace DevAudit.AuditLibrary
                     }
                     else
                     {
-                        EnvironmentCommandError("Could not get parent directory for {0}.", this.FullName);
+                        EnvironmentCommandError(this.AuditEnvironment.Here(), "Could not get parent directory for {0}.", this.FullName);
                     }
                 }
                 return this._Directory;
@@ -98,7 +103,7 @@ namespace DevAudit.AuditLibrary
                 }
                 else
                 {
-                    EnvironmentCommandError("Could not get directory name for {0}.", this.FullName);
+                    EnvironmentCommandError(this.AuditEnvironment.Here(), "Could not get directory name for {0}.", this.FullName);
                     return string.Empty;
                 }
             }
@@ -120,7 +125,7 @@ namespace DevAudit.AuditLibrary
             }
             else
             {
-                EnvironmentCommandError("Could not test for existence of regular file {0}.", file_path);
+                EnvironmentCommandError(this.AuditEnvironment.Here(), "Could not test for existence of regular file {0}.", file_path);
                 return false;
             }
         }
@@ -133,7 +138,7 @@ namespace DevAudit.AuditLibrary
             {
                 if (o == string.Format("cat: {0}: No such file or directory", this.FullName))
                 {
-                    EnvironmentCommandError("Access denied reading {0}.", this.FullName);
+                    EnvironmentCommandError(this.AuditEnvironment.Here(), "Access denied reading {0}.", this.FullName);
                     return string.Empty;
                 }
                 else
@@ -144,7 +149,7 @@ namespace DevAudit.AuditLibrary
             }
             else
             {
-                EnvironmentCommandError("Could not read as text {0}.", this.FullName);
+                EnvironmentCommandError(this.AuditEnvironment.Here(), "Could not read as text {0}.", this.FullName);
                 return null;
             }
         }

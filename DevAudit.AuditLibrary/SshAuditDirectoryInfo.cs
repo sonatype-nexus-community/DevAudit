@@ -14,6 +14,8 @@ namespace DevAudit.AuditLibrary
         #region Overriden methods
         public override string FullName { get; protected set; }
 
+        public override string Name { get; protected set; }
+
         public override IDirectoryInfo Parent
         {
             get
@@ -47,7 +49,7 @@ namespace DevAudit.AuditLibrary
             }
             else
             {
-                EnvironmentCommandError("Could not get directories in {0} for path {1}.", this.FullName, this.FullName);
+                EnvironmentCommandError(this.AuditEnvironment.Here(), "Could not get directories in {0} for path {1}.", this.FullName, this.FullName);
                 return null;
             }
         }
@@ -93,7 +95,7 @@ namespace DevAudit.AuditLibrary
             }
             else
             {
-                EnvironmentCommandError("Could not get directories in {0} for path {1}.", this.CombinePaths(this.FullName, path));
+                EnvironmentCommandError(this.AuditEnvironment.Here(), "Could not get directories in {0} for path {1}.", this.CombinePaths(this.FullName, path));
                 return null;
             }
         }

@@ -11,22 +11,8 @@ namespace DevAudit.AuditLibrary
     public class LocalAuditDirectoryInfo : AuditDirectoryInfo
     {
         #region Overriden methods
-        public override string Name
-        {
-            get
-            {
-                return this.directory.Name;
-            }
-        }
-
-        public override string FullName
-        {
-            get
-            {
-                return this.directory.FullName;
-            }
-        }
-
+        public override string Name { get; protected set; }
+        public override string FullName { get; protected set; }
         public override IDirectoryInfo Parent
         {
             get
