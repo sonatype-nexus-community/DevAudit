@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Security;
 using System.Text;
@@ -84,21 +85,23 @@ namespace DevAudit.AuditLibrary
             }
         }
 
-        public override bool Execute(string command, string arguments, out ProcessExecuteStatus process_status, out string process_output, out string process_error, Action<string> OutputDataReceived = null, Action<string> OutputErrorReceived = null)
+        public override bool Execute(string command, string arguments, out ProcessExecuteStatus process_status, out string process_output, out string process_error, Action<string> OutputDataReceived = null, Action<string> OutputErrorReceived = null, [CallerMemberName] string memberName = "", [CallerFilePath] string fileName = "", [CallerLineNumber] int lineNumber = 0)
         {
+            CallerInformation caller = new CallerInformation(memberName, fileName, lineNumber);
             if (!this.IsConnected) throw new InvalidOperationException("The SSH session is not connected.");
             process_status = ProcessExecuteStatus.Unknown;
             process_output = "";
             process_error = "";
             if (this.SshSession.Send.Command(command + " " + arguments, out process_output, 8000))
             {
-                Debug(this.Here(), "Send command {0} returned true, output: {1}", command + " " + arguments, process_output);
+                Debug(caller, "Send command {0} returned true, output: {1}", command + " " + arguments, process_output);
                 process_status = ProcessExecuteStatus.Completed;
                 return true;
             }
             else
             {
                 process_status = ProcessExecuteStatus.Error;
+                Debug(caller, "Send command {0} returned false, output: {1}", command + " " + arguments, process_output);
                 return false;
             }
         }

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -21,19 +22,23 @@ namespace DevAudit.AuditLibrary
         #endregion
 
         #region Protected methods
-        protected string EnvironmentExecute(string command, string args)
+        protected string EnvironmentExecute(string command, string args, [CallerMemberName] string memberName = "", [CallerFilePath] string fileName = "", [CallerLineNumber] int lineNumber = 0)
         {
             AuditEnvironment.ProcessExecuteStatus process_status;
             string process_output = "";
             string process_error = "";
             if (this.AuditEnvironment.Execute(command, args, out process_status, out process_output, out process_error))
             {
+                CallerInformation caller = new CallerInformation(memberName, fileName, lineNumber);
+                this.AuditEnvironment.Debug(caller, "Execute returned true for {0}. Output: {1}", command + " " + args, process_output);
+
                 return process_output;
             }
 
             else
             {
-                this.AuditEnvironment.Debug(this.AuditEnvironment.Here(), "Execute returned false for {0}", command + " " + args);
+                CallerInformation caller = new CallerInformation(memberName, fileName, lineNumber);
+                this.AuditEnvironment.Debug(caller, "Execute returned false for {0}", command + " " + args);
                 return string.Empty;
             }
 

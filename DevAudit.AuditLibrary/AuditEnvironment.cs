@@ -23,6 +23,13 @@ namespace DevAudit.AuditLibrary
         public string Name;
         public string File;
         public int LineNumber;
+
+        public CallerInformation(string name, string file, int line_number)
+        {
+            this.Name = name;
+            this.File = file;
+            this.LineNumber = line_number;
+        }
     }
 
     public abstract class AuditEnvironment
@@ -68,7 +75,7 @@ namespace DevAudit.AuditLibrary
         public abstract bool FileExists(string file_path);
         public abstract bool DirectoryExists(string dir_path);
         public abstract bool Execute(string command, string arguments,
-            out ProcessExecuteStatus process_status, out string process_output, out string process_error, Action<string> OutputDataReceived = null, Action<string> OutputErrorReceived = null);
+            out ProcessExecuteStatus process_status, out string process_output, out string process_error, Action<string> OutputDataReceived = null, Action<string> OutputErrorReceived = null, [CallerMemberName] string memberName = "", [CallerFilePath] string fileName = "", [CallerLineNumber] int lineNumber = 0);
         public abstract AuditFileInfo ConstructFile(string file_path);
         public abstract AuditDirectoryInfo ConstructDirectory(string dir_path);
         #endregion

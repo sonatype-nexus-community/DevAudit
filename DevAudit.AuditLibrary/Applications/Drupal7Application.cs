@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -57,9 +56,9 @@ namespace DevAudit.AuditLibrary
             get
             {
                 IDirectoryInfo sites_all;
-                if ((sites_all = this.RootDirectory.GetDirectories(Path.Combine("sites", "all")).FirstOrDefault()) != null)
+                if ((sites_all = this.RootDirectory.GetDirectories(CombinePath("sites", "all")).FirstOrDefault()) != null)
                 {
-                    return (AuditDirectoryInfo) sites_all.GetDirectories(Path.Combine("modules")).FirstOrDefault();
+                    return (AuditDirectoryInfo) sites_all.GetDirectories(CombinePath("modules")).FirstOrDefault();
                 }
                 else return null;
             }
@@ -70,8 +69,8 @@ namespace DevAudit.AuditLibrary
         protected override Dictionary<string, IEnumerable<OSSIndexQueryObject>> GetModules()
         {
             Dictionary<string, IEnumerable<OSSIndexQueryObject>> modules = new Dictionary<string, IEnumerable<OSSIndexQueryObject>>();
-            List<FileInfo> core_module_files = null;//RecursiveFolderScan(this.CoreModulesDirectory, "*.info").Where(f => !f.Name.Contains("_test") && !f.Name.Contains("test_")).ToList();
-            List<FileInfo> contrib_module_files = null;//TODO RecursiveFolderScan(this.ContribModulesDirectory, "*.info").Where(f => !f.Name.Contains("_test") && !f.Name.Contains("test_")).ToList();
+            List<AuditFileInfo> core_module_files = this.CoreModulesDirectory.GetFiles("*.info").Where(f => !f.Name.Contains("_test") && !f.Name.Contains("test_")).Select(f => f as AuditFileInfo).ToList();
+            List<AuditFileInfo> contrib_module_files = this.ContribModulesDirectory.GetFiles("*.info").Where(f => !f.Name.Contains("_test") && !f.Name.Contains("test_")).Select(f => f as AuditFileInfo).ToList();
             List<OSSIndexQueryObject> core_modules = new List<OSSIndexQueryObject>(core_module_files.Count + 1);
             List<OSSIndexQueryObject> contrib_modules = new List<OSSIndexQueryObject>(contrib_module_files.Count);
             List<OSSIndexQueryObject> all_modules = new List<OSSIndexQueryObject>(core_module_files.Count + 1);
@@ -80,13 +79,61 @@ namespace DevAudit.AuditLibrary
             ini_parser_cfg.AllowDuplicateKeys = true;
             ini_parser_cfg.OverrideDuplicateKeys = true;
             IniDataParser ini_parser = new IniDataParser(ini_parser_cfg);
-            foreach (FileInfo f in core_module_files)
+            foreach (AuditFileInfo f in core_module_files)
             {
-                using (FileStream fs = f.OpenRead())
+                IniData data = ini_parser.Parse(f.ReadAsText());
+                foreach (KeyData d in data.Global)
                 {
-                    using (StreamReader r = new StreamReader(f.OpenRead()))
+                    if (d.Value.First() == '"') d.Value = d.Value.Remove(0, 1);
+                    if (d.Value.Last() == '"') d.Value = d.Value.Remove(d.Value.Length - 1, 1);
+                }
+                DrupalModuleInfo m = new DrupalModuleInfo
+                {
+                    Core = data.Global["core"],
+                    Name = data.Global["name"],
+                    Description = data.Global["description"],
+                    Package = data.Global["package"],
+                    Version = data.Global["version"],
+                    Project = data.Global["project"]
+                };
+                core_modules.Add(new OSSIndexQueryObject("drupal", m.Name, m.Version == "VERSION" ? m.Core : m.Version, "", string.Empty));
+            }
+            core_modules.Add(new OSSIndexQueryObject("drupal", "drupal_core", core_modules.First().Version));
+            modules.Add("core", core_modules);
+            all_modules.AddRange(core_modules);
+            foreach (AuditFileInfo f in contrib_module_files)
+            {
+                IniData data = ini_parser.Parse(f.ReadAsText());
+                foreach(KeyData d in data.Global)
+                {
+                    if (d.Value.First() == '"') d.Value = d.Value.Remove(0, 1);
+                    if (d.Value.Last() == '"') d.Value = d.Value.Remove(d.Value.Length - 1, 1);
+                }
+                DrupalModuleInfo m = new DrupalModuleInfo
+                {
+                    Core = data.Global["core"],
+                    Name = data.Global["name"],
+                    Description = data.Global["description"],
+                    Package = data.Global["package"],
+                    Version = data.Global["version"],
+                    Project = data.Global["project"]
+                };
+        }
+            if (contrib_modules.Count > 0)
+            {
+                modules.Add("contrib", contrib_modules);
+                all_modules.AddRange(contrib_modules);
+            }
+            List<OSSIndexQueryObject> sites_all_contrib_modules = null;
+            if (this.SitesAllModulesDirectory != null)
+            {
+                List<AuditFileInfo> sites_all_contrib_modules_files = this.SitesAllModulesDirectory.GetFiles("*.info").Where(f => !f.Name.Contains("_test") && !f.Name.Contains("test_")).Select(f => f as AuditFileInfo).ToList();
+                if (sites_all_contrib_modules_files.Count > 0)
+                {
+                    sites_all_contrib_modules = new List<OSSIndexQueryObject>(sites_all_contrib_modules_files.Count + 1);
+                    foreach (AuditFileInfo f in sites_all_contrib_modules_files)
                     {
-                        IniData data = ini_parser.Parse(r.ReadToEnd());
+                        IniData data = ini_parser.Parse(f.ReadAsText());
                         foreach (KeyData d in data.Global)
                         {
                             if (d.Value.First() == '"') d.Value = d.Value.Remove(0, 1);
@@ -99,80 +146,14 @@ namespace DevAudit.AuditLibrary
                             Description = data.Global["description"],
                             Package = data.Global["package"],
                             Version = data.Global["version"],
-                            Project = data.Global["project"]
                         };
-                        core_modules.Add(new OSSIndexQueryObject("drupal", m.Name, m.Version == "VERSION" ? m.Core : m.Version, "", string.Empty));
                     }
                 }
             }
-            core_modules.Add(new OSSIndexQueryObject("drupal", "drupal_core", core_modules.First().Version));
-            modules.Add("core", core_modules);
-            all_modules.AddRange(core_modules);
-            foreach (FileInfo f in contrib_module_files)
+            if (sites_all_contrib_modules != null && sites_all_contrib_modules.Count > 0)
             {
-                using (FileStream fs = f.OpenRead())
-                {
-                    using (StreamReader r = new StreamReader(f.OpenRead()))
-                    {
-                        IniData data = ini_parser.Parse(r.ReadToEnd());
-                        foreach(KeyData d in data.Global)
-                        {
-                            if (d.Value.First() == '"') d.Value = d.Value.Remove(0, 1);
-                            if (d.Value.Last() == '"') d.Value = d.Value.Remove(d.Value.Length - 1, 1);
-                        }
-                        DrupalModuleInfo m = new DrupalModuleInfo
-                        {
-                            Core = data.Global["core"],
-                            Name = data.Global["name"],
-                            Description = data.Global["description"],
-                            Package = data.Global["package"],
-                            Version = data.Global["version"],
-                            Project = data.Global["project"]
-                        };
-                        contrib_modules.Add(new OSSIndexQueryObject("drupal", m.Name, m.Version, "", string.Empty));
-                    }
-                }
-            }
-            if (contrib_modules.Count > 0)
-            {
-                modules.Add("contrib", contrib_modules);
-                all_modules.AddRange(contrib_modules);
-            }
-            if (this.SitesAllModulesDirectory != null)
-            {
-                List<FileInfo> sites_all_contrib_modules_files = null;//TODO RecursiveFolderScan(this.SitesAllModulesDirectory, "*.info").Where(f => !f.Name.Contains("_test") && !f.Name.Contains("test_")).ToList();
-                if (sites_all_contrib_modules_files.Count > 0)
-                {
-                    List<OSSIndexQueryObject> sites_all_contrib_modules = new List<OSSIndexQueryObject>(sites_all_contrib_modules_files.Count + 1);
-                    foreach (FileInfo f in sites_all_contrib_modules_files)
-                    {
-                        using (FileStream fs = f.OpenRead())
-                        {
-                            using (StreamReader r = new StreamReader(f.OpenRead()))
-                            {
-                                IniData data = ini_parser.Parse(r.ReadToEnd());
-                                foreach (KeyData d in data.Global)
-                                {
-                                    if (d.Value.First() == '"') d.Value = d.Value.Remove(0, 1);
-                                    if (d.Value.Last() == '"') d.Value = d.Value.Remove(d.Value.Length - 1, 1);
-                                }
-                                DrupalModuleInfo m = new DrupalModuleInfo
-                                {
-                                    Core = data.Global["core"],
-                                    Name = data.Global["name"],
-                                    Description = data.Global["description"],
-                                    Package = data.Global["package"],
-                                    Version = data.Global["version"],
-                                };
-                            }
-                        }
-                    }
-                    if (sites_all_contrib_modules.Count > 0)
-                    {
-                        modules.Add("sites_all_contrib", sites_all_contrib_modules);
-                        all_modules.AddRange(sites_all_contrib_modules);
-                    }
-                }
+                modules.Add("sites_all_contrib", sites_all_contrib_modules);
+                all_modules.AddRange(sites_all_contrib_modules);
             }
             modules.Add("all", all_modules);
             return modules;
@@ -209,11 +190,11 @@ namespace DevAudit.AuditLibrary
         public Drupal7Application(Dictionary<string, object> application_options, EventHandler<EnvironmentEventArgs> message_handler = null) : base(application_options, message_handler)
         {
             this.RequiredDirectoryLocations = new Dictionary<string, string>()
-        {
-            { "CoreModulesDirectory", LocatePathUnderRoot("modules") },
-            { "ContribModulesDirectory", LocatePathUnderRoot("sites", "all", "modules") },
-            { "DefaultSiteDirectory", LocatePathUnderRoot("sites", "default") },
-        };
+            {
+                { "CoreModulesDirectory", LocatePathUnderRoot("modules") },
+                { "ContribModulesDirectory", LocatePathUnderRoot("sites", "all", "modules") },
+                { "DefaultSiteDirectory", LocatePathUnderRoot("sites", "default") },
+            };
         }
         #endregion
 

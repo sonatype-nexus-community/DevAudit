@@ -245,7 +245,7 @@ namespace DevAudit.AuditLibrary
         {
             if (paths == null || paths.Count() == 0)
             {
-                throw new ArgumentOutOfRangeException("path", "paths must be non-null or at least length 1.");
+                throw new ArgumentOutOfRangeException("paths", "paths must be non-null or at least length 1.");
             }
             if (this.AuditEnvironment.OS.Platform == PlatformID.Unix || this.AuditEnvironment.OS.Platform == PlatformID.MacOSX)
             {
