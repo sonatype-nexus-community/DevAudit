@@ -579,8 +579,8 @@ namespace DevAudit.CommandLine
                         }
                         else
                         {
-                            PrintErrorMessage("Unknown error encountered searching OSS Index for vulnerabilities : {0}",
-                                ae.InnerException.Message);
+                            PrintErrorMessage("A unknown error occurred searching OSS Index.");
+                            PrintErrorMessage(ae);
                             ++projects_processed;
                         }
                         Source.VulnerabilitiesTask.Remove(t);
