@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace ExpectNet
 {
@@ -13,6 +15,6 @@ namespace ExpectNet
 
         string Read();
 
-        System.Threading.Tasks.Task<string> ReadAsync();
+        Task<string> ReadAsync();
     }
 }

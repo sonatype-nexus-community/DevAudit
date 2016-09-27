@@ -65,14 +65,11 @@ namespace ExpectNet
             {
                 throw new ArgumentException("FileName cannot be empty string", "_process.StartInfo.FileName");
             }
-            _process.StartInfo.UseShellExecute = false;
-            _process.StartInfo.RedirectStandardInput = true;
-            _process.StartInfo.RedirectStandardError = true;
-            _process.StartInfo.RedirectStandardOutput = true;
-
+           // _process.StartInfo.UseShellExecute = false;
+           // _process.StartInfo.RedirectStandardInput = true;
+           // _process.StartInfo.RedirectStandardError = true;
+           // _process.StartInfo.RedirectStandardOutput = true;
             _process.Start();
-
-
         }
 
         /// <summary>
@@ -83,11 +80,11 @@ namespace ExpectNet
         {
             if (_errorRead == null || _errorRead.IsCanceled || _errorRead.IsCompleted || _errorRead.IsFaulted)
             {
-                _process.StandardError.DiscardBufferedData();
+                //_process.StandardError.DiscardBufferedData();
             }
             if (_stdRead == null || _stdRead.IsCanceled || _stdRead.IsCompleted || _stdRead.IsFaulted)
             {
-                _process.StandardOutput.DiscardBufferedData();
+                //_process.StandardOutput.DiscardBufferedData();
             }
             _process.StandardInput.Write(command);
         }
@@ -131,7 +128,6 @@ namespace ExpectNet
             return new string(c, 0, await n.ConfigureAwait(false));
         }
 
-
         /// <summary>
         /// Reads in synchronous way from both standard input and standard error streams. 
         /// </summary>
@@ -140,7 +136,6 @@ namespace ExpectNet
         {
             var t = Task.Run(async () => { return await ReadAsync().ConfigureAwait(false); });
             return t.Result;
-
         }
 
     

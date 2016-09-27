@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.Concurrent;
-using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Text;
@@ -253,7 +252,7 @@ namespace DevAudit.AuditLibrary
             if (this.PackageSourceOptions.ContainsKey("File"))
             {
                 this.PackageManagerConfigurationFile = (string)this.PackageSourceOptions["File"];
-                if (!File.Exists(this.PackageManagerConfigurationFile)) throw new ArgumentException("Could not find the file " + this.PackageManagerConfigurationFile + ".");
+                if (!this.AuditEnvironment.FileExists(this.PackageManagerConfigurationFile)) throw new ArgumentException("Could not find the file " + this.PackageManagerConfigurationFile + ".");
             }
             else
             {

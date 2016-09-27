@@ -90,7 +90,7 @@ namespace DevAudit.AuditLibrary
             process_status = ProcessExecuteStatus.Unknown;
             process_output = "";
             process_error = "";
-            if (this.SshSession.Send.Command(command + " " + arguments, out process_output, 5000))
+            if (this.SshSession.Send.Command(command + " " + arguments, out process_output, 8000))
             {
                 Debug(this.Here(), "Send command {0} returned true, output: {1}", command + " " + arguments, process_output);
                 process_status = ProcessExecuteStatus.Completed;
@@ -140,6 +140,7 @@ namespace DevAudit.AuditLibrary
                 ProcessStartInfo psi = new ProcessStartInfo(ssh_command, ssh_arguments);
                 psi.CreateNoWindow = true;
                 psi.RedirectStandardError = true;
+                psi.RedirectStandardInput = true;
                 psi.RedirectStandardOutput = true;
                 psi.UseShellExecute = false;
                 Process p = new Process();
@@ -269,13 +270,27 @@ namespace DevAudit.AuditLibrary
             };
             Action<IResult> FailedToConnect = (result) =>
             {
-                Error(Here(), "Failed to connect to host {0}. SSH output: {1}", host_name, (string) result.Result);
-                
+                Error(Here(), "Failed to connect to host {0}. SSH output: {1}", host_name, (string) result.Text);
             };
             Action<IResult> HostKeyReceived = (result) =>
             {
                 Match m = result.Result as Match;
-                Success("Received host key: {0}.", m.Groups[1].Value);
+                Success("Received host key of type {0} with fingerprint {1}", m.Groups[1].Value, m.Groups[2].Value);
+            };
+            Action<IResult> FailedToReceiveHostKey = (result) =>
+            {
+                Match m = result.Result as Match;
+                Error(Here(), "Failed to receive host key. SSH output: {0}", (string) result.Result);
+            };
+            Action<IResult> HostKnown = (result) =>
+            {
+                Info("Host {0} is know and matches the host key.", host_name);
+            };
+            Action<IResult> HostNotKnown = (result) =>
+            {
+                Warning("Host key not known. The host key is not trusted. The host fingerprint will be added to your known_hosts file.");
+                //SshSession.Send.String("yes", true);
+         
             };
             #endregion
 
@@ -284,6 +299,7 @@ namespace DevAudit.AuditLibrary
             ProcessStartInfo psi = new ProcessStartInfo(ssh_command, ssh_arguments);
             psi.CreateNoWindow = true;
             psi.RedirectStandardError = true;
+            psi.RedirectStandardInput = true;
             psi.RedirectStandardOutput = true;
             psi.UseShellExecute = false;
             Process p = new Process();
@@ -299,13 +315,18 @@ namespace DevAudit.AuditLibrary
                 Match m = (Match) r.Result;
                 Info("Using OpenSSH configuration from {0}.", m.Groups[1].Value);
             }
-            r = SshSession.Expect.ContainsElse("Connection established", ConnectionEstablished, FailedToConnect, 6000);
-            if (!r.IsMatch)
+            if (!SshSession.Expect.ContainsElse("Connection established", ConnectionEstablished, FailedToConnect, 6000).IsMatch)
             {
                 this.IsConnected = false;
                 return;
             } 
-            r = SshSession.Expect.Regex("Server host key: ([a-zA-Z0-9\\-]+)\\s+([a-zA-Z0-9\\-\\:]+)", null, 6000);
+            if (!SshSession.Expect.RegexElse("Server host key: ([a-zA-Z0-9\\-]+)\\s+([a-zA-Z0-9\\-\\:]+)", HostKeyReceived, FailedToReceiveHostKey, 6000).IsMatch)
+            {
+                this.IsConnected = false;
+                return;
+            }
+            List<IResult> ok = SshSession.Expect.ContainsEither(string.Format("is known", host_name), HostKnown, "can't be established", HostNotKnown, 6000);
+          
         }
         #endregion
 
@@ -315,7 +336,6 @@ namespace DevAudit.AuditLibrary
         Action<IResult> FileNotFound;
         Action<IResult> DirectoryFound;
         Action<IResult> DirectoryNotFound;
-
         #endregion
 
     }

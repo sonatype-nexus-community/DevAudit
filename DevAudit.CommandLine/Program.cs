@@ -203,7 +203,7 @@ namespace DevAudit.CommandLine
                     }
                     else if (verb == "dpkg")
                     {
-                        Source = new DpkgPackageSource(audit_options);
+                        Source = new DpkgPackageSource(audit_options, EnvironmentMessageHandler);
                     }
                     else if (verb == "drupal8")
                     {
@@ -298,13 +298,13 @@ namespace DevAudit.CommandLine
             }
             catch (AggregateException ae)
             {
-                StopSpinner();
+                if (!ReferenceEquals(Spinner, null)) StopSpinner();
                 PrintErrorMessage("Error(s) encountered scanning for {0} packages: {1}", Source.PackageManagerLabel, ae.InnerException.Message);
                 return;
             }
             finally
             {
-                StopSpinner();
+                if (!ReferenceEquals(Spinner, null)) StopSpinner();
             }
             PrintMessageLine("Found {0} distinct packages.", Source.Packages.Count());
             if (ProgramOptions.ListPackages)
@@ -336,14 +336,15 @@ namespace DevAudit.CommandLine
             }
             catch (AggregateException ae)
             {
-                StopSpinner();
+
+                if (!ReferenceEquals(Spinner, null)) StopSpinner();
                 PrintErrorMessage("Error encountered searching OSS Index for {0} packages: {1}...", Source.PackageManagerLabel, ae.InnerException.Message);
                 ae.InnerExceptions.ToList().ForEach(i => HandleOSSIndexHttpException(i));
                 return;
             }
             finally
             {
-                StopSpinner();
+                if (!ReferenceEquals(Spinner, null)) StopSpinner();
             }
             PrintMessageLine("Found {0} artifacts, {1} with an OSS Index project id.", Source.Artifacts.Count(), Source.ArtifactsWithProjects.Count);
             if (Source.Artifacts.Count() == 0)

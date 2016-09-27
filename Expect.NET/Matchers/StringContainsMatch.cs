@@ -13,6 +13,7 @@ namespace ExpectNet.NET
         public override bool Execute(string text)
         {
             this._IsMatch =  text.Contains(Query);
+            this._Text = text;
             this._Result = this._IsMatch ? text : null;
             this._Count = this._IsMatch ? 1 : 0;
             return this._IsMatch;

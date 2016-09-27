@@ -17,6 +17,7 @@ namespace ExpectNet.NET
 
         public override bool Execute(string text)
         {
+            this._Text = text;
             Re.Match m = this.RegEx.Match(text);
             this._IsMatch = m.Success;
             this._Result = this._IsMatch ? m : null;

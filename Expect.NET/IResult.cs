@@ -10,6 +10,7 @@ namespace ExpectNet
     {
         bool IsMatch { get; }
         object Result { get; }
+        string Text { get; }
         int? Count { get; }
     }
 }

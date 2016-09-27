@@ -25,6 +25,14 @@ namespace ExpectNet.NET
             }
         }
 
+        public string Text
+        {
+            get
+            {
+                return this._Text;
+            }
+        }
+
         public int? Count
         {
             get
@@ -54,13 +62,11 @@ namespace ExpectNet.NET
         #region Protected and private fields
         protected bool _IsMatch = false;
         protected object _Result;
+        protected string _Text;
         protected int? _Count;
         #endregion
 
-        public static IMatch Contains(string query)
-        {
-            return new StringContainsMatch(query);
-        }
+        
 
     }
 }
