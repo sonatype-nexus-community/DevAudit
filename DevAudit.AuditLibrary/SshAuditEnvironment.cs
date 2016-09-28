@@ -10,7 +10,8 @@ using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 using ExpectNet;
-using Alpheus.IO;
+using Renci.SshNet;
+
 namespace DevAudit.AuditLibrary
 {
     public class SshAuditEnvironment : AuditEnvironment
@@ -104,6 +105,39 @@ namespace DevAudit.AuditLibrary
                 Debug(caller, "Send command {0} returned false, output: {1}", command + " " + arguments, process_output);
                 return false;
             }
+        }
+
+        protected override void Dispose(bool isDisposing)
+        {
+            try
+            {
+                if (!this.IsDisposed)
+                {
+                    // Explicitly set root references to null to expressly tell the GarbageCollector 
+                    // that the resources have been disposed of and its ok to release the memory 
+                    // allocated for them. 
+                    if (isDisposing)
+                    {
+                        // Release all managed resources here 
+                        // Need to unregister/detach yourself from the events. Always make sure 
+                        // the object is not null first before trying to unregister/detach them! 
+                        // Failure to unregister can be a BIG source of memory leaks 
+                        //if (someDisposableObjectWithAnEventHandler != null)
+                        //{ someDisposableObjectWithAnEventHandler.SomeEvent -= someDelegate; 
+                        //someDisposableObjectWithAnEventHandler.Dispose(); 
+                        //someDisposableObjectWithAnEventHandler = null; } 
+                        // If this is a WinForm/UI control, uncomment this code 
+                        //if (components != null) //{ // components.Dispose(); //} } 
+                        // Release all unmanaged resources here 
+                        // (example) if (someComObject != null && Marshal.IsComObject(someComObject)) { Marshal.FinalReleaseComObject(someComObject); someComObject = null; 
+                    }
+                }
+            }
+            finally
+            {
+                this.IsDisposed = true;
+            }
+
         }
         #endregion
 
@@ -331,14 +365,23 @@ namespace DevAudit.AuditLibrary
             List<IResult> ok = SshSession.Expect.ContainsEither(string.Format("is known", host_name), HostKnown, "can't be established", HostNotKnown, 6000);
           
         }
+
+        private void InitialiseSshSession(string host_name, string user, object pass, OperatingSystem os)
+        {
+            ConnectionInfo ci = new ConnectionInfo(host_name, user, new PasswordAuthenticationMethod(user, ToInsecureString(pass)));
+            SshClient client = new SshClient(ci);
+            client.Connect();
+            //client.
+        }
         #endregion
 
         #region Private fields
-        private Session SshSession { get; set; }
+        private ExpectNet.Session SshSession { get; set; }
         Action<IResult> FileFound;
         Action<IResult> FileNotFound;
         Action<IResult> DirectoryFound;
         Action<IResult> DirectoryNotFound;
+        private bool IsDisposed;
         #endregion
 
     }

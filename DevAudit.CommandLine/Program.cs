@@ -88,7 +88,7 @@ namespace DevAudit.CommandLine
                     audit_options.Add("RemoteHost", ProgramOptions.RemoteHost);
                 }
                 #region Ssh client
-                if (ProgramOptions.WindowsUseOpenSsh)
+                if (ProgramOptions.WindowsUseOpenSsh && Environment.OSVersion.Platform == PlatformID.Win32NT)
                 {
                     audit_options.Add("WindowsUseOpenSsh", true);
                 }
@@ -97,9 +97,6 @@ namespace DevAudit.CommandLine
                     audit_options.Add("WindowsUsePlink", true);
                 }
                 else if (Environment.OSVersion.Platform == PlatformID.Win32NT)
-                {
-                    audit_options.Add("RemoteUseAgent", true);
-                }
                 {
                     audit_options.Add("WindowsUsePlink", true);
                 }
@@ -132,6 +129,11 @@ namespace DevAudit.CommandLine
                             audit_options.Add("RemoteKeyPassPhrase", p);
                         }
                     }
+                    else
+                    {
+                        audit_options.Add("RemoteUseAgent", true);
+                    }
+
                 }
             }
             #endregion
