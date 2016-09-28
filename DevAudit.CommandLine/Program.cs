@@ -69,11 +69,13 @@ namespace DevAudit.CommandLine
             }
             Dictionary<string, object> audit_options = new Dictionary<string, object>();
 
+            #region Enable debug
             if (!ProgramOptions.EnableDebug)
             {
                 AppDomain.CurrentDomain.UnhandledException += Program_UnhandledException;
             }
-   
+            #endregion
+
             if (!string.IsNullOrEmpty(ProgramOptions.RemoteHost))
             {
                 if (Uri.CheckHostName(ProgramOptions.RemoteHost) == UriHostNameType.Unknown)
@@ -85,16 +87,25 @@ namespace DevAudit.CommandLine
                 {
                     audit_options.Add("RemoteHost", ProgramOptions.RemoteHost);
                 }
-
+                #region Ssh client
                 if (ProgramOptions.WindowsUseOpenSsh)
                 {
                     audit_options.Add("WindowsUseOpenSsh", true);
                 }
-                else if (ProgramOptions.WindowsUsePlink)
+                else if (ProgramOptions.WindowsUsePlink && Environment.OSVersion.Platform == PlatformID.Win32NT)
                 {
                     audit_options.Add("WindowsUsePlink", true);
                 }
+                else if (Environment.OSVersion.Platform == PlatformID.Win32NT)
+                {
+                    audit_options.Add("RemoteUseAgent", true);
+                }
+                {
+                    audit_options.Add("WindowsUsePlink", true);
+                }
+                #endregion
 
+                #region User and password or key file
                 if (!string.IsNullOrEmpty(ProgramOptions.RemoteUser))
                 {
                     audit_options.Add("RemoteUser", ProgramOptions.RemoteUser);
@@ -121,12 +132,9 @@ namespace DevAudit.CommandLine
                             audit_options.Add("RemoteKeyPassPhrase", p);
                         }
                     }
-                    else
-                    {
-                        audit_options.Add("RemoteUseAgent", true);
-                    }
                 }
             }
+            #endregion
 
             if (!string.IsNullOrEmpty(ProgramOptions.File))
             {
