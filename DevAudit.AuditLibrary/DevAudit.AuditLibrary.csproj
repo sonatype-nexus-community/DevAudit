@@ -125,7 +125,6 @@
     <Compile Include="Servers\MySQLServer.cs" />
     <Compile Include="SshAuditEnvironment.cs" />
     <Compile Include="EnvironmentEventArgs.cs" />
-    <Compile Include="SshEnvironmentEventArgs.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Examples\bower.json.example">

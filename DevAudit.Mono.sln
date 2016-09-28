@@ -27,6 +27,12 @@ Global
 		{86EE75FC-D05D-42BC-B2C2-B80CF3734332}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{86EE75FC-D05D-42BC-B2C2-B80CF3734332}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{86EE75FC-D05D-42BC-B2C2-B80CF3734332}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8AA52B5E-DB66-4B0B-AABA-9E6900BC3D5A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8AA52B5E-DB66-4B0B-AABA-9E6900BC3D5A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8AA52B5E-DB66-4B0B-AABA-9E6900BC3D5A}.Nuget|Any CPU.ActiveCfg = Nuget|Any CPU
+		{8AA52B5E-DB66-4B0B-AABA-9E6900BC3D5A}.Nuget|Any CPU.Build.0 = Nuget|Any CPU
+		{8AA52B5E-DB66-4B0B-AABA-9E6900BC3D5A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8AA52B5E-DB66-4B0B-AABA-9E6900BC3D5A}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
