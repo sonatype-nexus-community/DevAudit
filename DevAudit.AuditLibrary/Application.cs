@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Security;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Xml.Linq;
@@ -16,7 +17,7 @@ namespace DevAudit.AuditLibrary
 {
     public abstract class Application : PackageSource
     {
-        #region Public abstract methods and properties
+        #region Public abstract properties
         public abstract bool IsConfigurationRuleVersionInServerVersionRange(string configuration_rule_version, string server_version);
 
         public abstract string ApplicationId { get; }
@@ -48,7 +49,38 @@ namespace DevAudit.AuditLibrary
 
         public Dictionary<string, IEnumerable<OSSIndexQueryObject>> Modules { get; set; }
 
-        public IConfiguration Configuration { get; set; } = null;
+        public IConfiguration Configuration { get; protected set; } = null;
+
+        public string ConfigurationStatistics
+        {
+            get
+            {
+                if (this.Configuration == null)
+                {
+                    throw new InvalidOperationException("Configuration has not been read.");
+                }
+                else
+                {
+                    StringBuilder sb = new StringBuilder();
+                    IConfigurationStatistics cs = this.Configuration as IConfigurationStatistics;
+                    
+                    if (this.Configuration.IncludeFilesStatus != null)
+                    {
+                        foreach (Tuple<string, bool, IConfigurationStatistics> status in this.Configuration.IncludeFilesStatus)
+                        {
+                            if (status.Item2)
+                            {
+                                IConfigurationStatistics include_statistics = status.Item3;
+                                sb.AppendLine(string.Format("Included {0}. File path: {1}. First line parsed {2}. Last line parsed: {3}. Parsed {4} top-level configuration nodes. Parsed {5} comments.", status.Item1, include_statistics.FullFilePath, include_statistics.FirstLineParsed, include_statistics.LastLineParsed, include_statistics.TotalFileTopLevelNodes, include_statistics.TotalFileComments));
+                            }
+                            else sb.AppendLine(string.Format("Failed to include {0}.", status.Item1));
+                        }
+                    }
+                    sb.Append(string.Format("Parsed configuration from {0}. Successfully included {5} out of {6} include files. First line parsed {1}. Last line parsed: {2}. Parsed {3} total configuration nodes. Parsed {4} total comments.", cs.FullFilePath, cs.FirstLineParsed, cs.LastLineParsed, cs.TotalFileTopLevelNodes, cs.TotalFileComments, cs.IncludeFilesParsed.HasValue ? cs.IncludeFilesParsed : 0, cs.TotalIncludeFiles.HasValue ? cs.TotalIncludeFiles.Value : 0));
+                    return sb.ToString();
+                }
+            }
+        }
 
         public XDocument XmlConfiguration
         {

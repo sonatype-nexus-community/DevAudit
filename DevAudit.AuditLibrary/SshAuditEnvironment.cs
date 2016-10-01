@@ -103,8 +103,8 @@ namespace DevAudit.AuditLibrary
             process_output = "";
             process_error = "";
             SshCommand ssh_command = this.SshClient.RunCommand(command + " " + arguments);
-            process_output = ssh_command.Result;
-            process_error = ssh_command.Error;
+            process_output = ssh_command.Result.Trim();
+            process_error = ssh_command.Error.Trim();
             if (!string.IsNullOrEmpty(ssh_command.Result))
             {
                 Debug(caller, "Command {0} completed successfully, output: {1}", command + " " + arguments, process_output);
@@ -412,6 +412,11 @@ namespace DevAudit.AuditLibrary
             catch (SshAuthenticationException ae)
             {
                 Error("Authentication error connecting to {0} : {1}", host_name, ae.Message);
+                return;
+            }
+            catch(System.Net.Sockets.SocketException se)
+            {
+                Error("Socket error connecting to {0} : {1}", host_name, se.Message);
                 return;
             }
             finally

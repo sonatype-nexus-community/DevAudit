@@ -622,7 +622,7 @@ namespace DevAudit.CommandLine
                 StopSpinner();
             }
             PrintMessageLine("Detected {0} version: {1}.", Server.ServerLabel, Server.Version);
-            if (!ProgramOptions.ListRules)
+            if (!ProgramOptions.SkipPackageAudit)
             {
                 AuditPackageSource(out exit);
                 if (exit != ExitCodes.SUCCESS)
@@ -656,11 +656,11 @@ namespace DevAudit.CommandLine
             }
             else if (Server.XmlConfiguration.Root.Elements().Count() == 0)
             {
+                
                 PrintMessageLine("Got zero top-level nodes from scanning server configuration. Exiting.");
                 return;
             }
-            PrintMessageLine("Got {0} top-level server configuration node(s).",
-                Server.XmlConfiguration.Root.Elements().Count());
+            PrintMessageLine(Server.ConfigurationStatistics);
             PrintMessage("Scanning {0} configuration rules...", Server.ServerLabel);
             StartSpinner();
             try
@@ -908,7 +908,7 @@ namespace DevAudit.CommandLine
                 if (ReferenceEquals(null, Spinner)) throw new ArgumentNullException();
                 Spinner.Stop();
                 Spinner = null;
-                PrintMessageLine(string.Empty);
+                if (Console.CursorLeft != 0) PrintMessage("\n");
             }
 
         }

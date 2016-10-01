@@ -42,8 +42,8 @@ namespace DevAudit.CommandLine
 
         public void Stop()
         {
-            active = false;
             Draw(' ');
+            active = false;
         }
 
         private void Spin()
@@ -60,7 +60,7 @@ namespace DevAudit.CommandLine
             Console.Write(c);
             try
             {
-                Console.SetCursorPosition(Console.CursorLeft - 1, Console.CursorTop);
+                Console.SetCursorPosition(Console.CursorLeft > 0 ? Console.CursorLeft - 1 : 0, Console.CursorTop);
             }
             catch (ArgumentOutOfRangeException)
             {
@@ -75,7 +75,10 @@ namespace DevAudit.CommandLine
 
         public void Dispose()
         {
-            Stop();
+            if (active)
+            {
+                Stop();
+            }
         }
     }
 }

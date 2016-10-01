@@ -107,6 +107,9 @@ namespace DevAudit.CommandLine
         [Option("list-artifacts", Required = false, HelpText = "Only list the artifacts corresponding to local packages found on OSS Index.")]
         public bool ListArtifacts { get; set; }
 
+        [Option("skip-package-audit", Required = false, HelpText = "Skip the package audit for applications or application servers.")]
+        public bool SkipPackageAudit { get; set; }
+
         [Option("list-rules", Required = false, HelpText = "Only list the configuration rules for the application or application server found on OSS Index.")]
         public bool ListRules { get; set; }
 

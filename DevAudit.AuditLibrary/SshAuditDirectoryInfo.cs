@@ -39,20 +39,24 @@ namespace DevAudit.AuditLibrary
         {
             get
             {
-                string o = this.EnvironmentExecute(string.Format("[ -f {0}] && echo \"Yes\" || echo \"No\"", this.FullName), "");
-                if (!string.IsNullOrEmpty(o) && o == "Yes")
+                if (!this._Exists.HasValue)
                 {
-                    return true;
+                    string o = this.EnvironmentExecute(string.Format("[ -f {0}] && echo \"Yes\" || echo \"No\"", this.FullName), "");
+                    if (!string.IsNullOrEmpty(o) && o == "Yes")
+                    {
+                        this._Exists =  true;
+                    }
+                    else if (!string.IsNullOrEmpty(o) && o == "No")
+                    {
+                        this._Exists =  false;
+                    }
+                    else
+                    {
+                        EnvironmentCommandError(this.AuditEnvironment.Here(), "Could not test for existence of {0}. Command returned: {1}.", this.FullName, o);
+                        return false;
+                    }
                 }
-                else if (!string.IsNullOrEmpty(o) && o == "No")
-                {
-                    return false;
-                }
-                else
-                {
-                    EnvironmentCommandError(this.AuditEnvironment.Here(), "Could not test for existence of {0}. Command returned: {1}.", this.FullName, o);
-                    return false;
-                }
+                return this._Exists.Value;
             }
         }
         #endregion
@@ -63,7 +67,8 @@ namespace DevAudit.AuditLibrary
             string o = this.EnvironmentExecute("find", string.Format("{0} -type d -name \"*\"", this.FullName));
             if (!string.IsNullOrEmpty(o))
             {
-                return null;
+                SshAuditDirectoryInfo[] dirs = o.Split("\n".ToCharArray(), StringSplitOptions.RemoveEmptyEntries).Select(dn => new SshAuditDirectoryInfo(this.SshAuditEnvironment, dn)).ToArray();
+                return dirs;
             }
             else
             {
@@ -77,7 +82,8 @@ namespace DevAudit.AuditLibrary
             string o = this.EnvironmentExecute("find", string.Format("{0} -type d -name \"*\"", this.CombinePaths(this.FullName, path)));
             if (!string.IsNullOrEmpty(o))
             {
-                return null;
+                SshAuditDirectoryInfo[] dirs = o.Split("\n".ToCharArray(), StringSplitOptions.RemoveEmptyEntries).Select(dn => new SshAuditDirectoryInfo(this.SshAuditEnvironment, dn)).ToArray();
+                return dirs;
             }
             else
             {
@@ -96,7 +102,8 @@ namespace DevAudit.AuditLibrary
             string o = this.EnvironmentExecute("find", string.Format("{0} -type f -name \"*\"", this.FullName));
             if (!string.IsNullOrEmpty(o))
             {
-                return null;
+                SshAuditFileInfo[] files = o.Split("\n".ToCharArray(), StringSplitOptions.RemoveEmptyEntries).Select(fn => new SshAuditFileInfo(this.SshAuditEnvironment, fn)).ToArray();
+                return files;
             }
             else
             {
@@ -138,6 +145,10 @@ namespace DevAudit.AuditLibrary
         protected SshAuditEnvironment SshAuditEnvironment { get; set; }
         #endregion
 
-        
+        #region Private fields
+        private bool? _Exists;
+        #endregion
+
+
     }
 }

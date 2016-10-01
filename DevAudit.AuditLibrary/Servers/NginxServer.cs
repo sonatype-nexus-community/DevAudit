@@ -77,6 +77,15 @@ namespace DevAudit.AuditLibrary
                 this.Version = process_output.Substring("nginx version: ".Length);
                 return this.Version;
             }
+            else if (process_output.Contains("nginx version: ") || process_error.Contains("nginx version: "))
+            {
+                if (!string.IsNullOrEmpty(process_error) && string.IsNullOrEmpty(process_output))
+                {
+                    process_output = process_error;
+                }
+                this.Version = process_output.Substring("nginx version: ".Length);
+                return this.Version;
+            }
             else
             {
                 throw new Exception(string.Format("Did not execute process {0} successfully or could not parse output. Process output: {1}.\nProcess error: {2}.", ApplicationBinary.Name, process_output, process_error));
