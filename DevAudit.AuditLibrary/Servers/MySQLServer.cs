@@ -93,8 +93,8 @@ namespace DevAudit.AuditLibrary
         #region Constructors
         public MySQLServer(Dictionary<string, object> server_options, EventHandler<EnvironmentEventArgs> message_handler = null) : base(server_options, new Dictionary<PlatformID, string[]>()
             {
-                { PlatformID.Unix, new string[] { "@", "etc", "mysql", "my.conf" } },
-                { PlatformID.MacOSX, new string[] { "@", "etc", "mysql", "my.conf" } },
+                { PlatformID.Unix, new string[] { "@", "etc", "mysql", "my.cnf" } },
+                { PlatformID.MacOSX, new string[] { "@", "etc", "mysql", "my.cnf" } },
                 { PlatformID.Win32NT, new string[] { "@", "my.ini" } }
             }, message_handler)
         {

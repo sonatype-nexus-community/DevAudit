@@ -96,10 +96,6 @@ namespace DevAudit.CommandLine
                 {
                     audit_options.Add("WindowsUsePlink", true);
                 }
-                else if (Environment.OSVersion.Platform == PlatformID.Win32NT)
-                {
-                    audit_options.Add("WindowsUsePlink", true);
-                }
                 #endregion
 
                 #region User and password or key file

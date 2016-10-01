@@ -11,6 +11,7 @@ using System.Threading.Tasks;
 
 using ExpectNet;
 using Renci.SshNet;
+using Renci.SshNet.Common;
 
 namespace DevAudit.AuditLibrary
 {
@@ -45,6 +46,10 @@ namespace DevAudit.AuditLibrary
         public int NetwrokConnectTimeout { get; private set; } = 3000;
         #endregion
 
+        #region Overriden properties
+        protected override TraceSource TraceSource { get; set; } = new TraceSource("SshAuditEnvironment");
+        #endregion
+
         #region Overriden methods     
         public override AuditFileInfo ConstructFile(string file_path)
         {
@@ -59,50 +64,57 @@ namespace DevAudit.AuditLibrary
         public override bool FileExists(string file_path)
         {
             if (!this.IsConnected) throw new InvalidOperationException("The SSH session is not connected.");
-            this.SshSession.Send.String("ls " + file_path + LineTerminator);
-            List<IResult> result = this.SshSession.Expect.ContainsEither(file_path, FileFound, "No such file or directory", FileNotFound, 6000, 5, true);
-            if (result[0].IsMatch)
+            SshCommand ls_cmd = SshClient.RunCommand("stat " + file_path);
+            if (!string.IsNullOrEmpty(ls_cmd.Result))
             {
+                Debug("ls {0} returned {1}.", file_path, ls_cmd.Result);
                 return true;
             }
             else
             {
+                Debug("ls {0} returned {1}.", file_path, ls_cmd.Error);
                 return false;
             }
+
         }
 
         public override bool DirectoryExists(string dir_path)
         {
             if (!this.IsConnected) throw new InvalidOperationException("The SSH session is not connected.");
-            this.SshSession.Send.String("stat " + dir_path + LineTerminator);
-            List<IResult> result = this.SshSession.Expect.ContainsEither("directory", FileFound, "No such file or directory", FileNotFound, 6000, 5, true);
-            if (result[0].IsMatch)
+            SshCommand stat_cmd = SshClient.RunCommand("stat " + dir_path);
+            if (!string.IsNullOrEmpty(stat_cmd.Result))
             {
+                Debug("stat {0} returned {1}.", dir_path, stat_cmd.Result);
                 return true;
             }
             else
             {
+                Debug("stat {0} returned {1}.", dir_path, stat_cmd.Error);
                 return false;
-            }
+            }            
         }
 
         public override bool Execute(string command, string arguments, out ProcessExecuteStatus process_status, out string process_output, out string process_error, Action<string> OutputDataReceived = null, Action<string> OutputErrorReceived = null, [CallerMemberName] string memberName = "", [CallerFilePath] string fileName = "", [CallerLineNumber] int lineNumber = 0)
         {
+            if (!this.IsConnected) throw new InvalidOperationException("The SSH session is not connected.");
             CallerInformation caller = new CallerInformation(memberName, fileName, lineNumber);
             if (!this.IsConnected) throw new InvalidOperationException("The SSH session is not connected.");
             process_status = ProcessExecuteStatus.Unknown;
             process_output = "";
             process_error = "";
-            if (this.SshSession.Send.Command(command + " " + arguments, out process_output, 8000))
+            SshCommand ssh_command = this.SshClient.RunCommand(command + " " + arguments);
+            process_output = ssh_command.Result;
+            process_error = ssh_command.Error;
+            if (!string.IsNullOrEmpty(ssh_command.Result))
             {
-                Debug(caller, "Send command {0} returned true, output: {1}", command + " " + arguments, process_output);
+                Debug(caller, "Command {0} completed successfully, output: {1}", command + " " + arguments, process_output);
                 process_status = ProcessExecuteStatus.Completed;
                 return true;
             }
             else
             {
                 process_status = ProcessExecuteStatus.Error;
-                Debug(caller, "Send command {0} returned false, output: {1}", command + " " + arguments, process_output);
+                Debug(caller, "Send command {0} did not complete successfully, output: {1}", command + " " + arguments, process_error);
                 return false;
             }
         }
@@ -115,7 +127,8 @@ namespace DevAudit.AuditLibrary
                 {
                     // Explicitly set root references to null to expressly tell the GarbageCollector 
                     // that the resources have been disposed of and its ok to release the memory 
-                    // allocated for them. 
+                    // allocated for them.
+                    
                     if (isDisposing)
                     {
                         // Release all managed resources here 
@@ -130,6 +143,13 @@ namespace DevAudit.AuditLibrary
                         //if (components != null) //{ // components.Dispose(); //} } 
                         // Release all unmanaged resources here 
                         // (example) if (someComObject != null && Marshal.IsComObject(someComObject)) { Marshal.FinalReleaseComObject(someComObject); someComObject = null; 
+                        if (!ReferenceEquals(this.SshClient, null))
+                        {
+                            this.SshClient.HostKeyReceived -= SshClient_HostKeyReceived;
+                            this.SshClient.ErrorOccurred -= SshClient_ErrorOccurred;
+                            this.SshClient.Dispose();
+                            this.SshClient = null;
+                        }
                     }
                 }
             }
@@ -142,7 +162,25 @@ namespace DevAudit.AuditLibrary
         #endregion
 
         #region Constructors
-        public SshAuditEnvironment(EventHandler<EnvironmentEventArgs> message_handler, OperatingSystem os, string host_name) : base(message_handler, os)
+        public SshAuditEnvironment(EventHandler<EnvironmentEventArgs> message_handler, string client, string host_name, string user, object pass, OperatingSystem os) : base(message_handler, os)
+        {
+            if (client == "openssh")
+            {
+                InitialiseOpenSshSession(host_name, user, pass, os);
+            }
+            else if (client == "plink")
+            {
+                InitialiseOpenSshSession(host_name, user, pass, os);
+            }
+            else
+            {
+                InitialiseSshSession(host_name, user, pass, os);
+            }
+        }
+        #endregion
+
+        #region Private methods
+        public void InitialisePlinkSesion(string host_name, string user, object pass, OperatingSystem os)
         {
             this.HostName = host_name;
             FileFound = (o) =>
@@ -161,143 +199,130 @@ namespace DevAudit.AuditLibrary
             {
                 Debug(this.Here(), "stat returns directory does not exist.");
             };
-        }
 
-        public SshAuditEnvironment(EventHandler<EnvironmentEventArgs> message_handler, string client, string host_name, string user, object pass, OperatingSystem os) : this(message_handler, os, host_name)
-        {
-            if (client == "openssh")
+            string ssh_command = Environment.OSVersion.Platform == PlatformID.Win32NT ? "plink.exe" : "ssh";
+            string ssh_arguments = Environment.OSVersion.Platform == PlatformID.Win32NT ? string.Format("-v -ssh -2 -l {0} -pw \"{1}\" -sshlog plink_ssh.log {2}", user,
+                ToInsecureString(pass), host_name) : "";
+            ProcessStartInfo psi = new ProcessStartInfo(ssh_command, ssh_arguments);
+            psi.CreateNoWindow = true;
+            psi.RedirectStandardError = true;
+            psi.RedirectStandardInput = true;
+            psi.RedirectStandardOutput = true;
+            psi.UseShellExecute = false;
+            Process p = new Process();
+            p.StartInfo = psi;
+            p.EnableRaisingEvents = true;
+            p.OutputDataReceived += OnOutputDataReceived;
+            p.ErrorDataReceived += OnErrorDataReceived;
+            ProcessSpawnable s = new ProcessSpawnable(p);
+            SshSession = Expect.Spawn(s, this.LineTerminator);
+            Action<IResult> LogFileExists = (o) =>
             {
-                InitialiseOpenSshSession(host_name, user, pass, os);
-            }
-            else
+                Info("Plink log file exists, overwriting.");
+                SshSession.Send.Char('y');
+            };
+
+            Action<IResult> ConnectedToServer = (o) =>
             {
-                string ssh_command = Environment.OSVersion.Platform == PlatformID.Win32NT ? "plink.exe" : "ssh";
-                string ssh_arguments = Environment.OSVersion.Platform == PlatformID.Win32NT ? string.Format("-v -ssh -2 -l {0} -pw \"{1}\" -sshlog plink_ssh.log {2}", user,
-                    ToInsecureString(pass), host_name) : "";
-                ProcessStartInfo psi = new ProcessStartInfo(ssh_command, ssh_arguments);
-                psi.CreateNoWindow = true;
-                psi.RedirectStandardError = true;
-                psi.RedirectStandardInput = true;
-                psi.RedirectStandardOutput = true;
-                psi.UseShellExecute = false;
-                Process p = new Process();
-                p.StartInfo = psi;
-                p.EnableRaisingEvents = true;
-                p.OutputDataReceived += OnOutputDataReceived;
-                p.ErrorDataReceived += OnErrorDataReceived;
-                ProcessSpawnable s = new ProcessSpawnable(p);
-                SshSession = Expect.Spawn(s, this.LineTerminator);
-                Action<IResult> LogFileExists = (o) =>
-                {
-                    Info("Plink log file exists, overwriting.");
-                    SshSession.Send.Char('y');
-                };
+                Info("Connected to host {0}.", host_name);
+            };
 
-                Action<IResult> ConnectedToServer = (o) =>
-                {
-                    Info("Connected to host {0}.", host_name);
-                };
+            Action<IResult> FailedConnectToServer = (o) =>
+            {
+                Info("Failed to connect to host {0}.", host_name);
+                this.IsConnected = false;
+                return;
+            };
 
-                Action<IResult> FailedConnectToServer = (o) =>
+            Action<IResult> GotHostKeyFingerprint = (match) =>
+            {
+                string lt = Environment.OSVersion.Platform == PlatformID.Win32NT ? "\r\n" : "\n";
+                Match m = Regex.Match((string)match.Result, "Host key fingerprint is:" + lt + "([\\w\\-\\d\\s\\:]+)" + lt);
+                if (m.Success && m.Groups.Count == 2)
                 {
-                    Info("Failed to connect to host {0}.", host_name);
-                    this.IsConnected = false;
-                    return;
-                };
-
-                Action<IResult> GotHostKeyFingerprint = (match) =>
+                    this.HostKey = m.Groups[1].Value;
+                    Success("Host key: {0}", this.HostKey);
+                }
+                else
                 {
-                    string lt = Environment.OSVersion.Platform == PlatformID.Win32NT ? "\r\n" : "\n";
-                    Match m = Regex.Match((string) match.Result, "Host key fingerprint is:" + lt + "([\\w\\-\\d\\s\\:]+)" + lt);
-                    if (m.Success && m.Groups.Count == 2)
+                    SshSession.Expect.Contains(lt, (hk) =>
                     {
-                        this.HostKey = m.Groups[1].Value;
-                        Success("Host key: {0}", this.HostKey);
-                    }
-                    else
-                    {
-                        SshSession.Expect.Contains(lt, (hk) =>
+                        Match nm = Regex.Match((string)hk.Result, "([\\w\\-\\d\\s\\:]+)" + lt);
+                        if (nm.Success && nm.Groups.Count == 2)
                         {
-                            Match nm = Regex.Match((string) hk.Result, "([\\w\\-\\d\\s\\:]+)" + lt);
-                            if (nm.Success && nm.Groups.Count == 2)
-                            {
-                                this.HostKey = nm.Groups[1].Value;
-                                Success("Host key: {0}", this.HostKey);
-                            }
-                            else
-                            {
-                                throw new Exception("Could not parse host key from output: " + nm.Value);
-                            }
+                            this.HostKey = nm.Groups[1].Value;
+                            Success("Host key: {0}", this.HostKey);
+                        }
+                        else
+                        {
+                            throw new Exception("Could not parse host key from output: " + nm.Value);
+                        }
 
-                        });
-                    }
-                };
+                    });
+                }
+            };
 
-                Action<IResult> ServerKeyNotCached = (o) =>
-                {
-                    Warning("Server key not cached. The host key is not trusted.");
-                    SshSession.Send.Char('n');
-                };
+            Action<IResult> ServerKeyNotCached = (o) =>
+            {
+                Warning("Server key not cached. The host key is not trusted.");
+                SshSession.Send.Char('n');
+            };
 
-                Action<IResult> AccessGranted = (o) =>
-                {
-                    this.HostName = host_name;
-                    this.IsConnected = true;
-                    Success("Password authentication succeded.");
-                    Success("Connected to host {0}.", host_name);
-                    return;
-                };
+            Action<IResult> AccessGranted = (o) =>
+            {
+                this.HostName = host_name;
+                this.IsConnected = true;
+                Success("Password authentication succeded.");
+                Success("Connected to host {0}.", host_name);
+                return;
+            };
 
-                Action<IResult> PasswordAuthenticationFailed = (match) =>
-                {
+            Action<IResult> PasswordAuthenticationFailed = (match) =>
+            {
 
-                    string o = (string) match.Result ;
-                    if (o.Contains("Password authentication failed"))
-                    {
-                        this.IsConnected = false;
-                        Error("The user name or password is incorrect. Could not connect to host {0}.", host_name);
-                    }
-                };
-
-                Action<IResult> AccessDenied = (o) =>
+                string o = (string)match.Result;
+                if (o.Contains("Password authentication failed"))
                 {
                     this.IsConnected = false;
-                    Error("Unknown error in authentication. Access denied.");
-                    return;
-                };
+                    Error("The user name or password is incorrect. Could not connect to host {0}.", host_name);
+                }
+            };
 
-                SshSession.Expect.Contains("The session log file \"plink_ssh.log\" already exists.", LogFileExists);
-                if (!SshSession.Expect.Contains("Using SSH protocol version 2", ConnectedToServer, 1000, 10).IsMatch)
-                {
-                    Error("Failed to connect to host {0}.", host_name);
-                    this.IsConnected = false;
-                    Error("Failed to initialise SSH audit environment.");
-                    return;
-                }
-                if (!SshSession.Expect.Contains("Host key fingerprint is:", GotHostKeyFingerprint, 1000, 10).IsMatch)
-                {
-                    throw new Exception("Failed to get host key.");
-                }
-                SshSession.Expect.Contains("Store key in cache?", ServerKeyNotCached);
-                List<IResult> access = SshSession.Expect.ContainsEither("Access granted", AccessGranted, "Password authentication failed", PasswordAuthenticationFailed, 5000);
-                if (access[0].IsMatch)
-                {
-                    this.IsConnected = true;
-                    Success("SSH audit environment initalised."); return;
-                }
-                else if (access[1].IsMatch || SshSession.Expect.Contains("Access denied", AccessDenied, 100, 5).IsMatch)
-                {
-                    this.IsConnected = false;
-                    Error("Access denied to host {0}.", host_name);
-                    Error("Failed to initialise SSH audit environment.");
-                    return;
-                }
-                else throw new Exception("Could not parse SSH command output.");
+            Action<IResult> AccessDenied = (o) =>
+            {
+                this.IsConnected = false;
+                Error("Unknown error in authentication. Access denied.");
+                return;
+            };
+
+            SshSession.Expect.Contains("The session log file \"plink_ssh.log\" already exists.", LogFileExists);
+            if (!SshSession.Expect.Contains("Using SSH protocol version 2", ConnectedToServer, 1000, 10).IsMatch)
+            {
+                Error("Failed to connect to host {0}.", host_name);
+                this.IsConnected = false;
+                Error("Failed to initialise SSH audit environment.");
+                return;
             }
+            if (!SshSession.Expect.Contains("Host key fingerprint is:", GotHostKeyFingerprint, 1000, 10).IsMatch)
+            {
+                throw new Exception("Failed to get host key.");
+            }
+            SshSession.Expect.Contains("Store key in cache?", ServerKeyNotCached);
+            List<IResult> access = SshSession.Expect.ContainsEither("Access granted", AccessGranted, "Password authentication failed", PasswordAuthenticationFailed, 5000);
+            if (access[0].IsMatch)
+            {
+                this.IsConnected = true;
+                Success("SSH audit environment initalised."); return;
+            }
+            else if (access[1].IsMatch || SshSession.Expect.Contains("Access denied", AccessDenied, 100, 5).IsMatch)
+            {
+                this.IsConnected = false;
+                Error("Access denied to host {0}.", host_name);
+                Error("Failed to initialise SSH audit environment.");
+                return;
+            }
+            else throw new Exception("Could not parse SSH command output.");
         }
-        #endregion
-
-        #region Private methods
         public void InitialiseOpenSshSession(string host_name, string user, object pass, OperatingSystem os)
         {
             #region Create actions for client responses
@@ -368,15 +393,69 @@ namespace DevAudit.AuditLibrary
 
         private void InitialiseSshSession(string host_name, string user, object pass, OperatingSystem os)
         {
+            Info("Connecting to {0}...", host_name);
+            Stopwatch = new Stopwatch();
             ConnectionInfo ci = new ConnectionInfo(host_name, user, new PasswordAuthenticationMethod(user, ToInsecureString(pass)));
-            SshClient client = new SshClient(ci);
-            client.Connect();
-            //client.
+            SshClient = new SshClient(ci);
+            SshClient.ErrorOccurred += SshClient_ErrorOccurred;
+            SshClient.HostKeyReceived += SshClient_HostKeyReceived;
+            Stopwatch.Start();
+            try
+            {
+                SshClient.Connect();
+            }
+            catch (SshConnectionException ce)
+            {
+                Error("Connection error connecting to {0} : {1}", host_name, ce.Message);
+                return;
+            }
+            catch (SshAuthenticationException ae)
+            {
+                Error("Authentication error connecting to {0} : {1}", host_name, ae.Message);
+                return;
+            }
+            finally
+            {
+                Stopwatch.Stop();
+            }
+            this.IsConnected = true;
+            Success("Connected to {0}. Time elapsed: {1}", host_name, Stopwatch.Elapsed);
+        }
+
+        public static string ByteArrayToHexString(byte[] Bytes)
+        {
+            StringBuilder Result = new StringBuilder(Bytes.Length * 2);
+            string HexAlphabet = "0123456789ABCDEF";
+
+            foreach (byte B in Bytes)
+            {
+                Result.Append(HexAlphabet[(int)(B >> 4)]);
+                Result.Append(HexAlphabet[(int)(B & 0xF)]);
+            }
+
+            return Result.ToString();
         }
         #endregion
 
+        #region Event handlers
+        private void SshClient_ErrorOccurred(object sender, Renci.SshNet.Common.ExceptionEventArgs e)
+        {
+            Error(e.Exception);
+            this.IsConnected = false;
+            return;
+        }
+
+        private void SshClient_HostKeyReceived(object sender, Renci.SshNet.Common.HostKeyEventArgs e)
+        {
+            Info("Host key fingerprint is: {0} {1}.", e.HostKeyName, BitConverter.ToString(e.FingerPrint).Replace('-', ':').ToLower());
+        }
+
+        #endregion
+
         #region Private fields
+        Stopwatch Stopwatch;
         private ExpectNet.Session SshSession { get; set; }
+        SshClient SshClient;
         Action<IResult> FileFound;
         Action<IResult> FileNotFound;
         Action<IResult> DirectoryFound;

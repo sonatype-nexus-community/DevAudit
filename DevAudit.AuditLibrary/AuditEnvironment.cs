@@ -78,6 +78,7 @@ namespace DevAudit.AuditLibrary
             out ProcessExecuteStatus process_status, out string process_output, out string process_error, Action<string> OutputDataReceived = null, Action<string> OutputErrorReceived = null, [CallerMemberName] string memberName = "", [CallerFilePath] string fileName = "", [CallerLineNumber] int lineNumber = 0);
         public abstract AuditFileInfo ConstructFile(string file_path);
         public abstract AuditDirectoryInfo ConstructDirectory(string dir_path);
+        protected abstract TraceSource TraceSource { get; set; }
         #endregion
 
         #region Public properties
@@ -142,7 +143,7 @@ namespace DevAudit.AuditLibrary
         }
         #endregion
 
-        #region Protected and private properties
+        #region Protected properties
         protected StringBuilder ProcessOutputSB = new StringBuilder();
         protected StringBuilder ProcessErrorSB = new StringBuilder();
         protected string LineTerminator { get; set; }
@@ -156,22 +157,31 @@ namespace DevAudit.AuditLibrary
 
         internal void Info(string message_format, params object[] message)
         {
+            TraceSource.TraceInformation(message_format, message);
             OnMessage(new EnvironmentEventArgs(EventMessageType.INFO, message_format, message));
         }
 
         internal void Error(string message_format, params object[] message)
         {
+            TraceSource.TraceEvent(TraceEventType.Error, 0, message_format, message);
             OnMessage(new EnvironmentEventArgs(EventMessageType.ERROR, message_format, message));
         }
 
         internal void Error(CallerInformation caller, string message_format, params object[] message)
-        {
+        {   
             OnMessage(new EnvironmentEventArgs(caller, EventMessageType.ERROR, message_format, message));
+        }
+
+        internal void Error(Exception e)
+        {
+            OnMessage(new EnvironmentEventArgs(EventMessageType.ERROR, "Exception: {0} at {1}.", 
+                new object[2] { e.Message, e.StackTrace }));
         }
 
 
         internal void Success(string message_format, params object[] message)
         {
+            TraceSource.TraceEvent(TraceEventType.Information, 0, message_format, message);
             OnMessage(new EnvironmentEventArgs(EventMessageType.SUCCESS, message_format, message));
         }
 

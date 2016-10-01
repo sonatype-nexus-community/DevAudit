@@ -13,7 +13,11 @@ namespace DevAudit.AuditLibrary
 {
     public class LocalEnvironment : AuditEnvironment
     {
-        #region Overriden members
+        #region Overriden properties
+        protected override TraceSource TraceSource { get; set; } = new TraceSource("LocalEnvironment");
+        #endregion
+
+        #region Overriden methods
         public override AuditDirectoryInfo ConstructDirectory(string dir_path)
         {
             return new LocalAuditDirectoryInfo(this, dir_path);

@@ -38,11 +38,11 @@ namespace DevAudit.AuditLibrary
                 string client;
                 if (this.HostEnvironment.OS.Platform == PlatformID.Win32NT)
                 {
-                    client = this.AuditOptions.Keys.Contains("WindowsUsePlink") ? "plink" : "openssh";
+                    client = this.AuditOptions.Keys.Contains("WindowsUsePlink") ? "plink" : this.AuditOptions.Keys.Contains("WindowsUsePlink") ? "openssh" : "ssh";
                 }
                 else
                 {
-                    client = "openssh";
+                    client = "ssh";
                 }
                 if (this.AuditOptions.Keys.Contains("RemoteUser") && this.AuditOptions.Keys.Contains("RemotePass"))
                 {

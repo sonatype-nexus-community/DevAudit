@@ -44,7 +44,7 @@ namespace ExpectNet
         private IResult _Expect(IMatch matcher, Action<IResult> handler, int timeout = 0, bool timeout_throws = false)
         {
             if (timeout == 0) timeout = this.Timeout;
-            var tokenSource = new CancellationTokenSource();
+            CancellationTokenSource tokenSource = new CancellationTokenSource();
             CancellationToken ct = tokenSource.Token;
             IResult result = matcher;
             StringBuilder matchOutputBuilder = new StringBuilder();
@@ -52,7 +52,7 @@ namespace ExpectNet
             {
                 while (!ct.IsCancellationRequested && !matcher.IsMatch)
                 {
-                    matchOutputBuilder.Append(_spawnable.Read());
+                    matchOutputBuilder.Append(_spawnable.Read(tokenSource));
                     matcher.Execute(matchOutputBuilder.ToString());
                     
                 }
@@ -60,11 +60,13 @@ namespace ExpectNet
             if (task.Wait(timeout, ct))
             {
                 handler?.Invoke(result);
+                tokenSource.Dispose();
                 return result;
             }
             else
             {
                 tokenSource.Cancel();
+                tokenSource.Dispose();
                 if (timeout_throws)
                 {
                     result = null;
@@ -104,17 +106,19 @@ namespace ExpectNet
             {
                 while (!ct.IsCancellationRequested && !result.IsMatch)
                 {
-                    matchOutputBuilder.Append(_spawnable.Read());
+                    matchOutputBuilder.Append(_spawnable.Read(tokenSource));
                     matcher.Execute(matchOutputBuilder.ToString());
                 }
             }, ct);
             if (task.Wait(timeout, ct))
             {
+                tokenSource.Dispose();
                 return true;
             }
             else
             {
                 tokenSource.Cancel();
+                tokenSource.Dispose();
                 return false;
             }
         }
@@ -147,7 +151,7 @@ namespace ExpectNet
             {
                 while (!ct.IsCancellationRequested && !results.Any(r => r.Item1.IsMatch))
                 {
-                    matchOutputBuilder.Append(_spawnable.Read());
+                    matchOutputBuilder.Append(_spawnable.Read(tokenSource));
                     foreach (Tuple<IResult, Action<IResult>> r in results)
                     {
                         IMatch m = r.Item1 as IMatch;
@@ -162,11 +166,13 @@ namespace ExpectNet
             }, ct);
             if (task.Wait(timeout, ct))
             {
+                tokenSource.Dispose();
                 return results.Select(r => r.Item1).ToList();
             }
             else
             {
                 tokenSource.Cancel();
+                tokenSource.Dispose();
                 bool at_least_one_match = results.Any(r => r.Item1.IsMatch);
                 if (!at_least_one_match && timeout_throws)
                 {
@@ -185,7 +191,7 @@ namespace ExpectNet
                 result = _Expect(matchers, timeout);
                 if (result.Any(r => r.IsMatch)) return result;
             }
-            if (!timeout_throws)
+            if (timeout_throws)
             {
                 throw new TimeoutException(string.Format("Timed out waiting for at least one match for {0}.", matchers.Select(m => m.Item1.Query).Aggregate((p, n) => { return p + "or" + n; })));
             }
@@ -206,24 +212,25 @@ namespace ExpectNet
             {
                 while (!ct.IsCancellationRequested && !matcher.IsMatch)
                 {
-                    matchOutputBuilder.Append(_spawnable.Read());
+                    matchOutputBuilder.Append(_spawnable.Read(tokenSource));
                     matcher.Execute(matchOutputBuilder.ToString());
                 }
             }, ct);
             if (task.Wait(timeout, ct))
             {
                 handler_if?.Invoke(result);
-                return result;
             }
             else
             {
                 handler_else?.Invoke(result);
-                return result;
-            }            
+            }
+            tokenSource.Dispose();
+            return result;
         }
 
         private async Task<IResult> _ExpectAsync(IMatch matcher, Action<IResult> handler, int timeout = 0, bool timeout_throws = false)
         {
+            CancellationTokenSource tokenSource = new CancellationTokenSource();
             IResult result = matcher;
             Task timeoutTask = null;
             if (timeout == 0) timeout = this.Timeout;
@@ -242,7 +249,7 @@ namespace ExpectNet
             Task completed = await Task.WhenAny(tasks).ConfigureAwait(false);
             if (completed == readTask)
             {
-                string output = _spawnable.Read();
+                string output = _spawnable.Read(tokenSource);
                 OutputBuilder.Append(output);
                 matchOutputBuilder.Append(output);
                 matcher.Execute(matchOutputBuilder.ToString());
@@ -255,6 +262,7 @@ namespace ExpectNet
             {
                 if (timeout_throws) throw new TimeoutException(string.Format("Timed out waiting for match for {0} in output {1}.", matcher.Query, matchOutputBuilder.ToString())); ;
             }
+            tokenSource.Dispose();
             return result;
         }
 

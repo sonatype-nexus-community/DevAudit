@@ -25,30 +25,30 @@ namespace DevAudit.AuditLibrary
                 string process_output, process_error;
             if (AuditEnvironment.Execute(command, arguments, out process_status, out process_output, out process_error))
             {
-                string[] p = process_output.Split("\n".ToCharArray());
+                string[] p = process_output.Split("\n".ToCharArray(), StringSplitOptions.RemoveEmptyEntries);
                 for (int i = 0; i < p.Count(); i++)
                 {
-                        Match m = process_output_pattern.Match(p[i].Trim());
-                        if (!m.Success)
-                        {
-                            throw new Exception("Could not parse dpkg command output row: " + i.ToString()
-                                + "\n" + p[i]);
-                        }
-                        else
-                        {
-                            packages.Add(new OSSIndexQueryObject("dpkg", m.Groups[1].Value, m.Groups[2].Value, ""));
-                        }
-
+                    Match m = process_output_pattern.Match(p[i].Trim());
+                    if (!m.Success)
+                    {
+                        this.AuditEnvironment.Error(this.AuditEnvironment.Here(), "Could not parse dpkg command output at row {0}: {1}.", i, p[i]);
+                        throw new Exception(string.Format("Could not parse dpkg command output at row {0}: {1}.", i, p[i]));
                     }
-                }
-                else
-                {
-                    throw new Exception(string.Format("Error running {0} {1} command in host environment: {2}.", command,
-                        arguments, process_error));
-                }
-                return packages;
+                    else
+                    {
+                        packages.Add(new OSSIndexQueryObject("dpkg", m.Groups[1].Value, m.Groups[2].Value, ""));
+                    }
 
-            
+                }
+            }
+            else
+            {
+                this.AuditEnvironment.Error(this.AuditEnvironment.Here(), "Error running {0} {1} command in host environment: {2}.", command,
+                    arguments, process_error);
+                throw new Exception(string.Format("Error running {0} {1} command in host environment: {2}.", command,
+                    arguments, process_error));
+            }
+            return packages;            
         }
 
         public DpkgPackageSource(Dictionary<string, object> package_source_options, EventHandler<EnvironmentEventArgs> message_handler = null) : base(package_source_options, message_handler) { }
