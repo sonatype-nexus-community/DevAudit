@@ -216,10 +216,11 @@ namespace DevAudit.AuditLibrary
                             OSSIndexProject project = await this.HttpClient.GetProjectForIdAsync(artifact.ProjectId);
                             project.Artifact = artifact;
                             project.Package = artifact.Package;
-                            if (!ArtifactProject.Keys.Any(a => a.ProjectId == project.Id.ToString()))
+                            lock (artifact_project_lock)
                             {
-                                lock (artifact_project_lock)
+                                if (!ArtifactProject.Keys.Any(a => a.ProjectId == project.Id.ToString()))
                                 {
+
                                     this._ArtifactProject.Add(Artifacts.Where(a => a.ProjectId == project.Id.ToString()).First(), project);
                                 }
                             }
