@@ -63,11 +63,14 @@ namespace DevAudit.AuditLibrary
 
         public override bool FileExists(string file_path)
         {
+            Stopwatch.Reset();
+            Stopwatch.Start();
             if (!this.IsConnected) throw new InvalidOperationException("The SSH session is not connected.");
             SshCommand ls_cmd = SshClient.RunCommand("stat " + file_path);
             if (!string.IsNullOrEmpty(ls_cmd.Result))
             {
-                Debug("ls {0} returned {1}.", file_path, ls_cmd.Result);
+                Stopwatch.Stop();
+                Debug("ls {0} returned {1}. Time elapsed: {2} ms.", file_path, ls_cmd.Result, Stopwatch.ElapsedMilliseconds);
                 return true;
             }
             else
@@ -394,11 +397,11 @@ namespace DevAudit.AuditLibrary
         private void InitialiseSshSession(string host_name, string user, object pass, OperatingSystem os)
         {
             Info("Connecting to {0}...", host_name);
-            Stopwatch = new Stopwatch();
             ConnectionInfo ci = new ConnectionInfo(host_name, user, new PasswordAuthenticationMethod(user, ToInsecureString(pass)));
             SshClient = new SshClient(ci);
             SshClient.ErrorOccurred += SshClient_ErrorOccurred;
             SshClient.HostKeyReceived += SshClient_HostKeyReceived;
+            Stopwatch.Reset();
             Stopwatch.Start();
             try
             {
@@ -424,7 +427,7 @@ namespace DevAudit.AuditLibrary
                 Stopwatch.Stop();
             }
             this.IsConnected = true;
-            Success("Connected to {0}. Time elapsed: {1}", host_name, Stopwatch.Elapsed);
+            Success("Connected to {0}. Time elapsed: {1} ms.", host_name, Stopwatch.ElapsedMilliseconds);
         }
 
         public static string ByteArrayToHexString(byte[] Bytes)
@@ -458,7 +461,6 @@ namespace DevAudit.AuditLibrary
         #endregion
 
         #region Private fields
-        Stopwatch Stopwatch;
         private ExpectNet.Session SshSession { get; set; }
         SshClient SshClient;
         Action<IResult> FileFound;

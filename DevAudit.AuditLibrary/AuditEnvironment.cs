@@ -146,7 +146,8 @@ namespace DevAudit.AuditLibrary
         #region Protected properties
         protected StringBuilder ProcessOutputSB = new StringBuilder();
         protected StringBuilder ProcessErrorSB = new StringBuilder();
-        protected string LineTerminator { get; set; }
+        
+        protected Stopwatch Stopwatch { get; } = new Stopwatch();
         #endregion
 
         #region Internal methods
@@ -208,6 +209,10 @@ namespace DevAudit.AuditLibrary
             c.LineNumber = lineNumber;
             return c;
         }
+        #endregion
+
+        #region Internal properties
+        internal string LineTerminator { get; set; }
         #endregion
 
         #region Disposer

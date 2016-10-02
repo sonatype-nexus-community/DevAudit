@@ -205,7 +205,7 @@ namespace DevAudit.CommandLine
                     }
                     else if (verb == "drupal8")
                     {
-                        Source = new Drupal8Application(audit_options);
+                        Source = new Drupal8Application(audit_options, EnvironmentMessageHandler);
                     }
                     else if (verb == "drupal7")
                     {
@@ -722,7 +722,7 @@ namespace DevAudit.CommandLine
         {
             if (Spinner != null)
             {
-                Spinner.Stop();
+                StopSpinner();
             }
             if (e.MessageType == EventMessageType.DEBUG && !ProgramOptions.EnableDebug)
             {
@@ -901,7 +901,6 @@ namespace DevAudit.CommandLine
                 if (ReferenceEquals(null, Spinner)) throw new ArgumentNullException();
                 Spinner.Stop();
                 Spinner = null;
-                if (Console.CursorLeft != 0) PrintMessage("\n");
             }
 
         }

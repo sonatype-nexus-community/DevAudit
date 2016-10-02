@@ -150,7 +150,7 @@ namespace DevAudit.AuditLibrary
             else
             {
                 EnvironmentCommandError(this.AuditEnvironment.Here(), "Could not read as text {0}.", this.FullName);
-                return null;
+                return string.Empty;
             }
         }
         #endregion

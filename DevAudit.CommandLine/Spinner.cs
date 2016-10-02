@@ -42,7 +42,7 @@ namespace DevAudit.CommandLine
 
         public void Stop()
         {
-            Draw(' ');
+            Draw('\n');
             active = false;
         }
 

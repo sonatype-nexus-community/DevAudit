@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -51,12 +50,11 @@ namespace DevAudit.AuditLibrary
         {
             get
             {
-                IDirectoryInfo sites_all;
-                if ((sites_all = this.RootDirectory.GetDirectories(Path.Combine("sites", "all")).FirstOrDefault()) != null)
+                IDirectoryInfo sites_all = this.RootDirectory.GetDirectories(CombinePath("sites", "all", "modules"))?.FirstOrDefault();
                 {
-                    return (AuditDirectoryInfo) sites_all.GetDirectories(Path.Combine("modules")).FirstOrDefault();
+                    return sites_all == null ? (AuditDirectoryInfo) sites_all : null;
                 }
-                else return null;
+                
             }
         }
 
@@ -72,82 +70,71 @@ namespace DevAudit.AuditLibrary
         #region Overriden methods
         protected override Dictionary<string, IEnumerable<OSSIndexQueryObject>> GetModules()
         {
-            FileInfo changelog = null; //TODO this.ApplicationFileSystemMap["ChangeLog"] as FileInfo;
-            string l = string.Empty;
+            AuditFileInfo changelog = this.ApplicationFileSystemMap["ChangeLog"] as AuditFileInfo;
+            string[] c = changelog.ReadAsText()?.Split(this.AuditEnvironment.LineTerminator.ToCharArray(), StringSplitOptions.RemoveEmptyEntries);
             string core_version = "8.x";
-            using (StreamReader r = new StreamReader(changelog.OpenRead()))
+            if (c != null && c.Count() > 0)
             {
-                while (!r.EndOfStream && !l.StartsWith("Drupal"))
+                foreach (string l in c)
                 {
-                    l = r.ReadLine();
+                    if (l.StartsWith("Drupal "))
+                    {
+                        core_version = l.Split(',')[0].Substring(7);
+                    }
                 }
-            }
-            if (l.StartsWith("Drupal "))
-            {
-                core_version = l.Split(',')[0].Substring(7);
             }
             Dictionary<string, IEnumerable<OSSIndexQueryObject>> modules = new Dictionary<string, IEnumerable<OSSIndexQueryObject>>();
-            List<FileInfo> core_module_files = null; //TODO RecursiveFolderScan(this.CoreModulesDirectory, "*.info.yml").Where(f => !f.Name.Contains("_test") && !f.Name.Contains("test_")).ToList();
-            List<FileInfo> contrib_module_files = null; //TODO RecursiveFolderScan(this.ContribModulesDirectory, "*.info.yml").Where(f => !f.Name.Contains("_test") && !f.Name.Contains("test_")).ToList();
-            //this.CoreModulesDirectory.GetFileSystemInfos("*.info.yml", SearchOption.AllDirectories)
-            //.Where(f => !f.Name.Contains("_test") && !f.Name.Contains("test_")).ToList();
-            //List<FileSystemInfo> contrib_module_files = this.ContribModulesDirectory.GetFileSystemInfos("*.info.yml", SearchOption.AllDirectories)
-            //    .Where(f => !f.Name.Contains("_test") && !f.Name.Contains("test_")).ToList();
-            List<OSSIndexQueryObject> core_modules = new List<OSSIndexQueryObject>(core_module_files.Count + 1);
-            List<OSSIndexQueryObject> contrib_modules = new List<OSSIndexQueryObject>(contrib_module_files.Count);
-            List<OSSIndexQueryObject> all_modules = new List<OSSIndexQueryObject>(core_module_files.Count + 1);
+            List<AuditFileInfo> core_module_files = this.CoreModulesDirectory.GetFiles("*.info.yml")?.Where(f => !f.Name.Contains("_test") && !f.Name.Contains("test_")).Select(f => this.AuditEnvironment.ConstructFile(f.FullName)).ToList();
+            List<AuditFileInfo> contrib_module_files = this.ContribModulesDirectory.GetFiles("*.info.yml")?.Where(f => !f.Name.Contains("_test") && !f.Name.Contains("test_")).Select(f => this.AuditEnvironment.ConstructFile(f.FullName)).ToList();       
+            List<OSSIndexQueryObject> all_modules = new List<OSSIndexQueryObject>(100);
             Deserializer yaml_deserializer = new Deserializer(namingConvention: new CamelCaseNamingConvention(), ignoreUnmatched: true);
-            foreach (FileInfo f in core_module_files)
+            if (core_module_files != null && core_module_files.Count > 0)
             {
-                using (FileStream fs = f.OpenRead())
+                List<OSSIndexQueryObject> core_modules = new List<OSSIndexQueryObject>(core_module_files.Count + 1);
+                foreach (AuditFileInfo f in core_module_files)
                 {
-                    using (StreamReader r = new StreamReader(f.OpenRead()))
-                    {
-                        DrupalModuleInfo m = yaml_deserializer.Deserialize<DrupalModuleInfo>(r);
-                        m.ShortName = f.Name.Split('.')[0];
-                        core_modules.Add(new OSSIndexQueryObject("drupal", m.ShortName, m.Version  == "VERSION" ? core_version : m.Version, "", string.Empty));
-                    }
-                }                               
-            }
-            modules.Add("core", core_modules);
-            core_modules.Add(new OSSIndexQueryObject("drupal", "drupal_core", core_version));
-            all_modules.AddRange(core_modules);
-            foreach (FileInfo f in contrib_module_files)
-            {
-                using (FileStream fs = f.OpenRead())
-                {
-                    using (StreamReader r = new StreamReader(f.OpenRead()))
-                    {
-                        DrupalModuleInfo m = yaml_deserializer.Deserialize<DrupalModuleInfo>(r);
-                        m.ShortName = f.Name.Split('.')[0];
-                        contrib_modules.Add(new OSSIndexQueryObject("drupal", m.ShortName, m.Version, "", string.Empty));
-                    }
+                    string text = f.ReadAsText();
+                    if (string.IsNullOrEmpty(text)) continue;
+                    DrupalModuleInfo m = yaml_deserializer.Deserialize<DrupalModuleInfo>(new System.IO.StringReader(text));
+                    m.ShortName = f.Name.Split('.')[0];
+                    core_modules.Add(new OSSIndexQueryObject("drupal", m.ShortName, m.Version == "VERSION" ? core_version : m.Version, "", string.Empty));
                 }
+
+                modules.Add("core", core_modules);
+                core_modules.Add(new OSSIndexQueryObject("drupal", "drupal_core", core_version));
+                all_modules.AddRange(core_modules);
             }
-            if (contrib_modules.Count > 0)
+            if (contrib_module_files != null && contrib_module_files.Count > 0)
             {
-                modules.Add("contrib", contrib_modules);
-                all_modules.AddRange(contrib_modules);
+                List<OSSIndexQueryObject> contrib_modules = new List<OSSIndexQueryObject>(contrib_module_files.Count);
+                foreach (AuditFileInfo f in contrib_module_files)
+                {
+                    string text = f.ReadAsText();
+                    if (string.IsNullOrEmpty(text)) continue;
+                    DrupalModuleInfo m = yaml_deserializer.Deserialize<DrupalModuleInfo>(new System.IO.StringReader(text));
+                    m.ShortName = f.Name.Split('.')[0];
+                    contrib_modules.Add(new OSSIndexQueryObject("drupal", m.ShortName, m.Version, "", string.Empty));
+                }
+                if (contrib_modules.Count > 0)
+                {
+                    modules.Add("contrib", contrib_modules);
+                    all_modules.AddRange(contrib_modules);
+                }
             }
             if (this.SitesAllModulesDirectory != null)
             {
-                //                List<FileSystemInfo> sites_all_contrib_modules_files = this.SitesAllModulesDirectory.GetFileSystemInfos("*.info.yml", SearchOption.AllDirectories)
-                //                    .Where(f => !f.Name.Contains("_test") && !f.Name.Contains("test_")).ToList();
-                List<FileInfo> sites_all_contrib_modules_files = null; //RecursiveFolderScan(this.SitesAllModulesDirectory, "*.info.yml").Where(f => !f.Name.Contains("_test") && !f.Name.Contains("test_")).ToList();
-                if (sites_all_contrib_modules_files.Count > 0)
+                List<AuditFileInfo> sites_all_contrib_modules_files = this.SitesAllModulesDirectory.GetFiles("*.info.yml")?
+                                    .Where(f => !f.Name.Contains("_test") && !f.Name.Contains("test_")).Select(f => this.AuditEnvironment.ConstructFile(f.FullName)).ToList();
+                if (sites_all_contrib_modules_files!= null && sites_all_contrib_modules_files.Count > 0)
                 {
                     List<OSSIndexQueryObject> sites_all_contrib_modules = new List<OSSIndexQueryObject>(sites_all_contrib_modules_files.Count + 1);
-                    foreach (FileInfo f in sites_all_contrib_modules_files)
+                    foreach (AuditFileInfo f in sites_all_contrib_modules_files)
                     {
-                        using (FileStream fs = f.OpenRead())
-                        {
-                            using (StreamReader r = new StreamReader(f.OpenRead()))
-                            {
-                                DrupalModuleInfo m = yaml_deserializer.Deserialize<DrupalModuleInfo>(r);
-                                m.ShortName = f.Name.Split('.')[0];
-                                sites_all_contrib_modules.Add(new OSSIndexQueryObject("drupal", m.ShortName, m.Version, "", string.Empty));
-                            }
-                        }
+                        string text = f.ReadAsText();
+                        if (string.IsNullOrEmpty(text)) continue;
+                        DrupalModuleInfo m = yaml_deserializer.Deserialize<DrupalModuleInfo>(new System.IO.StringReader(text));
+                        m.ShortName = f.Name.Split('.')[0];
+                        sites_all_contrib_modules.Add(new OSSIndexQueryObject("drupal", m.ShortName, m.Version, "", string.Empty));
                     }
                     if (sites_all_contrib_modules.Count > 0)
                     {
@@ -210,7 +197,7 @@ namespace DevAudit.AuditLibrary
         #region Constructors
         public Drupal8Application(Dictionary<string, object> application_options, EventHandler<EnvironmentEventArgs> message_handler = null) : base(application_options, new Dictionary<string, string[]>()
             {
-                { "ChangeLog", new string[] { "@", "core", "CHANGELOG.TXT" } },
+                { "ChangeLog", new string[] { "@", "core", "CHANGELOG.txt" } },
                 { "CorePackagesFile", new string[] { "@", "core", "composer.json" } }
             }, new Dictionary<string, string[]>()
             {
@@ -219,14 +206,6 @@ namespace DevAudit.AuditLibrary
                 { "DefaultSiteDirectory", new string[] { "@", "sites", "default" } }
             }, message_handler)
         {}
-        #endregion
-
-        #region Private fields
-
-        #endregion
-
-        #region Static methods
-       
         #endregion
 
     }

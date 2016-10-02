@@ -87,7 +87,7 @@ namespace DevAudit.AuditLibrary
             }
             else
             {
-                EnvironmentCommandError(this.AuditEnvironment.Here(), "Could not get directories in {0} for path {1}.", this.CombinePaths(this.FullName, path));
+                EnvironmentCommandError(this.AuditEnvironment.Here(), "Could not get directories for path {0}.", this.CombinePaths(this.FullName, path));
                 return null;
             }
         }

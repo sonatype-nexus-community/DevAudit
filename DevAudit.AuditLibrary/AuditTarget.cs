@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -89,6 +90,10 @@ namespace DevAudit.AuditLibrary
             this.ControllerMessageHandler.Invoke(sender, e);
         }
 
+        #endregion
+
+        #region Internal properties
+        internal Stopwatch Stopwatch { get; } = new Stopwatch();
         #endregion
     }
 }
