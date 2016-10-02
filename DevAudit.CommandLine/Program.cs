@@ -428,7 +428,7 @@ namespace DevAudit.CommandLine
                     PrintMessage(ConsoleColor.White, " {0} ", a.Version);
                     if (vulnerabilities.Count() == 0)
                     {
-                        PrintMessageLine(ConsoleColor.DarkGray, "No known vulnerabilities.");
+                        PrintMessageLine("No known vulnerabilities.");
                     }
                     else
                     {
@@ -496,7 +496,7 @@ namespace DevAudit.CommandLine
                         string.Format("({0}) ", a.Version));
                     if (package_vulnerabilities.Value.Count() == 0 && vulnerabilities.Value.Count() == 0)
                     {
-                        PrintMessage(ConsoleColor.DarkGray, "no known vulnerabilities. ");
+                        PrintMessage("no known vulnerabilities. ");
                         PrintMessage("[{0} {1}]\n", p.Package.Name, p.Package.Version);
                     }
                     else
