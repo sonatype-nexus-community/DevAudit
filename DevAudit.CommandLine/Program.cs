@@ -136,15 +136,7 @@ namespace DevAudit.CommandLine
 
             if (!string.IsNullOrEmpty(ProgramOptions.File))
             {
-                if (!File.Exists(ProgramOptions.File))
-                {
-                    PrintErrorMessage("Error in parameter: Could not find file {0}.", ProgramOptions.File);
-                    return (int)ExitCodes.INVALID_ARGUMENTS;
-                }
-                else
-                {
-                    audit_options.Add("File", ProgramOptions.File);
-                }
+                audit_options.Add("File", ProgramOptions.File);
             }
 
             if (ProgramOptions.Cache)
@@ -185,7 +177,7 @@ namespace DevAudit.CommandLine
                 {
                     if (verb == "nuget")
                     {
-                        Source = new NuGetPackageSource(audit_options);
+                        Source = new NuGetPackageSource(audit_options, EnvironmentMessageHandler);
                     }
                     else if (verb == "msi")
                     {
@@ -197,7 +189,7 @@ namespace DevAudit.CommandLine
                     }
                     else if (verb == "bower")
                     {
-                        Source = new BowerPackageSource(audit_options);
+                        Source = new BowerPackageSource(audit_options, EnvironmentMessageHandler);
                     }
                     else if (verb == "oneget")
                     {
@@ -205,7 +197,7 @@ namespace DevAudit.CommandLine
                     }
                     else if (verb == "composer")
                     {
-                        Source = new ComposerPackageSource(audit_options);
+                        Source = new ComposerPackageSource(audit_options, EnvironmentMessageHandler);
                     }
                     else if (verb == "dpkg")
                     {
@@ -217,7 +209,7 @@ namespace DevAudit.CommandLine
                     }
                     else if (verb == "drupal7")
                     {
-                        Source = new Drupal7Application(audit_options);
+                        Source = new Drupal7Application(audit_options, EnvironmentMessageHandler);
                     }
                     else if (verb == "mysql")
                     {
@@ -305,7 +297,8 @@ namespace DevAudit.CommandLine
             catch (AggregateException ae)
             {
                 if (!ReferenceEquals(Spinner, null)) StopSpinner();
-                PrintErrorMessage("Error(s) encountered scanning for {0} packages: {1}", Source.PackageManagerLabel, ae.InnerException.Message);
+                PrintErrorMessage("Error(s) encountered scanning for {0} packages.", Source.PackageManagerLabel);
+                PrintErrorMessage(ae);
                 return;
             }
             finally

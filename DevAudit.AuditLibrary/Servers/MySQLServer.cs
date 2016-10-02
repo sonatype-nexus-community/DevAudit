@@ -20,10 +20,6 @@ namespace DevAudit.AuditLibrary
 
         public override string ApplicationLabel { get { return "MySQL"; } }
 
-        public override Dictionary<string, string> RequiredDirectoryLocations { get; } = new Dictionary<string, string>() {};
-
-        public override Dictionary<string, string> RequiredFileLocations { get; } = new Dictionary<string, string>() {};
-
         public override Dictionary<string, string> OptionalDirectoryLocations { get; } = new Dictionary<string, string>();
 
         public override Dictionary<string, string> OptionalFileLocations { get; } = new Dictionary<string, string>();
@@ -96,7 +92,7 @@ namespace DevAudit.AuditLibrary
                 { PlatformID.Unix, new string[] { "@", "etc", "mysql", "my.cnf" } },
                 { PlatformID.MacOSX, new string[] { "@", "etc", "mysql", "my.cnf" } },
                 { PlatformID.Win32NT, new string[] { "@", "my.ini" } }
-            }, message_handler)
+            }, new Dictionary<string, string[]>(), new Dictionary<string, string[]>(), message_handler)
         {
             if (this.ApplicationBinary != null)
             {

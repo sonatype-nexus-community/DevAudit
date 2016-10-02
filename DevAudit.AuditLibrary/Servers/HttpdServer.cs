@@ -22,17 +22,6 @@ namespace DevAudit.AuditLibrary
 
         public override string ApplicationLabel { get { return "Apache Httpd server"; } }
 
-        public override  Dictionary<string, string> RequiredDirectoryLocations { get; } = new Dictionary<string, string>()
-        {
-            //{ "bin", "@bin" }
-        };
-
-        public override Dictionary<string, string> RequiredFileLocations { get; } = new Dictionary<string, string>()
-        {
-            //{ "httpd",  Environment.OSVersion.Platform == PlatformID.Unix || Environment.OSVersion.Platform == PlatformID.MacOSX
-            //    ? LocateUnderRoot("bin", "httpd") :  LocateUnderRoot("bin", "httpd.exe") },
-        };
-
         public override Dictionary<string, string> OptionalDirectoryLocations { get; } = new Dictionary<string, string>();
 
         public override Dictionary<string, string> OptionalFileLocations { get; } = new Dictionary<string, string>();
@@ -111,7 +100,7 @@ namespace DevAudit.AuditLibrary
                 { PlatformID.Unix, new string[] { "@", "etc", "apache2", "apache2.conf" } },
                 { PlatformID.MacOSX, new string[] { "@", "etc", "apache2", "apache2.conf" } },
                 { PlatformID.Win32NT, new string[] { "@", "conf", "httpd.conf" } }
-            }, message_handler)
+            }, new Dictionary<string, string[]>(), new Dictionary<string, string[]>(), message_handler)
         {
             if (this.ApplicationBinary != null)
             {

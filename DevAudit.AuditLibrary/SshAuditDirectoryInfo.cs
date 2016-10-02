@@ -115,14 +115,28 @@ namespace DevAudit.AuditLibrary
 
         public override IFileInfo[] GetFiles(string path)
         {
-            string o = this.EnvironmentExecute("find", string.Format("{0} -type f -name \"*\"", this.CombinePaths(this.FullName, path)));
-            if (!string.IsNullOrEmpty(o))
+            string[] pc = path.Split(this.AuditEnvironment.PathSeparator.ToCharArray(), StringSplitOptions.RemoveEmptyEntries);
+            string wildcard = "*";
+            string search_path;
+            if (pc.Last().Contains("*"))
             {
-                return null;
+                wildcard = pc.Last();
+                search_path = pc.Length > 1 ? pc.Take(pc.Length - 1).Aggregate((s1, s2) => s1 + this.AuditEnvironment.PathSeparator + s2) : string.Empty;    
             }
             else
             {
-                EnvironmentCommandError(this.AuditEnvironment.Here(), "Could not get files in {0} for path {1}.", this.CombinePaths(this.FullName, path));
+                search_path = path;
+            }
+
+            string o = this.EnvironmentExecute("find", string.Format("{0} -type f -name \"{1}\"", this.CombinePaths(this.FullName, search_path), wildcard));
+            if (!string.IsNullOrEmpty(o))
+            {
+                SshAuditFileInfo[] files = o.Split("\n".ToCharArray(), StringSplitOptions.RemoveEmptyEntries).Select(fn => new SshAuditFileInfo(this.SshAuditEnvironment, fn)).ToArray();
+                return files;
+            }
+            else
+            {
+                EnvironmentCommandError(this.AuditEnvironment.Here(), "Could not get files for path {0}.", this.CombinePaths(this.FullName, path));
                 return null;
             }
         }

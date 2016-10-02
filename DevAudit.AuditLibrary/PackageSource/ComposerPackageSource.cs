@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -22,24 +21,21 @@ namespace DevAudit.AuditLibrary
 
         public override string PackageManagerLabel { get { return "Composer"; } }
 
-        //Get  packages from reading bower.json
+        //Get  packages from reading composer.json
         public override IEnumerable<OSSIndexQueryObject> GetPackages(params string[] o)
         {
-            using (JsonTextReader r = new JsonTextReader(new StreamReader(
-                        this.PackageManagerConfigurationFile)))
+            AuditFileInfo config_file = this.AuditEnvironment.ConstructFile(this.PackageManagerConfigurationFile);
+            JObject json = (JObject)JToken.Parse(config_file.ReadAsText());
+            JObject require = (JObject)json["require"];
+            JObject require_dev = (JObject)json["require-dev"];
+            if (require_dev != null)
             {
-                JObject json = (JObject)JToken.ReadFrom(r);
-                JObject require = (JObject)json["require"];
-                JObject require_dev = (JObject)json["require-dev"];
-                if (require_dev != null)
-                {
-                    return require.Properties().Select(d => new OSSIndexQueryObject("composer", d.Name.Split('/').Last(), d.Value.ToString(), "", d.Name.Split('/').First()))
-                        .Concat(require_dev.Properties().Select(d => new OSSIndexQueryObject("composer", d.Name.Split('/').Last(), d.Value.ToString(), "", d.Name.Split('/').First())));
-                }
-                else
-                {
-                    return require.Properties().Select(d => new OSSIndexQueryObject("composer", d.Name.Split('/').Last(), d.Value.ToString(), "", d.Name.Split('/').First()));
-                }
+                return require.Properties().Select(d => new OSSIndexQueryObject("composer", d.Name.Split('/').Last(), d.Value.ToString(), "", d.Name.Split('/').First()))
+                    .Concat(require_dev.Properties().Select(d => new OSSIndexQueryObject("composer", d.Name.Split('/').Last(), d.Value.ToString(), "", d.Name.Split('/').First())));
+            }
+            else
+            {
+                return require.Properties().Select(d => new OSSIndexQueryObject("composer", d.Name.Split('/').Last(), d.Value.ToString(), "", d.Name.Split('/').First()));
             }
         }
 
@@ -55,15 +51,11 @@ namespace DevAudit.AuditLibrary
 
         }
 
-        public ComposerPackageSource(Dictionary<string, object> package_source_options) : base(package_source_options)
+        public ComposerPackageSource(Dictionary<string, object> package_source_options, EventHandler<EnvironmentEventArgs> message_handler = null) : base(package_source_options, message_handler)
         {            
             if (string.IsNullOrEmpty(this.PackageManagerConfigurationFile))
             {
                 this.PackageManagerConfigurationFile = @"composer.json";
-            }
-            if (!File.Exists(this.PackageManagerConfigurationFile))
-            {
-                throw new Exception("Package manager configuration file not found.");
             }
         }
     }

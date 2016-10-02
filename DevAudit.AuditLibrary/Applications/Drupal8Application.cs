@@ -28,10 +28,6 @@ namespace DevAudit.AuditLibrary
 
         public override OSSIndexHttpClient HttpClient { get; } = new OSSIndexHttpClient("1.1");
        
-        public override Dictionary<string, string> RequiredDirectoryLocations { get; } = new Dictionary<string, string>();
-
-        public override Dictionary<string, string> RequiredFileLocations { get; }
-
         #endregion
 
         #region Public properties
@@ -212,21 +208,17 @@ namespace DevAudit.AuditLibrary
         #endregion
 
         #region Constructors
-        public Drupal8Application(Dictionary<string, object> application_options, EventHandler<EnvironmentEventArgs> message_handler = null) : base(application_options, message_handler)
-        {
-            this.RequiredDirectoryLocations = new Dictionary<string, string>()
+        public Drupal8Application(Dictionary<string, object> application_options, EventHandler<EnvironmentEventArgs> message_handler = null) : base(application_options, new Dictionary<string, string[]>()
             {
-                { "CoreModulesDirectory", LocatePathUnderRoot("core", "modules") },
-                { "ContribModulesDirectory", LocatePathUnderRoot("modules") },
-                { "DefaultSiteDirectory", LocatePathUnderRoot("sites", "default") }
-            };
-
-            this.RequiredFileLocations = new Dictionary<string, string>()
+                { "ChangeLog", new string[] { "@", "core", "CHANGELOG.TXT" } },
+                { "CorePackagesFile", new string[] { "@", "core", "composer.json" } }
+            }, new Dictionary<string, string[]>()
             {
-                { "ChangeLog", LocatePathUnderRoot("core", "CHANGELOG.TXT") },
-                { "CorePackagesFile", LocatePathUnderRoot("core", "composer.json") }
-            };
-        }
+                { "CoreModulesDirectory", new string[] { "@", "core", "modules" } },
+                { "ContribModulesDirectory", new string[] { "@", "modules" } },
+                { "DefaultSiteDirectory", new string[] { "@", "sites", "default" } }
+            }, message_handler)
+        {}
         #endregion
 
         #region Private fields

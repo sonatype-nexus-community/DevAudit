@@ -17,16 +17,11 @@ namespace DevAudit.AuditLibrary
 
         public override string PackageManagerLabel { get { return "NuGet"; } }
 
-        public NuGetPackageSource(Dictionary<string, object> package_source_options) : base(package_source_options)
+        public NuGetPackageSource(Dictionary<string, object> package_source_options, EventHandler<EnvironmentEventArgs> message_handler = null) : base(package_source_options, message_handler)
         {
             if (string.IsNullOrEmpty(this.PackageManagerConfigurationFile))
             {
-                if 
-                    (!File.Exists("packages.config")) throw new ArgumentException("Could not find the file " + "packages.config" + ".");
-                else
-                {
-                    this.PackageManagerConfigurationFile = @"packages.config";
-                }
+                this.PackageManagerConfigurationFile = @"packages.config";
             }      
         }
 
@@ -35,7 +30,8 @@ namespace DevAudit.AuditLibrary
         {
             try
             {
-                XElement root = XElement.Load(this.PackageManagerConfigurationFile);
+                AuditFileInfo config_file = this.AuditEnvironment.ConstructFile(this.PackageManagerConfigurationFile);
+                XElement root = XElement.Parse(config_file.ReadAsText());
                 IEnumerable<OSSIndexQueryObject> packages =
                     from el in root.Elements("package")
                     select new OSSIndexQueryObject("nuget", el.Attribute("id").Value, el.Attribute("version").Value, "");

@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 
 using Newtonsoft.Json;
@@ -22,22 +21,20 @@ namespace DevAudit.AuditLibrary
         //Get bower packages from reading bower.json
         public override IEnumerable<OSSIndexQueryObject> GetPackages(params string[] o)
         {
-            using (JsonTextReader r = new JsonTextReader(new StreamReader(
-                        this.PackageManagerConfigurationFile)))
+            AuditFileInfo config_file = this.AuditEnvironment.ConstructFile(this.PackageManagerConfigurationFile);
+            JObject json = (JObject)JToken.Parse(config_file.ReadAsText());
+            JObject dependencies = (JObject)json["dependencies"];
+            JObject dev_dependencies = (JObject)json["devDependencies"];
+            if (dev_dependencies != null)
             {
-                JObject json = (JObject)JToken.ReadFrom(r);
-                JObject dependencies = (JObject)json["dependencies"];
-                JObject dev_dependencies = (JObject)json["devDependencies"];
-                if (dev_dependencies != null)
-                {
-                    return dependencies.Properties().Select(d => new OSSIndexQueryObject("bower", d.Name, d.Value.ToString(), ""))
-                        .Concat(dev_dependencies.Properties().Select(d => new OSSIndexQueryObject("bower", d.Name, d.Value.ToString(), "")));
-                }
-                else
-                {
-                    return dependencies.Properties().Select(d => new OSSIndexQueryObject("bower", d.Name, d.Value.ToString(), ""));
-                }
+                return dependencies.Properties().Select(d => new OSSIndexQueryObject("bower", d.Name, d.Value.ToString(), ""))
+                    .Concat(dev_dependencies.Properties().Select(d => new OSSIndexQueryObject("bower", d.Name, d.Value.ToString(), "")));
             }
+            else
+            {
+                return dependencies.Properties().Select(d => new OSSIndexQueryObject("bower", d.Name, d.Value.ToString(), ""));
+            }
+            
         }
 
         public override bool IsVulnerabilityVersionInPackageVersionRange(string vulnerability_version, string package_version)
@@ -51,7 +48,7 @@ namespace DevAudit.AuditLibrary
             else return r;
         }
 
-        public BowerPackageSource(Dictionary<string, object> package_source_options) : base(package_source_options)
+        public BowerPackageSource(Dictionary<string, object> package_source_options, EventHandler<EnvironmentEventArgs> message_handler = null) : base(package_source_options, message_handler)
         {
             if (string.IsNullOrEmpty(this.PackageManagerConfigurationFile))
             {

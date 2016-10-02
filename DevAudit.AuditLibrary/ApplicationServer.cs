@@ -38,19 +38,13 @@ namespace DevAudit.AuditLibrary
         #endregion
 
         #region Constructors
-        public ApplicationServer(Dictionary<string, object> server_options, EventHandler<EnvironmentEventArgs> message_handler = null) : base(server_options, message_handler)
-        {
-            if (ReferenceEquals(server_options, null)) throw new ArgumentNullException("server_options");
-            this.ServerOptions = server_options;  
-        }
-
-        public ApplicationServer(Dictionary<string, object> server_options, Dictionary<PlatformID, string[]> default_configuration_file_path, EventHandler<EnvironmentEventArgs> message_handler = null) : base(server_options, message_handler)
+        public ApplicationServer(Dictionary<string, object> server_options, Dictionary<PlatformID, string[]> default_configuration_file_path, Dictionary<string, string[]> RequiredFilePaths, Dictionary<string, string[]> RequiredDirectoryPaths, EventHandler<EnvironmentEventArgs> message_handler = null) : base(server_options, RequiredFilePaths, RequiredDirectoryPaths, message_handler)
         {
             if (default_configuration_file_path == null) throw new ArgumentNullException("default_configuration_file");
             InitialiseConfigurationFile(default_configuration_file_path);
         }
 
-        public ApplicationServer(Dictionary<string, object> server_options, string[] default_configuration_file_path, EventHandler<EnvironmentEventArgs> message_handler = null) : base(server_options, message_handler)
+        public ApplicationServer(Dictionary<string, object> server_options, string[] default_configuration_file_path, Dictionary<string, string[]> RequiredFilePaths, Dictionary<string, string[]> RequiredDirectoryPaths, EventHandler<EnvironmentEventArgs> message_handler = null) : base(server_options, RequiredFilePaths, RequiredDirectoryPaths, message_handler)
         {
             if (default_configuration_file_path == null) throw new ArgumentNullException("default_configuration_file");
             InitialiseConfigurationFile(default_configuration_file_path);

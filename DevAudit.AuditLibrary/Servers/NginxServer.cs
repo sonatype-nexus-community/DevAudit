@@ -22,10 +22,6 @@ namespace DevAudit.AuditLibrary
 
         public override string ApplicationLabel { get { return "Nginx"; } }
 
-        public override  Dictionary<string, string> RequiredDirectoryLocations { get; } = new Dictionary<string, string>() {};
-
-        public override Dictionary<string, string> RequiredFileLocations { get; } = new Dictionary<string, string>() {};
-
         public override Dictionary<string, string> OptionalDirectoryLocations { get; } = new Dictionary<string, string>();
 
         public override Dictionary<string, string> OptionalFileLocations { get; } = new Dictionary<string, string>();
@@ -114,7 +110,7 @@ namespace DevAudit.AuditLibrary
                 { PlatformID.Unix, new string[] { "@", "etc", "nginx", "nginx.conf" } },
                 { PlatformID.MacOSX, new string[] { "@", "etc", "nginx", "nginx.conf" } },
                 { PlatformID.Win32NT, new string[] { "@", "conf", "nginx.conf" } }
-            }, message_handler)
+            }, new Dictionary<string, string[]>(), new Dictionary<string, string[]>(), message_handler)
         {
             if (this.ApplicationBinary != null)
             {

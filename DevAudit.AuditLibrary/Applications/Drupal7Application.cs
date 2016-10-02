@@ -28,10 +28,6 @@ namespace DevAudit.AuditLibrary
         public override string PackageManagerLabel { get { return "Drupal"; } }
 
         public override OSSIndexHttpClient HttpClient { get; } = new OSSIndexHttpClient("1.1");
-
-        public override Dictionary<string, string> RequiredDirectoryLocations { get; } 
-
-        public override Dictionary<string, string> RequiredFileLocations { get; } = new Dictionary<string, string>();
         #endregion
 
         #region Public properties
@@ -70,9 +66,9 @@ namespace DevAudit.AuditLibrary
         {
             Dictionary<string, IEnumerable<OSSIndexQueryObject>> modules = new Dictionary<string, IEnumerable<OSSIndexQueryObject>>();
             List<AuditFileInfo> core_module_files = this.CoreModulesDirectory.GetFiles("*.info").Where(f => !f.Name.Contains("_test") && !f.Name.Contains("test_")).Select(f => f as AuditFileInfo).ToList();
-            List<AuditFileInfo> contrib_module_files = this.ContribModulesDirectory.GetFiles("*.info").Where(f => !f.Name.Contains("_test") && !f.Name.Contains("test_")).Select(f => f as AuditFileInfo).ToList();
+            List<AuditFileInfo> contrib_module_files = this.ContribModulesDirectory.GetFiles("*.info")?.Where(f => !f.Name.Contains("_test") && !f.Name.Contains("test_")).Select(f => f as AuditFileInfo).ToList();
             List<OSSIndexQueryObject> core_modules = new List<OSSIndexQueryObject>(core_module_files.Count + 1);
-            List<OSSIndexQueryObject> contrib_modules = new List<OSSIndexQueryObject>(contrib_module_files.Count);
+            List<OSSIndexQueryObject> contrib_modules = contrib_module_files != null ? new List<OSSIndexQueryObject>(contrib_module_files.Count) : new List<OSSIndexQueryObject>(0);
             List<OSSIndexQueryObject> all_modules = new List<OSSIndexQueryObject>(core_module_files.Count + 1);
             IniParserConfiguration ini_parser_cfg = new IniParserConfiguration();
             ini_parser_cfg.CommentString = ";";
@@ -101,24 +97,27 @@ namespace DevAudit.AuditLibrary
             core_modules.Add(new OSSIndexQueryObject("drupal", "drupal_core", core_modules.First().Version));
             modules.Add("core", core_modules);
             all_modules.AddRange(core_modules);
-            foreach (AuditFileInfo f in contrib_module_files)
+            if (contrib_module_files != null)
             {
-                IniData data = ini_parser.Parse(f.ReadAsText());
-                foreach(KeyData d in data.Global)
+                foreach (AuditFileInfo f in contrib_module_files)
                 {
-                    if (d.Value.First() == '"') d.Value = d.Value.Remove(0, 1);
-                    if (d.Value.Last() == '"') d.Value = d.Value.Remove(d.Value.Length - 1, 1);
+                    IniData data = ini_parser.Parse(f.ReadAsText());
+                    foreach (KeyData d in data.Global)
+                    {
+                        if (d.Value.First() == '"') d.Value = d.Value.Remove(0, 1);
+                        if (d.Value.Last() == '"') d.Value = d.Value.Remove(d.Value.Length - 1, 1);
+                    }
+                    DrupalModuleInfo m = new DrupalModuleInfo
+                    {
+                        Core = data.Global["core"],
+                        Name = data.Global["name"],
+                        Description = data.Global["description"],
+                        Package = data.Global["package"],
+                        Version = data.Global["version"],
+                        Project = data.Global["project"]
+                    };
                 }
-                DrupalModuleInfo m = new DrupalModuleInfo
-                {
-                    Core = data.Global["core"],
-                    Name = data.Global["name"],
-                    Description = data.Global["description"],
-                    Package = data.Global["package"],
-                    Version = data.Global["version"],
-                    Project = data.Global["project"]
-                };
-        }
+            }
             if (contrib_modules.Count > 0)
             {
                 modules.Add("contrib", contrib_modules);
@@ -127,8 +126,8 @@ namespace DevAudit.AuditLibrary
             List<OSSIndexQueryObject> sites_all_contrib_modules = null;
             if (this.SitesAllModulesDirectory != null)
             {
-                List<AuditFileInfo> sites_all_contrib_modules_files = this.SitesAllModulesDirectory.GetFiles("*.info").Where(f => !f.Name.Contains("_test") && !f.Name.Contains("test_")).Select(f => f as AuditFileInfo).ToList();
-                if (sites_all_contrib_modules_files.Count > 0)
+                List<AuditFileInfo> sites_all_contrib_modules_files = this.SitesAllModulesDirectory.GetFiles("*.info")?.Where(f => !f.Name.Contains("_test") && !f.Name.Contains("test_")).Select(f => f as AuditFileInfo).ToList();
+                if (sites_all_contrib_modules_files != null && sites_all_contrib_modules_files.Count > 0)
                 {
                     sites_all_contrib_modules = new List<OSSIndexQueryObject>(sites_all_contrib_modules_files.Count + 1);
                     foreach (AuditFileInfo f in sites_all_contrib_modules_files)
@@ -187,15 +186,13 @@ namespace DevAudit.AuditLibrary
         #endregion
 
         #region Constructors
-        public Drupal7Application(Dictionary<string, object> application_options, EventHandler<EnvironmentEventArgs> message_handler = null) : base(application_options, message_handler)
-        {
-            this.RequiredDirectoryLocations = new Dictionary<string, string>()
+        public Drupal7Application(Dictionary<string, object> application_options, EventHandler<EnvironmentEventArgs> message_handler = null) : base(application_options, new Dictionary<string, string[]>(), new Dictionary<string, string[]>()
             {
-                { "CoreModulesDirectory", LocatePathUnderRoot("modules") },
-                { "ContribModulesDirectory", LocatePathUnderRoot("sites", "all", "modules") },
-                { "DefaultSiteDirectory", LocatePathUnderRoot("sites", "default") },
-            };
-        }
+                { "CoreModulesDirectory", new string[] { "@", "modules" } },
+                { "ContribModulesDirectory", new string[] { "@", "sites", "all", "modules" } },
+                { "DefaultSiteDirectory", new string[] { "@", "sites", "default" } },
+            }, message_handler)
+        {}
         #endregion
 
     }

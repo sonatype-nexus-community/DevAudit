@@ -23,10 +23,6 @@ namespace DevAudit.AuditLibrary
         public abstract string ApplicationId { get; }
 
         public abstract string ApplicationLabel { get; }
-        
-        public abstract Dictionary<string, string> RequiredFileLocations { get; }
-
-        public abstract Dictionary<string, string> RequiredDirectoryLocations { get; }
         #endregion
 
         #region Protected abstract methods
@@ -46,6 +42,10 @@ namespace DevAudit.AuditLibrary
         }
 
         public AuditFileInfo ApplicationBinary { get; protected set; }
+
+        public Dictionary<string, string> RequiredFileLocations { get; protected set; }
+
+        public Dictionary<string, string> RequiredDirectoryLocations { get; protected set; }
 
         public Dictionary<string, IEnumerable<OSSIndexQueryObject>> Modules { get; set; }
 
@@ -166,7 +166,7 @@ namespace DevAudit.AuditLibrary
         #endregion
 
         #region Constructors
-        public Application(Dictionary<string, object> application_options, EventHandler<EnvironmentEventArgs> message_handler = null) : base(application_options, message_handler)
+        public Application(Dictionary<string, object> application_options, Dictionary<string, string[]> RequiredFileLocationPaths, Dictionary<string, string[]> RequiredDirectoryLocationPaths, EventHandler<EnvironmentEventArgs> message_handler = null) : base(application_options, message_handler)
         {
             if (ReferenceEquals(application_options, null)) throw new ArgumentNullException("application_options");
             this.ApplicationOptions = application_options;
@@ -182,6 +182,9 @@ namespace DevAudit.AuditLibrary
             {
                 this.ApplicationFileSystemMap.Add("RootDirectory", this.AuditEnvironment.ConstructDirectory((string)this.ApplicationOptions["RootDirectory"]));
             }
+
+            this.RequiredFileLocations = RequiredFileLocationPaths.Select(kv => new KeyValuePair<string, string>(kv.Key, this.CombinePath(kv.Value))).ToDictionary(x => x.Key, x => x.Value);
+            this.RequiredDirectoryLocations = RequiredDirectoryLocationPaths.Select(kv => new KeyValuePair<string, string>(kv.Key, this.CombinePath(kv.Value))).ToDictionary(x => x.Key, x => x.Value);
 
             foreach (KeyValuePair<string, string> f in RequiredFileLocations)
             {
