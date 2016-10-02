@@ -18,6 +18,7 @@ namespace DevAudit.CommandLine
         private readonly int delay;
         private bool active;
         private readonly Thread thread;
+        public EventWaitHandle wh = new AutoResetEvent(true);
 
         public Spinner(int left, int top, int delay = 100)
         {
@@ -37,17 +38,40 @@ namespace DevAudit.CommandLine
         {
             active = true;
             if (!thread.IsAlive)
+            {
                 thread.Start();
+            }
+        }
+
+        public void Pause()
+        {
+            Draw(' ');
+            if (Console.CursorLeft > 0)
+            {
+                Draw('\n');
+            }
+            wh.Reset();
+        }
+
+        public void UnPause()
+        {
+            wh.Set();
         }
 
         public void Stop()
         {
-            Draw('\n');
+            Draw(' ');
+            if (Console.CursorLeft > 0)
+            {
+                Draw('\n');
+            }
             active = false;
+            wh.Dispose();
         }
 
         private void Spin()
         {
+            wh.WaitOne();
             while (active)
             {
                 Turn();

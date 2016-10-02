@@ -427,7 +427,7 @@ namespace DevAudit.AuditLibrary
                 Stopwatch.Stop();
             }
             this.IsConnected = true;
-            Success("Connected to {0}. Time elapsed: {1} ms.", host_name, Stopwatch.ElapsedMilliseconds);
+            Success("Connected to {0} in {1} ms.", host_name, Stopwatch.ElapsedMilliseconds);
         }
 
         public static string ByteArrayToHexString(byte[] Bytes)

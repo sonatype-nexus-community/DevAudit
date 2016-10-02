@@ -55,6 +55,10 @@ namespace DevAudit.CommandLine
             { EventMessageType.DEBUG, ConsoleColor.Blue }
         };
 
+        static int SpinnerCursorLeft;
+
+        static int SpinnerCursorTop;
+
         static int Main(string[] args)
         {
             #region Setup console colors
@@ -261,6 +265,7 @@ namespace DevAudit.CommandLine
             #endregion
 
             PrintBanner();
+            Console.CursorVisible = false;
             if (Server != null) //Auditing an application server
             {
                 ExitCodes exit;
@@ -269,6 +274,7 @@ namespace DevAudit.CommandLine
                 {
                     Server.Dispose();
                 }
+                Console.CursorVisible = true;
                 return (int) exit;
             }
             else
@@ -279,6 +285,7 @@ namespace DevAudit.CommandLine
                 {
                     Source.Dispose();
                 }
+                Console.CursorVisible = true;
                 return (int)exit;
             }
         }
@@ -722,7 +729,7 @@ namespace DevAudit.CommandLine
         {
             if (Spinner != null)
             {
-                StopSpinner();
+                PauseSpinner();
             }
             if (e.MessageType == EventMessageType.DEBUG && !ProgramOptions.EnableDebug)
             {
@@ -750,6 +757,10 @@ namespace DevAudit.CommandLine
                             e.Caller.Value.LineNumber, e.Caller.Value.File);
                     }
                 }
+            }
+            if (Spinner != null)
+            {
+                UnPauseSpinner();
             }
         }
 
@@ -909,7 +920,9 @@ namespace DevAudit.CommandLine
         {
             if (!ProgramOptions.NonInteractive)
             {
-                Spinner.Start();
+                if (ReferenceEquals(null, Spinner)) throw new ArgumentNullException();
+                Console.SetCursorPosition(0, Console.CursorTop);
+                Spinner.UnPause();
             }
         }
 
@@ -918,7 +931,9 @@ namespace DevAudit.CommandLine
             if (!ProgramOptions.NonInteractive)
             {
                 if (ReferenceEquals(null, Spinner)) throw new ArgumentNullException();
-                Spinner.Stop();
+                SpinnerCursorLeft = Console.CursorLeft;
+                SpinnerCursorTop = Console.CursorTop;
+                Spinner.Pause();
             }
 
         }
@@ -978,6 +993,7 @@ namespace DevAudit.CommandLine
         static void Program_UnhandledException(object sender, UnhandledExceptionEventArgs e)
         {
             PrintErrorMessage("Runtime error! {0}", e.IsTerminating ? "DevAudit will now terminate." : "");
+            if (Console.CursorVisible == false) Console.CursorVisible = true;
         }
 
         #endregion

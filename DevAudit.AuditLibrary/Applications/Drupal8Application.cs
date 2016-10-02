@@ -70,6 +70,8 @@ namespace DevAudit.AuditLibrary
         #region Overriden methods
         protected override Dictionary<string, IEnumerable<OSSIndexQueryObject>> GetModules()
         {
+            this.Stopwatch.Reset();
+            this.Stopwatch.Start();
             AuditFileInfo changelog = this.ApplicationFileSystemMap["ChangeLog"] as AuditFileInfo;
             string[] c = changelog.ReadAsText()?.Split(this.AuditEnvironment.LineTerminator.ToCharArray(), StringSplitOptions.RemoveEmptyEntries);
             string core_version = "8.x";
@@ -144,6 +146,8 @@ namespace DevAudit.AuditLibrary
                 }
             }
             modules.Add("all", all_modules);
+            this.Stopwatch.Stop();
+            this.AuditEnvironment.Success("Got {0} {1} modules in {2} ms.", modules["all"].Count(), this.ApplicationLabel, this.Stopwatch.ElapsedMilliseconds);
             return modules;
         }
 

@@ -43,7 +43,7 @@ namespace DevAudit.AuditLibrary
 
                 }
                 this.Stopwatch.Stop();
-                this.AuditEnvironment.Success("Retrieved {0} packages from {1} package manager. Time elapsed: {2} ms.", packages.Count, this.PackageManagerLabel, this.Stopwatch.ElapsedMilliseconds);
+                this.AuditEnvironment.Success("Retrieved {0} packages from {1} package manager in {2} ms.", packages.Count, this.PackageManagerLabel, this.Stopwatch.ElapsedMilliseconds);
             }
             else
             {
