@@ -926,38 +926,37 @@ namespace DevAudit.CommandLine
 
         static SecureString ReadPassword(char mask)
         {
-            const int ENTER = 13, BACKSP = 8, CTRLBACKSP = 127;
-            int[] FILTERED = { 0, 27, 9, 10 /*, 32 space, if you care */ }; // const
-
-            string debug = "";
+            int[] Filtered_Chars = { 0, 27, 9, 10 /*, 32 space, if you care */ }; // const
+            //string debug = "";
             SecureString pass = new SecureString();
-
-            char c = (char) 0;
+            ConsoleKeyInfo cki;
             Console.Write("Password: ");
-            while ((c = Console.ReadKey(true).KeyChar) != ENTER)
+            while ((cki = Console.ReadKey(true)).Key != ConsoleKey.Enter)
             {
-                if (((c == BACKSP) || (c == CTRLBACKSP)) && (pass.Length > 0))
+                if ((cki.Key == ConsoleKey.Backspace) && (pass.Length > 0))
                 {
                     //Console.Write("\b \b");
                     pass.RemoveAt(pass.Length - 1);
-                    debug.Remove(debug.Length - 1);
+                    //debug.Remove(debug.Length - 1);
 
                 }
                 // Don't append * when length is 0 and backspace is selected
-                else if (((c == BACKSP) || (c == CTRLBACKSP)) && (pass.Length == 0))
+                else if ((cki.Key == ConsoleKey.Backspace) && (pass.Length == 0))
                 {
+                    continue;
                 }
 
                 // Don't append when a filtered char is detected
-                else if (FILTERED.Any(f => f == c))
+                else if (Filtered_Chars.Any(f => f == cki.KeyChar))
                 {
+                    continue;
                 }
 
                 // Append and write * mask
                 else
                 {
-                    pass.AppendChar(c);
-                    debug += c;
+                    pass.AppendChar(cki.KeyChar);
+                    //debug += cki.KeyChar;
                     //Console.Write(mask);
                 }
             }
