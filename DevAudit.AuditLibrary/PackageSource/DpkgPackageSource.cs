@@ -29,6 +29,7 @@ namespace DevAudit.AuditLibrary
                 string[] p = process_output.Split("|".ToCharArray(), StringSplitOptions.RemoveEmptyEntries);
                 for (int i = 0; i < p.Count(); i++)
                 {
+                    if (string.IsNullOrEmpty(p[i]) || string.IsNullOrWhiteSpace(p[i])) continue;
                     Match m = process_output_pattern.Match(p[i].Trim());
                     if (!m.Success)
                     {
