@@ -312,7 +312,7 @@ namespace DevAudit.CommandLine
             {
                 if (!ReferenceEquals(Spinner, null)) StopSpinner();
             }
-            PrintMessageLine("Found {0} distinct packages.", Source.Packages.Count());
+            PrintMessageLine("Found {0} distinct package(s).", Source.Packages.Count());
             if (ProgramOptions.ListPackages)
             {
                 int i = 1;
@@ -332,7 +332,7 @@ namespace DevAudit.CommandLine
             }
             else
             {
-                PrintMessage("Searching OSS Index for {0} {1} packages...", Source.Packages.Count(), Source.PackageManagerLabel);
+                PrintMessage("Searching OSS Index for {0} {1} package(s)...", Source.Packages.Count(), Source.PackageManagerLabel);
             }
             exit = ExitCodes.ERROR_SEARCHING_OSS_INDEX;
             StartSpinner();
@@ -352,7 +352,7 @@ namespace DevAudit.CommandLine
             {
                 if (!ReferenceEquals(Spinner, null)) StopSpinner();
             }
-            PrintMessageLine("Found {0} artifacts, {1} with an OSS Index project id.", Source.Artifacts.Count(), Source.ArtifactsWithProjects.Count);
+            PrintMessageLine("Found {0} artifact(s), {1} with an OSS Index project id.", Source.Artifacts.Count(), Source.ArtifactsWithProjects.Count);
             if (Source.Artifacts.Count() == 0)
             {
                 PrintMessageLine("Nothing to do, exiting package audit.");
@@ -411,7 +411,7 @@ namespace DevAudit.CommandLine
                 PrintMessageLine("{0} projects have cached values.", Source.CachedArtifacts.Count());
                 PrintMessageLine("{0} cached project entries are stale and will be removed from cache.", Source.ProjectVulnerabilitiesExpiredCacheKeys.Count());
             }
-            PrintMessage("Searching OSS Index for vulnerabilities for {0} projects...", Source.VulnerabilitiesTask.Count());
+            PrintMessage("Searching OSS Index for vulnerabilities for {0} project(s)...", Source.VulnerabilitiesTask.Count());
             StartSpinner();
             int projects_count = Source.ArtifactsWithProjects.Count;
             int projects_processed = 0;
@@ -713,7 +713,14 @@ namespace DevAudit.CommandLine
                 foreach (KeyValuePair<OSSIndexProjectConfigurationRule, Tuple <bool, List<string>, string>> e in evals)
                 {
                     ++processed_project_rules;
-                    PrintMessage("--[{0}/{1}] Rule Name: {2}. Result: ", processed_project_rules, total_project_rules, e.Key.Title);
+                    if (!e.Value.Item1)
+                    {
+                        PrintMessage("--[{0}/{1}] Rule: {2}. Result: ", processed_project_rules, total_project_rules, e.Key.Title);
+                    }
+                    else
+                    {
+                        PrintMessage(ConsoleColor.White, "--[{0}/{1}] Rule: {2}. Result: ", processed_project_rules, total_project_rules, e.Key.Title);
+                    }
                     PrintMessageLine(e.Value.Item1 ? ConsoleColor.Red : ConsoleColor.DarkGreen, "{0}.", e.Value.Item1);
                     if (e.Value.Item1)
                     {
