@@ -60,13 +60,12 @@ namespace DevAudit.CommandLine
 
         public void Stop()
         {
+            active = false;
             Draw(' ');
             if (Console.CursorLeft > 0)
             {
                 Draw('\n');
             }
-            active = false;
-            wh.Dispose();
         }
 
         private void Spin()
@@ -77,6 +76,7 @@ namespace DevAudit.CommandLine
                 Turn();
                 Thread.Sleep(delay);
             }
+            wh.Dispose();
         }
 
         private void Draw(char c)

@@ -411,10 +411,12 @@ namespace DevAudit.CommandLine
                 PrintMessageLine("{0} projects have cached values.", Source.CachedArtifacts.Count());
                 PrintMessageLine("{0} cached project entries are stale and will be removed from cache.", Source.ProjectVulnerabilitiesExpiredCacheKeys.Count());
             }
-            PrintMessageLine("Searching OSS Index for vulnerabilities for {0} projects...", Source.VulnerabilitiesTask.Count());
+            PrintMessage("Searching OSS Index for vulnerabilities for {0} projects...", Source.VulnerabilitiesTask.Count());
+            StartSpinner();
             int projects_count = Source.ArtifactsWithProjects.Count;
             int projects_processed = 0;
             int projects_successful = 0;
+            #region Cache stuff
             if (Source.ProjectVulnerabilitiesCacheEnabled)
             {
                 foreach (Tuple<OSSIndexProject, IEnumerable<OSSIndexProjectVulnerability>> c in Source.ProjectVulnerabilitiesCacheItems)
@@ -475,12 +477,14 @@ namespace DevAudit.CommandLine
                     projects_successful++;
                 }
             }
+            #endregion
             while (Source.VulnerabilitiesTask.Count() > 0)
             {
                 Task<KeyValuePair<OSSIndexProject, IEnumerable<OSSIndexProjectVulnerability>>>[] tasks = Source.VulnerabilitiesTask.ToArray();
                 try
                 {
                     int x = Task.WaitAny(tasks);
+                    if (!ReferenceEquals(Spinner, null)) StopSpinner();
                     var task = Source.VulnerabilitiesTask.Find(t => t.Id == tasks[x].Id);
                     KeyValuePair<OSSIndexProject, IEnumerable<OSSIndexProjectVulnerability>> vulnerabilities = task.Result;
                     OSSIndexProject p = vulnerabilities.Key;
@@ -566,6 +570,7 @@ namespace DevAudit.CommandLine
                 }
                 catch (AggregateException ae)
                 {
+                    if (!ReferenceEquals(Spinner, null)) StopSpinner();
                     if (projects_processed++ == 0)
                     {
                         PrintMessageLine("\nAudit Results\n=============");
@@ -727,10 +732,6 @@ namespace DevAudit.CommandLine
 
         static void EnvironmentMessageHandler(object sender, EnvironmentEventArgs e)
         {
-            if (Spinner != null)
-            {
-                PauseSpinner();
-            }
             if (e.MessageType == EventMessageType.DEBUG && !ProgramOptions.EnableDebug)
             {
                 return;
@@ -743,6 +744,10 @@ namespace DevAudit.CommandLine
                 }
                 else
                 {
+                    if (Spinner != null)
+                    {
+                        PauseSpinner();
+                    }
                     PrintMessageLine(ConsoleMessageColors[e.MessageType], "{0:HH:mm:ss} [{1}] [{2}] {3}", e.DateTime, e.EnvironmentLocation, e.MessageType.ToString(), e.Message);
                 }
                 if (e.Caller.HasValue && ProgramOptions.EnableDebug)
@@ -758,7 +763,7 @@ namespace DevAudit.CommandLine
                     }
                 }
             }
-            if (Spinner != null)
+            if (!ProgramOptions.NonInteractive && Spinner != null)
             {
                 UnPauseSpinner();
             }
