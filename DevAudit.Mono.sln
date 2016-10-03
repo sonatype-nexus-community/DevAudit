@@ -5,8 +5,6 @@ VisualStudioVersion = 14.0.23107.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DevAudit.AuditLibrary", "DevAudit.AuditLibrary\DevAudit.AuditLibrary.Mono.csproj", "{36F663F6-4B5C-441F-B11A-9CC556D1C1FE}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DevAudit.Tests", "DevAudit.Tests\DevAudit.Tests.Mono.csproj", "{55B89480-3482-4E8F-BD46-6FB07DC155AD}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DevAudit.CommandLine", "DevAudit.CommandLine\DevAudit.CommandLine.Mono.csproj", "{86EE75FC-D05D-42BC-B2C2-B80CF3734332}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Expect", "Expect.NET\Expect.csproj", "{8AA52B5E-DB66-4B0B-AABA-9E6900BC3D5A}"
