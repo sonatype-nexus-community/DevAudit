@@ -41,12 +41,6 @@ namespace DevAudit.AuditLibrary
         public override bool Execute(string command, string arguments, 
             out ProcessExecuteStatus process_status, out string process_output, out string process_error, Action<string> OutputDataReceived = null, Action<string> OutputErrorReceived = null, [CallerMemberName] string memberName = "", [CallerFilePath] string fileName = "", [CallerLineNumber] int lineNumber = 0)
         {
-            if (!FileExists(command))
-            {
-                process_output = process_error = string.Empty;
-                process_status = ProcessExecuteStatus.FileNotFound;
-                return false;
-            }
             FileInfo cf = new FileInfo(command);
             DirectoryInfo wd = cf.Directory;
             int? process_exit_code = null;
