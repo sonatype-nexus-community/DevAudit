@@ -238,7 +238,7 @@ namespace DevAudit.CommandLine
                 }
                 catch (ArgumentException ae)
                 {
-                    PrintErrorMessage(ae);
+                    AuditLibraryException = ae;
                     return;
                 }
                 catch (Exception e)
