@@ -19,14 +19,14 @@ namespace DevAudit.AuditLibrary
         {
             List<OSSIndexQueryObject> packages = new List<OSSIndexQueryObject>();
             string command = @"dpkg-query";
-            string arguments = @"-W -f  '${package} ${version}\n'";
+            string arguments = @"-W -f  '${package} ${version}|'";
             Regex process_output_pattern = new Regex(@"^(\S+)\s(\S+)$", RegexOptions.Compiled);
             AuditEnvironment.ProcessExecuteStatus process_status;
                 string process_output, process_error;
             this.Stopwatch.Restart();
             if (AuditEnvironment.Execute(command, arguments, out process_status, out process_output, out process_error))
             {
-                string[] p = process_output.Split("\n".ToCharArray(), StringSplitOptions.RemoveEmptyEntries);
+                string[] p = process_output.Split("|".ToCharArray(), StringSplitOptions.RemoveEmptyEntries);
                 for (int i = 0; i < p.Count(); i++)
                 {
                     Match m = process_output_pattern.Match(p[i].Trim());
