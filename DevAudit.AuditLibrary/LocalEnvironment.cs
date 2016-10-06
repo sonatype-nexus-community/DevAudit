@@ -115,6 +115,35 @@ namespace DevAudit.AuditLibrary
 
             }
         }
+
+        public override Dictionary<AuditFileInfo, string> ReadFilesAsText(List<AuditFileInfo> files)
+        {
+            CallerInformation here = this.Here();
+            Dictionary<AuditFileInfo, string> results = new Dictionary<AuditFileInfo, string>(files.Count);
+            object results_lock = new object();
+            this.Stopwatch.Reset();
+            this.Stopwatch.Start();
+            Parallel.ForEach(files, new ParallelOptions() { MaxDegreeOfParallelism = 20 }, (_f, state) =>
+            {
+                Stopwatch cs = new Stopwatch();
+                cs.Start();
+                LocalAuditFileInfo _lf = _f as LocalAuditFileInfo;
+                string text = _lf.ReadAsText();
+                cs.Stop();
+                if (text != string.Empty)
+                {
+                    lock (results_lock)
+                    {
+                        results.Add(_f, text);
+                    }
+                    Info("Read {0} chars from {1} in {2} ms.", text.Length, _f.FullName, cs.ElapsedMilliseconds);
+                }
+                cs = null;
+            });
+            this.Stopwatch.Stop();
+            Success("Read text for {0} out of {1} files in {2} ms.", results.Count(r => r.Value.Length > 0), results.Count, Stopwatch.ElapsedMilliseconds);
+            return results;
+        }
         #endregion
 
         #region Constructors

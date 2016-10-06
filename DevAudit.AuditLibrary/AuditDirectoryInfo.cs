@@ -22,6 +22,8 @@ namespace DevAudit.AuditLibrary
         public abstract IDirectoryInfo[] GetDirectories(string search_pattern, SearchOption search_option);
         public abstract IFileInfo[] GetFiles();
         public abstract IFileInfo[] GetFiles(string searchPattern);
+        public abstract Dictionary<AuditFileInfo, string> ReadFilesAsText(string searchPattern);
+        public abstract Dictionary<AuditFileInfo, string> ReadFilesAsText(IEnumerable<AuditFileInfo> files);
         public abstract IFileInfo[] GetFiles(string searchPattern, SearchOption searchOption);
         #endregion
 

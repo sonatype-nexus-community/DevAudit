@@ -24,6 +24,14 @@ namespace DevAudit.AuditLibrary
             return new LocalAuditFileInfo(this.LocalAuditEnvironment, file_path);
         }
 
+        public FileInfo SysFile
+        {
+            get
+            {
+                return this.file;
+            }
+        }
+
         public override IDirectoryInfo Directory
         {
             get

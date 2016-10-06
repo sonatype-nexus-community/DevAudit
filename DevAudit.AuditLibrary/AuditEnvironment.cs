@@ -49,7 +49,10 @@ namespace DevAudit.AuditLibrary
 
         protected virtual void OnMessage(EnvironmentEventArgs e)
         {
-            MessageHandler?.Invoke(this, e);
+            lock (message_lock)
+            {
+                MessageHandler?.Invoke(this, e);
+            }
         }
 
         protected virtual void OnOutputDataReceived(object sender, DataReceivedEventArgs e)
@@ -78,6 +81,7 @@ namespace DevAudit.AuditLibrary
             out ProcessExecuteStatus process_status, out string process_output, out string process_error, Action<string> OutputDataReceived = null, Action<string> OutputErrorReceived = null, [CallerMemberName] string memberName = "", [CallerFilePath] string fileName = "", [CallerLineNumber] int lineNumber = 0);
         public abstract AuditFileInfo ConstructFile(string file_path);
         public abstract AuditDirectoryInfo ConstructDirectory(string dir_path);
+        public abstract Dictionary<AuditFileInfo, string> ReadFilesAsText(List<AuditFileInfo> files);
         protected abstract TraceSource TraceSource { get; set; }
         #endregion
 
@@ -146,8 +150,11 @@ namespace DevAudit.AuditLibrary
         #region Protected properties
         protected StringBuilder ProcessOutputSB = new StringBuilder();
         protected StringBuilder ProcessErrorSB = new StringBuilder();
-        
         protected Stopwatch Stopwatch { get; } = new Stopwatch();
+        #endregion
+
+        #region Protected fields
+        protected object message_lock = new object();
         #endregion
 
         #region Internal methods

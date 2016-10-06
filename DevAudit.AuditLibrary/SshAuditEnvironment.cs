@@ -18,6 +18,20 @@ namespace DevAudit.AuditLibrary
     public class SshAuditEnvironment : AuditEnvironment
     {
         #region Public methods
+        public string ByteArrayToHexString(byte[] Bytes)
+        {
+            StringBuilder Result = new StringBuilder(Bytes.Length * 2);
+            string HexAlphabet = "0123456789ABCDEF";
+
+            foreach (byte B in Bytes)
+            {
+                Result.Append(HexAlphabet[(int)(B >> 4)]);
+                Result.Append(HexAlphabet[(int)(B & 0xF)]);
+            }
+
+            return Result.ToString();
+        }
+
         public string ToInsecureString(object o)
         {
             SecureString s = o as SecureString;
@@ -67,15 +81,16 @@ namespace DevAudit.AuditLibrary
             Stopwatch.Start();
             if (!this.IsConnected) throw new InvalidOperationException("The SSH session is not connected.");
             SshCommand ls_cmd = SshClient.RunCommand("stat " + file_path);
+            Stopwatch.Stop();
             if (!string.IsNullOrEmpty(ls_cmd.Result))
             {
-                Stopwatch.Stop();
-                Debug("ls {0} returned {1}. Time elapsed: {2} ms.", file_path, ls_cmd.Result, Stopwatch.ElapsedMilliseconds);
+                
+                Debug("ls {0} returned {1} in {2} ms.", file_path, ls_cmd.Result, Stopwatch.ElapsedMilliseconds);
                 return true;
             }
             else
             {
-                Debug("ls {0} returned {1}.", file_path, ls_cmd.Error);
+                Debug("ls {0} returned {1} in {2} ms.", file_path, ls_cmd.Error, Stopwatch.ElapsedMilliseconds);
                 return false;
             }
 
@@ -121,6 +136,46 @@ namespace DevAudit.AuditLibrary
                 return false;
             }
         }
+
+        public override Dictionary<AuditFileInfo, string> ReadFilesAsText(List<AuditFileInfo> files)
+        {
+            CallerInformation here = this.Here();
+            Dictionary<AuditFileInfo, string> results = new Dictionary<AuditFileInfo, string>(files.Count);
+            object results_lock = new object();
+            this.Stopwatch.Reset();
+            this.Stopwatch.Start();
+            Parallel.ForEach(files, new ParallelOptions() { MaxDegreeOfParallelism = 20 }, async (_f, state) => 
+            {
+                SshCommand cmd = this.SshClient.CreateCommand("cat " + _f.FullName);
+                Stopwatch cs = new Stopwatch();
+                cs.Start();
+                CommandAsyncResult result = cmd.BeginExecute(new AsyncCallback(SshCommandAsyncCallback), new KeyValuePair<SshCommand, Stopwatch> (cmd, cs)) as CommandAsyncResult;
+                await Task.Factory.FromAsync(result, (e) =>
+                {
+                    cmd.EndExecute(e);
+                    return e;
+                })
+                .ContinueWith(r =>
+                {
+                    KeyValuePair<SshCommand, Stopwatch> s = (KeyValuePair<SshCommand, Stopwatch>)r.Result.AsyncState;
+                    if (s.Key.Result != string.Empty)
+                    {
+                        lock (results_lock)
+                        {
+                            results.Add(_f, s.Key.Result);
+                        }
+                        if (s.Value.IsRunning) s.Value.Stop();
+                        Info("Read {0} chars from {1}.", s.Key.Result.Length, _f.FullName);
+                        cmd.Dispose();
+                    }
+                });
+                cs = null;
+            });
+            this.Stopwatch.Stop();
+            Success("Read text for {0} out of {1} files in {2} ms.", results.Count(r => r.Value.Length > 0), results.Count(), Stopwatch.ElapsedMilliseconds);
+            return results;
+        }
+
 
         protected override void Dispose(bool isDisposing)
         {
@@ -393,7 +448,6 @@ namespace DevAudit.AuditLibrary
             List<IResult> ok = SshSession.Expect.ContainsEither(string.Format("is known", host_name), HostKnown, "can't be established", HostNotKnown, 6000);
           
         }
-
         private void InitialiseSshSession(string host_name, string user, object pass, OperatingSystem os)
         {
             Info("Connecting to {0}...", host_name);
@@ -427,21 +481,8 @@ namespace DevAudit.AuditLibrary
                 Stopwatch.Stop();
             }
             this.IsConnected = true;
+            this.SshConnectionInfo = ci;
             Success("Connected to {0} in {1} ms.", host_name, Stopwatch.ElapsedMilliseconds);
-        }
-
-        public static string ByteArrayToHexString(byte[] Bytes)
-        {
-            StringBuilder Result = new StringBuilder(Bytes.Length * 2);
-            string HexAlphabet = "0123456789ABCDEF";
-
-            foreach (byte B in Bytes)
-            {
-                Result.Append(HexAlphabet[(int)(B >> 4)]);
-                Result.Append(HexAlphabet[(int)(B & 0xF)]);
-            }
-
-            return Result.ToString();
         }
         #endregion
 
@@ -458,10 +499,27 @@ namespace DevAudit.AuditLibrary
             Info("Host key fingerprint is: {0} {1}.", e.HostKeyName, BitConverter.ToString(e.FingerPrint).Replace('-', ':').ToLower());
         }
 
+        private void ReadFilesAsText_ErrorOccurred(object sender, ExceptionEventArgs e)
+        {
+            Error("An error occurred attempting to read a file as text: {0}", e.Exception);
+        }
+
+        private void SshCommandAsyncCallback(IAsyncResult r)
+        {
+            CommandAsyncResult car = r as CommandAsyncResult;
+            KeyValuePair<SshCommand, Stopwatch> cas = (KeyValuePair<SshCommand, Stopwatch>)car.AsyncState;
+            //Debug("Read {0} bytes for execution of {1}.", car.BytesReceived, cas.Key.CommandText);
+            if (car.IsCompleted)
+            {
+                cas.Value.Stop();
+                Debug("Completed execution of {0} with {1} bytes received in {2} ms.", cas.Key.CommandText, car.BytesReceived, cas.Value.ElapsedMilliseconds);
+            }
+        }
         #endregion
 
         #region Private fields
-        private ExpectNet.Session SshSession { get; set; }
+        ExpectNet.Session SshSession { get; set; }
+        ConnectionInfo SshConnectionInfo;
         SshClient SshClient;
         Action<IResult> FileFound;
         Action<IResult> FileNotFound;
@@ -469,6 +527,5 @@ namespace DevAudit.AuditLibrary
         Action<IResult> DirectoryNotFound;
         private bool IsDisposed;
         #endregion
-
     }
 }

@@ -74,9 +74,21 @@ namespace DevAudit.AuditLibrary
             FileInfo[] files = this.directory.GetFiles(searchPattern, searchOption);
             return files != null ? files.Select(f => new LocalFileInfo(f)).ToArray() : null;
         }
+
+        public override Dictionary<AuditFileInfo, string> ReadFilesAsText(IEnumerable<AuditFileInfo> files)
+        {
+            return this.AuditEnvironment.ReadFilesAsText(files.ToList());
+        }
+
+        public override Dictionary<AuditFileInfo, string> ReadFilesAsText(string searchPattern)
+        {
+            return this.AuditEnvironment.ReadFilesAsText(
+             this.GetFiles(searchPattern).Select(f => f as AuditFileInfo).ToList());
+        }
+    
         #endregion
 
-        #region Constructors
+            #region Constructors
         public LocalAuditDirectoryInfo(LocalEnvironment env, string dir_path) : base(env, dir_path)
         {
             this.directory = new DirectoryInfo(dir_path);

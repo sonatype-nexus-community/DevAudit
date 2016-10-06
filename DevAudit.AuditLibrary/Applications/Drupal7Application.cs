@@ -64,6 +64,7 @@ namespace DevAudit.AuditLibrary
         #region Overriden methods
         protected override Dictionary<string, IEnumerable<OSSIndexQueryObject>> GetModules()
         {
+            object modules_lock = new object();
             Dictionary<string, IEnumerable<OSSIndexQueryObject>> modules = new Dictionary<string, IEnumerable<OSSIndexQueryObject>>();
             List<AuditFileInfo> core_module_files = this.CoreModulesDirectory.GetFiles("*.info").Where(f => !f.Name.Contains("_test") && !f.Name.Contains("test_")).Select(f => f as AuditFileInfo).ToList();
             List<AuditFileInfo> contrib_module_files = this.ContribModulesDirectory.GetFiles("*.info")?.Where(f => !f.Name.Contains("_test") && !f.Name.Contains("test_")).Select(f => f as AuditFileInfo).ToList();
@@ -75,9 +76,10 @@ namespace DevAudit.AuditLibrary
             ini_parser_cfg.AllowDuplicateKeys = true;
             ini_parser_cfg.OverrideDuplicateKeys = true;
             IniDataParser ini_parser = new IniDataParser(ini_parser_cfg);
-            foreach (AuditFileInfo f in core_module_files)
+            Dictionary<AuditFileInfo, string> core_modules_files_text = this.CoreModulesDirectory.ReadFilesAsText(core_module_files);
+            Parallel.ForEach(core_modules_files_text, new ParallelOptions() { MaxDegreeOfParallelism = 20 }, _kv =>
             {
-                IniData data = ini_parser.Parse(f.ReadAsText());
+                IniData data = ini_parser.Parse(_kv.Value);
                 foreach (KeyData d in data.Global)
                 {
                     if (d.Value.First() == '"') d.Value = d.Value.Remove(0, 1);
@@ -92,16 +94,20 @@ namespace DevAudit.AuditLibrary
                     Version = data.Global["version"],
                     Project = data.Global["project"]
                 };
-                core_modules.Add(new OSSIndexQueryObject("drupal", m.Name, m.Version == "VERSION" ? m.Core : m.Version, "", string.Empty));
-            }
+                lock (modules_lock)
+                {
+                    core_modules.Add(new OSSIndexQueryObject("drupal", m.Name, m.Version == "VERSION" ? m.Core : m.Version, "", string.Empty));
+                }
+            });
             core_modules.Add(new OSSIndexQueryObject("drupal", "drupal_core", core_modules.First().Version));
             modules.Add("core", core_modules);
             all_modules.AddRange(core_modules);
             if (contrib_module_files != null)
             {
-                foreach (AuditFileInfo f in contrib_module_files)
+                Dictionary<AuditFileInfo, string> contrib_modules_files_text = this.ContribModulesDirectory.ReadFilesAsText(contrib_module_files);
+                Parallel.ForEach(contrib_modules_files_text, new ParallelOptions() { MaxDegreeOfParallelism = 20 }, _kv =>
                 {
-                    IniData data = ini_parser.Parse(f.ReadAsText());
+                    IniData data = ini_parser.Parse(_kv.Value);
                     foreach (KeyData d in data.Global)
                     {
                         if (d.Value.First() == '"') d.Value = d.Value.Remove(0, 1);
@@ -116,7 +122,11 @@ namespace DevAudit.AuditLibrary
                         Version = data.Global["version"],
                         Project = data.Global["project"]
                     };
-                }
+                    lock (modules_lock)
+                    {
+                        contrib_modules.Add(new OSSIndexQueryObject("drupal", m.Name, m.Version == "VERSION" ? m.Core : m.Version, "", string.Empty));
+                    }
+                });
             }
             if (contrib_modules.Count > 0)
             {
@@ -129,10 +139,11 @@ namespace DevAudit.AuditLibrary
                 List<AuditFileInfo> sites_all_contrib_modules_files = this.SitesAllModulesDirectory.GetFiles("*.info")?.Where(f => !f.Name.Contains("_test") && !f.Name.Contains("test_")).Select(f => f as AuditFileInfo).ToList();
                 if (sites_all_contrib_modules_files != null && sites_all_contrib_modules_files.Count > 0)
                 {
-                    sites_all_contrib_modules = new List<OSSIndexQueryObject>(sites_all_contrib_modules_files.Count + 1);
-                    foreach (AuditFileInfo f in sites_all_contrib_modules_files)
+                    Dictionary<AuditFileInfo, string> sites_all_contrib_modules_files_text = this.SitesAllModulesDirectory.ReadFilesAsText(sites_all_contrib_modules_files);
+                    sites_all_contrib_modules = new List<OSSIndexQueryObject>(sites_all_contrib_modules_files.Count);
+                    Parallel.ForEach(sites_all_contrib_modules_files_text, new ParallelOptions() { MaxDegreeOfParallelism = 20 }, _kv =>
                     {
-                        IniData data = ini_parser.Parse(f.ReadAsText());
+                        IniData data = ini_parser.Parse(_kv.Value);
                         foreach (KeyData d in data.Global)
                         {
                             if (d.Value.First() == '"') d.Value = d.Value.Remove(0, 1);
@@ -146,7 +157,11 @@ namespace DevAudit.AuditLibrary
                             Package = data.Global["package"],
                             Version = data.Global["version"],
                         };
-                    }
+                        lock (modules_lock)
+                        {
+                            sites_all_contrib_modules.Add(new OSSIndexQueryObject("drupal", m.Name, m.Version == "VERSION" ? m.Core : m.Version, "", string.Empty));
+                        }
+                    });
                 }
             }
             if (sites_all_contrib_modules != null && sites_all_contrib_modules.Count > 0)

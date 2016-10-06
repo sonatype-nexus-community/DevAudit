@@ -87,7 +87,7 @@ namespace DevAudit.AuditLibrary
             }
             else
             {
-                EnvironmentCommandError(this.AuditEnvironment.Here(), "Could not get directories for path {0}.", this.CombinePaths(this.FullName, path));
+                this.AuditEnvironment.Warning("Could not get directories for path {0}.", this.CombinePaths(this.FullName, path));
                 return null;
             }
         }
@@ -136,7 +136,7 @@ namespace DevAudit.AuditLibrary
             }
             else
             {
-                EnvironmentCommandError(this.AuditEnvironment.Here(), "Could not get files for path {0}.", this.CombinePaths(this.FullName, path));
+                this.AuditEnvironment.Warning("Could not get files for path {0}.", this.CombinePaths(this.FullName, path));
                 return null;
             }
         }
@@ -144,8 +144,19 @@ namespace DevAudit.AuditLibrary
         public override IFileInfo[] GetFiles(string path, SearchOption search_option)
         {
             throw new NotImplementedException();
-        }    
-        
+        }
+
+        public override Dictionary<AuditFileInfo, string> ReadFilesAsText(IEnumerable<AuditFileInfo> files)
+        {
+            return this.SshAuditEnvironment.ReadFilesAsText(files.ToList());
+        }
+
+        public override Dictionary<AuditFileInfo, string> ReadFilesAsText(string searchPattern)
+        {
+            return this.SshAuditEnvironment.ReadFilesAsText(
+                this.GetFiles(searchPattern).Select(f => f as AuditFileInfo).ToList());
+        }
+
         #endregion
 
         #region Constructors

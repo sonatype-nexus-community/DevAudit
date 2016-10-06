@@ -70,6 +70,7 @@ namespace DevAudit.AuditLibrary
         #region Overriden methods
         protected override Dictionary<string, IEnumerable<OSSIndexQueryObject>> GetModules()
         {
+            object modules_lock = new object();
             this.Stopwatch.Reset();
             this.Stopwatch.Start();
             AuditFileInfo changelog = this.ApplicationFileSystemMap["ChangeLog"] as AuditFileInfo;
@@ -86,22 +87,26 @@ namespace DevAudit.AuditLibrary
                 }
             }
             Dictionary<string, IEnumerable<OSSIndexQueryObject>> modules = new Dictionary<string, IEnumerable<OSSIndexQueryObject>>();
-            List<AuditFileInfo> core_module_files = this.CoreModulesDirectory.GetFiles("*.info.yml")?.Where(f => !f.Name.Contains("_test") && !f.Name.Contains("test_")).Select(f => this.AuditEnvironment.ConstructFile(f.FullName)).ToList();
-            List<AuditFileInfo> contrib_module_files = this.ContribModulesDirectory.GetFiles("*.info.yml")?.Where(f => !f.Name.Contains("_test") && !f.Name.Contains("test_")).Select(f => this.AuditEnvironment.ConstructFile(f.FullName)).ToList();       
+            List<AuditFileInfo> core_module_files = this.CoreModulesDirectory.GetFiles("*.info.yml")?.Where(f => !f.Name.Contains("_test") && !f.Name.Contains("test_")).Select(f => f as AuditFileInfo).ToList();
+            List<AuditFileInfo> contrib_module_files = this.ContribModulesDirectory.GetFiles("*.info.yml")?.Where(f => !f.Name.Contains("_test") && !f.Name.Contains("test_")).Select(f => f as AuditFileInfo).ToList();       
             List<OSSIndexQueryObject> all_modules = new List<OSSIndexQueryObject>(100);
             Deserializer yaml_deserializer = new Deserializer(namingConvention: new CamelCaseNamingConvention(), ignoreUnmatched: true);
             if (core_module_files != null && core_module_files.Count > 0)
             {
                 List<OSSIndexQueryObject> core_modules = new List<OSSIndexQueryObject>(core_module_files.Count + 1);
-                foreach (AuditFileInfo f in core_module_files)
+                Dictionary<AuditFileInfo, string> core_modules_files_text = this.CoreModulesDirectory.ReadFilesAsText(core_module_files);
+                Parallel.ForEach(core_modules_files_text, new ParallelOptions() { MaxDegreeOfParallelism = 20 }, kv =>
                 {
-                    string text = f.ReadAsText();
-                    if (string.IsNullOrEmpty(text)) continue;
-                    DrupalModuleInfo m = yaml_deserializer.Deserialize<DrupalModuleInfo>(new System.IO.StringReader(text));
-                    m.ShortName = f.Name.Split('.')[0];
-                    core_modules.Add(new OSSIndexQueryObject("drupal", m.ShortName, m.Version == "VERSION" ? core_version : m.Version, "", string.Empty));
-                }
-
+                    if (!string.IsNullOrEmpty(kv.Value))
+                    {
+                        DrupalModuleInfo m = yaml_deserializer.Deserialize<DrupalModuleInfo>(new System.IO.StringReader(kv.Value));
+                        m.ShortName = kv.Key.Name.Split('.')[0];
+                        lock (modules_lock)
+                        {
+                            core_modules.Add(new OSSIndexQueryObject("drupal", m.ShortName, m.Version == "VERSION" ? core_version : m.Version, "", string.Empty));
+                        }
+                    }
+                });
                 modules.Add("core", core_modules);
                 core_modules.Add(new OSSIndexQueryObject("drupal", "drupal_core", core_version));
                 all_modules.AddRange(core_modules);
@@ -109,14 +114,19 @@ namespace DevAudit.AuditLibrary
             if (contrib_module_files != null && contrib_module_files.Count > 0)
             {
                 List<OSSIndexQueryObject> contrib_modules = new List<OSSIndexQueryObject>(contrib_module_files.Count);
-                foreach (AuditFileInfo f in contrib_module_files)
+                Dictionary<AuditFileInfo, string> contrib_modules_files_text = this.ContribModulesDirectory.ReadFilesAsText(contrib_module_files);
+                Parallel.ForEach(contrib_modules_files_text, new ParallelOptions() { MaxDegreeOfParallelism = 20 }, kv =>
                 {
-                    string text = f.ReadAsText();
-                    if (string.IsNullOrEmpty(text)) continue;
-                    DrupalModuleInfo m = yaml_deserializer.Deserialize<DrupalModuleInfo>(new System.IO.StringReader(text));
-                    m.ShortName = f.Name.Split('.')[0];
-                    contrib_modules.Add(new OSSIndexQueryObject("drupal", m.ShortName, m.Version, "", string.Empty));
-                }
+                    if (!string.IsNullOrEmpty(kv.Value))
+                    {
+                        DrupalModuleInfo m = yaml_deserializer.Deserialize<DrupalModuleInfo>(new System.IO.StringReader(kv.Value));
+                        m.ShortName = kv.Key.Name.Split('.')[0];
+                        lock (modules_lock)
+                        {
+                            contrib_modules.Add(new OSSIndexQueryObject("drupal", m.ShortName, m.Version, "", string.Empty));
+                        }
+                    }
+                });
                 if (contrib_modules.Count > 0)
                 {
                     modules.Add("contrib", contrib_modules);
@@ -126,18 +136,23 @@ namespace DevAudit.AuditLibrary
             if (this.SitesAllModulesDirectory != null)
             {
                 List<AuditFileInfo> sites_all_contrib_modules_files = this.SitesAllModulesDirectory.GetFiles("*.info.yml")?
-                                    .Where(f => !f.Name.Contains("_test") && !f.Name.Contains("test_")).Select(f => this.AuditEnvironment.ConstructFile(f.FullName)).ToList();
+                    .Where(f => !f.Name.Contains("_test") && !f.Name.Contains("test_")).Select(f => f as AuditFileInfo).ToList();
                 if (sites_all_contrib_modules_files!= null && sites_all_contrib_modules_files.Count > 0)
                 {
+                    Dictionary<AuditFileInfo, string> sites_all_contrib_modules_files_text = this.SitesAllModulesDirectory.ReadFilesAsText(sites_all_contrib_modules_files);
                     List<OSSIndexQueryObject> sites_all_contrib_modules = new List<OSSIndexQueryObject>(sites_all_contrib_modules_files.Count + 1);
-                    foreach (AuditFileInfo f in sites_all_contrib_modules_files)
+                    Parallel.ForEach(sites_all_contrib_modules_files_text, new ParallelOptions() { MaxDegreeOfParallelism = 20 }, kv =>
                     {
-                        string text = f.ReadAsText();
-                        if (string.IsNullOrEmpty(text)) continue;
-                        DrupalModuleInfo m = yaml_deserializer.Deserialize<DrupalModuleInfo>(new System.IO.StringReader(text));
-                        m.ShortName = f.Name.Split('.')[0];
-                        sites_all_contrib_modules.Add(new OSSIndexQueryObject("drupal", m.ShortName, m.Version, "", string.Empty));
-                    }
+                        if (!string.IsNullOrEmpty(kv.Value))
+                        {
+                            DrupalModuleInfo m = yaml_deserializer.Deserialize<DrupalModuleInfo>(new System.IO.StringReader(kv.Value));
+                            m.ShortName = kv.Key.Name.Split('.')[0];
+                            lock (modules_lock)
+                            {
+                                sites_all_contrib_modules.Add(new OSSIndexQueryObject("drupal", m.ShortName, m.Version, "", string.Empty));
+                            }
+                        }
+                    });
                     if (sites_all_contrib_modules.Count > 0)
                     {
                         modules.Add("sites_all_contrib", sites_all_contrib_modules);
