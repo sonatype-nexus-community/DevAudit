@@ -144,31 +144,28 @@ namespace DevAudit.AuditLibrary
             object results_lock = new object();
             this.Stopwatch.Reset();
             this.Stopwatch.Start();
-            Parallel.ForEach(files, new ParallelOptions() { MaxDegreeOfParallelism = 20 }, async (_f, state) => 
+            Parallel.ForEach(files, new ParallelOptions() { MaxDegreeOfParallelism = 20 }, (_f, state) => 
             {
                 SshCommand cmd = this.SshClient.CreateCommand("cat " + _f.FullName);
                 Stopwatch cs = new Stopwatch();
                 cs.Start();
                 CommandAsyncResult result = cmd.BeginExecute(new AsyncCallback(SshCommandAsyncCallback), new KeyValuePair<SshCommand, Stopwatch> (cmd, cs)) as CommandAsyncResult;
-                await Task.Factory.FromAsync(result, (e) =>
+                cmd.EndExecute(result); 
+                KeyValuePair<SshCommand, Stopwatch> s = (KeyValuePair<SshCommand, Stopwatch>) result.AsyncState;
+                if (s.Key.Result != string.Empty)
                 {
-                    cmd.EndExecute(e);
-                    return e;
-                })
-                .ContinueWith(r =>
-                {
-                    KeyValuePair<SshCommand, Stopwatch> s = (KeyValuePair<SshCommand, Stopwatch>)r.Result.AsyncState;
-                    if (s.Key.Result != string.Empty)
+                    lock (results_lock)
                     {
-                        lock (results_lock)
-                        {
-                            results.Add(_f, s.Key.Result);
-                        }
-                        if (s.Value.IsRunning) s.Value.Stop();
-                        Info("Read {0} chars from {1}.", s.Key.Result.Length, _f.FullName);
-                        cmd.Dispose();
+                        results.Add(_f, s.Key.Result);
                     }
-                });
+                    Info("Read {0} chars from {1}.", s.Key.Result.Length, _f.FullName);
+                }                    
+                else
+                {
+                    Error(here, "Could not read {0} as text. Command returned: {1}", _f.FullName, s.Key.Error);
+                }
+                if(s.Value.IsRunning) s.Value.Stop();
+                s.Key.Dispose();
                 cs = null;
             });
             this.Stopwatch.Stop();
