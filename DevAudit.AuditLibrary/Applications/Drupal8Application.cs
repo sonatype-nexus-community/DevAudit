@@ -90,15 +90,16 @@ namespace DevAudit.AuditLibrary
             List<AuditFileInfo> core_module_files = this.CoreModulesDirectory.GetFiles("*.info.yml")?.Where(f => !f.Name.Contains("_test") && !f.Name.Contains("test_")).Select(f => f as AuditFileInfo).ToList();
             List<AuditFileInfo> contrib_module_files = this.ContribModulesDirectory.GetFiles("*.info.yml")?.Where(f => !f.Name.Contains("_test") && !f.Name.Contains("test_")).Select(f => f as AuditFileInfo).ToList();       
             List<OSSIndexQueryObject> all_modules = new List<OSSIndexQueryObject>(100);
-            Deserializer yaml_deserializer = new Deserializer(namingConvention: new CamelCaseNamingConvention(), ignoreUnmatched: true);
             if (core_module_files != null && core_module_files.Count > 0)
             {
                 List<OSSIndexQueryObject> core_modules = new List<OSSIndexQueryObject>(core_module_files.Count + 1);
+                this.AuditEnvironment.Status("Reading Drupal 8 core module files from environment...", core_module_files.Count);
                 Dictionary<AuditFileInfo, string> core_modules_files_text = this.CoreModulesDirectory.ReadFilesAsText(core_module_files);
                 Parallel.ForEach(core_modules_files_text, new ParallelOptions() { MaxDegreeOfParallelism = 20 }, kv =>
                 {
                     if (!string.IsNullOrEmpty(kv.Value))
                     {
+                        Deserializer yaml_deserializer = new Deserializer(namingConvention: new CamelCaseNamingConvention(), ignoreUnmatched: true);
                         DrupalModuleInfo m = yaml_deserializer.Deserialize<DrupalModuleInfo>(new System.IO.StringReader(kv.Value));
                         m.ShortName = kv.Key.Name.Split('.')[0];
                         lock (modules_lock)
@@ -114,11 +115,13 @@ namespace DevAudit.AuditLibrary
             if (contrib_module_files != null && contrib_module_files.Count > 0)
             {
                 List<OSSIndexQueryObject> contrib_modules = new List<OSSIndexQueryObject>(contrib_module_files.Count);
+                this.AuditEnvironment.Status("Reading Drupal 8 contrib module files from environment...", core_module_files.Count);
                 Dictionary<AuditFileInfo, string> contrib_modules_files_text = this.ContribModulesDirectory.ReadFilesAsText(contrib_module_files);
                 Parallel.ForEach(contrib_modules_files_text, new ParallelOptions() { MaxDegreeOfParallelism = 20 }, kv =>
                 {
                     if (!string.IsNullOrEmpty(kv.Value))
                     {
+                        Deserializer yaml_deserializer = new Deserializer(namingConvention: new CamelCaseNamingConvention(), ignoreUnmatched: true);
                         DrupalModuleInfo m = yaml_deserializer.Deserialize<DrupalModuleInfo>(new System.IO.StringReader(kv.Value));
                         m.ShortName = kv.Key.Name.Split('.')[0];
                         lock (modules_lock)
@@ -145,6 +148,7 @@ namespace DevAudit.AuditLibrary
                     {
                         if (!string.IsNullOrEmpty(kv.Value))
                         {
+                            Deserializer yaml_deserializer = new Deserializer(namingConvention: new CamelCaseNamingConvention(), ignoreUnmatched: true);
                             DrupalModuleInfo m = yaml_deserializer.Deserialize<DrupalModuleInfo>(new System.IO.StringReader(kv.Value));
                             m.ShortName = kv.Key.Name.Split('.')[0];
                             lock (modules_lock)

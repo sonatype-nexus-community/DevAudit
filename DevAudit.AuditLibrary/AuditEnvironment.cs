@@ -15,7 +15,9 @@ namespace DevAudit.AuditLibrary
         ERROR = 1,
         INFO = 2,
         WARNING = 3,
-        DEBUG = 4
+        STATUS = 4,
+        PROGRESS = 5,
+        DEBUG = 6,
     }
 
     public struct CallerInformation
@@ -29,6 +31,22 @@ namespace DevAudit.AuditLibrary
             this.Name = name;
             this.File = file;
             this.LineNumber = line_number;
+        }
+    }
+
+    public struct OperationProgress
+    {
+        public string Operation;
+        public int Total;
+        public int Complete;
+        public TimeSpan? Time;
+
+        public OperationProgress(string op, int total, int complete, TimeSpan? time)
+        {
+            this.Operation = op;
+            this.Total = total;
+            this.Complete = complete;
+            this.Time = time;
         }
     }
 
@@ -198,14 +216,24 @@ namespace DevAudit.AuditLibrary
             OnMessage(new EnvironmentEventArgs(EventMessageType.WARNING, message_format, message));
         }
 
-        internal void Debug(string message_format, params object[] message)
+        internal void Status(string message_format, params object[] message)
         {
-            OnMessage(new EnvironmentEventArgs(EventMessageType.DEBUG, message_format, message));
+            OnMessage(new EnvironmentEventArgs(EventMessageType.STATUS, message_format, message));
+        }
+
+        internal void Progress(string operation, int total, int complete, TimeSpan? time = null)
+        {
+            OnMessage(new EnvironmentEventArgs(new OperationProgress(operation, total, complete, time)));
         }
 
         internal void Debug(CallerInformation caller, string message_format, params object[] message)
         {
             OnMessage(new EnvironmentEventArgs(caller, EventMessageType.DEBUG, message_format, message));
+        }
+
+        internal void Debug(string message_format, params object[] message)
+        {
+            OnMessage(new EnvironmentEventArgs(EventMessageType.DEBUG, message_format, message));
         }
 
         internal CallerInformation Here([CallerMemberName] string memberName = "", [CallerFilePath] string fileName = "", [CallerLineNumber] int lineNumber = 0)

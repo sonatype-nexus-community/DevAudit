@@ -198,6 +198,21 @@ namespace DevAudit.AuditLibrary
             }
         }
 
+        /*
+        public int GetArtifacts()
+        {
+            int i = 0;
+            IEnumerable<IGrouping<int, OSSIndexQueryObject>> packages_groups = this.Packages.GroupBy(x => i++ / 100).ToArray();
+            _ArtifactsTask = new List<Task<KeyValuePair<IEnumerable<OSSIndexQueryObject>,
+                IEnumerable<OSSIndexArtifact>>>>(packages_groups.Count());
+            foreach (var g in packages_groups)
+            {
+                this.HttpClient.s
+            }
+
+        }
+        */
+
         public List<Task<KeyValuePair<OSSIndexProject, IEnumerable<OSSIndexProjectVulnerability>>>> VulnerabilitiesTask
         {
             get

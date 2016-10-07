@@ -158,13 +158,14 @@ namespace DevAudit.AuditLibrary
                     {
                         results.Add(_f, s.Key.Result);
                     }
-                    Info("Read {0} chars from {1}.", s.Key.Result.Length, _f.FullName);
+                    if (s.Value.IsRunning) s.Value.Stop();
+                    Debug(here, "Read {0} chars from {1}.", s.Key.Result.Length, _f.FullName);
+                    Progress("Read environment files", files.Count, 3, s.Value.Elapsed);
                 }                    
                 else
                 {
                     Error(here, "Could not read {0} as text. Command returned: {1}", _f.FullName, s.Key.Error);
                 }
-                if(s.Value.IsRunning) s.Value.Stop();
                 s.Key.Dispose();
                 cs = null;
             });

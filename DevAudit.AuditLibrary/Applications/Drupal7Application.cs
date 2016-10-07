@@ -75,10 +75,11 @@ namespace DevAudit.AuditLibrary
             ini_parser_cfg.CommentString = ";";
             ini_parser_cfg.AllowDuplicateKeys = true;
             ini_parser_cfg.OverrideDuplicateKeys = true;
-            IniDataParser ini_parser = new IniDataParser(ini_parser_cfg);
+            this.AuditEnvironment.Status("Reading Drupal 7 core module files from environment...", core_module_files.Count);
             Dictionary<AuditFileInfo, string> core_modules_files_text = this.CoreModulesDirectory.ReadFilesAsText(core_module_files);
             Parallel.ForEach(core_modules_files_text, new ParallelOptions() { MaxDegreeOfParallelism = 20 }, _kv =>
-            {
+            { 
+                IniDataParser ini_parser = new IniDataParser(ini_parser_cfg);
                 IniData data = ini_parser.Parse(_kv.Value);
                 foreach (KeyData d in data.Global)
                 {
@@ -104,9 +105,11 @@ namespace DevAudit.AuditLibrary
             all_modules.AddRange(core_modules);
             if (contrib_module_files != null)
             {
+                this.AuditEnvironment.Status("Reading contrib module files from environment...", core_module_files.Count);
                 Dictionary<AuditFileInfo, string> contrib_modules_files_text = this.ContribModulesDirectory.ReadFilesAsText(contrib_module_files);
                 Parallel.ForEach(contrib_modules_files_text, new ParallelOptions() { MaxDegreeOfParallelism = 20 }, _kv =>
                 {
+                    IniDataParser ini_parser = new IniDataParser(ini_parser_cfg);
                     IniData data = ini_parser.Parse(_kv.Value);
                     foreach (KeyData d in data.Global)
                     {
@@ -122,11 +125,12 @@ namespace DevAudit.AuditLibrary
                         Version = data.Global["version"],
                         Project = data.Global["project"]
                     };
-                    lock (modules_lock)
-                    {
+                    lock(modules_lock)
+                    { 
                         contrib_modules.Add(new OSSIndexQueryObject("drupal", m.Name, m.Version == "VERSION" ? m.Core : m.Version, "", string.Empty));
                     }
                 });
+                
             }
             if (contrib_modules.Count > 0)
             {
@@ -143,6 +147,7 @@ namespace DevAudit.AuditLibrary
                     sites_all_contrib_modules = new List<OSSIndexQueryObject>(sites_all_contrib_modules_files.Count);
                     Parallel.ForEach(sites_all_contrib_modules_files_text, new ParallelOptions() { MaxDegreeOfParallelism = 20 }, _kv =>
                     {
+                        IniDataParser ini_parser = new IniDataParser(ini_parser_cfg);
                         IniData data = ini_parser.Parse(_kv.Value);
                         foreach (KeyData d in data.Global)
                         {
@@ -175,6 +180,7 @@ namespace DevAudit.AuditLibrary
 
         public override IEnumerable<OSSIndexQueryObject> GetPackages(params string[] o)
         {
+            this.AuditEnvironment.Status("Reading packages for audit.");
             return this.GetModules()["all"];
         }
 

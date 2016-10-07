@@ -12,6 +12,7 @@ namespace DevAudit.AuditLibrary
         public string Message { get; protected set; }
         public DateTime DateTime { get; protected set; } = DateTime.UtcNow;
         public CallerInformation? Caller { get; protected set; }
+        public OperationProgress? Progress { get; protected set; }
         public string EnvironmentLocation { get; internal set; }
 
         public EnvironmentEventArgs(EventMessageType message_type, string message)
@@ -31,6 +32,16 @@ namespace DevAudit.AuditLibrary
             this.Caller = caller;
             this.MessageType = message_type;
             this.Message = string.Format(message_format, m);
+        }
+        public EnvironmentEventArgs(OperationProgress p)
+        {
+            this.MessageType = EventMessageType.PROGRESS;
+            this.Progress = p;
+            this.Message = string.Format("{0} {1} of {2}", p.Operation, p.Complete, p.Total);
+            if (p.Time.HasValue)
+            {
+                this.Message += string.Format(" in {0} ms.", p.Time.Value.Milliseconds);
+            }
         }
     }
 }

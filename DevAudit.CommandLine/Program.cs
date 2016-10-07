@@ -43,6 +43,8 @@ namespace DevAudit.CommandLine
 
         static Spinner Spinner { get; set; }
 
+        static string SpinnerText { get; set; }
+
         static CC.StyleSheet MessageStyleSheet { get; set; }
 
         static ConsoleColor OriginalConsoleForeColor;
@@ -52,7 +54,7 @@ namespace DevAudit.CommandLine
             {EventMessageType.ERROR, ConsoleColor.DarkRed },
             {EventMessageType.SUCCESS, ConsoleColor.Cyan },
             {EventMessageType.WARNING, ConsoleColor.DarkYellow },
-            { EventMessageType.DEBUG, ConsoleColor.Blue }
+            {EventMessageType.DEBUG, ConsoleColor.Blue },
         };
 
         static int SpinnerCursorLeft;
@@ -63,6 +65,8 @@ namespace DevAudit.CommandLine
         {
             #region Setup console colors
             ConsoleMessageColors.Add(EventMessageType.INFO, Console.ForegroundColor);
+            ConsoleMessageColors.Add(EventMessageType.PROGRESS, Console.ForegroundColor);
+            ConsoleMessageColors.Add(EventMessageType.STATUS, Console.ForegroundColor);
             OriginalConsoleForeColor = Console.ForegroundColor;
             #endregion
 
@@ -294,7 +298,7 @@ namespace DevAudit.CommandLine
         static void AuditPackageSource(out ExitCodes exit)
         {
             if (ReferenceEquals(Source, null)) throw new ArgumentNullException("Source");
-            PrintMessage("Scanning {0} packages...", Source.PackageManagerLabel);
+            SpinnerText = string.Format("Scanning {0} packages...", Source.PackageManagerLabel);
             exit = ExitCodes.ERROR_SCANNING_FOR_PACKAGES;
             StartSpinner();
             try
@@ -743,32 +747,52 @@ namespace DevAudit.CommandLine
             {
                 return;
             }
-            else
+            if (ProgramOptions.NonInteractive)
             {
-                if (ProgramOptions.NonInteractive)
+                PrintMessageLine("{0:HH:mm:ss} [{1}] [{2}] {3}", e.DateTime, e.EnvironmentLocation, e.MessageType.ToString(), e.Message);
+            }   
+            else if (e.MessageType == EventMessageType.STATUS)
+            {
+                if (Spinner != null)
                 {
-                    PrintMessageLine("{0:HH:mm:ss} [{1}] [{2}] {3}", e.DateTime, e.EnvironmentLocation, e.MessageType.ToString(), e.Message);
+                    PauseSpinner();
+                    SpinnerText = e.Message;
+                }
+                PrintMessageLine(ConsoleMessageColors[e.MessageType], "{0:HH:mm:ss} [{1}] [{2}] {3}", e.DateTime, e.EnvironmentLocation, e.MessageType.ToString(), e.Message);
+            }
+            else if (e.MessageType == EventMessageType.PROGRESS)
+            {
+                if (Spinner != null)
+                {
+                    PauseSpinner(false);
+                    //PrintMessage(GetProgressOutput(e.Progress.Value));
                 }
                 else
                 {
-                    if (Spinner != null)
-                    {
-                        PauseSpinner();
-                    }
                     PrintMessageLine(ConsoleMessageColors[e.MessageType], "{0:HH:mm:ss} [{1}] [{2}] {3}", e.DateTime, e.EnvironmentLocation, e.MessageType.ToString(), e.Message);
                 }
-                if (e.Caller.HasValue && ProgramOptions.EnableDebug)
+            }
+            else
+            {
+                if (Spinner != null)
                 {
-                    if (ProgramOptions.NonInteractive)
-                    {
-                        PrintMessageLine("Caller: {0}\nLine: {1}\nFile: {2}", e.Caller.Value.Name, e.Caller.Value.LineNumber, e.Caller.Value.File);
-                    }
-                    else
-                    {
-                        PrintMessageLine(ConsoleMessageColors[e.MessageType], "Caller: {0}\nLine: {1}\nFile: {2}", e.Caller.Value.Name,
-                            e.Caller.Value.LineNumber, e.Caller.Value.File);
-                    }
+                    PauseSpinner();
                 }
+                PrintMessageLine(ConsoleMessageColors[e.MessageType], "{0:HH:mm:ss} [{1}] [{2}] {3}", e.DateTime, e.EnvironmentLocation, e.MessageType.ToString(), e.Message);
+            }
+
+            if (e.Caller.HasValue && ProgramOptions.EnableDebug)
+            {
+                if (ProgramOptions.NonInteractive)
+                {
+                    PrintMessageLine("Caller: {0}\nLine: {1}\nFile: {2}", e.Caller.Value.Name, e.Caller.Value.LineNumber, e.Caller.Value.File);
+                }
+                else
+                {
+                    PrintMessageLine(ConsoleMessageColors[e.MessageType], "Caller: {0}\nLine: {1}\nFile: {2}", e.Caller.Value.Name,
+                        e.Caller.Value.LineNumber, e.Caller.Value.File);
+                }
+                
             }
             if (!ProgramOptions.NonInteractive && Spinner != null)
             {
@@ -833,8 +857,7 @@ namespace DevAudit.CommandLine
 
             if (e.InnerException != null)
             {
-                PrintMessageLine(ConsoleColor.DarkRed, "Inner exception: {0}", e.InnerException.Message);
-                PrintMessageLine(ConsoleColor.DarkRed, "Inner stack trace: {0}", e.InnerException.StackTrace);
+                PrintErrorMessage(e.InnerException);
             }
         }
 
@@ -898,6 +921,12 @@ namespace DevAudit.CommandLine
             CC.Console.WriteLine("v" + Assembly.GetExecutingAssembly().GetName().Version.ToString(), banner_color);
         }
 
+        static string GetProgressOutput(OperationProgress progress)
+        {
+            string percent_done = (progress.Complete / progress.Total).ToString("00.0%");
+            return percent_done;
+        }
+
         static void HandleOSSIndexHttpException(Exception e)
         {
             if (e.GetType() == typeof(OSSIndexHttpException))
@@ -910,6 +939,7 @@ namespace DevAudit.CommandLine
 
         static void StartSpinner()
         {
+            PrintMessage(ConsoleMessageColors[EventMessageType.INFO], SpinnerText);
             if (!ProgramOptions.NonInteractive)
             {
                 Spinner = new Spinner(50);
@@ -924,8 +954,8 @@ namespace DevAudit.CommandLine
                 if (ReferenceEquals(null, Spinner)) throw new ArgumentNullException();
                 Spinner.Stop();
                 Spinner = null;
+                SpinnerText = string.Empty;
             }
-
         }
 
         static void UnPauseSpinner()
@@ -934,18 +964,23 @@ namespace DevAudit.CommandLine
             {
                 if (ReferenceEquals(null, Spinner)) throw new ArgumentNullException();
                 Console.SetCursorPosition(0, Console.CursorTop);
+                PrintMessage(ConsoleMessageColors[EventMessageType.INFO], SpinnerText);
                 Spinner.UnPause();
+            }
+            else
+            {
+                PrintMessage(ConsoleMessageColors[EventMessageType.INFO], SpinnerText);
             }
         }
 
-        static void PauseSpinner()
+        static void PauseSpinner(bool break_line = true)
         {
             if (!ProgramOptions.NonInteractive)
             {
                 if (ReferenceEquals(null, Spinner)) throw new ArgumentNullException();
                 SpinnerCursorLeft = Console.CursorLeft;
                 SpinnerCursorTop = Console.CursorTop;
-                Spinner.Pause();
+                Spinner.Pause(break_line);
             }
 
         }

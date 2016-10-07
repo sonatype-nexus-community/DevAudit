@@ -11,14 +11,20 @@ namespace DevAudit.CommandLine
     public class Spinner : IDisposable
     {
         //private const string Sequence = @"/-\|";
-        private const string Sequence = @"|/-\|/-\";
+        #region Private fields
+        private const string sequence = @"|/-\|/-\";
         private int counter = 0;
         private readonly int left;
         private readonly int top;
         private readonly int delay;
         private bool active;
         private readonly Thread thread;
-        public EventWaitHandle wh = new AutoResetEvent(true);
+        #endregion
+
+        #region Public fields
+        public readonly EventWaitHandle wh = new AutoResetEvent(true);
+        public string text;
+        #endregion
 
         public Spinner(int left, int top, int delay = 100)
         {
@@ -43,10 +49,10 @@ namespace DevAudit.CommandLine
             }
         }
 
-        public void Pause()
+        public void Pause(bool break_line = true)
         {
             Draw(' ');
-            if (Console.CursorLeft > 0)
+            if (Console.CursorLeft > 0 && break_line)
             {
                 Draw('\n');
             }
@@ -76,7 +82,7 @@ namespace DevAudit.CommandLine
                 Turn();
                 Thread.Sleep(delay);
             }
-            wh.Dispose();
+            wh.Dispose(); //Dispose of the wait handle right before the thread exits.
         }
 
         private void Draw(char c)
@@ -94,7 +100,8 @@ namespace DevAudit.CommandLine
 
         private void Turn()
         {
-            Draw(Sequence[++counter % Sequence.Length]);
+
+            Draw(sequence[++counter % sequence.Length]);
         }
 
         public void Dispose()
