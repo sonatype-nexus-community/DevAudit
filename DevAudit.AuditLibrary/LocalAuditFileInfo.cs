@@ -11,27 +11,7 @@ namespace DevAudit.AuditLibrary
 {
     public class LocalAuditFileInfo : AuditFileInfo
     {
-        public override string ReadAsText()
-        {
-            using (StreamReader s = new StreamReader(this.file.OpenRead()))
-            {
-                return s.ReadToEnd();
-            }
-        }
-
-        public override IFileInfo Create(string file_path)
-        {
-            return new LocalAuditFileInfo(this.LocalAuditEnvironment, file_path);
-        }
-
-        public FileInfo SysFile
-        {
-            get
-            {
-                return this.file;
-            }
-        }
-
+        #region Overriden properties
         public override IDirectoryInfo Directory
         {
             get
@@ -90,7 +70,49 @@ namespace DevAudit.AuditLibrary
         {
             return File.Exists(file_path);
         }
+        #endregion
 
+        #region Overriden methods
+        public override string ReadAsText()
+        {
+            using (StreamReader s = new StreamReader(this.file.OpenRead()))
+            {
+                return s.ReadToEnd();
+            }
+        }
+
+        public override byte[] ReadAsBinary()
+        {
+            using (FileStream s = this.file.Open(FileMode.Open, FileAccess.Read))
+            {
+                byte[] buffer = new byte[this.file.Length];
+                s.Read(buffer, 0, buffer.Length);
+                return buffer;
+            }
+        }
+
+        public override IFileInfo Create(string file_path)
+        {
+            return new LocalAuditFileInfo(this.LocalAuditEnvironment, file_path);
+        }
+
+        public override LocalAuditFileInfo GetAsLocalFile()
+        {
+            throw new NotSupportedException();
+        }
+        #endregion
+
+        #region Public properties
+        public FileInfo SysFile
+        {
+            get
+            {
+                return this.file;
+            }
+        }
+        #endregion
+
+        #region Constructors
         public LocalAuditFileInfo(LocalEnvironment env, string file_path) : base(env, file_path)
         {
             this.LocalAuditEnvironment = env;
@@ -101,6 +123,7 @@ namespace DevAudit.AuditLibrary
         {
             this.LocalAuditEnvironment = env;
         }
+        #endregion
 
         #region Protected fields
         private FileInfo file;

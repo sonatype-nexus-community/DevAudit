@@ -24,7 +24,10 @@ namespace DevAudit.AuditLibrary
         public abstract IFileInfo[] GetFiles(string searchPattern);
         public abstract Dictionary<AuditFileInfo, string> ReadFilesAsText(string searchPattern);
         public abstract Dictionary<AuditFileInfo, string> ReadFilesAsText(IEnumerable<AuditFileInfo> files);
+        //public abstract Dictionary<AuditFileInfo, byte[]> ReadFilesAsBinary(string searchPattern);
+        //public abstract Dictionary<AuditFileInfo, byte[]> ReadFilesAsBinary(IEnumerable<AuditFileInfo> files);
         public abstract IFileInfo[] GetFiles(string searchPattern, SearchOption searchOption);
+        public abstract Dictionary<AuditFileInfo, LocalAuditFileInfo> GetAsLocalDirectory();
         #endregion
 
         #region Constructors

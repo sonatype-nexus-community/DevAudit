@@ -10,7 +10,7 @@ namespace DevAudit.AuditLibrary
 {
     public class LocalAuditDirectoryInfo : AuditDirectoryInfo
     {
-        #region Overriden methods
+        #region Overriden properties
         public override string Name { get; protected set; }
         public override string FullName { get; protected set; }
         public override IDirectoryInfo Parent
@@ -36,12 +36,13 @@ namespace DevAudit.AuditLibrary
                 return this.directory.Exists;
             }
         }
+        #endregion
 
+        #region Overriden methods
         public override IDirectoryInfo[] GetDirectories()
         {
             DirectoryInfo[] dirs = this.directory.GetDirectories();
             return dirs != null ? dirs.Select(d => new LocalDirectoryInfo(d)).ToArray() : null;
-
         }
 
         public override IDirectoryInfo[] GetDirectories(string searchPattern)
@@ -85,10 +86,14 @@ namespace DevAudit.AuditLibrary
             return this.AuditEnvironment.ReadFilesAsText(
              this.GetFiles(searchPattern).Select(f => f as AuditFileInfo).ToList());
         }
-    
+
+        public override Dictionary<AuditFileInfo, LocalAuditFileInfo> GetAsLocalDirectory()
+        {
+            throw new NotSupportedException();
+        }
         #endregion
 
-            #region Constructors
+        #region Constructors
         public LocalAuditDirectoryInfo(LocalEnvironment env, string dir_path) : base(env, dir_path)
         {
             this.directory = new DirectoryInfo(dir_path);

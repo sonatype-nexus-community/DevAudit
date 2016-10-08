@@ -19,7 +19,7 @@ namespace DevAudit.AuditLibrary
         public string Id { get; protected set; }
         public string Label { get; protected set; }
         public Dictionary<string, object> AuditOptions { get; set; } = new Dictionary<string, object>();
-        public AuditEnvironment HostEnvironment { get; protected set; }
+        public LocalEnvironment HostEnvironment { get; protected set; }
         public AuditEnvironment AuditEnvironment { get; protected set; }
         public bool HostEnvironmentInitialised { get; private set; } = false;
         public bool AuditEnvironmentIntialised { get; private set; } = false;
@@ -49,7 +49,7 @@ namespace DevAudit.AuditLibrary
                 {
 
                     SshAuditEnvironment ssh_environment = new SshAuditEnvironment(this.HostEnvironmentMessageHandler, client, (string)this.AuditOptions["RemoteHost"],
-                        (string)this.AuditOptions["RemoteUser"], this.AuditOptions["RemotePass"], new OperatingSystem(PlatformID.Unix, new Version(0, 0)));
+                        (string)this.AuditOptions["RemoteUser"], this.AuditOptions["RemotePass"], new OperatingSystem(PlatformID.Unix, new Version(0, 0)), this.HostEnvironment);
                     if (ssh_environment.IsConnected)
                     {
                         this.AuditEnvironment = ssh_environment;

@@ -39,6 +39,8 @@ namespace DevAudit.CommandLine
 
         static ApplicationServer Server { get; set; }
 
+        static CodeProject CodeProject { get; set; }
+
         static Exception AuditLibraryException { get; set; }
 
         static Spinner Spinner { get; set; }
@@ -237,6 +239,11 @@ namespace DevAudit.CommandLine
                     else if (verb == "nginx")
                     {
                         Server = new NginxServer(audit_options, EnvironmentMessageHandler);
+                        Source = Server as PackageSource;
+                    }
+                    else if (verb == "netfx")
+                    {
+                        Server = new Net(audit_options, EnvironmentMessageHandler);
                         Source = Server as PackageSource;
                     }
                 }

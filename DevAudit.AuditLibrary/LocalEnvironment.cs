@@ -147,8 +147,8 @@ namespace DevAudit.AuditLibrary
         #endregion
 
         #region Constructors
-        public LocalEnvironment(EventHandler<EnvironmentEventArgs> message_handler) : base(message_handler, Environment.OSVersion) {}
-        public LocalEnvironment() : base(null, Environment.OSVersion) { }
+        public LocalEnvironment(EventHandler<EnvironmentEventArgs> message_handler) : base(message_handler, Environment.OSVersion, null) {}
+        public LocalEnvironment() : base(null, Environment.OSVersion, null) { }
         #endregion
     }
 }

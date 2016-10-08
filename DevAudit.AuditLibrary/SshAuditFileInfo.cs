@@ -153,6 +153,35 @@ namespace DevAudit.AuditLibrary
                 return string.Empty;
             }
         }
+
+        public override byte[] ReadAsBinary()
+        {
+            throw new NotImplementedException();
+        }
+
+        public override LocalAuditFileInfo GetAsLocalFile()
+        {
+            CallerInformation caller = this.AuditEnvironment.Here();
+            List<string> components = this.Directory.FullName.Split(this.AuditEnvironment.PathSeparator.ToCharArray(), StringSplitOptions.RemoveEmptyEntries).ToList() ;
+            components.RemoveAll(c => c.Contains(this.AuditEnvironment.PathSeparator) || c.Contains(":")); //Remove any drive or device parts
+            DirectoryInfo parent = this.AuditEnvironment.WorkDirectory;
+            if (components.Count > 1)
+            {
+                foreach (string c in components.Take(components.Count - 1))
+                {
+                    DirectoryInfo d = new DirectoryInfo(Path.Combine(parent.FullName, c));
+                    if (!d.Exists)
+                    {
+                        d.Create();
+                        this.AuditEnvironment.Debug(caller, "Created sub-directory {0} in work directory.", c);
+                        parent = d;
+                    }
+                }
+            }
+            LocalAuditFileInfo lf = new LocalAuditFileInfo(this.AuditEnvironment.HostEnvironment, this.SshAuditEnvironment.GetFileAsLocal(this.FullName,
+                this.CombinePaths(parent.FullName, this.FullName)));
+            return lf;
+        }
         #endregion
 
         #region Constructors

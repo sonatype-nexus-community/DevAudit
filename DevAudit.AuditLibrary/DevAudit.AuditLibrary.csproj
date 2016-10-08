@@ -84,6 +84,10 @@
       <HintPath>..\packages\Newtonsoft.Json.9.0.1\lib\net45\Newtonsoft.Json.dll</HintPath>
       <Private>True</Private>
     </Reference>
+    <Reference Include="SharpCompress, Version=0.13.1.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\SharpCompress.0.13.1\lib\net45\SharpCompress.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
     <Reference Include="Sprache, Version=2.0.0.51, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\Sprache.2.0.0.51\lib\portable-net4+netcore45+win8+wp8+sl5+MonoAndroid+Xamarin.iOS10+MonoTouch\Sprache.dll</HintPath>
       <Private>True</Private>
@@ -182,8 +186,12 @@
     <Compile Include="Applications\Drupal8Application.cs" />
     <Compile Include="Applications\DrupalModuleInfo.cs" />
     <Compile Include="AuditFileSystemInfo.cs" />
+    <Compile Include="AuditScpClient.cs" />
     <Compile Include="LocalAuditDirectoryInfo.cs" />
     <Compile Include="LocalAuditFileInfo.cs" />
+    <Compile Include="CodeProject.cs" />
+    <Compile Include="Projects\MVC5Project.cs" />
+    <Compile Include="Projects\NetFxProject.cs" />
     <Compile Include="SshAuditFileInfo.cs" />
     <Compile Include="SshAuditDirectoryInfo.cs" />
     <Compile Include="AuditEnvironment.cs" />

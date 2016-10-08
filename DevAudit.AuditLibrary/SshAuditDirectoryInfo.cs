@@ -173,7 +173,5 @@ namespace DevAudit.AuditLibrary
         #region Private fields
         private bool? _Exists;
         #endregion
-
-
     }
 }

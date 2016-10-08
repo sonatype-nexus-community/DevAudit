@@ -168,7 +168,6 @@ namespace DevAudit.AuditLibrary
         #region Constructors
         public Application(Dictionary<string, object> application_options, Dictionary<string, string[]> RequiredFileLocationPaths, Dictionary<string, string[]> RequiredDirectoryLocationPaths, EventHandler<EnvironmentEventArgs> message_handler = null) : base(application_options, message_handler)
         {
-            if (ReferenceEquals(application_options, null)) throw new ArgumentNullException("application_options");
             this.ApplicationOptions = application_options;
             if (!this.ApplicationOptions.ContainsKey("RootDirectory"))
             {

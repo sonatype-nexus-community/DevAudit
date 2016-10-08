@@ -22,8 +22,10 @@ namespace DevAudit.AuditLibrary
 
         #region Abstract methods
         public abstract string ReadAsText();
+        public abstract byte[] ReadAsBinary();
         public abstract bool PathExists(string file_path);
         public abstract IFileInfo Create(string file_path);
+        public abstract LocalAuditFileInfo GetAsLocalFile();
         #endregion
 
         #region Constructors

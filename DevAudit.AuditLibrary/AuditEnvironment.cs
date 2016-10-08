@@ -1,14 +1,17 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Runtime.CompilerServices;
 using System.Linq;
+using System.Security.AccessControl;
 using System.Text;
 using System.Threading.Tasks;
 
 using Alpheus.IO;
 namespace DevAudit.AuditLibrary
 {
+    #region Types
     public enum EventMessageType
     {
         SUCCESS = 0,
@@ -49,9 +52,11 @@ namespace DevAudit.AuditLibrary
             this.Time = time;
         }
     }
+    #endregion
 
     public abstract class AuditEnvironment : IDisposable
     {
+        #region Types
         public enum ProcessExecuteStatus
         {
             Unknown = -99,
@@ -59,6 +64,7 @@ namespace DevAudit.AuditLibrary
             Completed = 0,
             Error = 1
         }
+        #endregion
 
         #region Events
         public event EventHandler<EnvironmentEventArgs> MessageHandler;
@@ -144,11 +150,23 @@ namespace DevAudit.AuditLibrary
             }
         }
 
-        public OperatingSystem OS { get; protected set; }       
+        public OperatingSystem OS { get; protected set; } 
+
+        public LocalEnvironment HostEnvironment { get; protected set; }
+
+        public string Timestamp
+        {
+            get
+            {
+                return (DateTime.UtcNow.Subtract(new DateTime(1970, 1, 1))).TotalSeconds.ToString();
+            }
+        }
+        
+        public DirectoryInfo WorkDirectory { get; protected set; }     
         #endregion
 
         #region Constructors
-        public AuditEnvironment(EventHandler<EnvironmentEventArgs> message_handler, OperatingSystem os)
+        public AuditEnvironment(EventHandler<EnvironmentEventArgs> message_handler, OperatingSystem os, LocalEnvironment host_environment)
         {
             this.OS = os;
             if (OS.Platform == PlatformID.Win32NT)
@@ -162,6 +180,14 @@ namespace DevAudit.AuditLibrary
                 this.PathSeparator = "/";
             }
             this.MessageHandler = message_handler;
+            this.WorkDirectory = new DirectoryInfo("work" + this.PathSeparator + this.Timestamp);
+            if (!this.WorkDirectory.Exists)
+            {
+                this.WorkDirectory.Create();
+                Debug("Created work directory {0}.", this.WorkDirectory.FullName);
+            }
+            Info("Using work directory: {0}.", this.WorkDirectory.FullName);
+            this.HostEnvironment = host_environment;
         }
         #endregion
 
@@ -204,6 +230,11 @@ namespace DevAudit.AuditLibrary
                 new object[2] { e.Message, e.StackTrace }));
         }
 
+        internal void Error(CallerInformation caller, Exception e)
+        {
+            OnMessage(new EnvironmentEventArgs(caller, EventMessageType.ERROR, "Exception: {0} at {1}.",
+                new object[2] { e.Message, e.StackTrace }));
+        }
 
         internal void Success(string message_format, params object[] message)
         {

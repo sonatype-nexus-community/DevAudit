@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
@@ -18,18 +19,39 @@ namespace DevAudit.AuditLibrary
     public class SshAuditEnvironment : AuditEnvironment
     {
         #region Public methods
-        public string ByteArrayToHexString(byte[] Bytes)
+        public FileInfo GetFileAsLocal(string remote_path, string local_path)
         {
-            StringBuilder Result = new StringBuilder(Bytes.Length * 2);
-            string HexAlphabet = "0123456789ABCDEF";
-
-            foreach (byte B in Bytes)
+            CallerInformation here = this.Here();
+            ScpClient c = this.CreateScpClient();
+            if (c == null) return null;
+            try
             {
-                Result.Append(HexAlphabet[(int)(B >> 4)]);
-                Result.Append(HexAlphabet[(int)(B & 0xF)]);
+                FileInfo f = new FileInfo(local_path);
+                c.Download(remote_path, f);
+                Debug(here, "Downloaded remote file {0} to {1}.", remote_path, f.FullName);
+                return f;
             }
+            catch (Exception e)
+            {
+                Error("Exception thrown attempting to download file {0} from {1} to {2} via SCP.", remote_path, this.HostName, remote_path);
+                Error(here, e);
+                return null;
+            }
+            finally
+            {
+                this.DestroyScpClient(c);
+            }
+        }
 
-            return Result.ToString();
+        public DirectoryInfo GetDirectoryAsLocal(string remote_path, string local_path)
+        {
+            CallerInformation here = this.Here();
+            ScpClient c = this.CreateScpClient();
+            if (c == null) return null;
+            SshCommandSpawanble cs = new SshCommandSpawanble(this.SshClient.CreateCommand(string.Format("tar -czf _devaudit_{0}.tbz2 {1} && stat _devaudit_{0}.tbz2 || echo Failed", this.Timestamp, remote_path)));
+            ExpectNet.Session cmd_session = Expect.Spawn(cs, this.LineTerminator);
+            List<IResult> r = cmd_session.Expect.ContainsEither("Size", null, "Failed", null);
+            throw new NotImplementedException();
         }
 
         public string ToInsecureString(object o)
@@ -52,12 +74,13 @@ namespace DevAudit.AuditLibrary
 
         #region Public properties
         public string HostName { get; private set; }
+        public string User { get; private set; }
         public bool UsePageant { get; private set; }
         public bool UseSshAgent { get; private set; }
         public string HostKey { get; private set; }
         public bool IsConnected { get; private set; }
         public string LastEvent { get; set; }
-        public int NetwrokConnectTimeout { get; private set; } = 3000;
+        public int NetworkConnectTimeout { get; private set; } = 3000;
         #endregion
 
         #region Overriden properties
@@ -218,7 +241,7 @@ namespace DevAudit.AuditLibrary
         #endregion
 
         #region Constructors
-        public SshAuditEnvironment(EventHandler<EnvironmentEventArgs> message_handler, string client, string host_name, string user, object pass, OperatingSystem os) : base(message_handler, os)
+        public SshAuditEnvironment(EventHandler<EnvironmentEventArgs> message_handler, string client, string host_name, string user, object pass, OperatingSystem os, LocalEnvironment host_environment) : base(message_handler, os, host_environment)
         {
             if (client == "openssh")
             {
@@ -230,9 +253,94 @@ namespace DevAudit.AuditLibrary
             }
             else
             {
-                InitialiseSshSession(host_name, user, pass, os);
+                Info("Connecting to {0}...", host_name);
+                ConnectionInfo ci = new ConnectionInfo(host_name, user, new PasswordAuthenticationMethod(user, ToInsecureString(pass)));
+                SshClient = new SshClient(ci);
+                SshClient.ErrorOccurred += SshClient_ErrorOccurred;
+                SshClient.HostKeyReceived += SshClient_HostKeyReceived;
+                Stopwatch.Reset();
+                Stopwatch.Start();
+                try
+                {
+                    SshClient.Connect();
+                }
+                catch (SshConnectionException ce)
+                {
+                    Error("Connection error connecting to {0} : {1}", host_name, ce.Message);
+                    return;
+                }
+                catch (SshAuthenticationException ae)
+                {
+                    Error("Authentication error connecting to {0} : {1}", host_name, ae.Message);
+                    return;
+                }
+                catch (System.Net.Sockets.SocketException se)
+                {
+                    Error("Socket error connecting to {0} : {1}", host_name, se.Message);
+                    return;
+                }
+                finally
+                {
+                    Stopwatch.Stop();
+                }
+                this.IsConnected = true;
+                this.pass = pass;
+                Success("Connected to {0} in {1} ms.", host_name, Stopwatch.ElapsedMilliseconds);
             }
         }
+        #endregion
+
+        #region Internal methods
+        internal ScpClient CreateScpClient([CallerMemberName] string memberName = "", [CallerFilePath] string fileName = "", [CallerLineNumber] int lineNumber = 0)
+        {
+            CallerInformation caller = new CallerInformation(memberName, fileName, lineNumber);
+            ScpClient c = new ScpClient(this.HostName, this.User, ToInsecureString(pass));
+            Stopwatch sw = new Stopwatch();
+            try
+            {
+                sw.Start();
+                c.Connect();
+                
+                c.ErrorOccurred += ScpClient_ErrorOccurred;
+                c.Downloading += ScpClient_Downloading;
+                this.scp_clients.Add(c);
+            }
+            catch (SshConnectionException ce)
+            {
+                Error(caller, "Connection error connecting to {0} : {1}", this.HostName, ce.Message);
+                return null;
+            }
+            catch (SshAuthenticationException ae)
+            {
+                Error(caller, "Authentication error connecting to {0} : {1}", this.HostName, ae.Message);
+                return null;
+            }
+            catch (System.Net.Sockets.SocketException se)
+            {
+                Error(caller, "Socket error connecting to {0} : {1}", this.HostName, se.Message);
+                return null;
+            }
+            finally
+            {
+                sw.Stop();
+            }
+            Debug(caller, "Created SCP connection to {0} in {1} ms.", this.HostName, sw.ElapsedMilliseconds);
+            return c;
+        }
+
+        internal void DestroyScpClient(ScpClient c, [CallerMemberName] string memberName = "", [CallerFilePath] string fileName = "", [CallerLineNumber] int lineNumber = 0)
+        {
+            CallerInformation caller = new CallerInformation(memberName, fileName, lineNumber);
+            if (!scp_clients.Contains(c)) throw new ArgumentException("The ScpClient does not exist in the scp_clients dictionary.");
+            if (c.IsConnected) c.Disconnect();
+            c.ErrorOccurred -= ScpClient_ErrorOccurred;
+            c.Downloading -= ScpClient_Downloading;
+            c.Dispose();
+            scp_clients.Remove(c);
+            Debug(caller, "Destroyed SCP connection to {0}.", this.HostName);
+        }
+
+        
         #endregion
 
         #region Private methods
@@ -446,41 +554,17 @@ namespace DevAudit.AuditLibrary
             List<IResult> ok = SshSession.Expect.ContainsEither(string.Format("is known", host_name), HostKnown, "can't be established", HostNotKnown, 6000);
           
         }
-        private void InitialiseSshSession(string host_name, string user, object pass, OperatingSystem os)
+
+        private void ScpClient_Downloading(object sender, ScpDownloadEventArgs e)
         {
-            Info("Connecting to {0}...", host_name);
-            ConnectionInfo ci = new ConnectionInfo(host_name, user, new PasswordAuthenticationMethod(user, ToInsecureString(pass)));
-            SshClient = new SshClient(ci);
-            SshClient.ErrorOccurred += SshClient_ErrorOccurred;
-            SshClient.HostKeyReceived += SshClient_HostKeyReceived;
-            Stopwatch.Reset();
-            Stopwatch.Start();
-            try
-            {
-                SshClient.Connect();
-            }
-            catch (SshConnectionException ce)
-            {
-                Error("Connection error connecting to {0} : {1}", host_name, ce.Message);
-                return;
-            }
-            catch (SshAuthenticationException ae)
-            {
-                Error("Authentication error connecting to {0} : {1}", host_name, ae.Message);
-                return;
-            }
-            catch(System.Net.Sockets.SocketException se)
-            {
-                Error("Socket error connecting to {0} : {1}", host_name, se.Message);
-                return;
-            }
-            finally
-            {
-                Stopwatch.Stop();
-            }
-            this.IsConnected = true;
-            this.SshConnectionInfo = ci;
-            Success("Connected to {0} in {1} ms.", host_name, Stopwatch.ElapsedMilliseconds);
+            Debug("Scp client downloaded {0} of {1} bytes for file {2}.", e.Downloaded, e.Size, e.Filename);
+        }
+
+        private void ScpClient_ErrorOccurred(object sender, ExceptionEventArgs e)
+        {
+            ScpClient c = sender as ScpClient;
+            Error("Scp client threw an exception.");
+            Error(e.Exception);
         }
         #endregion
 
@@ -517,8 +601,9 @@ namespace DevAudit.AuditLibrary
 
         #region Private fields
         ExpectNet.Session SshSession { get; set; }
-        ConnectionInfo SshConnectionInfo;
         SshClient SshClient;
+        object pass;
+        List<ScpClient> scp_clients = new List<ScpClient>();
         Action<IResult> FileFound;
         Action<IResult> FileNotFound;
         Action<IResult> DirectoryFound;
