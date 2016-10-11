@@ -146,15 +146,59 @@ namespace DevAudit.AuditLibrary
             throw new NotImplementedException();
         }
 
+        public override AuditFileInfo GetFile(string file_path)
+        {
+            string o = this.EnvironmentExecute("find", string.Format("{0} -type f -name \"{1}\"", this.FullName, file_path));
+            if (!string.IsNullOrEmpty(o))
+            {
+                return this.AuditEnvironment.ConstructFile(o);
+            }
+            else
+            {
+                this.AuditEnvironment.Warning("Could not get file for path {0}.", this.CombinePaths(this.FullName, file_path));
+                return null;
+            }
+        }
+
         public override Dictionary<AuditFileInfo, string> ReadFilesAsText(IEnumerable<AuditFileInfo> files)
         {
             return this.SshAuditEnvironment.ReadFilesAsText(files.ToList());
+        }
+
+        public override async Task<Dictionary<AuditFileInfo, string>> ReadFilesAsTextAsync(IEnumerable<AuditFileInfo> files)
+        {
+            return await Task.Run(() => this.SshAuditEnvironment.ReadFilesAsText(files.ToList()));
         }
 
         public override Dictionary<AuditFileInfo, string> ReadFilesAsText(string searchPattern)
         {
             return this.SshAuditEnvironment.ReadFilesAsText(
                 this.GetFiles(searchPattern).Select(f => f as AuditFileInfo).ToList());
+        }
+
+        public override async Task<Dictionary<AuditFileInfo, string>> ReadFilesAsTextAsync(string searchPattern)
+        {
+            return await Task.Run(() => this.SshAuditEnvironment.ReadFilesAsText(this.GetFiles(searchPattern).Select(f => f as AuditFileInfo).ToList()));
+        }
+
+        public override LocalAuditDirectoryInfo GetAsLocalDirectory()
+        {
+            DirectoryInfo d = this.SshAuditEnvironment.GetDirectoryAsLocal(this.FullName, Path.Combine(this.AuditEnvironment.WorkDirectory.FullName, this.Name));
+            if (d != null)
+            {
+                return new LocalAuditDirectoryInfo(d);
+            }
+            else return null;
+        }
+
+        public override async Task<LocalAuditDirectoryInfo> GetAsLocalDirectoryAsync()
+        {
+            DirectoryInfo d = await Task.Run(() => this.SshAuditEnvironment.GetDirectoryAsLocal(this.FullName, Path.Combine(this.AuditEnvironment.WorkDirectory.FullName, this.Name)));
+            if (d != null)
+            {
+                return new LocalAuditDirectoryInfo(d);
+            }
+            else return null;
         }
 
         #endregion

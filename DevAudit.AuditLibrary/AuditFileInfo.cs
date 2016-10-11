@@ -26,6 +26,7 @@ namespace DevAudit.AuditLibrary
         public abstract bool PathExists(string file_path);
         public abstract IFileInfo Create(string file_path);
         public abstract LocalAuditFileInfo GetAsLocalFile();
+        public abstract Task<LocalAuditFileInfo> GetAsLocalFileAsync();
         #endregion
 
         #region Constructors

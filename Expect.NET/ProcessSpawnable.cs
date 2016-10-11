@@ -132,9 +132,10 @@ namespace ExpectNet
         /// Reads in synchronous way from both standard input and standard error streams. 
         /// </summary>
         /// <returns>text read from streams</returns>
-        public string Read(CancellationTokenSource cts)
+        public string Read(out bool complete)
         {
             var t = Task.Run(async () => { return await ReadAsync().ConfigureAwait(false); });
+            complete = false;
             return t.Result;
         }
 

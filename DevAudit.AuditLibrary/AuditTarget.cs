@@ -95,5 +95,8 @@ namespace DevAudit.AuditLibrary
         #region Internal properties
         internal Stopwatch Stopwatch { get; } = new Stopwatch();
         #endregion
+
+        #region Public methods
+        #endregion
     }
 }

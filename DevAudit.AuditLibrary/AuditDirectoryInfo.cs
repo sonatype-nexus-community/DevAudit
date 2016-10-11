@@ -22,12 +22,16 @@ namespace DevAudit.AuditLibrary
         public abstract IDirectoryInfo[] GetDirectories(string search_pattern, SearchOption search_option);
         public abstract IFileInfo[] GetFiles();
         public abstract IFileInfo[] GetFiles(string searchPattern);
+        public abstract AuditFileInfo GetFile(string file_path);
         public abstract Dictionary<AuditFileInfo, string> ReadFilesAsText(string searchPattern);
+        public abstract Task<Dictionary<AuditFileInfo, string>> ReadFilesAsTextAsync(string searchPattern);
         public abstract Dictionary<AuditFileInfo, string> ReadFilesAsText(IEnumerable<AuditFileInfo> files);
+        public abstract Task<Dictionary<AuditFileInfo, string>> ReadFilesAsTextAsync(IEnumerable<AuditFileInfo> files);
         //public abstract Dictionary<AuditFileInfo, byte[]> ReadFilesAsBinary(string searchPattern);
         //public abstract Dictionary<AuditFileInfo, byte[]> ReadFilesAsBinary(IEnumerable<AuditFileInfo> files);
         public abstract IFileInfo[] GetFiles(string searchPattern, SearchOption searchOption);
-        public abstract Dictionary<AuditFileInfo, LocalAuditFileInfo> GetAsLocalDirectory();
+        public abstract LocalAuditDirectoryInfo GetAsLocalDirectory();
+        public abstract Task<LocalAuditDirectoryInfo> GetAsLocalDirectoryAsync();
         #endregion
 
         #region Constructors

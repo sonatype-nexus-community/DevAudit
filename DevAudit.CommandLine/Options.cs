@@ -62,7 +62,7 @@ namespace DevAudit.CommandLine
         [Option('n', "non-interact", Required = false, HelpText = "Disable any interctive console output (for redirecting console output to other devices.)")]
         public bool NonInteractive { get; set; }
 
-        [Option('f', "file", Required = false, HelpText = "Specifies the file containing packages to be audited.")]
+        [Option('f', "file", Required = false, HelpText = "For a package source, specifies the file containing packages to be audited. For a code project, specifies the code project file.")]
         public string File { get; set; }
 
         [Option('s', "host", Required = false, HelpText = "Specifies the remote host that will be audited.")]
@@ -115,6 +115,9 @@ namespace DevAudit.CommandLine
 
         [Option("list-rules", Required = false, HelpText = "Only list the configuration rules for the application or application server found on OSS Index.")]
         public bool ListRules { get; set; }
+
+        [Option("code-project", Required = false, HelpText = "The name of the code project to audit.")]
+        public string CodeProjectName { get; set; }
 
         [Option("cache", Required = false, HelpText = "Cache results from querying OSS Index. Projects and vulnerabilities will be cached by default for 180 minutes or the duration specified by the --cache-ttl parameter.")]
         public bool Cache { get; set; }

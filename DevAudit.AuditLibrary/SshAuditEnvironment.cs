@@ -22,14 +22,18 @@ namespace DevAudit.AuditLibrary
         public FileInfo GetFileAsLocal(string remote_path, string local_path)
         {
             CallerInformation here = this.Here();
+            Stopwatch sw = new Stopwatch();
             ScpClient c = this.CreateScpClient();
+            c.BufferSize = 16 * 16384;
             if (c == null) return null;
             try
             {
-                FileInfo f = new FileInfo(local_path);
+                FileInfo f = new FileInfo(local_path);            
                 c.Download(remote_path, f);
-                Debug(here, "Downloaded remote file {0} to {1}.", remote_path, f.FullName);
+                sw.Stop();
+                Debug(here, "Downloaded remote file {0} to {1} via SCP in {2} ms.", remote_path, f.FullName, sw.ElapsedMilliseconds);
                 return f;
+               
             }
             catch (Exception e)
             {
@@ -40,17 +44,41 @@ namespace DevAudit.AuditLibrary
             finally
             {
                 this.DestroyScpClient(c);
+                if (sw.IsRunning) sw.Stop();
             }
         }
 
         public DirectoryInfo GetDirectoryAsLocal(string remote_path, string local_path)
         {
             CallerInformation here = this.Here();
-            ScpClient c = this.CreateScpClient();
-            if (c == null) return null;
-            SshCommandSpawanble cs = new SshCommandSpawanble(this.SshClient.CreateCommand(string.Format("tar -czf _devaudit_{0}.tbz2 {1} && stat _devaudit_{0}.tbz2 || echo Failed", this.Timestamp, remote_path)));
+            Stopwatch sw = new Stopwatch();
+            sw.Start();
+            string dir_archive_filename = string.Format("_devaudit_{0}.tbz2", this.GetTimestamp());
+            SshCommandSpawanble cs = new SshCommandSpawanble(this.SshClient.CreateCommand(string.Format("tar -czf {0} {1} && stat {0} || echo Failed", dir_archive_filename, remote_path)));
             ExpectNet.Session cmd_session = Expect.Spawn(cs, this.LineTerminator);
-            List<IResult> r = cmd_session.Expect.ContainsEither("Size", null, "Failed", null);
+            List<IResult> r = cmd_session.Expect.RegexEither("Size:\\s+([0-9]+)", null, "Failed", null);
+            sw.Stop();
+            long dir_archive_size;
+            cs.Dispose();
+            if (r[0].IsMatch)
+            {
+                Match m = r[0].Result as Match;
+                dir_archive_size = long.Parse(m.Groups[1].Value);
+                Debug(here, "Archive file {0} created with size {1} bytes in {2} ms.", dir_archive_filename, dir_archive_size, sw.ElapsedMilliseconds);
+            }
+            else
+            {
+                Error(here, "Archive file {0} could not be created, command output: {1}", dir_archive_filename, r[1].Text);
+                return null;
+            }
+            sw.Reset();
+            sw.Start();
+            SshAuditFileInfo dir_archive_file = new SshAuditFileInfo(this, dir_archive_filename);
+            LocalAuditFileInfo lf = dir_archive_file.GetAsLocalFile();
+            sw.Stop();
+            Info("Downloaded archive file {0} in {1} ms.", dir_archive_file.FullName, sw.ElapsedMilliseconds);
+            //c.BufferSize = 16 * 6384;
+            //c.Download(dir)
             throw new NotImplementedException();
         }
 
@@ -284,8 +312,17 @@ namespace DevAudit.AuditLibrary
                     Stopwatch.Stop();
                 }
                 this.IsConnected = true;
+                this.User = user;
+                this.HostName = host_name;
                 this.pass = pass;
                 Success("Connected to {0} in {1} ms.", host_name, Stopwatch.ElapsedMilliseconds);
+                this.WorkDirectory = new DirectoryInfo("work" + this.PathSeparator + this.GetTimestamp());
+                if (!this.WorkDirectory.Exists)
+                {
+                    this.WorkDirectory.Create();
+                    Debug("Created work directory {0}.", this.WorkDirectory.FullName);
+                }
+                Info("Using work directory: {0}.", this.WorkDirectory.FullName);
             }
         }
         #endregion
@@ -294,7 +331,7 @@ namespace DevAudit.AuditLibrary
         internal ScpClient CreateScpClient([CallerMemberName] string memberName = "", [CallerFilePath] string fileName = "", [CallerLineNumber] int lineNumber = 0)
         {
             CallerInformation caller = new CallerInformation(memberName, fileName, lineNumber);
-            ScpClient c = new ScpClient(this.HostName, this.User, ToInsecureString(pass));
+            ScpClient c = new ScpClient(this.HostName, this.User, ToInsecureString(this.pass));
             Stopwatch sw = new Stopwatch();
             try
             {

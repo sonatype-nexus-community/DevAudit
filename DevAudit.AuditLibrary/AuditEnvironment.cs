@@ -153,16 +153,16 @@ namespace DevAudit.AuditLibrary
         public OperatingSystem OS { get; protected set; } 
 
         public LocalEnvironment HostEnvironment { get; protected set; }
+    
+        public DirectoryInfo WorkDirectory { get; protected set; }
+        #endregion
 
-        public string Timestamp
+        #region Public methods
+        public string GetTimestamp ()
         {
-            get
-            {
-                return (DateTime.UtcNow.Subtract(new DateTime(1970, 1, 1))).TotalSeconds.ToString();
-            }
+            return (DateTime.UtcNow.Subtract(new DateTime(1970, 1, 1))).TotalSeconds.ToString();
         }
-        
-        public DirectoryInfo WorkDirectory { get; protected set; }     
+
         #endregion
 
         #region Constructors
@@ -180,13 +180,6 @@ namespace DevAudit.AuditLibrary
                 this.PathSeparator = "/";
             }
             this.MessageHandler = message_handler;
-            this.WorkDirectory = new DirectoryInfo("work" + this.PathSeparator + this.Timestamp);
-            if (!this.WorkDirectory.Exists)
-            {
-                this.WorkDirectory.Create();
-                Debug("Created work directory {0}.", this.WorkDirectory.FullName);
-            }
-            Info("Using work directory: {0}.", this.WorkDirectory.FullName);
             this.HostEnvironment = host_environment;
         }
         #endregion
@@ -232,8 +225,7 @@ namespace DevAudit.AuditLibrary
 
         internal void Error(CallerInformation caller, Exception e)
         {
-            OnMessage(new EnvironmentEventArgs(caller, EventMessageType.ERROR, "Exception: {0} at {1}.",
-                new object[2] { e.Message, e.StackTrace }));
+            OnMessage(new EnvironmentEventArgs(caller, e));
         }
 
         internal void Success(string message_format, params object[] message)

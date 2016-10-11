@@ -13,7 +13,7 @@ namespace ExpectNet
 
         void Write(string command);
 
-        string Read(CancellationTokenSource cts);
+        string Read(out bool complete);
 
         Task<string> ReadAsync();
     }

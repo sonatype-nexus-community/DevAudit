@@ -49,7 +49,6 @@ namespace DevAudit.AuditLibrary
                     }
                 }
                 return this._Length.HasValue ? this._Length.Value : -1;
-               
             }
         }
 
@@ -178,9 +177,20 @@ namespace DevAudit.AuditLibrary
                     }
                 }
             }
-            LocalAuditFileInfo lf = new LocalAuditFileInfo(this.AuditEnvironment.HostEnvironment, this.SshAuditEnvironment.GetFileAsLocal(this.FullName,
-                this.CombinePaths(parent.FullName, this.FullName)));
-            return lf;
+            FileInfo lf = this.SshAuditEnvironment.GetFileAsLocal(this.FullName, this.CombinePaths(parent.FullName, this.FullName));
+            if (lf != null)
+            {
+                return new LocalAuditFileInfo(this.AuditEnvironment.HostEnvironment, lf);
+            }
+            else
+            {
+                return null;
+            }
+        }
+
+        public override async Task<LocalAuditFileInfo> GetAsLocalFileAsync()
+        {
+            return await Task.Run(() => this.GetAsLocalFile());
         }
         #endregion
 

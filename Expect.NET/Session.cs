@@ -50,9 +50,10 @@ namespace ExpectNet
             StringBuilder matchOutputBuilder = new StringBuilder();
             Task task = Task.Run(() =>
             {
-                while (!ct.IsCancellationRequested && !matcher.IsMatch)
+                bool completed = false;
+                while (!ct.IsCancellationRequested && !matcher.IsMatch && !completed)
                 {
-                    matchOutputBuilder.Append(_spawnable.Read(tokenSource));
+                    matchOutputBuilder.Append(_spawnable.Read(out completed));
                     matcher.Execute(matchOutputBuilder.ToString());
                     
                 }
@@ -104,9 +105,10 @@ namespace ExpectNet
             StringBuilder matchOutputBuilder = new StringBuilder(1000);
             Task task = Task.Run(() =>
             {
-                while (!ct.IsCancellationRequested && !result.IsMatch)
+                bool completed = false;
+                while (!ct.IsCancellationRequested && !result.IsMatch && !completed)
                 {
-                    matchOutputBuilder.Append(_spawnable.Read(tokenSource));
+                    matchOutputBuilder.Append(_spawnable.Read(out completed));
                     matcher.Execute(matchOutputBuilder.ToString());
                 }
             }, ct);
@@ -149,9 +151,10 @@ namespace ExpectNet
             StringBuilder matchOutputBuilder = new StringBuilder(1000);
             Task task = Task.Run(() =>
             {
-                while (!ct.IsCancellationRequested && !results.Any(r => r.Item1.IsMatch))
+                bool completed = false;
+                while (!ct.IsCancellationRequested && !results.Any(r => r.Item1.IsMatch) && !completed)
                 {
-                    matchOutputBuilder.Append(_spawnable.Read(tokenSource));
+                    matchOutputBuilder.Append(_spawnable.Read(out completed));
                     foreach (Tuple<IResult, Action<IResult>> r in results)
                     {
                         IMatch m = r.Item1 as IMatch;
@@ -210,9 +213,10 @@ namespace ExpectNet
             StringBuilder matchOutputBuilder = new StringBuilder();
             Task task = Task.Run(() =>
             {
-                while (!ct.IsCancellationRequested && !matcher.IsMatch)
+                bool completed = false;
+                while (!ct.IsCancellationRequested && !matcher.IsMatch && !completed)
                 {
-                    matchOutputBuilder.Append(_spawnable.Read(tokenSource));
+                    matchOutputBuilder.Append(_spawnable.Read(out completed));
                     matcher.Execute(matchOutputBuilder.ToString());
                 }
             }, ct);
@@ -249,7 +253,7 @@ namespace ExpectNet
             Task completed = await Task.WhenAny(tasks).ConfigureAwait(false);
             if (completed == readTask)
             {
-                string output = _spawnable.Read(tokenSource);
+                string output = readTask.Result;
                 OutputBuilder.Append(output);
                 matchOutputBuilder.Append(output);
                 matcher.Execute(matchOutputBuilder.ToString());

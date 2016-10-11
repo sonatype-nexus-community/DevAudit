@@ -57,9 +57,11 @@ namespace Renci.SshNet
         /// Wait till command has completed executing then return the output 
         /// </summary>
         /// <returns>text read from streams</returns>
-        public string Read(CancellationTokenSource cts = null)
+        public string Read(out bool completed)
         {
-            return this.command.EndExecute(command_result);
+            string r = this.command.EndExecute(command_result);
+            completed = this.command_result.IsCompleted;
+            return r;
         }
 
         #region Disposer

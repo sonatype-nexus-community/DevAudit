@@ -316,8 +316,9 @@ namespace DevAudit.AuditLibrary
 
                 return "@" + Path.Combine(paths);
             }
-                
+
         }
+
 
         public Dictionary<OSSIndexProjectConfigurationRule, Tuple<bool, List<string>, string>> EvaluateProjectConfigurationRules(IEnumerable<OSSIndexProjectConfigurationRule> rules)
         {

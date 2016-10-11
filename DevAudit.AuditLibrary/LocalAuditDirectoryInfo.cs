@@ -81,19 +81,44 @@ namespace DevAudit.AuditLibrary
             return this.AuditEnvironment.ReadFilesAsText(files.ToList());
         }
 
+        public override Task<Dictionary<AuditFileInfo, string>> ReadFilesAsTextAsync(IEnumerable<AuditFileInfo> files)
+        {
+            throw new NotImplementedException();
+        }
+
         public override Dictionary<AuditFileInfo, string> ReadFilesAsText(string searchPattern)
         {
             return this.AuditEnvironment.ReadFilesAsText(
              this.GetFiles(searchPattern).Select(f => f as AuditFileInfo).ToList());
         }
 
-        public override Dictionary<AuditFileInfo, LocalAuditFileInfo> GetAsLocalDirectory()
+        public override Task<Dictionary<AuditFileInfo, string>> ReadFilesAsTextAsync(string searchPattern)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override LocalAuditDirectoryInfo GetAsLocalDirectory()
+        {
+            return this;
+        }
+
+        public override Task<LocalAuditDirectoryInfo> GetAsLocalDirectoryAsync()
+        {
+            return Task.FromResult(this);
+        }
+
+        public override AuditFileInfo GetFile(string file_path)
         {
             throw new NotSupportedException();
         }
+
+        public DirectoryInfo GetAsSysDirectoryInfo()
+        {
+            return this.directory;
+        }
         #endregion
 
-        #region Constructors
+            #region Constructors
         public LocalAuditDirectoryInfo(LocalEnvironment env, string dir_path) : base(env, dir_path)
         {
             this.directory = new DirectoryInfo(dir_path);

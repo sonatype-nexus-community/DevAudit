@@ -28,7 +28,8 @@ namespace DevAudit.CommandLine
             ERROR_SEARCHING_OSS_INDEX,
             ERROR_SCANNING_SERVER_VERSION,
             ERROR_SCANNING_SERVER_CONFIGURATION,
-            ERROR_EVALUATING_CONFIGURATION_RULES
+            ERROR_EVALUATING_CONFIGURATION_RULES,
+            ERROR_SCANNING_PROJECT_WORKSPACE
         }
 
         static CC.Figlet FigletFont = new CC.Figlet(CC.FigletFont.Load("chunky.flf"));
@@ -178,6 +179,11 @@ namespace DevAudit.CommandLine
             {
                 audit_options.Add("ApplicationBinary", ProgramOptions.ApplicationBinary);
             }
+
+            if (!string.IsNullOrEmpty(ProgramOptions.CodeProjectName))
+            {
+                audit_options.Add("CodeProjectName", ProgramOptions.CodeProjectName);
+            }
             #endregion
 
             #region Handle command line verbs
@@ -243,8 +249,7 @@ namespace DevAudit.CommandLine
                     }
                     else if (verb == "netfx")
                     {
-                        Server = new Net(audit_options, EnvironmentMessageHandler);
-                        Source = Server as PackageSource;
+                        CodeProject = new NetFxProject(audit_options, EnvironmentMessageHandler);
                     }
                 }
                 catch (ArgumentException ae)
@@ -259,7 +264,7 @@ namespace DevAudit.CommandLine
                 }
             });
 
-            if (Source == null && Server == null)
+            if (Source == null && Server == null && CodeProject == null)
             {
                 if (AuditLibraryException == null)
                 {
@@ -277,28 +282,35 @@ namespace DevAudit.CommandLine
 
             PrintBanner();
             Console.CursorVisible = false;
+            ExitCodes exit = ExitCodes.ERROR_CREATING_AUDIT_TARGET;
             if (Server != null) //Auditing an application server
             {
-                ExitCodes exit;
                 AuditServer(out exit);
                 if (Server != null)
                 {
                     Server.Dispose();
                 }
-                Console.CursorVisible = true;
-                return (int) exit;
             }
-            else
+            else if (Source != null) //Auditing a package source
             {
-                ExitCodes exit;
                 AuditPackageSource(out exit);
                 if (Source != null)
                 {
                     Source.Dispose();
                 }
-                Console.CursorVisible = true;
-                return (int)exit;
             }
+            else if (CodeProject != null)
+            {
+                AuditCodeProject(out exit);
+                if (CodeProject != null)
+                {
+                    CodeProject.Dispose();
+                }
+
+            }
+            Console.CursorVisible = true;
+            return (int) exit;
+
         }
 
         #region Static methods
@@ -748,6 +760,17 @@ namespace DevAudit.CommandLine
             return;
         }
 
+        static void AuditCodeProject(out ExitCodes exit)
+        {
+            exit = ExitCodes.ERROR_SCANNING_PROJECT_WORKSPACE;
+            CodeProject.AuditResult audit_result = CodeProject.Audit().Result;
+            if (audit_result == CodeProject.AuditResult.ERROR_SCANNING_WORKSPACE)
+            {
+                PrintErrorMessage("There was an error scanning the code project workspace.");
+                return;
+            }
+        }
+
         static void EnvironmentMessageHandler(object sender, EnvironmentEventArgs e)
         {
             if (e.MessageType == EventMessageType.DEBUG && !ProgramOptions.EnableDebug)
@@ -786,6 +809,10 @@ namespace DevAudit.CommandLine
                     PauseSpinner();
                 }
                 PrintMessageLine(ConsoleMessageColors[e.MessageType], "{0:HH:mm:ss} [{1}] [{2}] {3}", e.DateTime, e.EnvironmentLocation, e.MessageType.ToString(), e.Message);
+                if (e.MessageType == EventMessageType.ERROR && e.Exception != null)
+                {
+                    PrintErrorMessage(e.Exception);
+                }
             }
 
             if (e.Caller.HasValue && ProgramOptions.EnableDebug)

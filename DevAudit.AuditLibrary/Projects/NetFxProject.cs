@@ -1,8 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.MSBuild;
 
 namespace DevAudit.AuditLibrary
 {
@@ -13,17 +17,139 @@ namespace DevAudit.AuditLibrary
         public override string CodeProjectId { get { return "netfx"; } }
 
         public override string CodeProjectLabel { get { return ".NET Framework"; } }
+        #endregion
 
-        public override string PackageManagerId { get { return ""; } }
+        #region Overriden methods
+        public override async Task<bool> GetWorkspace()
+        {
+            CallerInformation here = this.AuditEnvironment.Here();
+            if (this.CodeProjectOptions.ContainsKey("CodeProjectName"))
+            {
 
-        public override string PackageManagerLabel { get { return "Drupal"; } }
+                string fn_1 = this.CombinePath(this.RootDirectory.FullName, (string)this.CodeProjectOptions["CodeProjectName"], (string)this.CodeProjectOptions["CodeProjectName"]); //CodeProjectName/CodeProjectName.xxx
+                AuditFileInfo wf_11 = this.AuditEnvironment.ConstructFile(fn_1 + ".csproj");
+                AuditFileInfo wf_12 = this.AuditEnvironment.ConstructFile(fn_1 + ".xproj");
+                if (wf_11.Exists)
+                {
+                    this.WorkspaceFilePath = Path.Combine((string)this.CodeProjectOptions["CodeProjectName"], (string)this.CodeProjectOptions["CodeProjectName"]) + ".csproj";
+                }
+                else if (wf_12.Exists)
+                {
+                    this.WorkspaceFilePath = Path.Combine((string)this.CodeProjectOptions["CodeProjectName"], (string)this.CodeProjectOptions["CodeProjectName"]) + ".xproj";
+                }
+                else
+                {
+                    this.AuditEnvironment.Error(here, "Could not find the project file at {0} or {1}.", wf_11.FullName, wf_12.FullName);
+                    return false;
+                }
 
-        public override OSSIndexHttpClient HttpClient { get; } = new OSSIndexHttpClient("1.1");
+            }
+         
+            if (this.AuditEnvironment is LocalEnvironment)
+            {
+                this.AuditEnvironment.Status("Using local directory {0} for code analysis.", this.RootDirectory.FullName);
+
+            }
+            else
+            {
+                this.AuditEnvironment.Status("Downloading {0} as local directory for code analysis.", this.RootDirectory.FullName);
+
+            }
+            DirectoryInfo d = await Task.Run(() => this.RootDirectory.GetAsLocalDirectory()?.GetAsSysDirectoryInfo());
+            if (d == null)
+            {
+                this.AuditEnvironment.Error(here, "Could not get {0} as local directory.", this.RootDirectory);
+                return false;
+            }
+            FileInfo wf = d.GetFiles(this.WorkspaceFilePath)?.First();
+            if (wf == null)
+            {
+                this.AuditEnvironment.Error(here, "Could not find local workspace file {0} in local directory {1}.", wf.Name,
+                    d.FullName);
+                return false;
+            }
+            this.MSBuildWorkspace = MSBuildWorkspace.Create();
+            try
+            {
+                Project p = this.MSBuildWorkspace.OpenProjectAsync(wf.FullName).Result;
+                this.Compilation = await p.GetCompilationAsync();
+                this.WorkSpace = this.Compilation;
+                this.HostEnvironment.Info("The compiled assembly name is {0}", this.Compilation.AssemblyName);
+                return true;
+            }
+            catch (Exception e)
+            {
+                this.HostEnvironment.Error(here, e);
+                this.MSBuildWorkspace.Dispose();
+                return false;
+            }
+        }
+
+        protected override void Dispose(bool isDisposing)
+        {
+            base.Dispose(isDisposing);
+            // TODO If you need thread safety, use a lock around these 
+            // operations, as well as in your methods that use the resource. 
+            try
+            {
+                if (!this.IsDisposed)
+                {
+                    // Explicitly set root references to null to expressly tell the GarbageCollector 
+                    // that the resources have been disposed of and its ok to release the memory 
+                    // allocated for them.
+                    this.Compilation = null;
+                     
+                    if (isDisposing)
+                    {
+                        // Release all managed resources here 
+                        // Need to unregister/detach yourself from the events. Always make sure 
+                        // the object is not null first before trying to unregister/detach them! 
+                        // Failure to unregister can be a BIG source of memory leaks 
+                        //if (someDisposableObjectWithAnEventHandler != null)
+                        //{ someDisposableObjectWithAnEventHandler.SomeEvent -= someDelegate; 
+                        //someDisposableObjectWithAnEventHandler.Dispose(); 
+                        //someDisposableObjectWithAnEventHandler = null; } 
+                        // If this is a WinForm/UI control, uncomment this code 
+                        //if (components != null) //{ // components.Dispose(); //} } 
+                        // Release all unmanaged resources here 
+                        // (example) if (someComObject != null && Marshal.IsComObject(someComObject)) { Marshal.FinalReleaseComObject(someComObject); someComObject = null; 
+                        if (this.MSBuildWorkspace != null)
+                        {
+                            this.MSBuildWorkspace.Dispose();
+                            this.MSBuildWorkspace = null;
+                        }
+                    }
+                }
+            }
+            finally
+            {
+                this.IsDisposed = true;
+            }
+        
+        }
+        #endregion
+
+        #region Public properties
+        public MSBuildWorkspace MSBuildWorkspace { get; protected set; }
+        public Compilation Compilation { get; protected set; }
         #endregion
 
         #region Constructors
-        public NetFxProject(Dictionary<string, object> project_options, EventHandler<EnvironmentEventArgs> message_handler) : base(project_options, message_handler) { }
+        public NetFxProject(Dictionary<string, object> project_options, EventHandler<EnvironmentEventArgs> message_handler) : base(project_options, message_handler)
+        {
+            if (!string.IsNullOrEmpty(this.WorkspaceFilePath))
+            {
+                if (!(this.WorkspaceFilePath.EndsWith(".csproj") || this.WorkspaceFilePath.EndsWith(".xproj")))
+                {
+                    throw new ArgumentException("Only .csproj ot .xproj projects are supported for this audit target.");
+                }
+            }
+        }
+        #endregion
+
+        #region Private fields
+        bool IsDisposed = false;
         #endregion
     }
-    
+
 }

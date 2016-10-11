@@ -100,6 +100,11 @@ namespace DevAudit.AuditLibrary
         {
             throw new NotSupportedException();
         }
+
+        public override Task<LocalAuditFileInfo> GetAsLocalFileAsync()
+        {
+            throw new NotImplementedException();
+        }
         #endregion
 
         #region Public properties

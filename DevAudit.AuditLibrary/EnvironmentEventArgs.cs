@@ -12,6 +12,7 @@ namespace DevAudit.AuditLibrary
         public string Message { get; protected set; }
         public DateTime DateTime { get; protected set; } = DateTime.UtcNow;
         public CallerInformation? Caller { get; protected set; }
+        public Exception Exception { get; protected set; }
         public OperationProgress? Progress { get; protected set; }
         public string EnvironmentLocation { get; internal set; }
 
@@ -32,6 +33,14 @@ namespace DevAudit.AuditLibrary
             this.Caller = caller;
             this.MessageType = message_type;
             this.Message = string.Format(message_format, m);
+        }
+
+        public EnvironmentEventArgs(CallerInformation caller, Exception e)
+        {
+            this.Caller = caller;
+            this.MessageType = EventMessageType.ERROR;
+            this.Message = string.Format("Exception occurred.");
+            this.Exception = e;
         }
         public EnvironmentEventArgs(OperationProgress p)
         {
