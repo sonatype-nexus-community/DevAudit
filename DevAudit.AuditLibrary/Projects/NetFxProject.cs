@@ -6,6 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.MSBuild;
 
 namespace DevAudit.AuditLibrary
@@ -47,20 +48,25 @@ namespace DevAudit.AuditLibrary
          
             if (this.AuditEnvironment is LocalEnvironment)
             {
-                this.AuditEnvironment.Status("Using local directory {0} for code analysis.", this.RootDirectory.FullName);
-
+                this.HostEnvironment.Status("Using local directory {0} for code analysis.", this.RootDirectory.FullName);
             }
             else
             {
-                this.AuditEnvironment.Status("Downloading {0} as local directory for code analysis.", this.RootDirectory.FullName);
-
+                this.HostEnvironment.Status("Downloading {0} as local directory for code analysis.", this.RootDirectory.FullName);
             }
-            DirectoryInfo d = await Task.Run(() => this.RootDirectory.GetAsLocalDirectory()?.GetAsSysDirectoryInfo());
-            if (d == null)
+            this.WorkspaceDirectory = await Task.Run(() => this.RootDirectory.GetAsLocalDirectory());
+            if (this.WorkspaceDirectory == null && !(this.AuditEnvironment is LocalEnvironment))
             {
-                this.AuditEnvironment.Error(here, "Could not get {0} as local directory.", this.RootDirectory);
+                this.HostEnvironment.Error(here, "Could not download {0} as local directory.", this.WorkspaceDirectory);
                 return false;
             }
+            else if (this.WorkspaceDirectory == null)
+            {
+                this.HostEnvironment.Error(here, "Could not get {0} as local directory.", this.WorkspaceDirectory);
+                return false;
+            }
+            this.HostEnvironment.Success("Using {0} as workspace directory for code analysis.", this.WorkspaceDirectory.FullName);
+            DirectoryInfo d = this.WorkspaceDirectory.GetAsSysDirectoryInfo();
             FileInfo wf = d.GetFiles(this.WorkspaceFilePath)?.First();
             if (wf == null)
             {
@@ -68,19 +74,23 @@ namespace DevAudit.AuditLibrary
                     d.FullName);
                 return false;
             }
+            this.HostEnvironment.Status("Compiling project file {0}.", wf.FullName);
             this.MSBuildWorkspace = MSBuildWorkspace.Create();
+            this.Stopwatch.Start();
             try
             {
                 Project p = this.MSBuildWorkspace.OpenProjectAsync(wf.FullName).Result;
                 this.Compilation = await p.GetCompilationAsync();
+                this.Stopwatch.Stop();
                 this.WorkSpace = this.Compilation;
-                this.HostEnvironment.Info("The compiled assembly name is {0}", this.Compilation.AssemblyName);
+                this.HostEnvironment.Success("Roslyn compiled {2} files in project {0} in {1}.", p.Name, this.Stopwatch.ElapsedMilliseconds, this.Compilation.SyntaxTrees.Count());
                 return true;
             }
             catch (Exception e)
             {
                 this.HostEnvironment.Error(here, e);
                 this.MSBuildWorkspace.Dispose();
+                d.Delete();
                 return false;
             }
         }
@@ -98,7 +108,6 @@ namespace DevAudit.AuditLibrary
                     // that the resources have been disposed of and its ok to release the memory 
                     // allocated for them.
                     this.Compilation = null;
-                     
                     if (isDisposing)
                     {
                         // Release all managed resources here 
@@ -137,6 +146,8 @@ namespace DevAudit.AuditLibrary
         #region Constructors
         public NetFxProject(Dictionary<string, object> project_options, EventHandler<EnvironmentEventArgs> message_handler) : base(project_options, message_handler)
         {
+            //Ensure CSharp assembly gets pulled into build.
+            var _ = typeof(Microsoft.CodeAnalysis.CSharp.Formatting.CSharpFormattingOptions); 
             if (!string.IsNullOrEmpty(this.WorkspaceFilePath))
             {
                 if (!(this.WorkspaceFilePath.EndsWith(".csproj") || this.WorkspaceFilePath.EndsWith(".xproj")))

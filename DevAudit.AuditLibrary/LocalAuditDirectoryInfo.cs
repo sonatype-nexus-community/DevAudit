@@ -118,15 +118,20 @@ namespace DevAudit.AuditLibrary
         }
         #endregion
 
-            #region Constructors
+        #region Constructors
         public LocalAuditDirectoryInfo(LocalEnvironment env, string dir_path) : base(env, dir_path)
         {
+            if (string.IsNullOrEmpty(dir_path))
+            {
+                throw new ArgumentException("Value cannot be null.", "dir_path");
+            }
             this.directory = new DirectoryInfo(dir_path);
+            this.Name = this.directory.Name;
+            this.FullName = this.directory.FullName;
         }
 
-        public LocalAuditDirectoryInfo(DirectoryInfo dir) : base(new LocalEnvironment(), dir?.FullName)
+        public LocalAuditDirectoryInfo(DirectoryInfo dir) : this(new LocalEnvironment(), dir?.FullName)
         {
-            this.directory = dir;
         }
         #endregion
 

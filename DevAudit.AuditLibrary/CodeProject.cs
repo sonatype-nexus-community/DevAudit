@@ -172,7 +172,7 @@ namespace DevAudit.AuditLibrary
                     // Explicitly set root references to null to expressly tell the GarbageCollector 
                     // that the resources have been disposed of and its ok to release the memory 
                     // allocated for them.
-                     
+                    this.Stopwatch = null; 
                     if (isDisposing)
                     {
                         // Release all managed resources here 

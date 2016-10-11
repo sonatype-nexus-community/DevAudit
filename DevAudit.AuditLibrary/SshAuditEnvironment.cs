@@ -13,6 +13,8 @@ using System.Threading.Tasks;
 using ExpectNet;
 using Renci.SshNet;
 using Renci.SshNet.Common;
+using SharpCompress.Archives;
+using SharpCompress.Readers;
 
 namespace DevAudit.AuditLibrary
 {
@@ -23,6 +25,7 @@ namespace DevAudit.AuditLibrary
         {
             CallerInformation here = this.Here();
             Stopwatch sw = new Stopwatch();
+            sw.Start();
             ScpClient c = this.CreateScpClient();
             c.BufferSize = 16 * 16384;
             if (c == null) return null;
@@ -52,9 +55,9 @@ namespace DevAudit.AuditLibrary
         {
             CallerInformation here = this.Here();
             Stopwatch sw = new Stopwatch();
+            string dir_archive_filename = string.Format("_devaudit_{0}.tgz", this.GetTimestamp());
+            SshCommandSpawanble cs = new SshCommandSpawanble(this.SshClient.CreateCommand(string.Format("tar -czf {0} -C {1} . && stat {0} || echo Failed", dir_archive_filename, remote_path)));
             sw.Start();
-            string dir_archive_filename = string.Format("_devaudit_{0}.tbz2", this.GetTimestamp());
-            SshCommandSpawanble cs = new SshCommandSpawanble(this.SshClient.CreateCommand(string.Format("tar -czf {0} {1} && stat {0} || echo Failed", dir_archive_filename, remote_path)));
             ExpectNet.Session cmd_session = Expect.Spawn(cs, this.LineTerminator);
             List<IResult> r = cmd_session.Expect.RegexEither("Size:\\s+([0-9]+)", null, "Failed", null);
             sw.Stop();
@@ -76,10 +79,44 @@ namespace DevAudit.AuditLibrary
             SshAuditFileInfo dir_archive_file = new SshAuditFileInfo(this, dir_archive_filename);
             LocalAuditFileInfo lf = dir_archive_file.GetAsLocalFile();
             sw.Stop();
-            Info("Downloaded archive file {0} in {1} ms.", dir_archive_file.FullName, sw.ElapsedMilliseconds);
-            //c.BufferSize = 16 * 6384;
-            //c.Download(dir)
-            throw new NotImplementedException();
+            if (lf == null)
+            {
+                Error(here, "Failed to get archive file {0} as local file.", dir_archive_filename);
+                return null;
+            }
+            Info("Downloaded archive file {0} in to local file {1} in {2} ms.", dir_archive_file.FullName,  lf.FullName, sw.ElapsedMilliseconds);
+            Debug("Extracting archive file {0} to work directory {1}.", lf.FullName, this.WorkDirectory.FullName);
+            sw.Restart();
+            try
+            {
+                using (Stream fs = File.OpenRead(lf.FullName))
+                {
+                    ReaderFactory.Open(fs).WriteAllToDirectory(this.WorkDirectory.FullName,
+                        new ExtractionOptions()
+                        {
+                            Overwrite = true,
+                            ExtractFullPath = true
+                        });
+                }
+                /*
+                ArchiveFactory.WriteToDirectory(lf.FullName, , new ExtractionOptions()
+                {
+                    Overwrite = true,
+
+                });*/
+                sw.Stop();
+                Debug(here, "Extracting archive file {0} to work directory {1} in {2} ms.", lf.FullName, this.WorkDirectory.FullName, sw.ElapsedMilliseconds);
+                return this.WorkDirectory;
+            }
+            catch (Exception e)
+            {
+                Error(here, e);
+                return null;
+            }
+            finally
+            {
+                if (sw != null && sw.IsRunning) sw.Stop();
+            }
         }
 
         public string ToInsecureString(object o)
