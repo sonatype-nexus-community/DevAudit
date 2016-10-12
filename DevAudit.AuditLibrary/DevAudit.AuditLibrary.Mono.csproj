@@ -84,7 +84,7 @@
       <HintPath>..\packages\Microsoft.CodeAnalysis.Workspaces.Common.2.0.0-beta3\lib\net45\Microsoft.CodeAnalysis.Workspaces.Desktop.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="Mono.Cecil, Version=0.9.6.0, Culture=neutral, PublicKeyToken=0738eb9f132ed756, processorArchitecture=MSIL">
+   <Reference Include="Mono.Cecil, Version=0.9.6.0, Culture=neutral, PublicKeyToken=0738eb9f132ed756, processorArchitecture=MSIL">
       <HintPath>..\packages\Mono.Cecil.0.9.6.4\lib\net45\Mono.Cecil.dll</HintPath>
       <Private>True</Private>
     </Reference>
@@ -154,6 +154,9 @@
       <HintPath>..\packages\YamlDotNet.3.9.0\lib\net35\YamlDotNet.dll</HintPath>
       <Private>True</Private>
     </Reference>
+	<Reference Include="Microsoft.Build" />
+	<Reference Include="Microsoft.Build.Engine" />
+	<Reference Include="Microsoft.Build.Framework" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Application.cs" />
