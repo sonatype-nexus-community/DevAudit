@@ -91,7 +91,6 @@ namespace DevAudit.AuditLibrary
                 this.Stopwatch.Stop();
                 this.WorkSpace = this.Compilation;
                 this.HostEnvironment.Success("Roslyn compiled {2} files in project {0} in {1}.", p.Name, this.Stopwatch.ElapsedMilliseconds, this.Compilation.SyntaxTrees.Count());
-                return true;
             }
             catch (Exception e)
             {
@@ -99,6 +98,11 @@ namespace DevAudit.AuditLibrary
                 this.MSBuildWorkspace.Dispose();
                 return false;
             }
+            foreach (SyntaxTree st in this.Compilation.SyntaxTrees)
+            {
+                this.HostEnvironment.Info("Compiled {0}", st.FilePath);            
+            }
+            return true;
         }
 
         protected override void Dispose(bool isDisposing)
