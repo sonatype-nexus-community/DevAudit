@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.MSBuild;
+//using Microsoft.b
 
 namespace DevAudit.AuditLibrary
 {
@@ -46,11 +47,7 @@ namespace DevAudit.AuditLibrary
 
             }
          
-            if (this.AuditEnvironment is LocalEnvironment)
-            {
-                this.HostEnvironment.Status("Using local directory {0} for code analysis.", this.RootDirectory.FullName);
-            }
-            else
+            if (! (this.AuditEnvironment is LocalEnvironment))
             {
                 this.HostEnvironment.Status("Downloading {0} as local directory for code analysis.", this.RootDirectory.FullName);
             }
@@ -65,7 +62,14 @@ namespace DevAudit.AuditLibrary
                 this.HostEnvironment.Error(here, "Could not get {0} as local directory.", this.WorkspaceDirectory);
                 return false;
             }
-            this.HostEnvironment.Success("Using {0} as workspace directory for code analysis.", this.WorkspaceDirectory.FullName);
+            else if (this.WorkspaceDirectory != null && !(this.AuditEnvironment is LocalEnvironment))
+            {
+                this.HostEnvironment.Success("Using {0} as workspace directory for code analysis.", this.WorkspaceDirectory.FullName);
+            }
+            else if (this.AuditEnvironment is LocalEnvironment)
+            {
+                this.HostEnvironment.Status("Using local directory {0} for code analysis.", this.WorkspaceDirectory.FullName);
+            }
             DirectoryInfo d = this.WorkspaceDirectory.GetAsSysDirectoryInfo();
             FileInfo wf = d.GetFiles(this.WorkspaceFilePath)?.First();
             if (wf == null)
@@ -74,8 +78,13 @@ namespace DevAudit.AuditLibrary
                     d.FullName);
                 return false;
             }
+            if (this.HostEnvironment.IsMonoRuntime)
+            {
+                this.HostEnvironment.Warning("Using the MSBuild workspace is not yet supported on Mono. See " + @"https://gitter.im/dotnet/roslyn/archives/2016/09/25");
+                return false;
+            }
             this.HostEnvironment.Status("Compiling project file {0}.", wf.FullName);
-            this.MSBuildWorkspace = MSBuildWorkspace.Create();
+            this.MSBuildWorkspace = MSBuildWorkspace.Create(); ;
             this.Stopwatch.Start();
             try
             {

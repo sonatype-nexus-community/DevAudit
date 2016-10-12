@@ -140,6 +140,14 @@ namespace DevAudit.AuditLibrary
             }
         }
 
+        public bool IsMonoRuntime
+        {
+            get
+            {
+                return Type.GetType("Mono.Runtime") != null;
+            }
+        }
+
         public string PathSeparator { get; protected set; } = string.Empty;
 
         public string ProcessOutput

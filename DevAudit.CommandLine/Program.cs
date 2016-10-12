@@ -763,7 +763,10 @@ namespace DevAudit.CommandLine
         static void AuditCodeProject(out ExitCodes exit)
         {
             exit = ExitCodes.ERROR_SCANNING_PROJECT_WORKSPACE;
+            SpinnerText = string.Format("Auditing {0} project...", CodeProject.CodeProjectLabel);
+            StartSpinner();
             CodeProject.AuditResult audit_result = CodeProject.Audit().Result;
+            StopSpinner();
             if (audit_result == CodeProject.AuditResult.ERROR_SCANNING_WORKSPACE)
             {
                 PrintErrorMessage("There was an error scanning the code project workspace.");
@@ -786,7 +789,7 @@ namespace DevAudit.CommandLine
                 if (Spinner != null)
                 {
                     PauseSpinner();
-                    SpinnerText = e.Message;
+                    SpinnerText = e.Message + "..";
                 }
                 PrintMessageLine(ConsoleMessageColors[e.MessageType], "{0:HH:mm:ss} [{1}] [{2}] {3}", e.DateTime, e.EnvironmentLocation, e.MessageType.ToString(), e.Message);
             }
@@ -973,7 +976,10 @@ namespace DevAudit.CommandLine
 
         static void StartSpinner()
         {
-            PrintMessage(ConsoleMessageColors[EventMessageType.INFO], SpinnerText);
+            if (!string.IsNullOrEmpty(SpinnerText))
+            {
+                PrintMessage(ConsoleMessageColors[EventMessageType.INFO], SpinnerText);
+            }
             if (!ProgramOptions.NonInteractive)
             {
                 Spinner = new Spinner(50);

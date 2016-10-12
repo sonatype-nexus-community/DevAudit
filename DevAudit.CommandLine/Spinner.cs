@@ -23,7 +23,6 @@ namespace DevAudit.CommandLine
 
         #region Public fields
         public readonly EventWaitHandle wh = new AutoResetEvent(true);
-        public string text;
         #endregion
 
         public Spinner(int left, int top, int delay = 100)
