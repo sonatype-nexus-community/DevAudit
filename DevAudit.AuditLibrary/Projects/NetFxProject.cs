@@ -6,9 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.MSBuild;
-//using Microsoft.b
 
 namespace DevAudit.AuditLibrary
 {
@@ -27,7 +25,6 @@ namespace DevAudit.AuditLibrary
             CallerInformation here = this.AuditEnvironment.Here();
             if (this.CodeProjectOptions.ContainsKey("CodeProjectName"))
             {
-
                 string fn_1 = this.CombinePath(this.RootDirectory.FullName, (string)this.CodeProjectOptions["CodeProjectName"], (string)this.CodeProjectOptions["CodeProjectName"]); //CodeProjectName/CodeProjectName.xxx
                 AuditFileInfo wf_11 = this.AuditEnvironment.ConstructFile(fn_1 + ".csproj");
                 AuditFileInfo wf_12 = this.AuditEnvironment.ConstructFile(fn_1 + ".xproj");
@@ -68,8 +65,9 @@ namespace DevAudit.AuditLibrary
             }
             else if (this.AuditEnvironment is LocalEnvironment)
             {
-                this.HostEnvironment.Status("Using local directory {0} for code analysis.", this.WorkspaceDirectory.FullName);
+                this.HostEnvironment.Info("Using local directory {0} for code analysis.", this.WorkspaceDirectory.FullName);
             }
+            this.HostEnvironment.Status("Compiling workspace projects.");
             DirectoryInfo d = this.WorkspaceDirectory.GetAsSysDirectoryInfo();
             FileInfo wf = d.GetFiles(this.WorkspaceFilePath)?.First();
             if (wf == null)
@@ -99,7 +97,6 @@ namespace DevAudit.AuditLibrary
             {
                 this.HostEnvironment.Error(here, e);
                 this.MSBuildWorkspace.Dispose();
-                d.Delete();
                 return false;
             }
         }

@@ -105,7 +105,7 @@
       <Private>True</Private>
     </Reference>
     <Reference Include="SharpCompress, Version=0.13.1.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\SharpCompress.0.13.1\lib\net45\SharpCompress.dll</HintPath>
+      <HintPath>..\packages\sharpcompress.0.13.1\lib\net45\SharpCompress.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="Sprache, Version=2.0.0.51, Culture=neutral, processorArchitecture=MSIL">
