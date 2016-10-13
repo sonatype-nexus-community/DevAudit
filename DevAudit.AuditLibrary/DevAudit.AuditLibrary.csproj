@@ -226,17 +226,23 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <None Include="Analyzers\Roslyn\TestAnalyzer.cs">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <Compile Include="Application.cs" />
     <Compile Include="Applications\Drupal7Application.cs" />
     <Compile Include="Applications\Drupal8Application.cs" />
     <Compile Include="Applications\DrupalModuleInfo.cs" />
     <Compile Include="AuditFileSystemInfo.cs" />
     <Compile Include="AuditScpClient.cs" />
+    <Compile Include="Analyzer.cs" />
+    <Compile Include="IAnalyzer.cs" />
     <Compile Include="LocalAuditDirectoryInfo.cs" />
     <Compile Include="LocalAuditFileInfo.cs" />
     <Compile Include="CodeProject.cs" />
     <Compile Include="Projects\MVC5Project.cs" />
     <Compile Include="Projects\NetFxProject.cs" />
+    <Compile Include="ScriptEnvironment.cs" />
     <Compile Include="SshAuditFileInfo.cs" />
     <Compile Include="SshAuditDirectoryInfo.cs" />
     <Compile Include="AuditEnvironment.cs" />
@@ -274,7 +280,6 @@
     <Compile Include="EnvironmentEventArgs.cs" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="foo.config" />
     <None Include="Examples\bower.json.example">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
@@ -328,7 +333,6 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="Analyzers\" />
     <Folder Include="Configurations\" />
     <Folder Include="Examples\Drupal\core\modules\" />
   </ItemGroup>

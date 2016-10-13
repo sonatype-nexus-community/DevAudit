@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -6,6 +7,7 @@ using System.Text;
 using System.Threading.Tasks;
 
 using CSScriptLibrary;
+using csscript;
 
 namespace DevAudit.AuditLibrary
 {
@@ -16,6 +18,7 @@ namespace DevAudit.AuditLibrary
         {
             SUCCESS = 0,
             ERROR_SCANNING_WORKSPACE,
+            ERROR_SCANNING_ANALYZERS
         }
         #endregion
 
@@ -56,11 +59,21 @@ namespace DevAudit.AuditLibrary
 
         public object WorkSpace { get; protected set; }
 
+        public object Project { get; protected set; }
+
+        public object Compilation { get; protected set; }
+
+        public string AnalyzerType { get; protected set; }
+
+        public List<FileInfo> AnalyzerScripts { get; protected set; } = new List<FileInfo>();
+
+        public List<IAnalyzer> Analyzers { get; protected set; } = new List<IAnalyzer>();
+
         public PackageSource CodeProjectPackageSource { get; protected set; }
         #endregion
 
         #region Constructors
-        public CodeProject(Dictionary<string, object> project_options, EventHandler<EnvironmentEventArgs> message_handler = null) : base(project_options, message_handler)
+        public CodeProject(Dictionary<string, object> project_options, EventHandler<EnvironmentEventArgs> message_handler, string analyzer_type) : base(project_options, message_handler)
         {
             this.CodeProjectOptions = project_options;
 
@@ -89,43 +102,107 @@ namespace DevAudit.AuditLibrary
                     throw new ArgumentException("The workspace file parameter must be relative to the root directory for this audit target.");
                 }
             }
+            this.AnalyzerType = analyzer_type;
         }
         #endregion
 
         #region Public virtual methods
         public async Task<AuditResult> Audit()
         {
-            if(!await this.GetWorkspace())
+            bool get_workspace = await this.GetWorkspace();
+            bool get_analyzers = await this.GetAnalyzers();
+            if (!get_workspace)
             {
                 return AuditResult.ERROR_SCANNING_WORKSPACE;
             }
-            await this.GetScriptEngine();
+            else if (!get_analyzers)
+            {
+                return AuditResult.ERROR_SCANNING_ANALYZERS;
+            }
             return AuditResult.SUCCESS;  
         }
         #endregion
 
         #region Public methods
-        public async Task<bool> GetScriptEngine()
+        public async Task<bool> GetAnalyzers()
         {
             this.Stopwatch.Restart();
             // Just in case clear AlternativeCompiler so it is not set to Roslyn or anything else by 
             // the CS-Script installed (if any) on the host OS
             CSScript.GlobalSettings.UseAlternativeCompiler = null;
             CSScript.EvaluatorConfig.Engine = EvaluatorEngine.Mono;
-            dynamic script = await CSScript.Evaluator
-                                        .LoadMethodAsync(@"using System;
-                                                       public int Sum(int a, int b)
-                                                       {
-                                                           return a+b;
-                                                       }");
-
-            bool result = script.Sum(1, 2) == 3;
+            CSScript.CacheEnabled = false; //Script caching is broken on Mono: https://github.com/oleg-shilo/cs-script/issues/10
+            CSScript.KeepCompilingHistory = true;
+            CSScript.GlobalSettings.AddSearchDir(Path.Combine("Analyzers", "Roslyn"));
+            DirectoryInfo analyzers_dir = new DirectoryInfo(Path.Combine("Analyzers", this.AnalyzerType));
+            this.AnalyzerScripts = analyzers_dir.GetFiles("*.cs", SearchOption.AllDirectories).ToList();
+            foreach (FileInfo f in this.AnalyzerScripts)
+            {
+                string script = string.Empty;
+                using (FileStream fs = f.OpenRead())
+                using (StreamReader r = new StreamReader(fs))
+                {
+                    script = await r.ReadToEndAsync();
+                }
+                try
+                {
+                    IAnalyzer a = (IAnalyzer)await CSScript.Evaluator.LoadCodeAsync(script, this.HostEnvironment.ScriptEnvironment);
+                    this.Analyzers.Add(a);
+                    this.HostEnvironment.Info("Loaded {0} analyzer from {1}.", a.Name, f.FullName);
+                }
+                catch (CompilerException ce)
+                { 
+                    HostEnvironment.Error("Compiler error(s) compiling analyzer script {0}.", f.FullName);
+                    IDictionaryEnumerator en = ce.Data.GetEnumerator();
+                    while (en.MoveNext())
+                    {
+                        List<string> v = (List<string>)en.Value;
+                        if (v.Count > 0)
+                        {
+                            if ((string)en.Key == "Errors")
+                            {
+                                HostEnvironment.ScriptEnvironment.Error(v.Aggregate((s1, s2) => s1 + Environment.NewLine + s2));
+                            }
+                            else if((string) en.Key == "Warnings")
+                            {
+                                HostEnvironment.ScriptEnvironment.Warning(v.Aggregate((s1, s2) => s1 + Environment.NewLine + s2));
+                            }
+                            else
+                            {
+                                HostEnvironment.ScriptEnvironment.Error("{0} : {1}", en.Key, v.Aggregate((s1, s2) => s1 + Environment.NewLine + s2));
+                            }
+                        }
+                    }
+                }
+                catch (Exception e)
+                {
+                    HostEnvironment.Error("Unknown error compiling analyzer script {0}.", f.FullName);
+                    HostEnvironment.Error(e);
+                }
+            }
             this.Stopwatch.Stop();
-            this.HostEnvironment.Success("Loaded script engine in {0} ms.", this.Stopwatch.ElapsedMilliseconds);
-            this.HostEnvironment.Info("Script result is {0}.", (int) script.Sum(123, 10));
-            return result;
+            if (this.AnalyzerScripts.Count == 0)
+            {
+                this.HostEnvironment.Info("No analyzer scripts for {0} found.", this.AnalyzerType);
+                return false;
+            }
+            else if (this.AnalyzerScripts.Count > 0 && this.Analyzers.Count > 0)
+            {
+                if (this.Analyzers.Count < this.AnalyzerScripts.Count)
+                {
+                    this.HostEnvironment.Warning("Failed to load {0} of {1} analyzer script(s).", this.AnalyzerScripts.Count - this.Analyzers.Count, this.AnalyzerScripts);
+                }
+                this.HostEnvironment.Success("Loaded {0} out of {1} analyzer script(s) in {2} ms.", this.Analyzers.Count, this.AnalyzerScripts.Count, this.Stopwatch.ElapsedMilliseconds);
+                return true;
+            }
+            else
+            {
+                this.HostEnvironment.Error("Failed to load {0} analyzer script(s).", this.AnalyzerScripts.Count);
+                return false;
+            }
         }
         #endregion 
+
         #region Protected methods
         protected string CombinePath(params string[] paths)
         {

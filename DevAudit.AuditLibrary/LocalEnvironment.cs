@@ -13,6 +13,14 @@ namespace DevAudit.AuditLibrary
 {
     public class LocalEnvironment : AuditEnvironment
     {
+        #region Constructors
+        public LocalEnvironment(EventHandler<EnvironmentEventArgs> message_handler) : base(message_handler, Environment.OSVersion, null)
+        {
+            this.ScriptEnvironment = new ScriptEnvironment(this);
+        }
+        public LocalEnvironment() : base(null, Environment.OSVersion, null) { }
+        #endregion
+
         #region Overriden properties
         protected override TraceSource TraceSource { get; set; } = new TraceSource("LocalEnvironment");
         #endregion
@@ -146,9 +154,9 @@ namespace DevAudit.AuditLibrary
         }
         #endregion
 
-        #region Constructors
-        public LocalEnvironment(EventHandler<EnvironmentEventArgs> message_handler) : base(message_handler, Environment.OSVersion, null) {}
-        public LocalEnvironment() : base(null, Environment.OSVersion, null) { }
+        #region Public properties
+        public ScriptEnvironment ScriptEnvironment { get; protected set; }
         #endregion
+
     }
 }

@@ -84,15 +84,17 @@ namespace DevAudit.AuditLibrary
                 return false;
             }
             this.HostEnvironment.Status("Compiling project file {0}.", wf.FullName);
-            this.MSBuildWorkspace = MSBuildWorkspace.Create(); ;
             this.Stopwatch.Start();
             try
             {
+                this.MSBuildWorkspace = MSBuildWorkspace.Create();
                 Project p = this.MSBuildWorkspace.OpenProjectAsync(wf.FullName).Result;
-                this.Compilation = await p.GetCompilationAsync();
+                Compilation c = await p.GetCompilationAsync();
+                this.Project = p;
+                this.Compilation = c;
+                this.WorkSpace = this.MSBuildWorkspace;
                 this.Stopwatch.Stop();
-                this.WorkSpace = this.Compilation;
-                this.HostEnvironment.Success("Roslyn compiled {2} files in project {0} in {1}.", p.Name, this.Stopwatch.ElapsedMilliseconds, this.Compilation.SyntaxTrees.Count());
+                this.HostEnvironment.Success("Roslyn compiled {2} files in project {0} in {1}.", p.Name, this.Stopwatch.ElapsedMilliseconds, c.SyntaxTrees.Count());
             }
             catch (Exception e)
             {
@@ -100,7 +102,7 @@ namespace DevAudit.AuditLibrary
                 this.MSBuildWorkspace.Dispose();
                 return false;
             }
-            foreach (SyntaxTree st in this.Compilation.SyntaxTrees)
+            foreach (SyntaxTree st in (this.Compilation as Compilation).SyntaxTrees)
             {
                 this.HostEnvironment.Debug("Compiled {0}", st.FilePath);            
             }
@@ -152,11 +154,10 @@ namespace DevAudit.AuditLibrary
 
         #region Public properties
         public MSBuildWorkspace MSBuildWorkspace { get; protected set; }
-        public Compilation Compilation { get; protected set; }
         #endregion
 
         #region Constructors
-        public NetFxProject(Dictionary<string, object> project_options, EventHandler<EnvironmentEventArgs> message_handler) : base(project_options, message_handler)
+        public NetFxProject(Dictionary<string, object> project_options, EventHandler<EnvironmentEventArgs> message_handler) : base(project_options, message_handler, "Roslyn")
         {
             //Ensure CSharp assembly gets pulled into build.
             var _ = typeof(Microsoft.CodeAnalysis.CSharp.Formatting.CSharpFormattingOptions); 

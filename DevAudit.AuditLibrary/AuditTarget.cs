@@ -33,6 +33,7 @@ namespace DevAudit.AuditLibrary
             this.ControllerMessageHandler = controller_message_handler;
             this.HostEnvironmentMessageHandler = AuditTarget_HostEnvironmentMessageHandler;
             this.HostEnvironment = new LocalEnvironment(this.HostEnvironmentMessageHandler);
+            this.HostEnvironment.ScriptEnvironment.MessageHandler += this.AuditTarget_ScriptEnvironmentMessageHandler;
             this.HostEnvironmentInitialised = true;
             if (this.AuditOptions.Keys.Contains("RemoteHost"))
             {
@@ -90,6 +91,11 @@ namespace DevAudit.AuditLibrary
             this.ControllerMessageHandler.Invoke(sender, e);
         }
 
+        private void AuditTarget_ScriptEnvironmentMessageHandler(object sender, EnvironmentEventArgs e)
+        {
+            e.EnvironmentLocation = "SCRIPT";
+            this.ControllerMessageHandler.Invoke(sender, e);
+        }
         #endregion
 
         #region Internal properties
