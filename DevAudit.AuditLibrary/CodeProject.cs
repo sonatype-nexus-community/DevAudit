@@ -5,6 +5,8 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
+using CSScriptLibrary;
+
 namespace DevAudit.AuditLibrary
 {
     public abstract class CodeProject : AuditTarget, IDisposable
@@ -97,10 +99,33 @@ namespace DevAudit.AuditLibrary
             {
                 return AuditResult.ERROR_SCANNING_WORKSPACE;
             }
+            await this.GetScriptEngine();
             return AuditResult.SUCCESS;  
         }
         #endregion
 
+        #region Public methods
+        public async Task<bool> GetScriptEngine()
+        {
+            this.Stopwatch.Restart();
+            // Just in case clear AlternativeCompiler so it is not set to Roslyn or anything else by 
+            // the CS-Script installed (if any) on the host OS
+            CSScript.GlobalSettings.UseAlternativeCompiler = null;
+            CSScript.EvaluatorConfig.Engine = EvaluatorEngine.Mono;
+            dynamic script = await CSScript.Evaluator
+                                        .LoadMethodAsync(@"using System;
+                                                       public int Sum(int a, int b)
+                                                       {
+                                                           return a+b;
+                                                       }");
+
+            bool result = script.Sum(1, 2) == 3;
+            this.Stopwatch.Stop();
+            this.HostEnvironment.Success("Loaded script engine in {0} ms.", this.Stopwatch.ElapsedMilliseconds);
+            this.HostEnvironment.Info("Script result is {0}.", (int) script.Sum(123, 10));
+            return result;
+        }
+        #endregion 
         #region Protected methods
         protected string CombinePath(params string[] paths)
         {

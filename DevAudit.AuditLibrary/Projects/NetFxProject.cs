@@ -8,6 +8,8 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.MSBuild;
 
+using CSScriptLibrary;
+
 namespace DevAudit.AuditLibrary
 {
     
@@ -100,7 +102,7 @@ namespace DevAudit.AuditLibrary
             }
             foreach (SyntaxTree st in this.Compilation.SyntaxTrees)
             {
-                this.HostEnvironment.Info("Compiled {0}", st.FilePath);            
+                this.HostEnvironment.Debug("Compiled {0}", st.FilePath);            
             }
             return true;
         }
