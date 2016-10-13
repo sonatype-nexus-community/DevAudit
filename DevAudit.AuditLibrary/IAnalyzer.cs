@@ -9,6 +9,10 @@ namespace DevAudit.AuditLibrary
     public interface IAnalyzer
     {
         string Name { get; }
-        ScriptEnvironment ScriptEnvironment { get; }
+        ScriptEnvironment ScriptEnvironment { get; set; }
+        object Workspace { get; set; }
+        object Project { get; set; }
+        object Compilation { get; set; }
+
     }
 }

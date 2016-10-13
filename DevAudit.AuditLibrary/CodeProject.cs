@@ -67,7 +67,7 @@ namespace DevAudit.AuditLibrary
 
         public List<FileInfo> AnalyzerScripts { get; protected set; } = new List<FileInfo>();
 
-        public List<IAnalyzer> Analyzers { get; protected set; } = new List<IAnalyzer>();
+        public List<Analyzer> Analyzers { get; protected set; } = new List<Analyzer>();
 
         public PackageSource CodeProjectPackageSource { get; protected set; }
         #endregion
@@ -133,7 +133,6 @@ namespace DevAudit.AuditLibrary
             CSScript.EvaluatorConfig.Engine = EvaluatorEngine.Mono;
             CSScript.CacheEnabled = false; //Script caching is broken on Mono: https://github.com/oleg-shilo/cs-script/issues/10
             CSScript.KeepCompilingHistory = true;
-            CSScript.GlobalSettings.AddSearchDir(Path.Combine("Analyzers", "Roslyn"));
             DirectoryInfo analyzers_dir = new DirectoryInfo(Path.Combine("Analyzers", this.AnalyzerType));
             this.AnalyzerScripts = analyzers_dir.GetFiles("*.cs", SearchOption.AllDirectories).ToList();
             foreach (FileInfo f in this.AnalyzerScripts)
@@ -146,7 +145,8 @@ namespace DevAudit.AuditLibrary
                 }
                 try
                 {
-                    IAnalyzer a = (IAnalyzer)await CSScript.Evaluator.LoadCodeAsync(script, this.HostEnvironment.ScriptEnvironment);
+                    Analyzer a = (Analyzer)await CSScript.Evaluator.LoadCodeAsync(script, this.HostEnvironment.ScriptEnvironment,
+                        this.WorkSpace, this.Project, this.Compilation);
                     this.Analyzers.Add(a);
                     this.HostEnvironment.Info("Loaded {0} analyzer from {1}.", a.Name, f.FullName);
                 }

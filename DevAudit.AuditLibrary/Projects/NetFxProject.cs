@@ -8,8 +8,6 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.MSBuild;
 
-using CSScriptLibrary;
-
 namespace DevAudit.AuditLibrary
 {
     
@@ -94,7 +92,7 @@ namespace DevAudit.AuditLibrary
                 this.Compilation = c;
                 this.WorkSpace = this.MSBuildWorkspace;
                 this.Stopwatch.Stop();
-                this.HostEnvironment.Success("Roslyn compiled {2} files in project {0} in {1}.", p.Name, this.Stopwatch.ElapsedMilliseconds, c.SyntaxTrees.Count());
+                this.HostEnvironment.Success("Roslyn compiled {2} file(s) in project {0} in {1} ms.", p.Name, this.Stopwatch.ElapsedMilliseconds, c.SyntaxTrees.Count());
             }
             catch (Exception e)
             {

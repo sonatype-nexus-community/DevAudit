@@ -2,18 +2,18 @@
 
 namespace DevAudit.AuditLibrary
 {
-    public class TestAnalyzer : Analyzer
+    public class TestAnalyzer : RoslynAnalyzer
     {
-        public TestAnalyzer(ScriptEnvironment script_env) : base(script_env)
+        
+        public TestAnalyzer(ScriptEnvironment script_env, object workspace, object project, object compilation) : base(script_env, workspace, project, compilation)
         {
             this.Name = "Print out names";
-            this.ScriptEnvironment.Info("Initialized test analyzer");
         }
 
-        public void PrintStatistics()
-        {
+        #region Public properties
+        #endregion
 
-        }
+        
     }
 }
 

@@ -229,6 +229,7 @@
     <None Include="Analyzers\Roslyn\TestAnalyzer.cs">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+    <Compile Include="RoslynAnalyzer.cs" />
     <Compile Include="Application.cs" />
     <Compile Include="Applications\Drupal7Application.cs" />
     <Compile Include="Applications\Drupal8Application.cs" />
