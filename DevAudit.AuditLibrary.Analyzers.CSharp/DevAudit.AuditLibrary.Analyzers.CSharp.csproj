@@ -4,11 +4,11 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{36F663F6-4B5C-441F-B11A-9CC556D1C1FE}</ProjectGuid>
+    <ProjectGuid>{5FFDF671-0B89-4C86-B2D3-2B15C00986C8}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>DevAudit.AuditLibrary</RootNamespace>
-    <AssemblyName>DevAudit.AuditLibrary</AssemblyName>
+    <RootNamespace>DevAudit.AuditLibrary.Analyzers.CSharp</RootNamespace>
+    <AssemblyName>DevAudit.AuditLibrary.Analyzers.CSharp</AssemblyName>
     <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <TargetFrameworkProfile />
@@ -30,44 +30,18 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Build|AnyCPU'">
-    <DebugSymbols>true</DebugSymbols>
-    <OutputPath>bin\Build\</OutputPath>
-    <DefineConstants>DEBUG;TRACE</DefineConstants>
-    <DebugType>full</DebugType>
-    <PlatformTarget>AnyCPU</PlatformTarget>
-    <ErrorReport>prompt</ErrorReport>
-    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
-  </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Alpheus.Core, Version=0.1.7.4, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Alpheus.0.1.7.4\lib\net45\Alpheus.Core.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="CSharpTest.Net.BPlusTree, Version=2.14.126.467, Culture=neutral, PublicKeyToken=06aee00cce822474, processorArchitecture=MSIL">
-      <HintPath>..\packages\CSharpTest.Net.BPlusTree.2.14.126.467\lib\net45\CSharpTest.Net.BPlusTree.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="CSharpTest.Net.Library, Version=2.14.126.467, Culture=neutral, PublicKeyToken=06aee00cce822474, processorArchitecture=MSIL">
-      <HintPath>..\packages\CSharpTest.Net.Library.2.14.126.467\lib\net45\CSharpTest.Net.Library.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="CSScriptLibrary, Version=3.14.0.0, Culture=neutral, PublicKeyToken=70fcc3d18c749033, processorArchitecture=MSIL">
-      <HintPath>..\packages\CS-Script.bin.3.14.0\lib\net46\CSScriptLibrary.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="INIFileParser, Version=2.3.0.0, Culture=neutral, PublicKeyToken=79af7b307b65cf3c, processorArchitecture=MSIL">
-      <HintPath>..\packages\ini-parser.2.3.0\lib\net20\INIFileParser.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="Microsoft.CodeAnalysis">
+    <Reference Include="Microsoft.CodeAnalysis, Version=2.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <HintPath>..\packages\Microsoft.CodeAnalysis.Common.2.0.0-beta3\lib\net45\Microsoft.CodeAnalysis.dll</HintPath>
+      <Private>True</Private>
     </Reference>
-    <Reference Include="Microsoft.CodeAnalysis.CSharp">
+    <Reference Include="Microsoft.CodeAnalysis.CSharp, Version=2.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <HintPath>..\packages\Microsoft.CodeAnalysis.CSharp.2.0.0-beta3\lib\net45\Microsoft.CodeAnalysis.CSharp.dll</HintPath>
+      <Private>True</Private>
     </Reference>
-    <Reference Include="Microsoft.CodeAnalysis.CSharp.Workspaces">
+    <Reference Include="Microsoft.CodeAnalysis.CSharp.Workspaces, Version=2.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <HintPath>..\packages\Microsoft.CodeAnalysis.CSharp.Workspaces.2.0.0-beta3\lib\net45\Microsoft.CodeAnalysis.CSharp.Workspaces.dll</HintPath>
+      <Private>True</Private>
     </Reference>
     <Reference Include="Microsoft.CodeAnalysis.VisualBasic, Version=2.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <HintPath>..\packages\Microsoft.CodeAnalysis.VisualBasic.2.0.0-beta3\lib\net45\Microsoft.CodeAnalysis.VisualBasic.dll</HintPath>
@@ -83,38 +57,6 @@
     </Reference>
     <Reference Include="Microsoft.CodeAnalysis.Workspaces.Desktop, Version=2.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <HintPath>..\packages\Microsoft.CodeAnalysis.Workspaces.Common.2.0.0-beta3\lib\net45\Microsoft.CodeAnalysis.Workspaces.Desktop.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="Mono.Cecil, Version=0.9.6.0, Culture=neutral, PublicKeyToken=0738eb9f132ed756, processorArchitecture=MSIL">
-      <HintPath>..\packages\Mono.Cecil.0.9.6.4\lib\net45\Mono.Cecil.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="Mono.Cecil.Mdb, Version=0.9.6.0, Culture=neutral, PublicKeyToken=0738eb9f132ed756, processorArchitecture=MSIL">
-      <HintPath>..\packages\Mono.Cecil.0.9.6.4\lib\net45\Mono.Cecil.Mdb.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="Mono.Cecil.Pdb, Version=0.9.6.0, Culture=neutral, PublicKeyToken=0738eb9f132ed756, processorArchitecture=MSIL">
-      <HintPath>..\packages\Mono.Cecil.0.9.6.4\lib\net45\Mono.Cecil.Pdb.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="Mono.Cecil.Rocks, Version=0.9.6.0, Culture=neutral, PublicKeyToken=0738eb9f132ed756, processorArchitecture=MSIL">
-      <HintPath>..\packages\Mono.Cecil.0.9.6.4\lib\net45\Mono.Cecil.Rocks.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="Mono.CSharp, Version=4.0.0.0, Culture=neutral, PublicKeyToken=0738eb9f132ed756, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\packages\CS-Script.bin.3.14.0\lib\net46\Mono.CSharp.dll</HintPath>
-    </Reference>
-    <Reference Include="Newtonsoft.Json, Version=9.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
-      <HintPath>..\packages\Newtonsoft.Json.9.0.1\lib\net45\Newtonsoft.Json.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="SharpCompress, Version=0.13.1.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\SharpCompress.0.13.1\lib\net45\SharpCompress.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="Sprache, Version=2.0.0.51, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Sprache.2.0.0.51\lib\portable-net4+netcore45+win8+wp8+sl5+MonoAndroid+Xamarin.iOS10+MonoTouch\Sprache.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="System" />
@@ -197,7 +139,6 @@
       <HintPath>..\packages\System.Threading.Thread.4.0.0\lib\net46\System.Threading.Thread.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="System.Web" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
@@ -216,141 +157,30 @@
       <HintPath>..\packages\System.Xml.XPath.XDocument.4.0.1\lib\net46\System.Xml.XPath.XDocument.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="Versatile.Core, Version=0.1.13.4, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Versatile.0.1.13.4\lib\net45\Versatile.Core.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="YamlDotNet, Version=3.9.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\YamlDotNet.3.9.0\lib\net35\YamlDotNet.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="RoslynAnalyzer.cs" />
-    <Compile Include="Application.cs" />
-    <Compile Include="Applications\Drupal7Application.cs" />
-    <Compile Include="Applications\Drupal8Application.cs" />
-    <Compile Include="Applications\DrupalModuleInfo.cs" />
-    <Compile Include="AuditFileSystemInfo.cs" />
-    <Compile Include="AuditScpClient.cs" />
-    <Compile Include="Analyzer.cs" />
-    <Compile Include="IAnalyzer.cs" />
-    <Compile Include="LocalAuditDirectoryInfo.cs" />
-    <Compile Include="LocalAuditFileInfo.cs" />
-    <Compile Include="CodeProject.cs" />
-    <Compile Include="Projects\MVC5Project.cs" />
-    <Compile Include="Projects\NetFxProject.cs" />
-    <Compile Include="ScriptEnvironment.cs" />
-    <Compile Include="SshAuditFileInfo.cs" />
-    <Compile Include="SshAuditDirectoryInfo.cs" />
-    <Compile Include="AuditEnvironment.cs" />
-    <Compile Include="AuditDirectoryInfo.cs" />
-    <Compile Include="AuditFileInfo.cs" />
-    <Compile Include="AuditTargetEventArgs.cs" />
-    <Compile Include="BsonSerializer.cs" />
-    <Compile Include="Docker.cs" />
-    <Compile Include="AuditTarget.cs" />
-    <Compile Include="LocalEnvironment.cs" />
-    <Compile Include="OSSIndexArtifact.cs" />
-    <Compile Include="OSSIndexProjectConfigurationRule.cs" />
-    <Compile Include="OSSIndexHttpClient.cs" />
-    <Compile Include="OSSIndexHttpException.cs" />
-    <Compile Include="OSSIndexPackageVulnerability.cs" />
-    <Compile Include="OSSIndexProject.cs" />
-    <Compile Include="OSSIndexProjectVulnerability.cs" />
-    <Compile Include="OSSIndexQueryObject.cs" />
-    <Compile Include="PackageSource.cs" />
-    <Compile Include="PackageSource\BowerPackageSource.cs" />
-    <Compile Include="PackageSource\ChocolateyPackageSource.cs" />
-    <Compile Include="PackageSource\ComposerPackageSource.cs" />
-    <Compile Include="PackageSource\DpkgPackageSource.cs" />
-    <Compile Include="PackageSource\MSIPackageSource.cs" />
-    <Compile Include="PackageSource\NuGetPackageSource.cs" />
-    <Compile Include="PackageSource\OneGetPackageSource.cs" />
-    <Compile Include="ProjectVulnerabilitiesCacheItem.cs" />
+    <Compile Include="PrintClassNamesAnalyzer.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="ApplicationServer.cs" />
-    <Compile Include="Servers\NginxServer.cs" />
-    <Compile Include="Servers\HttpdServer.cs" />
-    <Compile Include="Servers\SSHDServer.cs" />
-    <Compile Include="Servers\MySQLServer.cs" />
-    <Compile Include="SshAuditEnvironment.cs" />
-    <Compile Include="EnvironmentEventArgs.cs" />
+    <Compile Include="TestAnalyzer.cs" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="Examples\bower.json.example">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Include="Examples\bower.json.example.2">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Include="Examples\composer.json.example.3">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Include="Examples\composer.json.example.1">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Include="Examples\composer.json.example.2">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Include="Examples\Drupal\core\composer.json">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Include="Examples\Drupal\core\core.services.yml">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Include="Examples\Drupal\web.config">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Include="Examples\my.cnf" />
-    <None Include="Examples\packages.config.example.3">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-      <SubType>Designer</SubType>
-    </None>
-    <None Include="Examples\packages.config.example">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Include="Examples\packages.config.example.2">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-      <SubType>Designer</SubType>
-    </None>
-    <None Include="packages.config">
-      <SubType>Designer</SubType>
-    </None>
-    <None Include="Rules\mysql.yml">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Include="Rules\nginx.yml">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Include="Rules\httpd.yml">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Include="Rules\sshd.yml">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-  </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Analyzers\Roslyn\" />
-    <Folder Include="Configurations\" />
-    <Folder Include="Examples\Drupal\core\modules\" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\Expect.NET\Expect.csproj">
-      <Project>{8aa52b5e-db66-4b0b-aaba-9e6900bc3d5a}</Project>
-      <Name>Expect</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\Renci.SshNet\Renci.SshNet.csproj">
-      <Project>{2f5f8c90-0bd1-424f-997c-7bc6280919d1}</Project>
-      <Name>Renci.SshNet</Name>
+    <ProjectReference Include="..\DevAudit.AuditLibrary\DevAudit.AuditLibrary.csproj">
+      <Project>{36f663f6-4b5c-441f-b11a-9cc556d1c1fe}</Project>
+      <Name>DevAudit.AuditLibrary</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <Analyzer Include="..\packages\Microsoft.CodeAnalysis.Analyzers.1.2.0-beta2\analyzers\dotnet\cs\Analyzer.Utilities.dll" />
-    <Analyzer Include="..\packages\Microsoft.CodeAnalysis.Analyzers.1.2.0-beta2\analyzers\dotnet\cs\Microsoft.CodeAnalysis.Analyzers.dll" />
-    <Analyzer Include="..\packages\Microsoft.CodeAnalysis.Analyzers.1.2.0-beta2\analyzers\dotnet\cs\Microsoft.CodeAnalysis.CSharp.Analyzers.dll" />
+    <None Include="app.config" />
+    <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <Analyzer Include="..\packages\Microsoft.CodeAnalysis.Analyzers.1.1.0\analyzers\dotnet\cs\Microsoft.CodeAnalysis.Analyzers.dll" />
+    <Analyzer Include="..\packages\Microsoft.CodeAnalysis.Analyzers.1.1.0\analyzers\dotnet\cs\Microsoft.CodeAnalysis.CSharp.Analyzers.dll" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <PropertyGroup>
+    <PostBuildEvent>xcopy /f /y $(ProjectDir)*Analyzer.cs $(SolutionDir)DevAudit.CommandLine\bin\Debug\Analyzers\Roslyn</PostBuildEvent>
+  </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
   <Target Name="BeforeBuild">

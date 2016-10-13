@@ -152,7 +152,7 @@ namespace DevAudit.AuditLibrary
                 }
                 catch (CompilerException ce)
                 { 
-                    HostEnvironment.Error("Compiler error(s) compiling analyzer script {0}.", f.FullName);
+                    HostEnvironment.Error("Compiler error(s) compiling analyzer {0}.", f.FullName);
                     IDictionaryEnumerator en = ce.Data.GetEnumerator();
                     while (en.MoveNext())
                     {
@@ -176,28 +176,28 @@ namespace DevAudit.AuditLibrary
                 }
                 catch (Exception e)
                 {
-                    HostEnvironment.Error("Unknown error compiling analyzer script {0}.", f.FullName);
+                    HostEnvironment.Error("Unknown error compiling analyzer {0}.", f.FullName);
                     HostEnvironment.Error(e);
                 }
             }
             this.Stopwatch.Stop();
             if (this.AnalyzerScripts.Count == 0)
             {
-                this.HostEnvironment.Info("No analyzer scripts for {0} found.", this.AnalyzerType);
+                this.HostEnvironment.Info("No {0} analyzers found in {1}.", this.AnalyzerType, analyzers_dir.FullName);
                 return false;
             }
             else if (this.AnalyzerScripts.Count > 0 && this.Analyzers.Count > 0)
             {
                 if (this.Analyzers.Count < this.AnalyzerScripts.Count)
                 {
-                    this.HostEnvironment.Warning("Failed to load {0} of {1} analyzer script(s).", this.AnalyzerScripts.Count - this.Analyzers.Count, this.AnalyzerScripts);
+                    this.HostEnvironment.Warning("Failed to load {0} of {1} analyzer(s).", this.AnalyzerScripts.Count - this.Analyzers.Count, this.AnalyzerScripts.Count);
                 }
-                this.HostEnvironment.Success("Loaded {0} out of {1} analyzer script(s) in {2} ms.", this.Analyzers.Count, this.AnalyzerScripts.Count, this.Stopwatch.ElapsedMilliseconds);
+                this.HostEnvironment.Success("Loaded {0} out of {1} analyzer(s) in {2} ms.", this.Analyzers.Count, this.AnalyzerScripts.Count, this.Stopwatch.ElapsedMilliseconds);
                 return true;
             }
             else
             {
-                this.HostEnvironment.Error("Failed to load {0} analyzer script(s).", this.AnalyzerScripts.Count);
+                this.HostEnvironment.Error("Failed to load {0} analyzer(s).", this.AnalyzerScripts.Count);
                 return false;
             }
         }

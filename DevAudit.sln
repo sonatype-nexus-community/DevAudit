@@ -23,6 +23,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Renci.SshNet", "Renci.SshNet\Renci.SshNet.csproj", "{2F5F8C90-0BD1-424F-997C-7BC6280919D1}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DevAudit.AuditLibrary.Analyzers.CSharp", "DevAudit.AuditLibrary.Analyzers.CSharp\DevAudit.AuditLibrary.Analyzers.CSharp.csproj", "{5FFDF671-0B89-4C86-B2D3-2B15C00986C8}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -66,6 +68,12 @@ Global
 		{2F5F8C90-0BD1-424F-997C-7BC6280919D1}.Nuget|Any CPU.Build.0 = Release|Any CPU
 		{2F5F8C90-0BD1-424F-997C-7BC6280919D1}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{2F5F8C90-0BD1-424F-997C-7BC6280919D1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5FFDF671-0B89-4C86-B2D3-2B15C00986C8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5FFDF671-0B89-4C86-B2D3-2B15C00986C8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5FFDF671-0B89-4C86-B2D3-2B15C00986C8}.Nuget|Any CPU.ActiveCfg = Release|Any CPU
+		{5FFDF671-0B89-4C86-B2D3-2B15C00986C8}.Nuget|Any CPU.Build.0 = Release|Any CPU
+		{5FFDF671-0B89-4C86-B2D3-2B15C00986C8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5FFDF671-0B89-4C86-B2D3-2B15C00986C8}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

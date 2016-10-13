@@ -5,11 +5,11 @@ using System.Runtime.InteropServices;
 // General Information about an assembly is controlled through the following 
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle("DevAudit.CommandLine")]
-[assembly: AssemblyDescription("DevAudit command-line interface.")]
+[assembly: AssemblyTitle("DevAudit.AuditLibrary.Analyzers.CSharp")]
+[assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("Vör Security")]
-[assembly: AssemblyProduct("DevAudit")]
+[assembly: AssemblyCompany("")]
+[assembly: AssemblyProduct("DevAudit.AuditLibrary.Analyzers.CSharp")]
 [assembly: AssemblyCopyright("Copyright ©  2016")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
@@ -20,7 +20,7 @@ using System.Runtime.InteropServices;
 [assembly: ComVisible(false)]
 
 // The following GUID is for the ID of the typelib if this project is exposed to COM
-[assembly: Guid("86ee75fc-d05d-42bc-b2c2-b80cf3734332")]
+[assembly: Guid("5ffdf671-0b89-4c86-b2d3-2b15c00986c8")]
 
 // Version information for an assembly consists of the following four values:
 //
@@ -32,5 +32,5 @@ using System.Runtime.InteropServices;
 // You can specify all the values or you can default the Build and Revision Numbers 
 // by using the '*' as shown below:
 // [assembly: AssemblyVersion("1.0.*")]
-[assembly: AssemblyVersion("0.1.8.10")]
-[assembly: AssemblyFileVersion("0.1.8.10")]
+[assembly: AssemblyVersion("1.0.0.0")]
+[assembly: AssemblyFileVersion("1.0.0.0")]
