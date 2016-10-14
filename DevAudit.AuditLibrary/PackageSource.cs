@@ -15,6 +15,100 @@ namespace DevAudit.AuditLibrary
 {
     public abstract class PackageSource : AuditTarget, IDisposable
     {
+        #region Constructors
+        public PackageSource(Dictionary<string, object> package_source_options, EventHandler<EnvironmentEventArgs> message_handler = null) : base(package_source_options, message_handler)
+        {
+            this.PackageSourceOptions = this.AuditOptions;
+            if (this.PackageSourceOptions.ContainsKey("File"))
+            {
+                this.PackageManagerConfigurationFile = (string)this.PackageSourceOptions["File"];
+                if (!this.AuditEnvironment.FileExists(this.PackageManagerConfigurationFile)) throw new ArgumentException("Could not find the file " + this.PackageManagerConfigurationFile + ".");
+            }
+            else
+            {
+                this.PackageManagerConfigurationFile = "";
+            }
+
+            #region Cache option
+            if (this.PackageSourceOptions.ContainsKey("Cache") && (bool) this.PackageSourceOptions["Cache"] == true)
+            {
+                this.ProjectVulnerabilitiesCacheEnabled = true;
+                if (this.PackageSourceOptions.ContainsKey("CacheFile") && !string.IsNullOrEmpty((string) this.PackageSourceOptions["CacheFile"]))
+                {
+                    this.ProjectVulnerabilitiesCacheFile = (string) this.PackageSourceOptions["CacheFile"];
+                }
+                else
+                {
+                    this.ProjectVulnerabilitiesCacheFile = AppDomain.CurrentDomain.BaseDirectory + "DevAudit-net.cache";
+                }
+                if (this.PackageSourceOptions.ContainsKey("CacheTTL") && !string.IsNullOrEmpty((string)this.PackageSourceOptions["CacheTTL"]))
+
+                {
+                    int cache_ttl;
+                    if (Int32.TryParse((string)this.PackageSourceOptions["CacheTTL"], out cache_ttl))
+                    {
+                        if (cache_ttl > 60 * 24 * 30) throw new ArgumentOutOfRangeException("The value for the cache ttl is too large: " + this.PackageSourceOptions["CacheTTL"] + ".");
+                        this.ProjectVulnerabilitiesCacheTTL = TimeSpan.FromMinutes(cache_ttl);
+                    }
+                    else
+                        throw new ArgumentOutOfRangeException("The value for the cache ttl is not an integer: " + (string)this.PackageSourceOptions["CacheTTL"] + ".");
+                }
+                else
+                {
+                    this.ProjectVulnerabilitiesCacheTTL = TimeSpan.FromMinutes(180);
+                }
+                if (this.PackageSourceOptions.ContainsKey("CacheDump"))
+                {
+                    this.ProjectVulnerabilitiesCacheDump = true;
+                }
+                else
+                {
+                    this.ProjectVulnerabilitiesCacheDump = false;
+                }
+                this.ProjectVulnerabilitiesCacheInitialiseTask =
+                    Task<BPlusTree<string, Tuple<OSSIndexProject, IEnumerable<OSSIndexProjectVulnerability>>>>.Run(() =>
+                    {
+                        return this.InitialiseProjectVulnerabilitiesCache(this.ProjectVulnerabilitiesCacheFile); //Assembly.GetExecutingAssembly().Location + "win-audit.cache");
+                    });
+            }
+            else
+            {
+                this.ProjectVulnerabilitiesCacheEnabled = false;
+            }
+            #endregion
+
+            #region User Docker container option
+            if (this.PackageSourceOptions.ContainsKey("DockerContainerId"))
+            {
+                Docker.ProcessStatus process_status;
+                string process_output, process_error;
+                if (Docker.GetContainer((string)this.PackageSourceOptions["DockerContainerId"], out process_status, out process_output, out process_error))
+                {
+                    this.UseDockerContainer = true;
+                    this.DockerContainerId = (string)this.PackageSourceOptions["DockerContainerId"];
+                }
+                else
+                {
+                    if (process_status == Docker.ProcessStatus.DockerNotInstalled)
+                    {
+                        throw new ArgumentException(string.Format("Failed to find docker container {0}. Docker does not appear to be installed or the command-line tools are not on the current PATH. Error is:  {1}",
+                            (string)this.PackageSourceOptions["DockerContainerId"], process_error));
+                    }
+                    else 
+                    {
+                        throw new ArgumentException(string.Format("Failed to find docker container {0}. Error is:  {1}",
+                            (string)this.PackageSourceOptions["DockerContainerId"], process_error));
+                    }
+                }
+            }
+            else
+            {
+                this.UseDockerContainer = false;
+            }
+            #endregion
+        }
+        #endregion
+
         #region Public properties
         public abstract OSSIndexHttpClient HttpClient { get; }
 
@@ -198,21 +292,6 @@ namespace DevAudit.AuditLibrary
             }
         }
 
-        /*
-        public int GetArtifacts()
-        {
-            int i = 0;
-            IEnumerable<IGrouping<int, OSSIndexQueryObject>> packages_groups = this.Packages.GroupBy(x => i++ / 100).ToArray();
-            _ArtifactsTask = new List<Task<KeyValuePair<IEnumerable<OSSIndexQueryObject>,
-                IEnumerable<OSSIndexArtifact>>>>(packages_groups.Count());
-            foreach (var g in packages_groups)
-            {
-                this.HttpClient.s
-            }
-
-        }
-        */
-
         public List<Task<KeyValuePair<OSSIndexProject, IEnumerable<OSSIndexProjectVulnerability>>>> VulnerabilitiesTask
         {
             get
@@ -256,7 +335,48 @@ namespace DevAudit.AuditLibrary
                 }
                 return this._VulnerabilitiesTask;
             }
-        }        
+        }
+        #endregion
+
+        #region Public methods
+        protected async Task<Tuple<int, int>> GetArtifacts()
+        {
+            int package_count = 0, artifact_count = 0;
+            int i = 0;
+            IEnumerable<IGrouping<int, OSSIndexQueryObject>> packages_groups = this.Packages.GroupBy(x => i++ / 100).ToArray();
+            foreach (IGrouping<int, OSSIndexQueryObject> group in packages_groups)
+            {
+                IEnumerable<OSSIndexQueryObject> query = packages_groups.Where(g => g.Key == group.Key).SelectMany(g => g).ToList();
+                try
+                {
+                    var s = await this.HttpClient.SearchAsync(this.PackageManagerId, query, this.ArtifactsTransform).ContinueWith(a => AddArtifiact(query, a.Result));
+                    package_count += s.Key.Count();
+                    artifact_count += s.Value.Count();
+                }
+                catch (AggregateException ae)
+                {
+                    this.AuditEnvironment.Error("Exception(s) thrown searching for artifacts for {0} packages.", query.Count());
+                    foreach (Exception e in ae.InnerExceptions)
+                    {
+                        this.AuditEnvironment.Error(e);
+                    }
+                }
+            }
+            return new Tuple<int, int>(package_count, artifact_count);
+        }
+
+        public async Task<bool> Audit()
+        {
+            Tuple<int, int> package_artifact_count = await this.GetArtifacts();
+            if(package_artifact_count.Item1 > 0 && package_artifact_count.Item2 > 0)
+            {
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+        }
         #endregion
 
         #region Public abstract methods
@@ -264,100 +384,6 @@ namespace DevAudit.AuditLibrary
         public abstract bool IsVulnerabilityVersionInPackageVersionRange(string vulnerability_version, string package_version);
         #endregion
         
-        #region Constructors
-        public PackageSource(Dictionary<string, object> package_source_options, EventHandler<EnvironmentEventArgs> message_handler = null) : base(package_source_options, message_handler)
-        {
-            this.PackageSourceOptions = this.AuditOptions;
-            if (this.PackageSourceOptions.ContainsKey("File"))
-            {
-                this.PackageManagerConfigurationFile = (string)this.PackageSourceOptions["File"];
-                if (!this.AuditEnvironment.FileExists(this.PackageManagerConfigurationFile)) throw new ArgumentException("Could not find the file " + this.PackageManagerConfigurationFile + ".");
-            }
-            else
-            {
-                this.PackageManagerConfigurationFile = "";
-            }
-
-            #region Cache option
-            if (this.PackageSourceOptions.ContainsKey("Cache") && (bool) this.PackageSourceOptions["Cache"] == true)
-            {
-                this.ProjectVulnerabilitiesCacheEnabled = true;
-                if (this.PackageSourceOptions.ContainsKey("CacheFile") && !string.IsNullOrEmpty((string) this.PackageSourceOptions["CacheFile"]))
-                {
-                    this.ProjectVulnerabilitiesCacheFile = (string) this.PackageSourceOptions["CacheFile"];
-                }
-                else
-                {
-                    this.ProjectVulnerabilitiesCacheFile = AppDomain.CurrentDomain.BaseDirectory + "DevAudit-net.cache";
-                }
-                if (this.PackageSourceOptions.ContainsKey("CacheTTL") && !string.IsNullOrEmpty((string)this.PackageSourceOptions["CacheTTL"]))
-
-                {
-                    int cache_ttl;
-                    if (Int32.TryParse((string)this.PackageSourceOptions["CacheTTL"], out cache_ttl))
-                    {
-                        if (cache_ttl > 60 * 24 * 30) throw new ArgumentOutOfRangeException("The value for the cache ttl is too large: " + this.PackageSourceOptions["CacheTTL"] + ".");
-                        this.ProjectVulnerabilitiesCacheTTL = TimeSpan.FromMinutes(cache_ttl);
-                    }
-                    else
-                        throw new ArgumentOutOfRangeException("The value for the cache ttl is not an integer: " + (string)this.PackageSourceOptions["CacheTTL"] + ".");
-                }
-                else
-                {
-                    this.ProjectVulnerabilitiesCacheTTL = TimeSpan.FromMinutes(180);
-                }
-                if (this.PackageSourceOptions.ContainsKey("CacheDump"))
-                {
-                    this.ProjectVulnerabilitiesCacheDump = true;
-                }
-                else
-                {
-                    this.ProjectVulnerabilitiesCacheDump = false;
-                }
-                this.ProjectVulnerabilitiesCacheInitialiseTask =
-                    Task<BPlusTree<string, Tuple<OSSIndexProject, IEnumerable<OSSIndexProjectVulnerability>>>>.Run(() =>
-                    {
-                        return this.InitialiseProjectVulnerabilitiesCache(this.ProjectVulnerabilitiesCacheFile); //Assembly.GetExecutingAssembly().Location + "win-audit.cache");
-                    });
-            }
-            else
-            {
-                this.ProjectVulnerabilitiesCacheEnabled = false;
-            }
-            #endregion
-
-            #region User Docker container option
-            if (this.PackageSourceOptions.ContainsKey("DockerContainerId"))
-            {
-                Docker.ProcessStatus process_status;
-                string process_output, process_error;
-                if (Docker.GetContainer((string)this.PackageSourceOptions["DockerContainerId"], out process_status, out process_output, out process_error))
-                {
-                    this.UseDockerContainer = true;
-                    this.DockerContainerId = (string)this.PackageSourceOptions["DockerContainerId"];
-                }
-                else
-                {
-                    if (process_status == Docker.ProcessStatus.DockerNotInstalled)
-                    {
-                        throw new ArgumentException(string.Format("Failed to find docker container {0}. Docker does not appear to be installed or the command-line tools are not on the current PATH. Error is:  {1}",
-                            (string)this.PackageSourceOptions["DockerContainerId"], process_error));
-                    }
-                    else 
-                    {
-                        throw new ArgumentException(string.Format("Failed to find docker container {0}. Error is:  {1}",
-                            (string)this.PackageSourceOptions["DockerContainerId"], process_error));
-                    }
-                }
-            }
-            else
-            {
-                this.UseDockerContainer = false;
-            }
-            #endregion
-        }
-        #endregion
-
         #region Private properties
 
         private string ProjectVulnerabilitiesCacheFile { get; set; }

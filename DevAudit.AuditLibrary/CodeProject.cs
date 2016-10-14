@@ -18,7 +18,8 @@ namespace DevAudit.AuditLibrary
         {
             SUCCESS = 0,
             ERROR_SCANNING_WORKSPACE,
-            ERROR_SCANNING_ANALYZERS
+            ERROR_SCANNING_ANALYZERS,
+            ERROR_ANALYZING
         }
         #endregion
 
@@ -69,6 +70,8 @@ namespace DevAudit.AuditLibrary
 
         public List<Analyzer> Analyzers { get; protected set; } = new List<Analyzer>();
 
+        public List<AnalyzerResult> AnalyzerResults { get; protected set; } = new List<AnalyzerResult>();
+
         public PackageSource CodeProjectPackageSource { get; protected set; }
         #endregion
 
@@ -109,8 +112,53 @@ namespace DevAudit.AuditLibrary
         #region Public virtual methods
         public async Task<AuditResult> Audit()
         {
-            bool get_workspace = await this.GetWorkspace();
-            bool get_analyzers = await this.GetAnalyzers();
+
+            bool get_workspace = false, get_analyzers = false;
+            List<AnalyzerResult> analyzer_results = null;
+            try
+            {
+                get_workspace = await this.GetWorkspace();
+                if (get_workspace)
+                {
+                    get_analyzers = await this.GetAnalyzers();
+                }
+                else
+                {
+                    return AuditResult.ERROR_SCANNING_ANALYZERS;
+                }
+                if (get_analyzers)
+                {
+                    analyzer_results = await this.GetAnalyzerResults();
+                }
+                else
+                {
+                    return AuditResult.ERROR_SCANNING_ANALYZERS;
+                }
+                if (analyzer_results != null)
+                {
+                    this.AnalyzerResults = analyzer_results;
+                    if (this.AnalyzerResults.Count(ar => ar.Succeded) > 0)
+                    {
+                        this.HostEnvironment.Success("Code analysis by {0} analyzers succeded.", analyzer_results.Count(ar => ar.Succeded));
+                    }
+                    if (analyzer_results.Count(ar => !ar.Succeded) > 0)
+                    {
+                        this.HostEnvironment.Warning("Code analysis by {0} analyzers did not succeded.", analyzer_results.Count(ar => ar.Succeded));
+                    }
+                    return AuditResult.SUCCESS;
+                }
+                else
+                {
+                    return AuditResult.ERROR_ANALYZING;
+                }
+            }
+            catch (AggregateException ae)
+            {
+                foreach (Exception e in ae.InnerExceptions)
+                {
+                    this.HostEnvironment.Error(e);
+                }
+            }
             if (!get_workspace)
             {
                 return AuditResult.ERROR_SCANNING_WORKSPACE;
@@ -119,7 +167,11 @@ namespace DevAudit.AuditLibrary
             {
                 return AuditResult.ERROR_SCANNING_ANALYZERS;
             }
-            return AuditResult.SUCCESS;  
+            else if (analyzer_results == null)
+            {
+                return AuditResult.ERROR_ANALYZING;
+            }
+            else throw new Exception("Unknown audit target state.");
         }
         #endregion
 
@@ -200,6 +252,31 @@ namespace DevAudit.AuditLibrary
                 this.HostEnvironment.Error("Failed to load {0} analyzer(s).", this.AnalyzerScripts.Count);
                 return false;
             }
+        }
+
+        public async Task<List<AnalyzerResult>> GetAnalyzerResults()
+        {
+            List<AnalyzerResult> results = new List<AnalyzerResult>(this.Analyzers.Count);
+            foreach (Analyzer a in this.Analyzers)
+            {
+                this.HostEnvironment.Status("{0} analyzing.", a.Name);
+                AnalyzerResult ar = new AnalyzerResult() { Analyzer = a };
+                try
+                {
+                    ar = await a.Analyze();
+                }
+                catch(AggregateException ae)
+                {
+                    ar.Exceptions = ae.InnerExceptions.ToList();
+                    ar.Succeded = false;
+                }
+                finally
+                {
+                    results.Add(ar);
+                }
+                
+            }
+            return results;
         }
         #endregion 
 

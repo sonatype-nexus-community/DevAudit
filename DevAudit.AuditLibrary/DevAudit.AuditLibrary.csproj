@@ -276,6 +276,7 @@
     <Compile Include="Servers\MySQLServer.cs" />
     <Compile Include="SshAuditEnvironment.cs" />
     <Compile Include="EnvironmentEventArgs.cs" />
+    <Compile Include="StyleCopAnalyzer.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Examples\bower.json.example">

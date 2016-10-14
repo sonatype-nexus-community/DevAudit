@@ -26,8 +26,13 @@ namespace DevAudit.AuditLibrary
             if (this.CodeProjectOptions.ContainsKey("CodeProjectName"))
             {
                 string fn_1 = this.CombinePath(this.RootDirectory.FullName, (string)this.CodeProjectOptions["CodeProjectName"], (string)this.CodeProjectOptions["CodeProjectName"]); //CodeProjectName/CodeProjectName.xxx
+                string fn_2 = this.CombinePath(this.RootDirectory.FullName, "src", (string)this.CodeProjectOptions["CodeProjectName"], (string)this.CodeProjectOptions["CodeProjectName"]); //CodeProjectName/src/CodeProjectName.xxx
+
                 AuditFileInfo wf_11 = this.AuditEnvironment.ConstructFile(fn_1 + ".csproj");
                 AuditFileInfo wf_12 = this.AuditEnvironment.ConstructFile(fn_1 + ".xproj");
+                AuditFileInfo wf_21 = this.AuditEnvironment.ConstructFile(fn_2 + ".csproj");
+                AuditFileInfo wf_22 = this.AuditEnvironment.ConstructFile(fn_2 + ".xproj");
+
                 if (wf_11.Exists)
                 {
                     this.WorkspaceFilePath = Path.Combine((string)this.CodeProjectOptions["CodeProjectName"], (string)this.CodeProjectOptions["CodeProjectName"]) + ".csproj";
@@ -36,9 +41,13 @@ namespace DevAudit.AuditLibrary
                 {
                     this.WorkspaceFilePath = Path.Combine((string)this.CodeProjectOptions["CodeProjectName"], (string)this.CodeProjectOptions["CodeProjectName"]) + ".xproj";
                 }
+                else if (wf_22.Exists)
+                {
+                    this.WorkspaceFilePath = Path.Combine("src", (string)this.CodeProjectOptions["CodeProjectName"], (string)this.CodeProjectOptions["CodeProjectName"]) + ".xproj";
+                }
                 else
                 {
-                    this.AuditEnvironment.Error(here, "Could not find the project file at {0} or {1}.", wf_11.FullName, wf_12.FullName);
+                    this.AuditEnvironment.Error(here, "Could not find the project file at {0} or {1} or {3}.", wf_11.FullName, wf_12.FullName, wf_21.FullName);
                     return false;
                 }
 

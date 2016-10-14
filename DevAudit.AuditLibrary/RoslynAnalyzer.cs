@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.MSBuild;
 namespace DevAudit.AuditLibrary
 {
@@ -16,6 +17,7 @@ namespace DevAudit.AuditLibrary
             this.Workspace = workspace as Workspace;
             this.Project = project as Project;
             this.Compilation = compilation as Compilation;
+            this.Tags.Add("roslyn");
         }
         #endregion
 

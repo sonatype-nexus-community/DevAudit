@@ -772,6 +772,24 @@ namespace DevAudit.CommandLine
                 PrintErrorMessage("There was an error scanning the code project workspace.");
                 return;
             }
+            else if (audit_result == CodeProject.AuditResult.ERROR_SCANNING_ANALYZERS)
+            {
+                PrintErrorMessage("There was an error scanning the code project analyzer scripts.");
+                return;
+            }
+            else if (audit_result == CodeProject.AuditResult.ERROR_ANALYZING)
+            {
+                PrintErrorMessage("There was an error analyzing the code project;");
+                return;
+            }
+            else if (audit_result != CodeProject.AuditResult.SUCCESS)
+            {
+                throw new Exception("Unknown audit target state.");
+            }
+            foreach (AnalyzerResult ar in CodeProject.AnalyzerResults)
+            {
+
+            }
         }
 
         static void EnvironmentMessageHandler(object sender, EnvironmentEventArgs e)
@@ -786,10 +804,14 @@ namespace DevAudit.CommandLine
             }   
             else if (e.MessageType == EventMessageType.STATUS)
             {
+                SpinnerText = e.Message + "..";
                 if (Spinner != null)
                 {
                     PauseSpinner();
-                    SpinnerText = e.Message + "..";
+                }
+                else
+                {
+                    StartSpinner();
                 }
                 PrintMessageLine(ConsoleMessageColors[e.MessageType], "{0:HH:mm:ss} [{1}] [{2}] {3}", e.DateTime, e.EnvironmentLocation, e.MessageType.ToString(), e.Message);
             }

@@ -49,7 +49,7 @@ namespace DevAudit.AuditLibrary
             OnMessage(new EnvironmentEventArgs(EventMessageType.INFO, message_format, message));
         }
 
-        internal void Error(string message_format, params object[] message)
+        public void Error(string message_format, params object[] message)
         {
             OnMessage(new EnvironmentEventArgs(EventMessageType.ERROR, message_format, message));
         }
@@ -59,10 +59,20 @@ namespace DevAudit.AuditLibrary
             OnMessage(new EnvironmentEventArgs(caller, EventMessageType.ERROR, message_format, message));
         }
 
-        internal void Error(Exception e)
+        public void Error(Exception e)
         {
             OnMessage(new EnvironmentEventArgs(EventMessageType.ERROR, "Exception: {0} at {1}.",
                 new object[2] { e.Message, e.StackTrace }));
+        }
+
+        public void Debug(CallerInformation caller, string message_format, params object[] message)
+        {
+            OnMessage(new EnvironmentEventArgs(caller, EventMessageType.DEBUG, message_format, message));
+        }
+
+        public void Debug(string message_format, params object[] message)
+        {
+            OnMessage(new EnvironmentEventArgs(EventMessageType.DEBUG, message_format, message));
         }
 
         internal void Success(string message_format, params object[] message)
