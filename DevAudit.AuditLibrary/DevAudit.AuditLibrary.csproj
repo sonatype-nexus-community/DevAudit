@@ -56,6 +56,10 @@
       <HintPath>..\packages\CS-Script.bin.3.14.0\lib\net46\CSScriptLibrary.dll</HintPath>
       <Private>True</Private>
     </Reference>
+    <Reference Include="Devsense.PHP.Parser.NET46, Version=1.0.0.0, Culture=neutral, PublicKeyToken=840d8b321fee7061, processorArchitecture=MSIL">
+      <HintPath>..\packages\Devsense.PHP.Parser.NET46.1.0.0.0\lib\net461\Devsense.PHP.Parser.NET46.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
     <Reference Include="INIFileParser, Version=2.3.0.0, Culture=neutral, PublicKeyToken=79af7b307b65cf3c, processorArchitecture=MSIL">
       <HintPath>..\packages\ini-parser.2.3.0\lib\net20\INIFileParser.dll</HintPath>
       <Private>True</Private>
@@ -226,6 +230,10 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Projects\PHPAuditCodeSourceUnit.cs" />
+    <Compile Include="Projects\PHPAuditErrorSink.cs" />
+    <Compile Include="Projects\PHPCodeProject.cs" />
+    <Compile Include="Projects\StatisticsTreeVisitor.cs" />
     <Compile Include="RoslynAnalyzer.cs" />
     <Compile Include="Application.cs" />
     <Compile Include="Applications\Drupal7Application.cs" />
@@ -279,6 +287,7 @@
     <Compile Include="StyleCopAnalyzer.cs" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="app.config" />
     <None Include="Examples\bower.json.example">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>

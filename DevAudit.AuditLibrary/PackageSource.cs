@@ -343,15 +343,29 @@ namespace DevAudit.AuditLibrary
         {
             int package_count = 0, artifact_count = 0;
             int i = 0;
-            IEnumerable<IGrouping<int, OSSIndexQueryObject>> packages_groups = this.Packages.GroupBy(x => i++ / 100).ToArray();
+            IGrouping<int, OSSIndexQueryObject>[] packages_groups = this.Packages.GroupBy(x => i++ / 100).ToArray();
+            /*
+            IEnumerable<OSSIndexQueryObject>[] queries = packages_groups.Select(group => packages_groups.Where(g => g.Key == group.Key).SelectMany(g => g)).ToArray();
+            Task[] query_tasks = queries.Select(q => this.HttpClient.SearchAsync(this.PackageManagerId, q, this.ArtifactsTransform)).ToArray();
+            await Task.WhenAll(query_tasks);
+            for (int t = 0; t < query_tasks.Length; t++)
+            {
+                var k = await query_tasks[t];
+                if (qt.IsCompleted)
+                {
+                    AddArtifiact(queries[t], qt.r)
+                }
+            }
+            */
             foreach (IGrouping<int, OSSIndexQueryObject> group in packages_groups)
             {
-                IEnumerable<OSSIndexQueryObject> query = packages_groups.Where(g => g.Key == group.Key).SelectMany(g => g).ToList();
+                IEnumerable<OSSIndexQueryObject> query = packages_groups.Where(g => g.Key == group.Key).SelectMany(g => g);
                 try
                 {
-                    var s = await this.HttpClient.SearchAsync(this.PackageManagerId, query, this.ArtifactsTransform).ContinueWith(a => AddArtifiact(query, a.Result));
-                    package_count += s.Key.Count();
-                    artifact_count += s.Value.Count();
+                    IEnumerable<OSSIndexArtifact> artifacts = await this.HttpClient.SearchAsync(this.PackageManagerId, query, this.ArtifactsTransform).ConfigureAwait(false);
+                    var aa = AddArtifiact(query, artifacts);
+                    package_count += aa.Key.Count();
+                    artifact_count += aa.Value.Count();
                 }
                 catch (AggregateException ae)
                 {

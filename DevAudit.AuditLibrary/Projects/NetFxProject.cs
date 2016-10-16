@@ -20,61 +20,17 @@ namespace DevAudit.AuditLibrary
         #endregion
 
         #region Overriden methods
+        public override Task<bool> GetPackageSource()
+        {
+            throw new NotImplementedException();
+        }
+
         public override async Task<bool> GetWorkspace()
         {
             CallerInformation here = this.AuditEnvironment.Here();
-            if (this.CodeProjectOptions.ContainsKey("CodeProjectName"))
+            if (! await base.GetWorkspace())
             {
-                string fn_1 = this.CombinePath(this.RootDirectory.FullName, (string)this.CodeProjectOptions["CodeProjectName"], (string)this.CodeProjectOptions["CodeProjectName"]); //CodeProjectName/CodeProjectName.xxx
-                string fn_2 = this.CombinePath(this.RootDirectory.FullName, "src", (string)this.CodeProjectOptions["CodeProjectName"], (string)this.CodeProjectOptions["CodeProjectName"]); //CodeProjectName/src/CodeProjectName.xxx
-
-                AuditFileInfo wf_11 = this.AuditEnvironment.ConstructFile(fn_1 + ".csproj");
-                AuditFileInfo wf_12 = this.AuditEnvironment.ConstructFile(fn_1 + ".xproj");
-                AuditFileInfo wf_21 = this.AuditEnvironment.ConstructFile(fn_2 + ".csproj");
-                AuditFileInfo wf_22 = this.AuditEnvironment.ConstructFile(fn_2 + ".xproj");
-
-                if (wf_11.Exists)
-                {
-                    this.WorkspaceFilePath = Path.Combine((string)this.CodeProjectOptions["CodeProjectName"], (string)this.CodeProjectOptions["CodeProjectName"]) + ".csproj";
-                }
-                else if (wf_12.Exists)
-                {
-                    this.WorkspaceFilePath = Path.Combine((string)this.CodeProjectOptions["CodeProjectName"], (string)this.CodeProjectOptions["CodeProjectName"]) + ".xproj";
-                }
-                else if (wf_22.Exists)
-                {
-                    this.WorkspaceFilePath = Path.Combine("src", (string)this.CodeProjectOptions["CodeProjectName"], (string)this.CodeProjectOptions["CodeProjectName"]) + ".xproj";
-                }
-                else
-                {
-                    this.AuditEnvironment.Error(here, "Could not find the project file at {0} or {1} or {3}.", wf_11.FullName, wf_12.FullName, wf_21.FullName);
-                    return false;
-                }
-
-            }
-         
-            if (! (this.AuditEnvironment is LocalEnvironment))
-            {
-                this.HostEnvironment.Status("Downloading {0} as local directory for code analysis.", this.RootDirectory.FullName);
-            }
-            this.WorkspaceDirectory = await Task.Run(() => this.RootDirectory.GetAsLocalDirectory());
-            if (this.WorkspaceDirectory == null && !(this.AuditEnvironment is LocalEnvironment))
-            {
-                this.HostEnvironment.Error(here, "Could not download {0} as local directory.", this.WorkspaceDirectory);
                 return false;
-            }
-            else if (this.WorkspaceDirectory == null)
-            {
-                this.HostEnvironment.Error(here, "Could not get {0} as local directory.", this.WorkspaceDirectory);
-                return false;
-            }
-            else if (this.WorkspaceDirectory != null && !(this.AuditEnvironment is LocalEnvironment))
-            {
-                this.HostEnvironment.Success("Using {0} as workspace directory for code analysis.", this.WorkspaceDirectory.FullName);
-            }
-            else if (this.AuditEnvironment is LocalEnvironment)
-            {
-                this.HostEnvironment.Info("Using local directory {0} for code analysis.", this.WorkspaceDirectory.FullName);
             }
             this.HostEnvironment.Status("Compiling workspace projects.");
             DirectoryInfo d = this.WorkspaceDirectory.GetAsSysDirectoryInfo();
@@ -166,8 +122,34 @@ namespace DevAudit.AuditLibrary
         #region Constructors
         public NetFxProject(Dictionary<string, object> project_options, EventHandler<EnvironmentEventArgs> message_handler) : base(project_options, message_handler, "Roslyn")
         {
-            //Ensure CSharp assembly gets pulled into build.
-            var _ = typeof(Microsoft.CodeAnalysis.CSharp.Formatting.CSharpFormattingOptions); 
+            if (this.CodeProjectOptions.ContainsKey("CodeProjectName"))
+            {
+                string fn_1 = this.CombinePath(this.RootDirectory.FullName, (string)this.CodeProjectOptions["CodeProjectName"], (string)this.CodeProjectOptions["CodeProjectName"]); //CodeProjectName/CodeProjectName.xxx
+                string fn_2 = this.CombinePath(this.RootDirectory.FullName, "src", (string)this.CodeProjectOptions["CodeProjectName"], (string)this.CodeProjectOptions["CodeProjectName"]); //CodeProjectName/src/CodeProjectName.xxx
+
+                AuditFileInfo wf_11 = this.AuditEnvironment.ConstructFile(fn_1 + ".csproj");
+                AuditFileInfo wf_12 = this.AuditEnvironment.ConstructFile(fn_1 + ".xproj");
+                AuditFileInfo wf_21 = this.AuditEnvironment.ConstructFile(fn_2 + ".csproj");
+                AuditFileInfo wf_22 = this.AuditEnvironment.ConstructFile(fn_2 + ".xproj");
+
+                if (wf_11.Exists)
+                {
+                    this.WorkspaceFilePath = Path.Combine((string)this.CodeProjectOptions["CodeProjectName"], (string)this.CodeProjectOptions["CodeProjectName"]) + ".csproj";
+                }
+                else if (wf_12.Exists)
+                {
+                    this.WorkspaceFilePath = Path.Combine((string)this.CodeProjectOptions["CodeProjectName"], (string)this.CodeProjectOptions["CodeProjectName"]) + ".xproj";
+                }
+                else if (wf_22.Exists)
+                {
+                    this.WorkspaceFilePath = Path.Combine("src", (string)this.CodeProjectOptions["CodeProjectName"], (string)this.CodeProjectOptions["CodeProjectName"]) + ".xproj";
+                }
+                else
+                {
+                    throw new ArgumentException(string.Format("Could not find the project file at {0} or {1} or {2}.", wf_11.FullName, wf_12.FullName, wf_21.FullName));
+                }
+            }
+
             if (!string.IsNullOrEmpty(this.WorkspaceFilePath))
             {
                 if (!(this.WorkspaceFilePath.EndsWith(".csproj") || this.WorkspaceFilePath.EndsWith(".xproj")))
@@ -175,6 +157,8 @@ namespace DevAudit.AuditLibrary
                     throw new ArgumentException("Only .csproj ot .xproj projects are supported for this audit target.");
                 }
             }
+            //Ensure CSharp assembly gets pulled into build.
+            var _ = typeof(Microsoft.CodeAnalysis.CSharp.Formatting.CSharpFormattingOptions);
         }
         #endregion
 

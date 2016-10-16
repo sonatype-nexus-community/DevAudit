@@ -251,6 +251,10 @@ namespace DevAudit.CommandLine
                     {
                         CodeProject = new NetFxProject(audit_options, EnvironmentMessageHandler);
                     }
+                    else if (verb == "php")
+                    {
+                        CodeProject = new  PHPCodeProject(audit_options, EnvironmentMessageHandler);
+                    }
                 }
                 catch (ArgumentException ae)
                 {

@@ -56,6 +56,9 @@ namespace DevAudit.CommandLine
         [VerbOption("netfx", HelpText = "Audit a .NET Framework code project. Use the --root option to specify the root directory of the project or solution, and the -f option to specify the solution or project file to use..")]
         public Options NetFx { get; set; }
 
+        [VerbOption("php", HelpText = "Audit a PHP code project. Use the --root option to specify the root directory of the source project.")]
+        public Options Php { get; set; }
+
         [Option('d', "enable-debug", Required = false, HelpText = "Enable printing debug messages and other behavior useful for debugging the program.")]
         public bool EnableDebug { get; set; }
 

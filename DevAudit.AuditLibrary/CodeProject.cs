@@ -30,7 +30,7 @@ namespace DevAudit.AuditLibrary
         #endregion
 
         #region Public abstract methods
-        public abstract Task<bool> GetWorkspace();
+        public abstract Task<bool> GetPackageSource();
         #endregion
 
         #region Public properties
@@ -78,8 +78,8 @@ namespace DevAudit.AuditLibrary
         #region Constructors
         public CodeProject(Dictionary<string, object> project_options, EventHandler<EnvironmentEventArgs> message_handler, string analyzer_type) : base(project_options, message_handler)
         {
+            CallerInformation here = this.AuditEnvironment.Here();
             this.CodeProjectOptions = project_options;
-
             if (!this.CodeProjectOptions.ContainsKey("RootDirectory"))
             {
                 throw new ArgumentException(string.Format("The root application directory was not specified in the project_options dictionary."), "project_options");
@@ -96,13 +96,19 @@ namespace DevAudit.AuditLibrary
             if (this.CodeProjectOptions.ContainsKey("File"))
             {
                 string fn = (string) this.CodeProjectOptions["File"];
-                if (fn.StartsWith("@"))
+                if (!fn.StartsWith("@"))
                 {
-                    this.WorkspaceFilePath = fn.Substring(1);
+                    throw new ArgumentException("The workspace file parameter must be relative to the root directory for this audit target.");
+                }
+                AuditFileInfo wf = this.AuditEnvironment.ConstructFile(this.CombinePath("@", fn.Substring(1)));
+                if (wf.Exists)
+                {
+                    this.WorkspaceFilePath = wf.FullName;
                 }
                 else
                 {
-                    throw new ArgumentException("The workspace file parameter must be relative to the root directory for this audit target.");
+                    throw new ArgumentException(string.Format("The workspace file {0} was not found.", wf.FullName));
+
                 }
             }
             this.AnalyzerType = analyzer_type;
@@ -110,6 +116,36 @@ namespace DevAudit.AuditLibrary
         #endregion
 
         #region Public virtual methods
+        public virtual async Task<bool> GetWorkspace()
+        {
+            CallerInformation here = this.AuditEnvironment.Here();
+            if (!(this.AuditEnvironment is LocalEnvironment))
+            {
+                this.HostEnvironment.Status("Downloading {0} as local directory for code analysis.", this.RootDirectory.FullName);
+            }
+            this.WorkspaceDirectory = await Task.Run(() => this.RootDirectory.GetAsLocalDirectory());
+            if (this.WorkspaceDirectory == null && !(this.AuditEnvironment is LocalEnvironment))
+            {
+                this.HostEnvironment.Error(here, "Could not download {0} as local directory.", this.WorkspaceDirectory);
+                return false;
+            }
+            else if (this.WorkspaceDirectory == null)
+            {
+                this.HostEnvironment.Error(here, "Could not get {0} as local directory.", this.WorkspaceDirectory);
+                return false;
+            }
+            else if (this.WorkspaceDirectory != null && !(this.AuditEnvironment is LocalEnvironment))
+            {
+                this.HostEnvironment.Success("Using {0} as workspace directory for code analysis.", this.WorkspaceDirectory.FullName);
+                return true;
+            }
+            else // (this.AuditEnvironment is LocalEnvironment)
+            {
+                this.HostEnvironment.Info("Using local directory {0} for code analysis.", this.WorkspaceDirectory.FullName);
+                return true;
+            }
+
+        }
         public async Task<AuditResult> Audit()
         {
 
@@ -324,6 +360,8 @@ namespace DevAudit.AuditLibrary
             }
 
         }
+
+        
         #endregion
 
         #region Disposer
