@@ -33,33 +33,27 @@ namespace DevAudit.AuditLibrary.Analyzers.CSharp.Analyzers.Drupal8Module
                 this.ScriptEnvironment.Info("The module diretory does not contain a composer.json file");
                 ar.IsVulnerable = true;
             }
+            //return Task.FromResult(ar);
+            
+            CheckClassesDeclaredTreeVisitor ccdv = new CheckClassesDeclaredTreeVisitor(new List<string>() { "ControllerBase" });
+            foreach (var su in this.PHPSourceUnits)
+            {
+                su.Value.Ast.VisitMe(ccdv);
+            }
+
+                if (ccdv.ClassesDeclared.All(kv => kv.Value))
+                {
+                    this.ScriptEnvironment.Info("Found Controller class");
+                    
+                }
+            
             return Task.FromResult(ar);
         }
+        
         #endregion
 
         #region Private types
-        /*
-        public class CheckClassesDeclaredTreeVisitor : TreeVisitor
-        {
-            public Dictionary<string, bool> ClassesDeclared { get; private set; }
-
-            public CheckClassesDeclaredTreeVisitor(List<string> class_names) : base()
-            {
-                this.ClassesDeclared = new Dictionary<string, bool>();
-                foreach (string cn in class_names)
-                {
-                    this.ClassesDeclared.Add(cn, false);
-                }
-            }
-
-            public override void VisitNamedTypeDecl(NamedTypeDecl x)
-            {
-                base.VisitNamedTypeDecl(x);
-               
-            }
-            
- 
-        }*/
+       
         #endregion
     }
 }

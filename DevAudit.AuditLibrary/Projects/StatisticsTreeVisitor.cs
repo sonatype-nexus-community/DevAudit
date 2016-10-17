@@ -41,4 +41,32 @@ namespace DevAudit.AuditLibrary
         }
 
     }
+
+    public class CheckClassesDeclaredTreeVisitor : TreeVisitor
+    {
+        public Dictionary<string, bool> ClassesDeclared { get; private set; }
+
+        public CheckClassesDeclaredTreeVisitor(List<string> class_names) : base()
+        {
+            this.ClassesDeclared = new Dictionary<string, bool>();
+            foreach (string cn in class_names)
+            {
+                this.ClassesDeclared.Add(cn, false);
+            }
+        }
+
+        public override void VisitNamedTypeDecl(NamedTypeDecl x)
+        {
+            base.VisitNamedTypeDecl(x);
+            if (ClassesDeclared.Any(kv => x.BaseClass.QualifiedName.Name.Value.EndsWith(kv.Key)))
+            {
+                string k = ClassesDeclared.First(kv => x.BaseClass.QualifiedName.Name.Value.EndsWith(kv.Key)).Key;
+                ClassesDeclared[k] = true; 
+            }
+
+        }
+
+
+    }
+
 }
