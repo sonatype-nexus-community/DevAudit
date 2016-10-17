@@ -53,11 +53,14 @@ namespace DevAudit.CommandLine
         [VerbOption("nginx", HelpText = "Audit an Nginx server instance. Use the --root option to specify the root directory of the Httpd server instance, and the --config-file option to specify the configuration file otherwise conf/httpd.conf will be used.")]
         public Options Nginx { get; set; }
 
-        [VerbOption("netfx", HelpText = "Audit a .NET Framework code project. Use the --root option to specify the root directory of the project or solution, and the -f option to specify the solution or project file to use..")]
+        [VerbOption("netfx", HelpText = "Audit a .NET Framework code project. Use the --root option to specify the root directory of the solution, and the --code-project option to specify the name of the project.")]
         public Options NetFx { get; set; }
 
-        [VerbOption("php", HelpText = "Audit a PHP code project. Use the --root option to specify the root directory of the source project.")]
+        [VerbOption("php", HelpText = "Audit a PHP code project. Use the --root option to specify the root directory of the code project.")]
         public Options Php { get; set; }
+
+        [VerbOption("drupal8-module", HelpText = "Audit a Drupal 8 module project. Use the --root option to specify the root directory of the code project and the --code-project option to specify the Drupal 8 module name.")]
+        public Options Drupal8Module { get; set; }
 
         [Option('d', "enable-debug", Required = false, HelpText = "Enable printing debug messages and other behavior useful for debugging the program.")]
         public bool EnableDebug { get; set; }

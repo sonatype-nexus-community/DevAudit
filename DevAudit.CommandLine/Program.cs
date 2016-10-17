@@ -255,6 +255,10 @@ namespace DevAudit.CommandLine
                     {
                         CodeProject = new  PHPCodeProject(audit_options, EnvironmentMessageHandler);
                     }
+                    else if (verb == "drupal8-module")
+                    {
+                        CodeProject = new Drupal8ModuleCodeProject(audit_options, EnvironmentMessageHandler);
+                    }
                 }
                 catch (ArgumentException ae)
                 {

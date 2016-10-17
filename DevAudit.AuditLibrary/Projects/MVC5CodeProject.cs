@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace DevAudit.AuditLibrary.Projects
 {
-    class MVC5Project
+    class MVC5CodeProject
     {
     }
 }

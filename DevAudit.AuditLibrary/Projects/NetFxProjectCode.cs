@@ -124,6 +124,7 @@ namespace DevAudit.AuditLibrary
         {
             if (this.CodeProjectOptions.ContainsKey("CodeProjectName"))
             {
+                this.CodeProjectName = (string) this.CodeProjectOptions["CodeProjectName"];
                 string fn_1 = this.CombinePath(this.RootDirectory.FullName, (string)this.CodeProjectOptions["CodeProjectName"], (string)this.CodeProjectOptions["CodeProjectName"]); //CodeProjectName/CodeProjectName.xxx
                 string fn_2 = this.CombinePath(this.RootDirectory.FullName, "src", (string)this.CodeProjectOptions["CodeProjectName"], (string)this.CodeProjectOptions["CodeProjectName"]); //CodeProjectName/src/CodeProjectName.xxx
 

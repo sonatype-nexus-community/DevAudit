@@ -6,7 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 
 using Devsense.PHP.Syntax;
-using Devsense.PHP.Syntax.Ast;
+using Devsense.PHP.Syntax.Ast;  
 
 namespace DevAudit.AuditLibrary
 {

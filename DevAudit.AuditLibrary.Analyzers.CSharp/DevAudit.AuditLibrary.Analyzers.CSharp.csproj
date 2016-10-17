@@ -31,6 +31,10 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="Devsense.PHP.Parser.NET46, Version=1.0.0.0, Culture=neutral, PublicKeyToken=840d8b321fee7061, processorArchitecture=MSIL">
+      <HintPath>..\packages\Devsense.PHP.Parser.NET46.1.0.0.0\lib\net461\Devsense.PHP.Parser.NET46.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
     <Reference Include="Microsoft.CodeAnalysis, Version=2.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <HintPath>..\packages\Microsoft.CodeAnalysis.Common.2.0.0-beta3\lib\net45\Microsoft.CodeAnalysis.dll</HintPath>
       <Private>True</Private>
@@ -157,9 +161,14 @@
       <HintPath>..\packages\System.Xml.XPath.XDocument.4.0.1\lib\net46\System.Xml.XPath.XDocument.dll</HintPath>
       <Private>True</Private>
     </Reference>
+    <Reference Include="YamlDotNet, Version=4.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\YamlDotNet.4.0.0\lib\net35\YamlDotNet.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="SA1300ElementMustBeginWithUpperCaseLetterAnalyzer.cs" />
+    <Compile Include="Analyzers\Drupal8Module\BasicModuleChecks.cs" />
+    <Compile Include="Analyzers\Roslyn\SA1300ElementMustBeginWithUpperCaseLetterAnalyzer.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -176,9 +185,14 @@
     <Analyzer Include="..\packages\Microsoft.CodeAnalysis.Analyzers.1.1.0\analyzers\dotnet\cs\Microsoft.CodeAnalysis.Analyzers.dll" />
     <Analyzer Include="..\packages\Microsoft.CodeAnalysis.Analyzers.1.1.0\analyzers\dotnet\cs\Microsoft.CodeAnalysis.CSharp.Analyzers.dll" />
   </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Analyzers\PHP\" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
-    <PostBuildEvent>xcopy /f /y $(ProjectDir)*Analyzer.cs $(SolutionDir)DevAudit.CommandLine\bin\Debug\Analyzers\Roslyn</PostBuildEvent>
+    <PostBuildEvent>xcopy /f /y /r /i $(ProjectDir)Analyzers\Roslyn\* $(SolutionDir)DevAudit.CommandLine\bin\Debug\Analyzers\Roslyn\
+xcopy /f /y /r /i $(ProjectDir)Analyzers\PHP\* $(SolutionDir)DevAudit.CommandLine\bin\Debug\Analyzers\PHP\
+xcopy /f /y /r /i $(ProjectDir)Analyzers\Drupal8Module\* $(SolutionDir)DevAudit.CommandLine\bin\Debug\Analyzers\Drupal8Module\</PostBuildEvent>
   </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

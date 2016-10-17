@@ -230,11 +230,13 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Analyzers\PHPAnalyzer.cs" />
+    <Compile Include="Projects\Drupal8ModuleCodeProject.cs" />
     <Compile Include="Projects\PHPAuditCodeSourceUnit.cs" />
     <Compile Include="Projects\PHPAuditErrorSink.cs" />
     <Compile Include="Projects\PHPCodeProject.cs" />
     <Compile Include="Projects\StatisticsTreeVisitor.cs" />
-    <Compile Include="RoslynAnalyzer.cs" />
+    <Compile Include="Analyzers\RoslynAnalyzer.cs" />
     <Compile Include="Application.cs" />
     <Compile Include="Applications\Drupal7Application.cs" />
     <Compile Include="Applications\Drupal8Application.cs" />
@@ -246,8 +248,8 @@
     <Compile Include="LocalAuditDirectoryInfo.cs" />
     <Compile Include="LocalAuditFileInfo.cs" />
     <Compile Include="CodeProject.cs" />
-    <Compile Include="Projects\MVC5Project.cs" />
-    <Compile Include="Projects\NetFxProject.cs" />
+    <Compile Include="Projects\MVC5CodeProject.cs" />
+    <Compile Include="Projects\NetFxProjectCode.cs" />
     <Compile Include="ScriptEnvironment.cs" />
     <Compile Include="SshAuditFileInfo.cs" />
     <Compile Include="SshAuditDirectoryInfo.cs" />
@@ -284,7 +286,7 @@
     <Compile Include="Servers\MySQLServer.cs" />
     <Compile Include="SshAuditEnvironment.cs" />
     <Compile Include="EnvironmentEventArgs.cs" />
-    <Compile Include="StyleCopAnalyzer.cs" />
+    <Compile Include="Analyzers\StyleCopAnalyzer.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />
@@ -341,7 +343,6 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="Analyzers\Roslyn\" />
     <Folder Include="Configurations\" />
     <Folder Include="Examples\Drupal\core\modules\" />
   </ItemGroup>

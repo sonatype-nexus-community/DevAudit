@@ -46,11 +46,7 @@ namespace DevAudit.AuditLibrary
             }
         }
 
-        public AuditFileInfo ApplicationBinary { get; protected set; }
-
-        public Dictionary<string, string> RequiredFileLocations { get; protected set; }
-
-        public Dictionary<string, string> RequiredDirectoryLocations { get; protected set; }
+        public string CodeProjectName { get; protected set; }
 
         public string WorkspaceFilePath { get; protected set; }
 
@@ -72,7 +68,7 @@ namespace DevAudit.AuditLibrary
 
         public List<AnalyzerResult> AnalyzerResults { get; protected set; } = new List<AnalyzerResult>();
 
-        public PackageSource CodeProjectPackageSource { get; protected set; }
+        public PackageSource PackageSource { get; protected set; }
         #endregion
 
         #region Constructors
@@ -91,6 +87,11 @@ namespace DevAudit.AuditLibrary
             else
             {
                 this.CodeProjectFileSystemMap.Add("RootDirectory", this.AuditEnvironment.ConstructDirectory((string)this.CodeProjectOptions["RootDirectory"]));
+            }
+
+            if (this.CodeProjectOptions.ContainsKey("CodeProjectName"))
+            {
+                this.CodeProjectName = (string)CodeProjectOptions["CodeProjectName"];
             }
 
             if (this.CodeProjectOptions.ContainsKey("File"))

@@ -14,6 +14,8 @@ namespace DevAudit.AuditLibrary
         #region Constructors
         public PHPCodeProject(Dictionary<string, object> project_options, EventHandler<EnvironmentEventArgs> message_handler) : base(project_options, message_handler, "PHP")
         { }
+        public PHPCodeProject(Dictionary<string, object> project_options, EventHandler<EnvironmentEventArgs> message_handler, string analyzer_type) : base(project_options, message_handler, analyzer_type)
+        { }
         #endregion
 
         #region Overriden properties
@@ -23,59 +25,70 @@ namespace DevAudit.AuditLibrary
         #endregion
 
         #region Overriden methods
-        public override Task<bool> GetPackageSource()
-        {
-            throw new NotImplementedException();
-        }
-
-        public override async Task<bool> GetWorkspace()
+        public override  async Task<bool> GetWorkspace()
         {
             if (! await base.GetWorkspace())
             {
                 return false;
             }
+            object psu_lock = new object();
             this.HostEnvironment.Status("Parsing PHP source files.");
             this.Stopwatch.Start();
             DirectoryInfo wd = this.WorkspaceDirectory.GetAsSysDirectoryInfo();
-            List<FileInfo> PHPFiles = wd.GetFiles("*.php", SearchOption.AllDirectories).ToList();
-            List<FileInfo> ModuleFiles = wd.GetFiles("*.module", SearchOption.AllDirectories).ToList();
-            List<FileInfo> YAMLFiles = wd.GetFiles("*.yml", SearchOption.AllDirectories).ToList();
+            List<FileInfo> PHPFiles = wd.GetFiles("*.php*", SearchOption.AllDirectories).Concat(wd.GetFiles("*.module", SearchOption.AllDirectories).Concat(wd.GetFiles("*.inc", SearchOption.AllDirectories))).ToList();
+            this.YamlFiles = wd.GetFiles("*.yml", SearchOption.AllDirectories).ToList();
             Dictionary<FileInfo, PHPAuditSourceUnit> PHPSourceUnits = new Dictionary<FileInfo, PHPAuditSourceUnit>(PHPFiles.Count);
-            foreach (FileInfo f in PHPFiles.Concat(ModuleFiles))
+            Parallel.ForEach(PHPFiles, (f) =>
             {
-                using (StreamReader r = f.OpenText())
+                try
                 {
-                    try
+                    PHPAuditSourceUnit su = new PHPAuditSourceUnit(this.HostEnvironment, File.ReadAllText(f.FullName, Encoding.UTF8), f);
+                    if (su != null)
                     {
-                        PHPAuditSourceUnit su = new PHPAuditSourceUnit(this.HostEnvironment, await r.ReadToEndAsync(), f);
-                        if (su != null)
+                        lock (psu_lock)
                         {
                             PHPSourceUnits.Add(f, su);
-                            this.HostEnvironment.Info("Parsed {0} class declarations with {1} method declarations from {2}.", su.STV.NamedTypeDeclarationCount, su.STV.MethodDeclarationCount, f.FullName);
-                        }
-                        else
-                        {
-                            this.HostEnvironment.Warning("Could not parse PHP file {0}.", f.FullName);
                         }
                     }
-                    catch (IOException ioe)
+                    else
                     {
-                        this.HostEnvironment.Error("I/O exception thrown attempting to read PHP file {0}.", f.FullName);
-                        this.HostEnvironment.Error(ioe);
+                        this.HostEnvironment.Warning("Could not parse PHP file {0}.", f.FullName);
                     }
                 }
-            }
+                catch (IOException ioe)
+                {
+                    this.HostEnvironment.Error("I/O exception thrown attempting to read PHP file {0}.", f.FullName);
+                    this.HostEnvironment.Error(ioe);
+                }
+                catch (Exception e)
+                {
+                    this.HostEnvironment.Error("Exception thrown attempting to read PHP file {0}.", f.FullName);
+                    this.HostEnvironment.Error(e);
+                }
+            });
             this.WorkSpace = new Dictionary<string, List<FileInfo>>(3)
             {
-                {"PHPFiles", PHPFiles },
-                {"YAMLFiles", YAMLFiles },
-                {"ModuleFiles", ModuleFiles }
+                {"PHP", PHPFiles },
+                {"YAML", YamlFiles },
+                {"JSON", wd.GetFiles("*.json", SearchOption.AllDirectories).ToList() }
+              
             };
             this.Project = PHPSourceUnits;
             this.Stopwatch.Stop();
-            this.HostEnvironment.Success("Parsed {0} PHP files and {1} YAML files. in {2} ms.", PHPSourceUnits.Count(), YAMLFiles.Count, this.Stopwatch.ElapsedMilliseconds);
+            this.HostEnvironment.Success("Parsed {0} PHP files in {1} ms.", PHPSourceUnits.Count(), this.Stopwatch.ElapsedMilliseconds);
             return true;
         }
+
+        public override Task<bool> GetPackageSource()
+        {
+            throw new NotImplementedException();
+        }
+
         #endregion
+
+        #region Public properties
+        public List<FileInfo> YamlFiles { get; protected set; }
+        #endregion
+
     }
 }
