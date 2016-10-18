@@ -52,6 +52,14 @@
       <HintPath>..\packages\CSharpTest.Net.Library.2.14.126.467\lib\net45\CSharpTest.Net.Library.dll</HintPath>
       <Private>True</Private>
     </Reference>
+    <Reference Include="CSScriptLibrary, Version=3.14.0.0, Culture=neutral, PublicKeyToken=70fcc3d18c749033, processorArchitecture=MSIL">
+      <HintPath>..\packages\CS-Script.bin.3.14.0\lib\net46\CSScriptLibrary.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="Devsense.PHP.Parser.NET46, Version=1.0.0.0, Culture=neutral, PublicKeyToken=840d8b321fee7061, processorArchitecture=MSIL">
+      <HintPath>..\packages\Devsense.PHP.Parser.NET46.1.0.0.0\lib\net461\Devsense.PHP.Parser.NET46.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
     <Reference Include="INIFileParser, Version=2.3.0.0, Culture=neutral, PublicKeyToken=79af7b307b65cf3c, processorArchitecture=MSIL">
       <HintPath>..\packages\ini-parser.2.3.0\lib\net20\INIFileParser.dll</HintPath>
       <Private>True</Private>
@@ -84,7 +92,7 @@
       <HintPath>..\packages\Microsoft.CodeAnalysis.Workspaces.Common.2.0.0-beta3\lib\net45\Microsoft.CodeAnalysis.Workspaces.Desktop.dll</HintPath>
       <Private>True</Private>
     </Reference>
-   <Reference Include="Mono.Cecil, Version=0.9.6.0, Culture=neutral, PublicKeyToken=0738eb9f132ed756, processorArchitecture=MSIL">
+    <Reference Include="Mono.Cecil, Version=0.9.6.0, Culture=neutral, PublicKeyToken=0738eb9f132ed756, processorArchitecture=MSIL">
       <HintPath>..\packages\Mono.Cecil.0.9.6.4\lib\net45\Mono.Cecil.dll</HintPath>
       <Private>True</Private>
     </Reference>
@@ -117,10 +125,13 @@
 	<Reference Include="System.Web" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
-    <Reference Include="Microsoft.CSharp" />
     <Reference Include="System.Data" />
     <Reference Include="System.Net.Http" />
     <Reference Include="System.Xml" />
+    <Reference Include="Microsoft.CSharp" />
+	<Reference Include="Microsoft.Build" />
+	<Reference Include="Microsoft.Build.Engine" />
+	<Reference Include="Microsoft.Build.Framework" />
     <Reference Include="System.Collections.Immutable, Version=1.2.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
       <HintPath>..\packages\System.Collections.Immutable.1.2.0\lib\portable-net45+win8+wp8+wpa81\System.Collections.Immutable.dll</HintPath>
       <Private>True</Private>
@@ -154,22 +165,30 @@
       <HintPath>..\packages\YamlDotNet.3.9.0\lib\net35\YamlDotNet.dll</HintPath>
       <Private>True</Private>
     </Reference>
-	<Reference Include="Microsoft.Build" />
-	<Reference Include="Microsoft.Build.Engine" />
-	<Reference Include="Microsoft.Build.Framework" />
+
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Analyzers\PHPAnalyzer.cs" />
+    <Compile Include="Projects\Drupal8ModuleCodeProject.cs" />
+    <Compile Include="Projects\PHPAuditCodeSourceUnit.cs" />
+    <Compile Include="Projects\PHPAuditErrorSink.cs" />
+    <Compile Include="Projects\PHPCodeProject.cs" />
+    <Compile Include="Projects\PHPTreeVisitors.cs" />
+    <Compile Include="Analyzers\RoslynAnalyzer.cs" />
     <Compile Include="Application.cs" />
     <Compile Include="Applications\Drupal7Application.cs" />
     <Compile Include="Applications\Drupal8Application.cs" />
     <Compile Include="Applications\DrupalModuleInfo.cs" />
     <Compile Include="AuditFileSystemInfo.cs" />
     <Compile Include="AuditScpClient.cs" />
+    <Compile Include="Analyzer.cs" />
+    <Compile Include="IAnalyzer.cs" />
     <Compile Include="LocalAuditDirectoryInfo.cs" />
     <Compile Include="LocalAuditFileInfo.cs" />
     <Compile Include="CodeProject.cs" />
-    <Compile Include="Projects\MVC5Project.cs" />
-    <Compile Include="Projects\NetFxProject.cs" />
+    <Compile Include="Projects\MVC5CodeProject.cs" />
+    <Compile Include="Projects\NetFxCodeProject.cs" />
+    <Compile Include="ScriptEnvironment.cs" />
     <Compile Include="SshAuditFileInfo.cs" />
     <Compile Include="SshAuditDirectoryInfo.cs" />
     <Compile Include="AuditEnvironment.cs" />
@@ -205,6 +224,7 @@
     <Compile Include="Servers\MySQLServer.cs" />
     <Compile Include="SshAuditEnvironment.cs" />
     <Compile Include="EnvironmentEventArgs.cs" />
+    <Compile Include="Analyzers\StyleCopAnalyzer.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Examples\bower.json.example">
