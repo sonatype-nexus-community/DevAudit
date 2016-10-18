@@ -30,7 +30,7 @@ namespace DevAudit.AuditLibrary.Analyzers.CSharp.Analyzers.Drupal8Module
             AnalyzerResult ar = new AnalyzerResult() { Analyzer = this };
             if (this.JsonFiles == null || !this.JsonFiles.Any(jf => jf.Name == "composer.json"))
             {
-                this.ScriptEnvironment.Info("The module diretory does not contain a composer.json file");
+                this.ScriptEnvironment.Info("The module directory does not contain a composer.json file");
                 ar.IsVulnerable = true;
             }
             //return Task.FromResult(ar);
@@ -43,7 +43,7 @@ namespace DevAudit.AuditLibrary.Analyzers.CSharp.Analyzers.Drupal8Module
 
                 if (ccdv.ClassesDeclared.All(kv => kv.Value))
                 {
-                    this.ScriptEnvironment.Info("Found Controller class");
+                    this.ScriptEnvironment.Info("Found ControllerBase class");
                     
                 }
             

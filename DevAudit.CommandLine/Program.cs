@@ -249,7 +249,7 @@ namespace DevAudit.CommandLine
                     }
                     else if (verb == "netfx")
                     {
-                        CodeProject = new NetFxProject(audit_options, EnvironmentMessageHandler);
+                        CodeProject = new NetFxCodeProject(audit_options, EnvironmentMessageHandler);
                     }
                     else if (verb == "php")
                     {

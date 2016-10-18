@@ -9,37 +9,37 @@ using Devsense.PHP.Syntax.Ast;
 
 namespace DevAudit.AuditLibrary
 {
-    public class StatisticsTreeVisitor : TreeVisitor
+    public class DeclarationsTreeVisitor : TreeVisitor
     {
-        public int FunctionDeclarationCount { get; private set; } = 0;
-        public int MethodDeclarationCount { get; private set; } = 0;
-        public int NamedTypeDeclarationCount { get; private set; } = 0;
+        public List<FunctionDecl> FunctionDeclarations { get; private set; } = new List<FunctionDecl>();
+        public List<MethodDecl> MethodDeclarations { get; private set; } = new List<MethodDecl>();
+        public List<NamedTypeDecl> ClassDeclarations { get; private set; } = new List<NamedTypeDecl>();
+        public List<ClassConstantDecl> ClassConstantDeclarations { get; private set; } = new List<ClassConstantDecl>();
 
-        public StatisticsTreeVisitor() : base() {}
+        public DeclarationsTreeVisitor() : base() {}
 
         public override void VisitFunctionDecl(FunctionDecl x)
         {
             base.VisitFunctionDecl(x);
-            FunctionDeclarationCount++;
+            this.FunctionDeclarations.Add(x);
         }
 
         public override void VisitMethodDecl(MethodDecl x)
         {
             base.VisitMethodDecl(x);
-            MethodDeclarationCount++;
+            this.MethodDeclarations.Add(x);
         }
 
+        public override void VisitClassConstantDecl(ClassConstantDecl x)
+        {
+            base.VisitClassConstantDecl(x);
+            this.ClassConstantDeclarations.Add(x);
+        }
         public override void VisitNamedTypeDecl(NamedTypeDecl x)
         {
             base.VisitNamedTypeDecl(x);
-            NamedTypeDeclarationCount++;
+            this.ClassDeclarations.Add(x);
         }
-
-        public override void VisitDirectTypeRef(DirectTypeRef x)
-        {
-            base.VisitDirectTypeRef(x);
-        }
-
     }
 
     public class CheckClassesDeclaredTreeVisitor : TreeVisitor
@@ -55,6 +55,7 @@ namespace DevAudit.AuditLibrary
             }
         }
 
+        
         public override void VisitNamedTypeDecl(NamedTypeDecl x)
         {
             base.VisitNamedTypeDecl(x);

@@ -11,7 +11,7 @@ using Microsoft.CodeAnalysis.MSBuild;
 namespace DevAudit.AuditLibrary
 {
     
-    public class NetFxProject : CodeProject
+    public class NetFxCodeProject : CodeProject
     {
         #region Overriden properties
         public override string CodeProjectId { get { return "netfx"; } }
@@ -120,7 +120,7 @@ namespace DevAudit.AuditLibrary
         #endregion
 
         #region Constructors
-        public NetFxProject(Dictionary<string, object> project_options, EventHandler<EnvironmentEventArgs> message_handler) : base(project_options, message_handler, "Roslyn")
+        public NetFxCodeProject(Dictionary<string, object> project_options, EventHandler<EnvironmentEventArgs> message_handler) : base(project_options, message_handler, "Roslyn")
         {
             if (this.CodeProjectOptions.ContainsKey("CodeProjectName"))
             {

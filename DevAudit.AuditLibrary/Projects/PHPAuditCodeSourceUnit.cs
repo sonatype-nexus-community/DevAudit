@@ -22,8 +22,8 @@ namespace DevAudit.AuditLibrary
                 this.Parse(factory, this.ErrorSink);
                 if (this.Ast != null)
                 {
-                    this.STV = new StatisticsTreeVisitor();
-                    this.Ast.VisitMe(this.STV);
+                    this.DTV = new DeclarationsTreeVisitor();
+                    this.Ast.VisitMe(this.DTV);
                 }
             }
             catch(Exception e)
@@ -35,7 +35,7 @@ namespace DevAudit.AuditLibrary
         #endregion
 
         #region Public properties;
-        public StatisticsTreeVisitor STV  { get; protected set; }
+        public DeclarationsTreeVisitor DTV  { get; protected set; }
         #endregion
 
         #region Protected Properties

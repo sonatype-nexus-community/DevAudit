@@ -235,7 +235,7 @@
     <Compile Include="Projects\PHPAuditCodeSourceUnit.cs" />
     <Compile Include="Projects\PHPAuditErrorSink.cs" />
     <Compile Include="Projects\PHPCodeProject.cs" />
-    <Compile Include="Projects\StatisticsTreeVisitor.cs" />
+    <Compile Include="Projects\PHPTreeVisitors.cs" />
     <Compile Include="Analyzers\RoslynAnalyzer.cs" />
     <Compile Include="Application.cs" />
     <Compile Include="Applications\Drupal7Application.cs" />
@@ -249,7 +249,7 @@
     <Compile Include="LocalAuditFileInfo.cs" />
     <Compile Include="CodeProject.cs" />
     <Compile Include="Projects\MVC5CodeProject.cs" />
-    <Compile Include="Projects\NetFxProjectCode.cs" />
+    <Compile Include="Projects\NetFxCodeProject.cs" />
     <Compile Include="ScriptEnvironment.cs" />
     <Compile Include="SshAuditFileInfo.cs" />
     <Compile Include="SshAuditDirectoryInfo.cs" />
