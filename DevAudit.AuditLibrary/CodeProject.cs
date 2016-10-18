@@ -180,7 +180,7 @@ namespace DevAudit.AuditLibrary
                     }
                     if (analyzer_results.Count(ar => !ar.Succeded) > 0)
                     {
-                        this.HostEnvironment.Warning("Code analysis by {0} analyzers did not succeded.", analyzer_results.Count(ar => ar.Succeded));
+                        this.HostEnvironment.Warning("Code analysis by {0} analyzers did not succed.", analyzer_results.Count(ar => !ar.Succeded));
                     }
                     return AuditResult.SUCCESS;
                 }
