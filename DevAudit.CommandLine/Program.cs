@@ -289,7 +289,7 @@ namespace DevAudit.CommandLine
             #endregion
 
             PrintBanner();
-            Console.CursorVisible = false;
+            if (!ProgramOptions.NonInteractive) Console.CursorVisible = false;
             ExitCodes exit = ExitCodes.ERROR_CREATING_AUDIT_TARGET;
             if (Server != null) //Auditing an application server
             {
@@ -316,7 +316,7 @@ namespace DevAudit.CommandLine
                 }
 
             }
-            Console.CursorVisible = true;
+            if (!ProgramOptions.NonInteractive) Console.CursorVisible = true;
             return (int) exit;
 
         }
