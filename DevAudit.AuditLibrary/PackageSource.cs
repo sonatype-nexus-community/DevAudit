@@ -41,12 +41,12 @@ namespace DevAudit.AuditLibrary
             }
 
             #region Cache option
-            if (this.PackageSourceOptions.ContainsKey("Cache") && (bool) this.PackageSourceOptions["Cache"] == true)
+            if (this.PackageSourceOptions.ContainsKey("Cache") && (bool)this.PackageSourceOptions["Cache"] == true)
             {
                 this.ProjectVulnerabilitiesCacheEnabled = true;
-                if (this.PackageSourceOptions.ContainsKey("CacheFile") && !string.IsNullOrEmpty((string) this.PackageSourceOptions["CacheFile"]))
+                if (this.PackageSourceOptions.ContainsKey("CacheFile") && !string.IsNullOrEmpty((string)this.PackageSourceOptions["CacheFile"]))
                 {
-                    this.ProjectVulnerabilitiesCacheFile = (string) this.PackageSourceOptions["CacheFile"];
+                    this.ProjectVulnerabilitiesCacheFile = (string)this.PackageSourceOptions["CacheFile"];
                 }
                 else
                 {
@@ -85,36 +85,6 @@ namespace DevAudit.AuditLibrary
             else
             {
                 this.ProjectVulnerabilitiesCacheEnabled = false;
-            }
-            #endregion
-
-            #region User Docker container option
-            if (this.PackageSourceOptions.ContainsKey("DockerContainerId"))
-            {
-                Docker.ProcessStatus process_status;
-                string process_output, process_error;
-                if (Docker.GetContainer((string)this.PackageSourceOptions["DockerContainerId"], out process_status, out process_output, out process_error))
-                {
-                    this.UseDockerContainer = true;
-                    this.DockerContainerId = (string)this.PackageSourceOptions["DockerContainerId"];
-                }
-                else
-                {
-                    if (process_status == Docker.ProcessStatus.DockerNotInstalled)
-                    {
-                        throw new ArgumentException(string.Format("Failed to find docker container {0}. Docker does not appear to be installed or the command-line tools are not on the current PATH. Error is:  {1}",
-                            (string)this.PackageSourceOptions["DockerContainerId"], process_error));
-                    }
-                    else 
-                    {
-                        throw new ArgumentException(string.Format("Failed to find docker container {0}. Error is:  {1}",
-                            (string)this.PackageSourceOptions["DockerContainerId"], process_error));
-                    }
-                }
-            }
-            else
-            {
-                this.UseDockerContainer = false;
             }
             #endregion
         }
@@ -182,10 +152,6 @@ namespace DevAudit.AuditLibrary
             }
         }
 
-        public bool UseDockerContainer { get; set; }
-
-        public string DockerContainerId { get; set; }
-      
         public Dictionary<string, object> PackageSourceOptions { get; set; } = new Dictionary<string, object>();
 
         public IEnumerable<OSSIndexQueryObject> Packages { get; protected set; }
@@ -261,107 +227,9 @@ namespace DevAudit.AuditLibrary
             }
         }
 
-        public Task<IEnumerable<OSSIndexQueryObject>> PackagesTask
-        {
-            get
-            {
-                if (_PackagesTask == null)
-                {
-                    _PackagesTask = Task<IEnumerable<OSSIndexQueryObject>>.Run(() => this.Packages =
-                        this.GetPackages().GroupBy(x => new { x.Name, x.Version, x.Vendor }).Select(y => y.First()));
-                }
-                return _PackagesTask;
-            }
-        }
 
         public ConcurrentDictionary<OSSIndexArtifact, Exception> GetVulnerabilitiesExceptions { get; protected set; } 
 
-        public Task<Tuple<int, int>> ArtifactsTask2
-        {
-            get
-            {
-                if (this._ArtifactsTask2 == null)
-                {
-                    this._ArtifactsTask2 = Task<Tuple<int, int>>.Run(() =>
-                        this.GetArtifacts());
-                }
-                return this._ArtifactsTask2;
-            }
-        }
-
-        public IEnumerable<Task<KeyValuePair<IEnumerable<OSSIndexQueryObject>, IEnumerable<OSSIndexArtifact>>>> ArtifactsTask
-        {
-            get
-            {
-                if (_ArtifactsTask == null)
-                {
-                    int i = 0;
-                    IEnumerable<IGrouping<int, OSSIndexQueryObject>> packages_groups = this.Packages.GroupBy(x => i++ / 100).ToArray();
-                    _ArtifactsTask = new List<Task<KeyValuePair<IEnumerable<OSSIndexQueryObject>,
-                        IEnumerable<OSSIndexArtifact>>>>(packages_groups.Count());
-                    for (int index = 0; index < packages_groups.Count(); index++)
-                    {
-                        IEnumerable<OSSIndexQueryObject> f = packages_groups.Where(g => g.Key == index).SelectMany(g => g).ToList();
-                        Task<KeyValuePair<IEnumerable<OSSIndexQueryObject>, IEnumerable<OSSIndexArtifact>>> t
-                            = Task<Task<KeyValuePair<IEnumerable<OSSIndexQueryObject>, IEnumerable<OSSIndexArtifact>>>>.Factory
-                                .StartNew(async (o) =>
-                                {
-                                    IEnumerable<OSSIndexQueryObject> query = o as IEnumerable<OSSIndexQueryObject>;
-                                    return AddArtifiact(query, await this.HttpClient.SearchAsync(this.PackageManagerId, query,
-                                        this.ArtifactsTransform));
-                                }, f, CancellationToken.None, TaskCreationOptions.DenyChildAttach, TaskScheduler.Default).Unwrap();
-                        _ArtifactsTask.Add(t);
-
-                    }
-                }
-                return this._ArtifactsTask;
-            }
-        }
-
-        public List<Task<KeyValuePair<OSSIndexProject, IEnumerable<OSSIndexProjectVulnerability>>>> VulnerabilitiesTask
-        {
-            get
-            {
-                if (_VulnerabilitiesTask == null)
-                {
-                    List<OSSIndexArtifact> artifacts_to_query = this.ProjectVulnerabilitiesCacheEnabled ? 
-                        this.ArtifactsWithProjects.Except(this.CachedArtifacts).ToList() : this.ArtifactsWithProjects;
-                    this._VulnerabilitiesTask = new List<Task<KeyValuePair<OSSIndexProject, IEnumerable<OSSIndexProjectVulnerability>>>>
-                            (artifacts_to_query.Count());
-                    artifacts_to_query.ForEach(p => this._VulnerabilitiesTask.Add(Task<Task<KeyValuePair<OSSIndexProject, IEnumerable<OSSIndexProjectVulnerability>>>>
-                        .Factory.StartNew(async (o) =>
-                        {   
-                            OSSIndexArtifact artifact = o as OSSIndexArtifact;
-                            List<OSSIndexPackageVulnerability> package_vulnerabilities = await this.HttpClient.GetPackageVulnerabilitiesAsync(artifact.PackageId);
-                            OSSIndexProject project = await this.HttpClient.GetProjectForIdAsync(artifact.ProjectId);
-                            project.Artifact = artifact;
-                            project.Package = artifact.Package;
-                            lock (artifact_project_lock)
-                            {
-                                if (!ArtifactProject.Keys.Any(a => a.ProjectId == project.Id.ToString()))
-                                {
-
-                                    this._ArtifactProject.Add(Artifacts.Where(a => a.ProjectId == project.Id.ToString()).First(), project);
-                                }
-                            }
-                            IEnumerable<OSSIndexProjectVulnerability> v = await this.HttpClient.GetVulnerabilitiesForIdAsync(project.Id.ToString());
-                            if (this.ProjectVulnerabilitiesCacheEnabled)
-                            {
-                                IEnumerable<string> expired_keys = this.ProjectVulnerabilitiesCache.Keys.Where(k => k.StartsWith(project.Id.ToString()));
-                                foreach (string ek in expired_keys)
-                                {
-                                    this.ProjectVulnerabilitiesCache.Remove(ek);
-                                }
-                                this.ProjectVulnerabilitiesCache[GetProjectVulnerabilitiesCacheKey(project.Id)] = new Tuple<OSSIndexProject, IEnumerable<OSSIndexProjectVulnerability>>
-                                    (project, v);
-                            }
-                            this.AddPackageVulnerability(artifact.Package, package_vulnerabilities);
-                            return this.AddProjectVulnerability(project, v);
-                        }, p, CancellationToken.None, TaskCreationOptions.DenyChildAttach, TaskScheduler.Default).Unwrap()));
-                }
-                return this._VulnerabilitiesTask;
-            }
-        }
 
         public bool ListPackages { get; protected set; } = false;
 
