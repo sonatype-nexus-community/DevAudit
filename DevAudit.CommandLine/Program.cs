@@ -157,7 +157,7 @@ namespace DevAudit.CommandLine
             }
             if (ProgramOptions.ListArtifacts)
             {
-                audit_options.Add("ListArtifacts", ProgramOptions.ListPackages);
+                audit_options.Add("ListArtifacts", ProgramOptions.ListArtifacts);
             }
             if (!string.IsNullOrEmpty(ProgramOptions.File))
             {
@@ -349,6 +349,7 @@ namespace DevAudit.CommandLine
         {
             if (ReferenceEquals(Source, null)) throw new ArgumentNullException("Source");
             AuditTarget.AuditResult ar = Source.Audit(CTS.Token);
+            if (Spinner != null) StopSpinner();
             if (ProgramOptions.ListPackages)
             {
                 if (ar == AuditTarget.AuditResult.SUCCESS && Source.Packages.Count() > 0)
@@ -414,6 +415,9 @@ namespace DevAudit.CommandLine
                     return;
                 }
             }
+
+            #region Cache stuff
+            /*
             if (ProgramOptions.CacheDump)
             {
                 Console.WriteLine("Dumping cache...");
@@ -447,8 +451,8 @@ namespace DevAudit.CommandLine
                 PrintMessageLine("{0} projects have cached values.", Source.CachedArtifacts.Count());
                 PrintMessageLine("{0} cached project entries are stale and will be removed from cache.", Source.ProjectVulnerabilitiesExpiredCacheKeys.Count());
             }
-            #region Cache stuff
-            /*
+            
+            
             if (Source.ProjectVulnerabilitiesCacheEnabled)
             {
                 foreach (Tuple<OSSIndexProject, IEnumerable<OSSIndexProjectVulnerability>> c in Source.ProjectVulnerabilitiesCacheItems)
@@ -520,31 +524,32 @@ namespace DevAudit.CommandLine
                 IEnumerable<OSSIndexProjectVulnerability> project_vulnerabilities = pv.Value;
                 IEnumerable<OSSIndexPackageVulnerability> package_vulnerabilities = Source.PackageVulnerabilities.Where(package_vuln => package_vuln.Key.Name == p.Package.Name).First().Value;
                 PrintMessage(ConsoleColor.White, "[{0}/{1}] {2} {3}", ++projects_processed, projects_count, p.Package.Name, string.IsNullOrEmpty(p.Artifact.Version) ? "" :
-                        string.Format("({0}) ", p.Package.Version));
+                        string.Format("({0}) ", p.Artifact.Version));
                 if (package_vulnerabilities.Count() == 0 && project_vulnerabilities.Count() == 0)
                 {
                     PrintMessage("no known vulnerabilities. ");
                     PrintMessage("[{0} {1}]\n", p.Package.Name, p.Package.Version);
                 }
+                else if (package_vulnerabilities.Count(v => v.CurrentPackageVersionIsInRange) == 0 && project_vulnerabilities.Count(v => v.CurrentPackageVersionIsInRange) == 0)
+                {
+                    PrintMessage("{0} known vulnerabilities, 0 affecting current package version. ", package_vulnerabilities.Count() + project_vulnerabilities.Count());
+                    PrintMessage("[{0} {1}]\n", p.Package.Name, p.Package.Version);
+                }
                 else
                 {
-                    if (project_vulnerabilities.Count() > 0 || package_vulnerabilities.Count() > 0)
-                    {
-                        PrintMessageLine(ConsoleColor.Red, "[VULNERABLE]");
-                    }
+                    PrintMessageLine(ConsoleColor.Red, "[VULNERABLE]");
                     PrintMessage(ConsoleColor.Magenta, "{0} known vulnerabilities, ", project_vulnerabilities.Count() + package_vulnerabilities.Count()); //vulnerabilities.Value.GroupBy(v => new { v.CVEId, v.Uri, v.Title, v.Summary }).SelectMany(v => v).Count(),
-                    PrintMessage("{0} affecting installed version. ", project_vulnerabilities.Count() + package_vulnerabilities.Count());
+                    PrintMessage("{0} affecting installed version. ", project_vulnerabilities.Count(v => v.CurrentPackageVersionIsInRange) + package_vulnerabilities.Count(v => v.CurrentPackageVersionIsInRange));
                     PrintMessageLine("[{0} {1}]", p.Package.Name, p.Package.Version);
-                    package_vulnerabilities.ToList().ForEach(v =>
+                    package_vulnerabilities.Where(v => v.CurrentPackageVersionIsInRange).ToList().ForEach(v =>
                     {
                         PrintMessageLine(ConsoleColor.Red, "{0} {1}", v.Id.Trim(), v.Title.Trim());
                         PrintMessageLine(v.Summary);
                         PrintMessage(ConsoleColor.Red, "Affected versions: ");
-
                         PrintMessageLine(ConsoleColor.White, string.Join(", ", v.Versions.ToArray()));
                         PrintMessageLine("");
                     });
-                    project_vulnerabilities.ToList().ForEach(v =>
+                    project_vulnerabilities.Where(v => v.CurrentPackageVersionIsInRange).ToList().ForEach(v =>
                     {
                         PrintMessageLine(ConsoleColor.Red, "{0} {1}", v.CVEId, v.Title);
                         PrintMessageLine(v.Summary);

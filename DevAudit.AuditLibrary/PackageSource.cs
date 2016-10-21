@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.Concurrent;
+using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
 using System.Text;
@@ -273,6 +274,8 @@ namespace DevAudit.AuditLibrary
             }
         }
 
+        public ConcurrentDictionary<OSSIndexArtifact, Exception> GetVulnerabilitiesExceptions { get; protected set; } 
+
         public Task<Tuple<int, int>> ArtifactsTask2
         {
             get
@@ -369,6 +372,7 @@ namespace DevAudit.AuditLibrary
         public virtual AuditResult Audit(CancellationToken ct)
         {
             CallerInformation caller = this.AuditEnvironment.Here();
+            this.AuditEnvironment.Status("Scanning {0} packages.", this.PackageManagerLabel);
             try
             {
                 Task.Run(() => this.Packages = this.GetPackages(), ct).Wait();
@@ -378,7 +382,7 @@ namespace DevAudit.AuditLibrary
                 this.AuditEnvironment.Error(caller, ae.InnerException, "Exception thrown in GetPackages task");
                 return AuditResult.ERROR_SCANNING_PACKAGES;
             }
-            this.AuditEnvironment.Info("Scanned {0} {1} packages.", this.Packages.Count(), this.PackageManagerLabel);
+            this.AuditEnvironment.Success("Scanned {0} {1} packages.", this.Packages.Count(), this.PackageManagerLabel);
             if (this.ListPackages || this.Packages.Count() == 0) return AuditResult.SUCCESS;
 
             try
@@ -436,7 +440,7 @@ namespace DevAudit.AuditLibrary
         protected Tuple<int, int> GetArtifacts()
         {
             CallerInformation caller = this.AuditEnvironment.Here();
-            this.AuditEnvironment.Status("Searching OSS Index for artifacts for {0} modules or plugins.", this.Packages.Count());
+            this.AuditEnvironment.Status("Searching OSS Index for artifacts for {0} packages.", this.Packages.Count());
             System.Diagnostics.Stopwatch sw = new System.Diagnostics.Stopwatch();
             sw.Start();
             object artifacts_lock = new object();
@@ -444,7 +448,7 @@ namespace DevAudit.AuditLibrary
             int i = 0;
             IGrouping<int, OSSIndexQueryObject>[] packages_groups = this.Packages.GroupBy(x => i++ / 100).ToArray();
             IEnumerable<OSSIndexQueryObject>[] queries = packages_groups.Select(group => packages_groups.Where(g => g.Key == group.Key).SelectMany(g => g)).ToArray();
-            Parallel.ForEach(queries, (q) =>
+            Parallel.ForEach(queries, new ParallelOptions() { MaxDegreeOfParallelism = 10, TaskScheduler = TaskScheduler.Default }, (q) =>
             {
                 try
                 {
@@ -462,7 +466,7 @@ namespace DevAudit.AuditLibrary
                 }
             });
             sw.Stop();
-            this.AuditEnvironment.Success("Got {0} artifacts for {1} modules or plugins in {2} ms.", artifact_count, package_count, sw.ElapsedMilliseconds);
+            this.AuditEnvironment.Success("Found {0} artifacts from OSS Index in {1} ms.", artifact_count, sw.ElapsedMilliseconds);
             return new Tuple<int, int>(package_count, artifact_count);
         }
 
@@ -495,14 +499,23 @@ namespace DevAudit.AuditLibrary
 
         protected void GetVulnerabilties()
         {
-            this.AuditEnvironment.Info("Searching OSS Index for vulnerabilities for {0} artifacts.", this.Artifacts.Count());
-            System.Diagnostics.Stopwatch sw = new System.Diagnostics.Stopwatch();
+            this.AuditEnvironment.Status("Searching OSS Index for vulnerabilities for {0} artifacts.", this.Artifacts.Count());
+            Stopwatch sw = new Stopwatch();
             sw.Start();
-            Parallel.ForEach(this.Artifacts, (artifact) =>
+            this.GetVulnerabilitiesExceptions = new ConcurrentDictionary<OSSIndexArtifact, Exception>(5, this.Artifacts.Count());
+            Parallel.ForEach(this.ArtifactsWithProjects, new ParallelOptions() { MaxDegreeOfParallelism = 30, TaskScheduler = TaskScheduler.Default },(artifact) =>
             {
                 List<OSSIndexPackageVulnerability> package_vulnerabilities = null;//this.HttpClient.GetPackageVulnerabilitiesAsync(artifact.PackageId).Result;
                 OSSIndexProject project = null; // this.HttpClient.GetProjectForIdAsync(artifact.ProjectId).Result;
-                Parallel.Invoke(() => package_vulnerabilities = this.HttpClient.GetPackageVulnerabilitiesAsync(artifact.PackageId).Result, () => project = this.HttpClient.GetProjectForIdAsync(artifact.ProjectId).Result);
+
+                try
+                {
+                    Parallel.Invoke(() => package_vulnerabilities = this.HttpClient.GetPackageVulnerabilitiesAsync(artifact.PackageId).Result, () => project = this.HttpClient.GetProjectForIdAsync(artifact.ProjectId).Result);
+                }
+                catch (AggregateException e)
+                {
+                    this.GetVulnerabilitiesExceptions.TryAdd(artifact, e.InnerException);
+                }
                 project.Artifact = artifact;
                 project.Package = artifact.Package;
                 lock (artifact_project_lock)
@@ -512,12 +525,57 @@ namespace DevAudit.AuditLibrary
                         this._ArtifactProject.Add(Artifacts.Where(a => a.ProjectId == project.Id.ToString()).First(), project);
                     }
                 }
-                IEnumerable<OSSIndexProjectVulnerability> project_vulnerabilities = this.HttpClient.GetVulnerabilitiesForIdAsync(project.Id.ToString()).Result;
+                IEnumerable<OSSIndexProjectVulnerability> project_vulnerabilities = null;
+                try
+                {
+                    project_vulnerabilities = this.HttpClient.GetVulnerabilitiesForIdAsync(project.Id.ToString()).Result;
+                }
+                catch (AggregateException ae)
+                {
+                    this.GetVulnerabilitiesExceptions.TryAdd(artifact, ae.InnerException);
+                }
                 this.AddPackageVulnerability(artifact.Package, package_vulnerabilities);
                 this.AddProjectVulnerability(project, project_vulnerabilities);
+                this.AuditEnvironment.Info("Found {0} project vulnerabilities and {1} package vulnerabilities for package artifact {2}.", project_vulnerabilities.Count(), package_vulnerabilities.Count, artifact.PackageName);
             });
             sw.Stop();
-            this.AuditEnvironment.Info("Found {0} total vulnerabilities for {1} artifacts in {2} ms.", this.PackageVulnerabilities.Count + this.ProjectVulnerabilities.Count, this.Artifacts.Count(), sw.ElapsedMilliseconds);
+            this.AuditEnvironment.Success("Found {0} total vulnerabilities for {1} artifacts in {2} ms with errors searching vulnerabilities for {3} artifacts.", this.PackageVulnerabilities.Count + this.ProjectVulnerabilities.Count, this.ArtifactsWithProjects.Count(), sw.ElapsedMilliseconds, this.GetVulnerabilitiesExceptions.Count);
+        }
+
+        protected async Task GetVulnerabiltiesAsync()
+        {
+            this.AuditEnvironment.Status("Searching OSS Index for vulnerabilities for {0} artifacts.", this.Artifacts.Count());
+            Stopwatch sw = new Stopwatch();
+            sw.Start();
+            this.GetVulnerabilitiesExceptions = new ConcurrentDictionary<OSSIndexArtifact, Exception>(5, this.Artifacts.Count());
+            foreach( var artifact in this.ArtifactsWithProjects) 
+            {
+                List<OSSIndexPackageVulnerability> package_vulnerabilities = await this.HttpClient.GetPackageVulnerabilitiesAsync(artifact.PackageId);
+                OSSIndexProject project = await this.HttpClient.GetProjectForIdAsync(artifact.ProjectId);
+                project.Artifact = artifact;
+                project.Package = artifact.Package;
+                lock (artifact_project_lock)
+                {
+                    if (!ArtifactProject.Keys.Any(a => a.ProjectId == project.Id.ToString()))
+                    {
+                        this._ArtifactProject.Add(Artifacts.Where(a => a.ProjectId == project.Id.ToString()).First(), project);
+                    }
+                }
+                IEnumerable<OSSIndexProjectVulnerability> project_vulnerabilities = null;
+                try
+                {
+                    project_vulnerabilities = await this.HttpClient.GetVulnerabilitiesForIdAsync(project.Id.ToString());
+                }
+                catch (AggregateException ae)
+                {
+                    this.GetVulnerabilitiesExceptions.TryAdd(artifact, ae.InnerException);
+                }
+                this.AddPackageVulnerability(artifact.Package, package_vulnerabilities);
+                this.AddProjectVulnerability(project, project_vulnerabilities);
+                this.AuditEnvironment.Info("Found {0} project vulnerabilities and {1} package vulnerabilities for package artifact {2}.", project_vulnerabilities.Count(), package_vulnerabilities.Count, artifact.PackageName);
+            }
+            sw.Stop();
+            this.AuditEnvironment.Success("Found {0} total vulnerabilities for {1} artifacts in {2} ms with errors searching vulnerabilities for {3} artifacts.", this.PackageVulnerabilities.Count + this.ProjectVulnerabilities.Count, this.ArtifactsWithProjects.Count(), sw.ElapsedMilliseconds, this.GetVulnerabilitiesExceptions.Count);
         }
 
         protected void EvaluateProjectVulnerabilities()
@@ -761,6 +819,7 @@ namespace DevAudit.AuditLibrary
                         // Release all unmanaged resources here 
                         // (example) if (someComObject != null && Marshal.IsComObject(someComObject)) { Marshal.FinalReleaseComObject(someComObject); someComObject = null; 
 
+                        /*
                         if (PackagesTask.Status == TaskStatus.RanToCompletion ||
                             PackagesTask.Status == TaskStatus.Faulted || PackagesTask.Status == TaskStatus.Canceled)
                         {
@@ -796,6 +855,7 @@ namespace DevAudit.AuditLibrary
                             this.ProjectVulnerabilitiesCache.Dispose();
                             this._ProjectVulnerabilitiesCache = null;
                         }
+                        */
                     }
                 }
             }

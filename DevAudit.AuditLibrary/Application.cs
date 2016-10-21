@@ -16,10 +16,6 @@ namespace DevAudit.AuditLibrary
 {
     public abstract class Application : PackageSource
     {
-        #region Public enums
-        
-        #endregion
-
         #region Constructors
         public Application(Dictionary<string, object> application_options, Dictionary<string, string[]> RequiredFileLocationPaths, Dictionary<string, string[]> RequiredDirectoryLocationPaths, EventHandler<EnvironmentEventArgs> message_handler = null) : base(application_options, message_handler)
         {
