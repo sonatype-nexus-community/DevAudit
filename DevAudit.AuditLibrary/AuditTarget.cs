@@ -9,6 +9,21 @@ namespace DevAudit.AuditLibrary
 {
     public abstract class AuditTarget
     {
+        public enum AuditResult
+        {
+            SUCCESS = 0,
+            ERROR_SCANNING_MODULES,
+            ERROR_SCANNING_PACKAGES,
+            ERROR_SEARCHING_ARTIFACTS,
+            ERROR_SEARCHING_VULNERABILITIES,
+            ERROR_EVALUATING_VULNERABILITIES,
+            ERROR_SCANNING_DEFAULT_CONFIGURATION_RULES,
+            ERROR_SEARCHING_CONFIGURATION_RULES,
+            ERROR_EVALUATING_CONFIGURATION_RULES,
+            ERROR_SCANNING_PROJECTS,
+            ERROR_ANALYZING
+        }
+
         #region Events
         protected event EventHandler<EnvironmentEventArgs> HostEnvironmentMessageHandler;
         protected event EventHandler<EnvironmentEventArgs> AuditEnvironmentMessageHandler;
@@ -23,6 +38,7 @@ namespace DevAudit.AuditLibrary
         public AuditEnvironment AuditEnvironment { get; protected set; }
         public bool HostEnvironmentInitialised { get; private set; } = false;
         public bool AuditEnvironmentIntialised { get; private set; } = false;
+        public bool UseAsyncMethods { get; private set; } = false;
         #endregion
 
         #region Constructors

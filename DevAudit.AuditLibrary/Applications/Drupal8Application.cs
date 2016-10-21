@@ -15,6 +15,20 @@ namespace DevAudit.AuditLibrary
 {
     public class Drupal8Application : Application
     {
+        #region Constructors
+        public Drupal8Application(Dictionary<string, object> application_options, EventHandler<EnvironmentEventArgs> message_handler = null) : base(application_options, new Dictionary<string, string[]>()
+            {
+                { "ChangeLog", new string[] { "@", "core", "CHANGELOG.txt" } },
+                { "CorePackagesFile", new string[] { "@", "core", "composer.json" } }
+            }, new Dictionary<string, string[]>()
+            {
+                { "CoreModulesDirectory", new string[] { "@", "core", "modules" } },
+                { "ContribModulesDirectory", new string[] { "@", "modules" } },
+                { "DefaultSiteDirectory", new string[] { "@", "sites", "default" } }
+            }, message_handler)
+        { }
+        #endregion
+
         #region Overriden properties
 
         public override string ApplicationId { get { return "drupal8"; } }
@@ -26,45 +40,7 @@ namespace DevAudit.AuditLibrary
         public override string PackageManagerLabel { get { return "Drupal"; } }
 
         public override OSSIndexHttpClient HttpClient { get; } = new OSSIndexHttpClient("1.1");
-       
-        #endregion
 
-        #region Public properties
-        public AuditDirectoryInfo CoreModulesDirectory
-        {
-            get
-            {
-                return (AuditDirectoryInfo) this.ApplicationFileSystemMap["CoreModulesDirectory"];
-            }
-        }
-
-        public AuditDirectoryInfo ContribModulesDirectory
-        {
-            get
-            {
-                return (AuditDirectoryInfo)this.ApplicationFileSystemMap["ContribModulesDirectory"];
-            }
-        }
-
-        public AuditDirectoryInfo SitesAllModulesDirectory
-        {
-            get
-            {
-                IDirectoryInfo sites_all = this.RootDirectory.GetDirectories(CombinePath("sites", "all", "modules"))?.FirstOrDefault();
-                {
-                    return sites_all == null ? (AuditDirectoryInfo) sites_all : null;
-                }
-                
-            }
-        }
-
-        public AuditFileInfo CorePackagesFile
-        {
-            get
-            {
-                return (AuditFileInfo) this.ApplicationFileSystemMap["CorePackagesFile"];
-            }
-        }
         #endregion
 
         #region Overriden methods
@@ -86,14 +62,13 @@ namespace DevAudit.AuditLibrary
                     }
                 }
             }
-            Dictionary<string, IEnumerable<OSSIndexQueryObject>> modules = new Dictionary<string, IEnumerable<OSSIndexQueryObject>>();
             List<AuditFileInfo> core_module_files = this.CoreModulesDirectory.GetFiles("*.info.yml")?.Where(f => !f.Name.Contains("_test") && !f.Name.Contains("test_")).Select(f => f as AuditFileInfo).ToList();
-            List<AuditFileInfo> contrib_module_files = this.ContribModulesDirectory.GetFiles("*.info.yml")?.Where(f => !f.Name.Contains("_test") && !f.Name.Contains("test_")).Select(f => f as AuditFileInfo).ToList();       
+            List<AuditFileInfo> contrib_module_files = this.ContribModulesDirectory.GetFiles("*.info.yml")?.Where(f => !f.Name.Contains("_test") && !f.Name.Contains("test_")).Select(f => f as AuditFileInfo).ToList();
             List<OSSIndexQueryObject> all_modules = new List<OSSIndexQueryObject>(100);
             if (core_module_files != null && core_module_files.Count > 0)
             {
                 List<OSSIndexQueryObject> core_modules = new List<OSSIndexQueryObject>(core_module_files.Count + 1);
-                this.AuditEnvironment.Status("Reading Drupal 8 core module files from environment...", core_module_files.Count);
+                this.AuditEnvironment.Info("Reading Drupal 8 core module files from environment...", core_module_files.Count);
                 Dictionary<AuditFileInfo, string> core_modules_files_text = this.CoreModulesDirectory.ReadFilesAsText(core_module_files);
                 Parallel.ForEach(core_modules_files_text, new ParallelOptions() { MaxDegreeOfParallelism = 20 }, kv =>
                 {
@@ -108,14 +83,14 @@ namespace DevAudit.AuditLibrary
                         }
                     }
                 });
-                modules.Add("core", core_modules);
+                this.Modules.Add("core", core_modules);
                 core_modules.Add(new OSSIndexQueryObject("drupal", "drupal_core", core_version));
                 all_modules.AddRange(core_modules);
             }
             if (contrib_module_files != null && contrib_module_files.Count > 0)
             {
                 List<OSSIndexQueryObject> contrib_modules = new List<OSSIndexQueryObject>(contrib_module_files.Count);
-                this.AuditEnvironment.Status("Reading Drupal 8 contrib module files from environment...", core_module_files.Count);
+                this.AuditEnvironment.Info("Reading Drupal 8 contrib module files from environment...", core_module_files.Count);
                 Dictionary<AuditFileInfo, string> contrib_modules_files_text = this.ContribModulesDirectory.ReadFilesAsText(contrib_module_files);
                 Parallel.ForEach(contrib_modules_files_text, new ParallelOptions() { MaxDegreeOfParallelism = 20 }, kv =>
                 {
@@ -132,7 +107,7 @@ namespace DevAudit.AuditLibrary
                 });
                 if (contrib_modules.Count > 0)
                 {
-                    modules.Add("contrib", contrib_modules);
+                    Modules.Add("contrib", contrib_modules);
                     all_modules.AddRange(contrib_modules);
                 }
             }
@@ -140,7 +115,7 @@ namespace DevAudit.AuditLibrary
             {
                 List<AuditFileInfo> sites_all_contrib_modules_files = this.SitesAllModulesDirectory.GetFiles("*.info.yml")?
                     .Where(f => !f.Name.Contains("_test") && !f.Name.Contains("test_")).Select(f => f as AuditFileInfo).ToList();
-                if (sites_all_contrib_modules_files!= null && sites_all_contrib_modules_files.Count > 0)
+                if (sites_all_contrib_modules_files != null && sites_all_contrib_modules_files.Count > 0)
                 {
                     Dictionary<AuditFileInfo, string> sites_all_contrib_modules_files_text = this.SitesAllModulesDirectory.ReadFilesAsText(sites_all_contrib_modules_files);
                     List<OSSIndexQueryObject> sites_all_contrib_modules = new List<OSSIndexQueryObject>(sites_all_contrib_modules_files.Count + 1);
@@ -159,20 +134,21 @@ namespace DevAudit.AuditLibrary
                     });
                     if (sites_all_contrib_modules.Count > 0)
                     {
-                        modules.Add("sites_all_contrib", sites_all_contrib_modules);
+                        Modules.Add("sites_all_contrib", sites_all_contrib_modules);
                         all_modules.AddRange(sites_all_contrib_modules);
                     }
                 }
             }
-            modules.Add("all", all_modules);
+            Modules.Add("all", all_modules);
             this.Stopwatch.Stop();
-            this.AuditEnvironment.Success("Got {0} {1} modules in {2} ms.", modules["all"].Count(), this.ApplicationLabel, this.Stopwatch.ElapsedMilliseconds);
-            return modules;
+            this.AuditEnvironment.Success("Got {0} total {1} modules in {2} ms.", Modules["all"].Count(), this.ApplicationLabel, this.Stopwatch.ElapsedMilliseconds);
+            return Modules;
         }
 
         public override IEnumerable<OSSIndexQueryObject> GetPackages(params string[] o)
         {
-            return this.GetModules()["all"];
+            this.Packages = this.Modules["all"];
+            return this.Packages;
         }
 
         protected override IConfiguration GetConfiguration()
@@ -217,19 +193,42 @@ namespace DevAudit.AuditLibrary
 
         #endregion
 
-        #region Constructors
-        public Drupal8Application(Dictionary<string, object> application_options, EventHandler<EnvironmentEventArgs> message_handler = null) : base(application_options, new Dictionary<string, string[]>()
+        #region Public properties
+        public AuditDirectoryInfo CoreModulesDirectory
+        {
+            get
             {
-                { "ChangeLog", new string[] { "@", "core", "CHANGELOG.txt" } },
-                { "CorePackagesFile", new string[] { "@", "core", "composer.json" } }
-            }, new Dictionary<string, string[]>()
-            {
-                { "CoreModulesDirectory", new string[] { "@", "core", "modules" } },
-                { "ContribModulesDirectory", new string[] { "@", "modules" } },
-                { "DefaultSiteDirectory", new string[] { "@", "sites", "default" } }
-            }, message_handler)
-        {}
-        #endregion
+                return (AuditDirectoryInfo) this.ApplicationFileSystemMap["CoreModulesDirectory"];
+            }
+        }
 
+        public AuditDirectoryInfo ContribModulesDirectory
+        {
+            get
+            {
+                return (AuditDirectoryInfo)this.ApplicationFileSystemMap["ContribModulesDirectory"];
+            }
+        }
+
+        public AuditDirectoryInfo SitesAllModulesDirectory
+        {
+            get
+            {
+                IDirectoryInfo sites_all = this.RootDirectory.GetDirectories(CombinePath("sites", "all", "modules"))?.FirstOrDefault();
+                {
+                    return sites_all == null ? (AuditDirectoryInfo) sites_all : null;
+                }
+                
+            }
+        }
+
+        public AuditFileInfo CorePackagesFile
+        {
+            get
+            {
+                return (AuditFileInfo) this.ApplicationFileSystemMap["CorePackagesFile"];
+            }
+        }
+        #endregion
     }
 }

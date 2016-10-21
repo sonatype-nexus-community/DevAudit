@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 using CSScriptLibrary;
@@ -23,20 +24,61 @@ namespace DevAudit.AuditLibrary
         }
         #endregion
 
+        #region Constructors
+        public CodeProject(Dictionary<string, object> project_options, EventHandler<EnvironmentEventArgs> message_handler, string analyzer_type) : base(project_options, message_handler)
+        {
+            CallerInformation here = this.AuditEnvironment.Here();
+            this.CodeProjectOptions = project_options;
+            if (!this.CodeProjectOptions.ContainsKey("RootDirectory"))
+            {
+                throw new ArgumentException(string.Format("The root application directory was not specified in the project_options dictionary."), "project_options");
+            }
+            else if (!this.AuditEnvironment.DirectoryExists((string)this.CodeProjectOptions["RootDirectory"]))
+            {
+                throw new ArgumentException(string.Format("The root application directory {0} was not found.", this.CodeProjectOptions["RootDirectory"]), "application_options");
+            }
+            else
+            {
+                this.CodeProjectFileSystemMap.Add("RootDirectory", this.AuditEnvironment.ConstructDirectory((string)this.CodeProjectOptions["RootDirectory"]));
+            }
+
+            if (this.CodeProjectOptions.ContainsKey("CodeProjectName"))
+            {
+                this.CodeProjectName = (string)CodeProjectOptions["CodeProjectName"];
+            }
+
+            if (this.CodeProjectOptions.ContainsKey("File"))
+            {
+                string fn = (string)this.CodeProjectOptions["File"];
+                if (!fn.StartsWith("@"))
+                {
+                    throw new ArgumentException("The workspace file parameter must be relative to the root directory for this audit target.");
+                }
+                AuditFileInfo wf = this.AuditEnvironment.ConstructFile(this.CombinePath("@", fn.Substring(1)));
+                if (wf.Exists)
+                {
+                    this.WorkspaceFilePath = wf.FullName;
+                }
+                else
+                {
+                    throw new ArgumentException(string.Format("The workspace file {0} was not found.", wf.FullName));
+
+                }
+            }
+            this.AnalyzerType = analyzer_type;
+        }
+        #endregion
+
         #region Public abstract properties
         public abstract string CodeProjectId { get; }
 
         public abstract string CodeProjectLabel { get; }
         #endregion
 
-        #region Public abstract methods
-        public abstract Task<bool> GetPackageSource();
-        #endregion
-
         #region Public properties
         public Dictionary<string, object> CodeProjectOptions { get; set; } = new Dictionary<string, object>();
 
-        public Dictionary<string, AuditFileSystemInfo> CodeProjectFileSystemMap { get; } = new Dictionary<string, AuditFileSystemInfo>();
+        public Dictionary<string, AuditFileSystemInfo> CodeProjectFileSystemMap { get; protected set; } = new Dictionary<string, AuditFileSystemInfo>();
 
         public AuditDirectoryInfo RootDirectory
         {
@@ -71,53 +113,8 @@ namespace DevAudit.AuditLibrary
         public PackageSource PackageSource { get; protected set; }
         #endregion
 
-        #region Constructors
-        public CodeProject(Dictionary<string, object> project_options, EventHandler<EnvironmentEventArgs> message_handler, string analyzer_type) : base(project_options, message_handler)
-        {
-            CallerInformation here = this.AuditEnvironment.Here();
-            this.CodeProjectOptions = project_options;
-            if (!this.CodeProjectOptions.ContainsKey("RootDirectory"))
-            {
-                throw new ArgumentException(string.Format("The root application directory was not specified in the project_options dictionary."), "project_options");
-            }
-            else if (!this.AuditEnvironment.DirectoryExists((string)this.CodeProjectOptions["RootDirectory"]))
-            {
-                throw new ArgumentException(string.Format("The root application directory {0} was not found.", this.CodeProjectOptions["RootDirectory"]), "application_options");
-            }
-            else
-            {
-                this.CodeProjectFileSystemMap.Add("RootDirectory", this.AuditEnvironment.ConstructDirectory((string)this.CodeProjectOptions["RootDirectory"]));
-            }
-
-            if (this.CodeProjectOptions.ContainsKey("CodeProjectName"))
-            {
-                this.CodeProjectName = (string)CodeProjectOptions["CodeProjectName"];
-            }
-
-            if (this.CodeProjectOptions.ContainsKey("File"))
-            {
-                string fn = (string) this.CodeProjectOptions["File"];
-                if (!fn.StartsWith("@"))
-                {
-                    throw new ArgumentException("The workspace file parameter must be relative to the root directory for this audit target.");
-                }
-                AuditFileInfo wf = this.AuditEnvironment.ConstructFile(this.CombinePath("@", fn.Substring(1)));
-                if (wf.Exists)
-                {
-                    this.WorkspaceFilePath = wf.FullName;
-                }
-                else
-                {
-                    throw new ArgumentException(string.Format("The workspace file {0} was not found.", wf.FullName));
-
-                }
-            }
-            this.AnalyzerType = analyzer_type;
-        }
-        #endregion
-
-        #region Public virtual methods
-        public virtual async Task<bool> GetWorkspace()
+        #region Public methods
+        public virtual async Task<bool> GetWorkspaceAsync()
         {
             CallerInformation here = this.AuditEnvironment.Here();
             if (!(this.AuditEnvironment is LocalEnvironment))
@@ -145,74 +142,53 @@ namespace DevAudit.AuditLibrary
                 this.HostEnvironment.Info("Using local directory {0} for code analysis.", this.WorkspaceDirectory.FullName);
                 return true;
             }
-
         }
-        public async Task<AuditResult> Audit()
+
+        public Task<AuditResult> Audit()
         {
-
-            bool get_workspace = false, get_analyzers = false;
-            List<AnalyzerResult> analyzer_results = null;
-            try
+            CancellationToken ct = new CancellationToken();
+            Task<bool> get_package_source_audit = Task.FromResult(false);//this.PackageSource != null ? Task.Run(() => this.PackageSource.Audit()) : Task.FromResult(false);
+            Task<bool> get_workspace = this.GetWorkspaceAsync();
+            Task<bool> get_analyzers;
+            Task<List<AnalyzerResult>> get_analyzer_results = null;
+            get_workspace.Wait();
+            if (get_workspace.Status == TaskStatus.RanToCompletion && get_workspace.Result == true)
             {
-                get_workspace = await this.GetWorkspace();
-                if (get_workspace)
-                {
-                    get_analyzers = await this.GetAnalyzers();
-                }
-                else
-                {
-                    return AuditResult.ERROR_SCANNING_ANALYZERS;
-                }
-                if (get_analyzers)
-                {
-                    analyzer_results = await this.GetAnalyzerResults();
-                }
-                else
-                {
-                    return AuditResult.ERROR_SCANNING_ANALYZERS;
-                }
-                if (analyzer_results != null)
-                {
-                    this.AnalyzerResults = analyzer_results;
-                    if (this.AnalyzerResults.Count(ar => ar.Succeded) > 0)
-                    {
-                        this.HostEnvironment.Success("Code analysis by {0} analyzers succeded.", analyzer_results.Count(ar => ar.Succeded));
-                    }
-                    if (analyzer_results.Count(ar => !ar.Succeded) > 0)
-                    {
-                        this.HostEnvironment.Warning("Code analysis by {0} analyzers did not succed.", analyzer_results.Count(ar => !ar.Succeded));
-                    }
-                    return AuditResult.SUCCESS;
-                }
-                else
-                {
-                    return AuditResult.ERROR_ANALYZING;
-                }
+                get_analyzers = this.GetAnalyzers();
             }
-            catch (AggregateException ae)
+            else
             {
-                foreach (Exception e in ae.InnerExceptions)
+                return Task.FromResult(AuditResult.ERROR_SCANNING_WORKSPACE);
+            }
+            get_analyzers.Wait();
+            if (get_analyzers.Status == TaskStatus.RanToCompletion && get_analyzers.Result == true)
+            {
+                get_analyzer_results = this.GetAnalyzerResults();
+            }
+            else
+            {
+                return Task.FromResult(AuditResult.ERROR_SCANNING_ANALYZERS);
+            }           
+            Task.WaitAll(get_analyzer_results, get_package_source_audit);
+            if (get_analyzer_results.Status == TaskStatus.RanToCompletion && get_analyzer_results.Result != null)
+            {
+                this.AnalyzerResults = get_analyzer_results.Result;
+                if (this.AnalyzerResults.Count(ar => ar.Succeded) > 0)
                 {
-                    this.HostEnvironment.Error(e);
+                    this.HostEnvironment.Success("Code analysis by {0} analyzers succeded.", this.AnalyzerResults.Count(ar => ar.Succeded));
                 }
+                if (get_analyzer_results.Result.Count(ar => !ar.Succeded) > 0)
+                {
+                    this.HostEnvironment.Warning("Code analysis by {0} analyzers did not succed.", this.AnalyzerResults.Count(ar => !ar.Succeded));
+                }
+                return Task.FromResult(AuditResult.SUCCESS);
             }
-            if (!get_workspace)
+            else
             {
-                return AuditResult.ERROR_SCANNING_WORKSPACE;
+                return Task.FromResult(AuditResult.ERROR_ANALYZING);
             }
-            else if (!get_analyzers)
-            {
-                return AuditResult.ERROR_SCANNING_ANALYZERS;
-            }
-            else if (analyzer_results == null)
-            {
-                return AuditResult.ERROR_ANALYZING;
-            }
-            else throw new Exception("Unknown audit target state.");
         }
-        #endregion
-
-        #region Public methods
+     
         public async Task<bool> GetAnalyzers()
         {
             this.Stopwatch.Restart();
@@ -390,7 +366,18 @@ namespace DevAudit.AuditLibrary
                     // Explicitly set root references to null to expressly tell the GarbageCollector 
                     // that the resources have been disposed of and its ok to release the memory 
                     // allocated for them.
-                    this.Stopwatch = null; 
+                    this.CodeProjectOptions = null;
+                    this.CodeProjectFileSystemMap = null;
+                    this.WorkspaceFile = null;
+                    this.WorkspaceDirectory = null;
+                    this.WorkSpace = null;
+                    this.Project = null;
+                    this.Compilation = null;
+                    this.AnalyzerScripts = null;
+                    this.Analyzers = null;
+                    this.AnalyzerResults = null;
+                    this.PackageSource = null;
+                    this.Stopwatch = null;
                     if (isDisposing)
                     {
                         // Release all managed resources here 

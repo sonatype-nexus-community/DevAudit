@@ -6,6 +6,7 @@ using System.IO;
 using System.Linq;
 using System.Security;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 
@@ -25,6 +26,7 @@ namespace DevAudit.CommandLine
             ERROR_CREATING_AUDIT_TARGET,
             NO_PACKAGE_MANAGER,
             ERROR_SCANNING_FOR_PACKAGES,
+            ERROR_SEARCHING_FOR_ARTIFACTs,
             ERROR_SEARCHING_OSS_INDEX,
             ERROR_SCANNING_SERVER_VERSION,
             ERROR_SCANNING_SERVER_CONFIGURATION,
@@ -36,7 +38,11 @@ namespace DevAudit.CommandLine
 
         static Options ProgramOptions = new Options();
 
+        static CancellationTokenSource CTS = new CancellationTokenSource();
+
         static PackageSource Source { get; set; }
+        
+        static Application Application { get; set; }
 
         static ApplicationServer Server { get; set; }
 
@@ -145,6 +151,14 @@ namespace DevAudit.CommandLine
             }
             #endregion
 
+            if (ProgramOptions.ListPackages)
+            {
+                audit_options.Add("ListPackages", ProgramOptions.ListPackages);
+            }
+            if (ProgramOptions.ListArtifacts)
+            {
+                audit_options.Add("ListArtifacts", ProgramOptions.ListPackages);
+            }
             if (!string.IsNullOrEmpty(ProgramOptions.File))
             {
                 audit_options.Add("File", ProgramOptions.File);
@@ -221,31 +235,31 @@ namespace DevAudit.CommandLine
                     }
                     else if (verb == "drupal8")
                     {
-                        Source = new Drupal8Application(audit_options, EnvironmentMessageHandler);
+                        Application = new Drupal8Application(audit_options, EnvironmentMessageHandler);
                     }
                     else if (verb == "drupal7")
                     {
-                        Source = new Drupal7Application(audit_options, EnvironmentMessageHandler);
+                        Application = new Drupal7Application(audit_options, EnvironmentMessageHandler);
                     }
                     else if (verb == "mysql")
                     {
                         Server = new MySQLServer(audit_options, EnvironmentMessageHandler);
-                        Source = Server as PackageSource;
+                        Application = Server as Application;
                     }
                     else if (verb == "sshd")
                     {
                         Server = new SSHDServer(audit_options, EnvironmentMessageHandler);
-                        Source = Server as PackageSource;
+                        Application = Server as Application;
                     }
                     else if (verb == "httpd")
                     {
                         Server = new HttpdServer(audit_options, EnvironmentMessageHandler);
-                        Source = Server as PackageSource;
+                        Application = Server as Application;
                     }
                     else if (verb == "nginx")
                     {
                         Server = new NginxServer(audit_options, EnvironmentMessageHandler);
-                        Source = Server as PackageSource;
+                        Application = Server as Application;
                     }
                     else if (verb == "netfx")
                     {
@@ -272,11 +286,11 @@ namespace DevAudit.CommandLine
                 }
             });
 
-            if (Source == null && Server == null && CodeProject == null)
+            if (Source == null && Application == null && Server == null && CodeProject == null)
             {
                 if (AuditLibraryException == null)
                 {
-                    Console.WriteLine("No package source or application server specified.");
+                    Console.WriteLine("No audit target specified.");
                     return (int)ExitCodes.INVALID_ARGUMENTS;
                 }
                 else
@@ -291,12 +305,21 @@ namespace DevAudit.CommandLine
             PrintBanner();
             if (!ProgramOptions.NonInteractive) Console.CursorVisible = false;
             ExitCodes exit = ExitCodes.ERROR_CREATING_AUDIT_TARGET;
+            if (Application != null) //Auditing an application server
+            {
+                AuditApplication(out exit);
+                if (Application != null)
+                {
+                    //Server.Dispose();
+                }
+            }
+
             if (Server != null) //Auditing an application server
             {
                 AuditServer(out exit);
                 if (Server != null)
                 {
-                    Server.Dispose();
+                    //Server.Dispose();
                 }
             }
             else if (Source != null) //Auditing a package source
@@ -321,39 +344,35 @@ namespace DevAudit.CommandLine
 
         }
 
-        #region Static methods
+        #region Private methods
         static void AuditPackageSource(out ExitCodes exit)
         {
             if (ReferenceEquals(Source, null)) throw new ArgumentNullException("Source");
-            SpinnerText = string.Format("Scanning {0} packages...", Source.PackageManagerLabel);
-            exit = ExitCodes.ERROR_SCANNING_FOR_PACKAGES;
-            StartSpinner();
-            try
-            {
-                Source.PackagesTask.Wait();
-            }
-            catch (AggregateException ae)
-            {
-                if (!ReferenceEquals(Spinner, null)) StopSpinner();
-                PrintErrorMessage("Error(s) encountered scanning for {0} packages.", Source.PackageManagerLabel);
-                PrintErrorMessage(ae);
-                return;
-            }
-            finally
-            {
-                if (!ReferenceEquals(Spinner, null)) StopSpinner();
-            }
-            PrintMessageLine("Found {0} distinct package(s).", Source.Packages.Count());
+            AuditTarget.AuditResult ar = Source.Audit(CTS.Token);
             if (ProgramOptions.ListPackages)
             {
-                int i = 1;
-                foreach (OSSIndexQueryObject package in Source.Packages)
+                if (ar == AuditTarget.AuditResult.SUCCESS && Source.Packages.Count() > 0)
                 {
-                    PrintMessageLine("[{0}/{1}] {2} {3} {4}", i++, Source.Packages.Count(), package.Name,
-                        package.Version, package.Vendor);
+                    int i = 1;
+                    foreach (OSSIndexQueryObject package in Source.Packages)
+                    {
+                        PrintMessageLine("[{0}/{1}] {2} {3} {4}", i++, Source.Packages.Count(), package.Name,
+                            package.Version, package.Vendor);
+                    }
+                    exit = ExitCodes.SUCCESS;
+                    return;
                 }
-                exit = ExitCodes.SUCCESS;
-                return;
+                else if (ar == AuditTarget.AuditResult.SUCCESS && Source.Packages.Count() == 0)
+                {
+                    PrintMessageLine("No packages found for {0}. ", Source.PackageManagerLabel);
+                    exit = ExitCodes.SUCCESS;
+                    return;
+                }
+                else
+                {
+                    exit = ExitCodes.ERROR_SCANNING_FOR_PACKAGES;
+                    return;
+                }
             }
             if (Source.Packages.Count() == 0)
             {
@@ -361,53 +380,39 @@ namespace DevAudit.CommandLine
                 exit = ExitCodes.SUCCESS;
                 return;
             }
-            else
-            {
-                PrintMessage("Searching OSS Index for {0} {1} package(s)...", Source.Packages.Count(), Source.PackageManagerLabel);
-            }
-            exit = ExitCodes.ERROR_SEARCHING_OSS_INDEX;
-            StartSpinner();
-            try
-            {
-                Task.WaitAll(Source.ArtifactsTask.ToArray());
-            }
-            catch (AggregateException ae)
-            {
 
-                if (!ReferenceEquals(Spinner, null)) StopSpinner();
-                PrintErrorMessage("Error encountered searching OSS Index for {0} packages: {1}...", Source.PackageManagerLabel, ae.InnerException.Message);
-                ae.InnerExceptions.ToList().ForEach(i => HandleOSSIndexHttpException(i));
-                return;
-            }
-            finally
-            {
-                if (!ReferenceEquals(Spinner, null)) StopSpinner();
-            }
-            PrintMessageLine("Found {0} artifact(s), {1} with an OSS Index project id.", Source.Artifacts.Count(), Source.ArtifactsWithProjects.Count);
-            if (Source.Artifacts.Count() == 0)
-            {
-                PrintMessageLine("Nothing to do, exiting package audit.");
-                exit = ExitCodes.SUCCESS;
-                return;
-            }
             if (ProgramOptions.ListArtifacts)
             {
-                int i = 1;
-                foreach (OSSIndexArtifact artifact in Source.Artifacts)
+                if (ar == AuditTarget.AuditResult.SUCCESS && Source.Artifacts.Count() > 0)
                 {
-                    PrintMessage("[{0}/{1}] {2} ({3}) ", i++, Source.Artifacts.Count(), artifact.PackageName,
-                        !string.IsNullOrEmpty(artifact.Version) ? artifact.Version : string.Format("No version reported for package version {0}", artifact.Package.Version));
-                    if (!string.IsNullOrEmpty(artifact.ProjectId))
+                    int i = 1;
+                    foreach (OSSIndexArtifact artifact in Source.Artifacts)
                     {
-                        PrintMessage(ConsoleColor.Blue, artifact.ProjectId + "\n");
+                        PrintMessage("[{0}/{1}] {2} ({3}) ", i++, Source.Artifacts.Count(), artifact.PackageName,
+                            !string.IsNullOrEmpty(artifact.Version) ? artifact.Version : string.Format("No version reported for package version {0}", artifact.Package.Version));
+                        if (!string.IsNullOrEmpty(artifact.ProjectId))
+                        {
+                            PrintMessage(ConsoleColor.Blue, artifact.ProjectId + "\n");
+                        }
+                        else
+                        {
+                            PrintMessage(ConsoleColor.DarkRed, "No project id found.\n");
+                        }
                     }
-                    else
-                    {
-                        PrintMessage(ConsoleColor.DarkRed, "No project id found.\n");
-                    }
+                    exit = ExitCodes.SUCCESS;
+                    return;
                 }
-                exit = ExitCodes.SUCCESS;
-                return;
+                else if (ar == AuditTarget.AuditResult.SUCCESS && Source.Artifacts.Count() == 0)
+                {
+                    PrintMessageLine("No artifacts found for {0}. ", Source.PackageManagerLabel);
+                    exit = ExitCodes.SUCCESS;
+                    return;
+                }
+                else
+                {
+                    exit = ExitCodes.ERROR_SEARCHING_FOR_ARTIFACTs;
+                    return;
+                }
             }
             if (ProgramOptions.CacheDump)
             {
@@ -442,12 +447,8 @@ namespace DevAudit.CommandLine
                 PrintMessageLine("{0} projects have cached values.", Source.CachedArtifacts.Count());
                 PrintMessageLine("{0} cached project entries are stale and will be removed from cache.", Source.ProjectVulnerabilitiesExpiredCacheKeys.Count());
             }
-            PrintMessage("Searching OSS Index for vulnerabilities for {0} project(s)...", Source.VulnerabilitiesTask.Count());
-            StartSpinner();
-            int projects_count = Source.ArtifactsWithProjects.Count;
-            int projects_processed = 0;
-            int projects_successful = 0;
             #region Cache stuff
+            /*
             if (Source.ProjectVulnerabilitiesCacheEnabled)
             {
                 foreach (Tuple<OSSIndexProject, IEnumerable<OSSIndexProjectVulnerability>> c in Source.ProjectVulnerabilitiesCacheItems)
@@ -507,126 +508,50 @@ namespace DevAudit.CommandLine
                     Console.ResetColor();
                     projects_successful++;
                 }
-            }
+            }*/
             #endregion
-            while (Source.VulnerabilitiesTask.Count() > 0)
+            
+            PrintMessageLine("\nAudit Results\n=============");
+            int projects_count = Source.ProjectVulnerabilities.Count;
+            int projects_processed = 0;
+            foreach (var pv in Source.ProjectVulnerabilities)
             {
-                Task<KeyValuePair<OSSIndexProject, IEnumerable<OSSIndexProjectVulnerability>>>[] tasks = Source.VulnerabilitiesTask.ToArray();
-                try
+                OSSIndexProject p = pv.Key;
+                IEnumerable<OSSIndexProjectVulnerability> project_vulnerabilities = pv.Value;
+                IEnumerable<OSSIndexPackageVulnerability> package_vulnerabilities = Source.PackageVulnerabilities.Where(package_vuln => package_vuln.Key.Name == p.Package.Name).First().Value;
+                PrintMessage(ConsoleColor.White, "[{0}/{1}] {2} {3}", ++projects_processed, projects_count, p.Package.Name, string.IsNullOrEmpty(p.Artifact.Version) ? "" :
+                        string.Format("({0}) ", p.Package.Version));
+                if (package_vulnerabilities.Count() == 0 && project_vulnerabilities.Count() == 0)
                 {
-                    int x = Task.WaitAny(tasks);
-                    if (!ReferenceEquals(Spinner, null)) StopSpinner();
-                    var task = Source.VulnerabilitiesTask.Find(t => t.Id == tasks[x].Id);
-                    KeyValuePair<OSSIndexProject, IEnumerable<OSSIndexProjectVulnerability>> vulnerabilities = task.Result;
-                    OSSIndexProject p = vulnerabilities.Key;
-                    OSSIndexArtifact a = p.Artifact;
-                    KeyValuePair<OSSIndexQueryObject, IEnumerable<OSSIndexPackageVulnerability>> package_vulnerabilities
-                        = Source.PackageVulnerabilities.Where(pv => pv.Key == p.Package).First();
-                    if (projects_processed++ == 0)
-                    {
-                        PrintMessageLine("\nAudit Results\n=============");
-                    }
-                    projects_successful++;
-                    PrintMessage(ConsoleColor.White, "[{0}/{1}] {2} {3}", projects_processed, projects_count, a.PackageName, string.IsNullOrEmpty(a.Version) ? "" :
-                        string.Format("({0}) ", a.Version));
-                    if (package_vulnerabilities.Value.Count() == 0 && vulnerabilities.Value.Count() == 0)
-                    {
-                        PrintMessage("no known vulnerabilities. ");
-                        PrintMessage("[{0} {1}]\n", p.Package.Name, p.Package.Version);
-                    }
-                    else
-                    {
-
-                        List<OSSIndexPackageVulnerability> found_package_vulnerabilities = new List<OSSIndexPackageVulnerability>();
-                        foreach (OSSIndexPackageVulnerability package_vulnerability in package_vulnerabilities.Value)
-                        {
-
-                            try
-                            {
-                                if (package_vulnerability.Versions.Any(v => !string.IsNullOrEmpty(v) && Source.IsVulnerabilityVersionInPackageVersionRange(v, p.Package.Version)))
-                                {
-                                    found_package_vulnerabilities.Add(package_vulnerability);
-                                }
-                            }
-                            catch (Exception e)
-                            {
-                                PrintErrorMessage("Error determining vulnerability version range {0} in package version range {1}: {2}",
-                                    package_vulnerability.Versions.Aggregate((f, s) => { return f + "," + s; }), a.Package.Version, e.Message);
-                            }
-                        }
-                        List<OSSIndexProjectVulnerability> found_vulnerabilities = new List<OSSIndexProjectVulnerability>(vulnerabilities.Value.Count());
-                        foreach (OSSIndexProjectVulnerability vulnerability in vulnerabilities.Value.GroupBy(v => new { v.CVEId, v.Uri, v.Title, v.Summary }).SelectMany(v => v).ToList())
-                        {
-                            try
-                            {
-                                if (vulnerability.Versions.Any(v => !string.IsNullOrEmpty(v) && Source.IsVulnerabilityVersionInPackageVersionRange(v, p.Package.Version)))
-                                {
-                                    found_vulnerabilities.Add(vulnerability);
-                                }
-                            }
-                            catch (Exception e)
-                            {
-                                PrintErrorMessage("Error determining vulnerability version range ({0}) in project version range ({1}). Message: {2}",
-                                    vulnerability.Versions.Aggregate((f, s) => { return f + "," + s; }), a.Package.Version, e.Message);
-                            }
-                        }
-                        //found_vulnerabilities = found_vulnerabilities.GroupBy(v => new { v.CVEId, v.Uri, v.Title, v.Summary }).SelectMany(v => v).ToList();
-                        if (found_vulnerabilities.Count() > 0 || found_package_vulnerabilities.Count() > 0)
-                        {
-                            PrintMessageLine(ConsoleColor.Red, "[VULNERABLE]");
-                        }
-                        PrintMessage(ConsoleColor.Magenta, "{0} known vulnerabilities, ", vulnerabilities.Value.Count() + package_vulnerabilities.Value.Count()); //vulnerabilities.Value.GroupBy(v => new { v.CVEId, v.Uri, v.Title, v.Summary }).SelectMany(v => v).Count(),
-                        PrintMessage("{0} affecting installed version. ", found_vulnerabilities.Count() + found_package_vulnerabilities.Count());
-                        PrintMessageLine("[{0} {1}]", p.Package.Name, p.Package.Version);
-                        found_package_vulnerabilities.ForEach(v =>
-                        {
-                            PrintMessageLine(ConsoleColor.Red, "{0} {1}", v.Id.Trim(), v.Title.Trim());
-                            PrintMessageLine(v.Summary);
-                            PrintMessage(ConsoleColor.Red, "Affected versions: ");
-
-                            PrintMessageLine(ConsoleColor.White, string.Join(", ", v.Versions.ToArray()));
-                            PrintMessageLine("");
-                        });
-                        found_vulnerabilities.ForEach(v =>
-                        {
-                            PrintMessageLine(ConsoleColor.Red, "{0} {1}", v.CVEId, v.Title);
-                            PrintMessageLine(v.Summary);
-                            PrintMessage(ConsoleColor.Red, "Affected versions: ");
-                            PrintMessageLine(ConsoleColor.White, string.Join(", ", v.Versions.ToArray()));
-                            PrintMessageLine("");
-                        });
-                    }
-                    Source.VulnerabilitiesTask.Remove(task);
-                    projects_successful++;
+                    PrintMessage("no known vulnerabilities. ");
+                    PrintMessage("[{0} {1}]\n", p.Package.Name, p.Package.Version);
                 }
-                catch (AggregateException ae)
+                else
                 {
-                    if (!ReferenceEquals(Spinner, null)) StopSpinner();
-                    if (projects_processed++ == 0)
+                    if (project_vulnerabilities.Count() > 0 || package_vulnerabilities.Count() > 0)
                     {
-                        PrintMessageLine("\nAudit Results\n=============");
+                        PrintMessageLine(ConsoleColor.Red, "[VULNERABLE]");
                     }
-                    var failed_tasks = Source.VulnerabilitiesTask.Where(t => t.Status == TaskStatus.Faulted || t.Status == TaskStatus.Canceled).ToList();
-                    foreach (var t in failed_tasks)
+                    PrintMessage(ConsoleColor.Magenta, "{0} known vulnerabilities, ", project_vulnerabilities.Count() + package_vulnerabilities.Count()); //vulnerabilities.Value.GroupBy(v => new { v.CVEId, v.Uri, v.Title, v.Summary }).SelectMany(v => v).Count(),
+                    PrintMessage("{0} affecting installed version. ", project_vulnerabilities.Count() + package_vulnerabilities.Count());
+                    PrintMessageLine("[{0} {1}]", p.Package.Name, p.Package.Version);
+                    package_vulnerabilities.ToList().ForEach(v =>
                     {
-                        if (t.Exception != null && t.Exception.InnerException is OSSIndexHttpException)
-                        {
-                            OSSIndexHttpException oe = t.Exception.InnerException as OSSIndexHttpException;
-                            OSSIndexArtifact artifact = Source.Artifacts.FirstOrDefault(a => a.ProjectId == oe.RequestParameter || a.PackageId == oe.RequestParameter);
-                            Console.Write("[{0}/{1}] {2} ", ++projects_processed, projects_count, artifact.PackageName, artifact.Version);
-                            PrintMessageLine(ConsoleColor.DarkRed, "{0} HTTP Error searching OSS Index...", artifact.Version);
-                            ++projects_processed;
-                            HandleOSSIndexHttpException(oe);
-                            //ae.InnerExceptions.ToList().ForEach(i => HandleOSSIndexHttpException(i));
-                        }
-                        else
-                        {
-                            PrintErrorMessage("A unknown error occurred searching OSS Index.");
-                            PrintErrorMessage(ae);
-                            ++projects_processed;
-                        }
-                        Source.VulnerabilitiesTask.Remove(t);
-                    }
+                        PrintMessageLine(ConsoleColor.Red, "{0} {1}", v.Id.Trim(), v.Title.Trim());
+                        PrintMessageLine(v.Summary);
+                        PrintMessage(ConsoleColor.Red, "Affected versions: ");
+
+                        PrintMessageLine(ConsoleColor.White, string.Join(", ", v.Versions.ToArray()));
+                        PrintMessageLine("");
+                    });
+                    project_vulnerabilities.ToList().ForEach(v =>
+                    {
+                        PrintMessageLine(ConsoleColor.Red, "{0} {1}", v.CVEId, v.Title);
+                        PrintMessageLine(v.Summary);
+                        PrintMessage(ConsoleColor.Red, "Affected versions: ");
+                        PrintMessageLine(ConsoleColor.White, string.Join(", ", v.Versions.ToArray()));
+                        PrintMessageLine("");
+                    });
                 }
             }
             Source.Dispose();
@@ -634,6 +559,11 @@ namespace DevAudit.CommandLine
             return;
         }
 
+        static void AuditApplication(out ExitCodes exit)
+        {
+            exit = ExitCodes.ERROR_SCANNING_FOR_PACKAGES;
+            Application.AuditResult ar = Application.Audit(CTS.Token);
+        }
         static void AuditServer(out ExitCodes exit)
         {
             if (ReferenceEquals(Server, null)) throw new ArgumentNullException("Server");
@@ -646,7 +576,7 @@ namespace DevAudit.CommandLine
                 version = Server.GetVersion();
                 exit = ExitCodes.ERROR_SCANNING_FOR_PACKAGES;
                 Server.ModulesTask.Wait();
-                Server.PackagesTask.Wait();
+                //Server.PackagesTask.Wait();
             }
             catch (Exception e)
             {
@@ -725,11 +655,11 @@ namespace DevAudit.CommandLine
             int projects_processed = 0;
             foreach (KeyValuePair<OSSIndexProject, IEnumerable<OSSIndexProjectConfigurationRule>> rule in Server.ProjectConfigurationRules)
             {
-                Dictionary<OSSIndexProjectConfigurationRule, Tuple<bool, List<string>, string>> evals = Server.EvaluateProjectConfigurationRules(rule.Value);
+                Dictionary<OSSIndexProjectConfigurationRule, Tuple<bool, List<string>, string>> evals = new Dictionary<OSSIndexProjectConfigurationRule, Tuple<bool, List<string>, string>>(); //Server.EvaluateProjectConfigurationRules(rule.Value);
                 PrintMessage("[{0}/{1}] Project: ", ++projects_processed, projects_count);
                 PrintMessage(ConsoleColor.Blue, "{0}. ", rule.Key.Name);
                 int total_project_rules = rule.Value.Count();
-                int succeded_project_rules = evals.Count(ev => ev.Value.Item1);
+                int succeded_project_rules = 0;// evals.Count(ev => ev.Value.Item1);
                 int processed_project_rules = 0;
                 PrintMessage("{0} rule(s). ", total_project_rules);
                 if (succeded_project_rules > 0 )
@@ -812,16 +742,17 @@ namespace DevAudit.CommandLine
             }   
             else if (e.MessageType == EventMessageType.STATUS)
             {
-                SpinnerText = e.Message + "..";
                 if (Spinner != null)
                 {
                     PauseSpinner();
+                    SpinnerText = e.Message + "..";
                 }
                 else
                 {
+                    PrintMessageLine(ConsoleMessageColors[e.MessageType], "{0:HH:mm:ss} [{1}] [{2}] {3}", e.DateTime, e.EnvironmentLocation, e.MessageType.ToString(), e.Message);
+                    SpinnerText = e.Message + "..";
                     StartSpinner();
                 }
-                PrintMessageLine(ConsoleMessageColors[e.MessageType], "{0:HH:mm:ss} [{1}] [{2}] {3}", e.DateTime, e.EnvironmentLocation, e.MessageType.ToString(), e.Message);
             }
             else if (e.MessageType == EventMessageType.PROGRESS)
             {

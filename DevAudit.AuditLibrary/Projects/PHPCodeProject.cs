@@ -25,9 +25,9 @@ namespace DevAudit.AuditLibrary
         #endregion
 
         #region Overriden methods
-        public override  async Task<bool> GetWorkspace()
+        public override  async Task<bool> GetWorkspaceAsync()
         {
-            if (! await base.GetWorkspace())
+            if (! await base.GetWorkspaceAsync())
             {
                 return false;
             }
@@ -78,12 +78,6 @@ namespace DevAudit.AuditLibrary
             this.HostEnvironment.Success("Parsed {0} PHP files in {1} ms.", PHPSourceUnits.Count(), this.Stopwatch.ElapsedMilliseconds);
             return true;
         }
-
-        public override Task<bool> GetPackageSource()
-        {
-            throw new NotImplementedException();
-        }
-
         #endregion
 
         #region Public properties

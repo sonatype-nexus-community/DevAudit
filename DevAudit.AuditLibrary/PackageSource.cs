@@ -29,6 +29,16 @@ namespace DevAudit.AuditLibrary
                 this.PackageManagerConfigurationFile = "";
             }
 
+            if (this.PackageSourceOptions.ContainsKey("ListPackages"))
+            {
+                this.ListPackages = true;
+            }
+
+            if (this.PackageSourceOptions.ContainsKey("ListArtifacts"))
+            {
+                this.ListArtifacts = true;
+            }
+
             #region Cache option
             if (this.PackageSourceOptions.ContainsKey("Cache") && (bool) this.PackageSourceOptions["Cache"] == true)
             {
@@ -177,7 +187,7 @@ namespace DevAudit.AuditLibrary
       
         public Dictionary<string, object> PackageSourceOptions { get; set; } = new Dictionary<string, object>();
 
-        public IEnumerable<OSSIndexQueryObject> Packages { get; set; }
+        public IEnumerable<OSSIndexQueryObject> Packages { get; protected set; }
 
         public Dictionary<IEnumerable<OSSIndexQueryObject>, IEnumerable<OSSIndexArtifact>> ArtifactsForQuery
         {
@@ -242,7 +252,7 @@ namespace DevAudit.AuditLibrary
             }
         }
 
-        public Dictionary<OSSIndexProject, IEnumerable<OSSIndexProjectVulnerability>> Vulnerabilities
+        public Dictionary<OSSIndexProject, IEnumerable<OSSIndexProjectVulnerability>> ProjectVulnerabilities
         {
             get
             {
@@ -260,6 +270,19 @@ namespace DevAudit.AuditLibrary
                         this.GetPackages().GroupBy(x => new { x.Name, x.Version, x.Vendor }).Select(y => y.First()));
                 }
                 return _PackagesTask;
+            }
+        }
+
+        public Task<Tuple<int, int>> ArtifactsTask2
+        {
+            get
+            {
+                if (this._ArtifactsTask2 == null)
+                {
+                    this._ArtifactsTask2 = Task<Tuple<int, int>>.Run(() =>
+                        this.GetArtifacts());
+                }
+                return this._ArtifactsTask2;
             }
         }
 
@@ -336,27 +359,120 @@ namespace DevAudit.AuditLibrary
                 return this._VulnerabilitiesTask;
             }
         }
+
+        public bool ListPackages { get; protected set; } = false;
+
+        public bool ListArtifacts { get; protected set; } = false;
         #endregion
 
         #region Public methods
-        protected async Task<Tuple<int, int>> GetArtifacts()
+        public virtual AuditResult Audit(CancellationToken ct)
         {
+            CallerInformation caller = this.AuditEnvironment.Here();
+            try
+            {
+                Task.Run(() => this.Packages = this.GetPackages(), ct).Wait();
+            }
+            catch (AggregateException ae)
+            {
+                this.AuditEnvironment.Error(caller, ae.InnerException, "Exception thrown in GetPackages task");
+                return AuditResult.ERROR_SCANNING_PACKAGES;
+            }
+            this.AuditEnvironment.Info("Scanned {0} {1} packages.", this.Packages.Count(), this.PackageManagerLabel);
+            if (this.ListPackages || this.Packages.Count() == 0) return AuditResult.SUCCESS;
+
+            try
+            {
+                Task.Run(() => this.GetArtifacts(), ct).Wait();
+            }
+            catch (AggregateException ae)
+            {
+                this.AuditEnvironment.Error(caller, ae.InnerException, "Exception thrown in GetArtifacts task.");
+                return AuditResult.ERROR_SEARCHING_ARTIFACTS;
+            }
+            if (this.ListArtifacts || this.Artifacts.Count() == 0 || this.ArtifactsWithProjects.Count() == 0) return AuditResult.SUCCESS;
+
+            try
+            {
+                Task.Run(() => this.GetVulnerabilties(), ct).Wait();
+            }
+            catch (AggregateException ae)
+            {
+                this.AuditEnvironment.Error(caller, ae.InnerException, "Exception thrown in GetVulnerabilities task.");
+                return AuditResult.ERROR_SEARCHING_VULNERABILITIES;
+            }
+            this.AuditEnvironment.Info("Evaluating vulnerabilities in packages.");
+            Task evaluate_project_vulnerabilities = Task.Run(() => this.EvaluateProjectVulnerabilities());
+            Task evaluate_package_vulnerabilities = Task.Run(() => this.EvaluatePackageVulnerabilities());
+            try
+            {
+                Task.WaitAll(evaluate_project_vulnerabilities, evaluate_package_vulnerabilities);
+            }
+            catch (AggregateException ae)
+            {
+                this.AuditEnvironment.Error(caller, ae.InnerException, "Exception thrown in {0} task.", ae.InnerException.TargetSite.Name);
+                return AuditResult.ERROR_EVALUATING_VULNERABILITIES;
+            }
+            return AuditResult.SUCCESS;
+        }
+
+        public async Task<bool> AuditAsync()
+        {
+            Tuple<int, int> package_artifact_count = await this.GetArtifactsAsync();
+            if (package_artifact_count.Item1 > 0 && package_artifact_count.Item2 > 0)
+            {
+                return true;
+            }
+            else
+            {
+                this.AuditEnvironment.Warning("No OSS Index artifacts found, exiting {0} packagee audit.");
+                return false;
+            }
+        }
+
+        #endregion
+
+        #region Protected methods
+        protected Tuple<int, int> GetArtifacts()
+        {
+            CallerInformation caller = this.AuditEnvironment.Here();
+            this.AuditEnvironment.Status("Searching OSS Index for artifacts for {0} modules or plugins.", this.Packages.Count());
+            System.Diagnostics.Stopwatch sw = new System.Diagnostics.Stopwatch();
+            sw.Start();
+            object artifacts_lock = new object();
             int package_count = 0, artifact_count = 0;
             int i = 0;
             IGrouping<int, OSSIndexQueryObject>[] packages_groups = this.Packages.GroupBy(x => i++ / 100).ToArray();
-            /*
             IEnumerable<OSSIndexQueryObject>[] queries = packages_groups.Select(group => packages_groups.Where(g => g.Key == group.Key).SelectMany(g => g)).ToArray();
-            Task[] query_tasks = queries.Select(q => this.HttpClient.SearchAsync(this.PackageManagerId, q, this.ArtifactsTransform)).ToArray();
-            await Task.WhenAll(query_tasks);
-            for (int t = 0; t < query_tasks.Length; t++)
+            Parallel.ForEach(queries, (q) =>
             {
-                var k = await query_tasks[t];
-                if (qt.IsCompleted)
+                try
                 {
-                    AddArtifiact(queries[t], qt.r)
+                    IEnumerable<OSSIndexArtifact> artifacts = this.HttpClient.SearchAsync(this.PackageManagerId, q, this.ArtifactsTransform).Result;
+                    lock (artifacts_lock)
+                    {
+                        var aa = AddArtifiact(q, artifacts);
+                        package_count += aa.Key.Count();
+                        artifact_count += aa.Value.Count();
+                    }
                 }
-            }
-            */
+                catch (AggregateException ae)
+                {
+                    this.AuditEnvironment.Error(caller, ae, "Exception thrown attempting to search for artifacts.");
+                }
+            });
+            sw.Stop();
+            this.AuditEnvironment.Success("Got {0} artifacts for {1} modules or plugins in {2} ms.", artifact_count, package_count, sw.ElapsedMilliseconds);
+            return new Tuple<int, int>(package_count, artifact_count);
+        }
+
+        protected async Task<Tuple<int, int>> GetArtifactsAsync()
+        {
+            CallerInformation caller = this.AuditEnvironment.Here();
+            object artifacts_lock = new object();
+            int package_count = 0, artifact_count = 0;
+            int i = 0;
+            IGrouping<int, OSSIndexQueryObject>[] packages_groups = this.Packages.GroupBy(x => i++ / 100).ToArray();
             foreach (IGrouping<int, OSSIndexQueryObject> group in packages_groups)
             {
                 IEnumerable<OSSIndexQueryObject> query = packages_groups.Where(g => g.Key == group.Key).SelectMany(g => g);
@@ -369,28 +485,86 @@ namespace DevAudit.AuditLibrary
                 }
                 catch (AggregateException ae)
                 {
-                    this.AuditEnvironment.Error("Exception(s) thrown searching for artifacts for {0} packages.", query.Count());
-                    foreach (Exception e in ae.InnerExceptions)
-                    {
-                        this.AuditEnvironment.Error(e);
-                    }
+                    this.AuditEnvironment.Error(caller, ae, "Exception thrown attempting to search for artifacts.");
                 }
             }
+            this.AuditEnvironment.Info("Got {0} artifacts for {1} modules or plugins in {2} ms.", artifact_count, package_count, this.Stopwatch.ElapsedMilliseconds);
             return new Tuple<int, int>(package_count, artifact_count);
         }
 
-        public async Task<bool> Audit()
+
+        protected void GetVulnerabilties()
         {
-            Tuple<int, int> package_artifact_count = await this.GetArtifacts();
-            if(package_artifact_count.Item1 > 0 && package_artifact_count.Item2 > 0)
+            this.AuditEnvironment.Info("Searching OSS Index for vulnerabilities for {0} artifacts.", this.Artifacts.Count());
+            System.Diagnostics.Stopwatch sw = new System.Diagnostics.Stopwatch();
+            sw.Start();
+            Parallel.ForEach(this.Artifacts, (artifact) =>
             {
-                return true;
-            }
-            else
-            {
-                return false;
-            }
+                List<OSSIndexPackageVulnerability> package_vulnerabilities = null;//this.HttpClient.GetPackageVulnerabilitiesAsync(artifact.PackageId).Result;
+                OSSIndexProject project = null; // this.HttpClient.GetProjectForIdAsync(artifact.ProjectId).Result;
+                Parallel.Invoke(() => package_vulnerabilities = this.HttpClient.GetPackageVulnerabilitiesAsync(artifact.PackageId).Result, () => project = this.HttpClient.GetProjectForIdAsync(artifact.ProjectId).Result);
+                project.Artifact = artifact;
+                project.Package = artifact.Package;
+                lock (artifact_project_lock)
+                {
+                    if (!ArtifactProject.Keys.Any(a => a.ProjectId == project.Id.ToString()))
+                    {
+                        this._ArtifactProject.Add(Artifacts.Where(a => a.ProjectId == project.Id.ToString()).First(), project);
+                    }
+                }
+                IEnumerable<OSSIndexProjectVulnerability> project_vulnerabilities = this.HttpClient.GetVulnerabilitiesForIdAsync(project.Id.ToString()).Result;
+                this.AddPackageVulnerability(artifact.Package, package_vulnerabilities);
+                this.AddProjectVulnerability(project, project_vulnerabilities);
+            });
+            sw.Stop();
+            this.AuditEnvironment.Info("Found {0} total vulnerabilities for {1} artifacts in {2} ms.", this.PackageVulnerabilities.Count + this.ProjectVulnerabilities.Count, this.Artifacts.Count(), sw.ElapsedMilliseconds);
         }
+
+        protected void EvaluateProjectVulnerabilities()
+        {
+            Parallel.ForEach(this.ProjectVulnerabilities, (pv) =>
+            {
+                Parallel.ForEach(pv.Value.GroupBy(v => new { v.CVEId, v.Uri, v.Title, v.Summary }).SelectMany(v => v), (vulnerability) =>
+                {
+                   try
+                   {
+                       if (vulnerability.Versions.Any(version => !string.IsNullOrEmpty(version) && this.IsVulnerabilityVersionInPackageVersionRange(version, pv.Key.Package.Version)))
+                       {
+                           vulnerability.CurrentPackageVersionIsInRange = true;
+
+                       }
+                   }
+                   catch (Exception e)
+                   {
+                       this.AuditEnvironment.Error(e, "Error determining vulnerability version range ({0}) in package version range ({1}).",
+                           vulnerability.Versions.Aggregate((f, s) => { return f + "," + s; }), pv.Key.Package.Version);
+                   }
+                });
+            });
+        }
+
+        protected void EvaluatePackageVulnerabilities()
+        {
+            Parallel.ForEach(this.PackageVulnerabilities, (pv) =>
+            {
+                Parallel.ForEach(pv.Value, (vulnerability) =>
+                {
+                    try
+                    {
+                        if (vulnerability.Versions.Any(version => !string.IsNullOrEmpty(version) && this.IsVulnerabilityVersionInPackageVersionRange(version, pv.Key.Version)))
+                        {
+                            vulnerability.CurrentPackageVersionIsInRange = true;
+                        }
+                    }
+                    catch (Exception e)
+                    {
+                        this.AuditEnvironment.Error(e, "Error determining vulnerability version range ({0}) in package version range ({1}).",
+                            vulnerability.Versions.Aggregate((f, s) => { return f + "," + s; }), pv.Key.Version);
+                    }
+                });
+            });
+        }
+
         #endregion
 
         #region Public abstract methods
@@ -399,7 +573,6 @@ namespace DevAudit.AuditLibrary
         #endregion
         
         #region Private properties
-
         private string ProjectVulnerabilitiesCacheFile { get; set; }
 
         private Task<BPlusTree<string, Tuple<OSSIndexProject, IEnumerable<OSSIndexProjectVulnerability>>>> ProjectVulnerabilitiesCacheInitialiseTask { get; set; }
@@ -427,6 +600,7 @@ namespace DevAudit.AuditLibrary
             new Dictionary<IEnumerable<OSSIndexQueryObject>, IEnumerable<OSSIndexArtifact>>();
         private Dictionary<OSSIndexArtifact, OSSIndexProject> _ArtifactProject = new Dictionary<OSSIndexArtifact, OSSIndexProject>();
         private List<Task<KeyValuePair<IEnumerable<OSSIndexQueryObject>, IEnumerable<OSSIndexArtifact>>>> _ArtifactsTask;
+        private Task<Tuple<int, int>> _ArtifactsTask2;
         private Task<IEnumerable<OSSIndexQueryObject>> _PackagesTask;
         private Dictionary<OSSIndexQueryObject, IEnumerable<OSSIndexPackageVulnerability>> _VulnerabilitiesForPackage =
             new Dictionary<OSSIndexQueryObject, IEnumerable<OSSIndexPackageVulnerability>>();

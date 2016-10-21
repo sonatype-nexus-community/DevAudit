@@ -85,7 +85,7 @@ namespace DevAudit.Tests
             {
 
             }
-            Assert.NotEmpty(s.Vulnerabilities);
+            Assert.NotEmpty(s.ProjectVulnerabilities);
         }
 
         [Fact]

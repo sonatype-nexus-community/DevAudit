@@ -47,9 +47,14 @@ namespace DevAudit.AuditLibrary
 
         public override IDirectoryInfo[] GetDirectories(string searchPattern)
         {
-            DirectoryInfo[] dirs = this.directory.GetDirectories(searchPattern);
-            return dirs != null ? dirs.Select(d => new LocalDirectoryInfo(d)).ToArray() : null;
-
+            try
+            {
+                return this.directory.GetDirectories(searchPattern)?.Select(d => new LocalDirectoryInfo(d)).ToArray();
+            }
+            catch (System.IO.DirectoryNotFoundException)
+            {
+                return null;
+            }
         }
 
         public override IDirectoryInfo[] GetDirectories(string searchPattern, SearchOption searchOption)
@@ -60,20 +65,20 @@ namespace DevAudit.AuditLibrary
 
         public override IFileInfo[] GetFiles()
         {
-            FileInfo[] files = this.directory.GetFiles();
-            return files != null ? files.Select(f => new LocalFileInfo(f)).ToArray() : null;
+            FileInfo[] files = this.directory.GetFiles("*",SearchOption.AllDirectories);
+            return files != null ? files.Select(f => this.AuditEnvironment.ConstructFile(f.FullName)).ToArray() : null;
         }
 
         public override IFileInfo[] GetFiles(string searchPattern)
         {
-            FileInfo[] files = this.directory.GetFiles(searchPattern);
-            return files != null ? files.Select(f => new LocalFileInfo(f)).ToArray() : null;
+            FileInfo[] files = this.directory.GetFiles(searchPattern,SearchOption.AllDirectories);
+            return files != null ? files.Select(f => this.AuditEnvironment.ConstructFile(f.FullName)).ToArray() : null;
         }
 
         public override IFileInfo[] GetFiles(string searchPattern, SearchOption searchOption)
         {
             FileInfo[] files = this.directory.GetFiles(searchPattern, searchOption);
-            return files != null ? files.Select(f => new LocalFileInfo(f)).ToArray() : null;
+            return files != null ? files.Select(f => this.AuditEnvironment.ConstructFile(f.FullName)).ToArray() : null;
         }
 
         public override Dictionary<AuditFileInfo, string> ReadFilesAsText(IEnumerable<AuditFileInfo> files)

@@ -27,10 +27,10 @@ namespace DevAudit.AuditLibrary
         #endregion
 
         #region Overriden methods
-        public override async Task<bool> GetWorkspace()
+        public override async Task<bool> GetWorkspaceAsync()
         {
             CallerInformation here = this.AuditEnvironment.Here();
-            if (!await base.GetWorkspace())
+            if (!await base.GetWorkspaceAsync())
             {
                 return false;
             }

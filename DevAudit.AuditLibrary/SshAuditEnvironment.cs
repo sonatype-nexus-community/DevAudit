@@ -165,20 +165,20 @@ namespace DevAudit.AuditLibrary
 
         public override bool FileExists(string file_path)
         {
-            Stopwatch.Reset();
-            Stopwatch.Start();
+            System.Diagnostics.Stopwatch sw = new System.Diagnostics.Stopwatch();
+            sw.Start();
             if (!this.IsConnected) throw new InvalidOperationException("The SSH session is not connected.");
             SshCommand ls_cmd = SshClient.RunCommand("stat " + file_path);
-            Stopwatch.Stop();
+            sw.Stop();
             if (!string.IsNullOrEmpty(ls_cmd.Result))
             {
                 
-                Debug("ls {0} returned {1} in {2} ms.", file_path, ls_cmd.Result, Stopwatch.ElapsedMilliseconds);
+                Debug("ls {0} returned {1} in {2} ms.", file_path, ls_cmd.Result, sw.ElapsedMilliseconds);
                 return true;
             }
             else
             {
-                Debug("ls {0} returned {1} in {2} ms.", file_path, ls_cmd.Error, Stopwatch.ElapsedMilliseconds);
+                Debug("ls {0} returned {1} in {2} ms.", file_path, ls_cmd.Error, sw.ElapsedMilliseconds);
                 return false;
             }
 
@@ -230,8 +230,8 @@ namespace DevAudit.AuditLibrary
             CallerInformation here = this.Here();
             Dictionary<AuditFileInfo, string> results = new Dictionary<AuditFileInfo, string>(files.Count);
             object results_lock = new object();
-            this.Stopwatch.Reset();
-            this.Stopwatch.Start();
+            System.Diagnostics.Stopwatch sw = new System.Diagnostics.Stopwatch();
+            sw.Start();
             Parallel.ForEach(files, new ParallelOptions() { MaxDegreeOfParallelism = 20 }, (_f, state) => 
             {
                 SshCommand cmd = this.SshClient.CreateCommand("cat " + _f.FullName);
@@ -257,8 +257,8 @@ namespace DevAudit.AuditLibrary
                 s.Key.Dispose();
                 cs = null;
             });
-            this.Stopwatch.Stop();
-            Success("Read text for {0} out of {1} files in {2} ms.", results.Count(r => r.Value.Length > 0), results.Count(), Stopwatch.ElapsedMilliseconds);
+            sw.Stop();
+            Success("Read text for {0} out of {1} files in {2} ms.", results.Count(r => r.Value.Length > 0), results.Count(), sw.ElapsedMilliseconds);
             return results;
         }
 
@@ -323,8 +323,8 @@ namespace DevAudit.AuditLibrary
                 SshClient = new SshClient(ci);
                 SshClient.ErrorOccurred += SshClient_ErrorOccurred;
                 SshClient.HostKeyReceived += SshClient_HostKeyReceived;
-                Stopwatch.Reset();
-                Stopwatch.Start();
+                System.Diagnostics.Stopwatch sw = new System.Diagnostics.Stopwatch();
+                sw.Start();
                 try
                 {
                     SshClient.Connect();
@@ -346,13 +346,13 @@ namespace DevAudit.AuditLibrary
                 }
                 finally
                 {
-                    Stopwatch.Stop();
+                    sw.Stop();
                 }
                 this.IsConnected = true;
                 this.User = user;
                 this.HostName = host_name;
                 this.pass = pass;
-                Success("Connected to {0} in {1} ms.", host_name, Stopwatch.ElapsedMilliseconds);
+                Success("Connected to {0} in {1} ms.", host_name, sw.ElapsedMilliseconds);
                 this.WorkDirectory = new DirectoryInfo("work" + this.PathSeparator + this.GetTimestamp());
                 if (!this.WorkDirectory.Exists)
                 {

@@ -195,7 +195,7 @@ namespace DevAudit.AuditLibrary
         #region Protected properties
         protected StringBuilder ProcessOutputSB = new StringBuilder();
         protected StringBuilder ProcessErrorSB = new StringBuilder();
-        protected Stopwatch Stopwatch { get; } = new Stopwatch();
+        //protected Stopwatch Stopwatch { get; } = new Stopwatch();
         #endregion
 
         #region Protected fields
@@ -233,7 +233,44 @@ namespace DevAudit.AuditLibrary
 
         internal void Error(CallerInformation caller, Exception e)
         {
-            OnMessage(new EnvironmentEventArgs(caller, e));
+            OnMessage(new EnvironmentEventArgs(caller, EventMessageType.ERROR, "Exception: {0} at {1}.",
+                new object[2] { e.Message, e.StackTrace }));
+        }
+
+        internal void Error(Exception e, string message_format, params object[] message)
+        {
+            Error(message_format, message);
+            Error(e);
+        }
+
+        internal void Error(CallerInformation caller, Exception e, string message_format, params object[] message)
+        {
+            Error(message_format, message);
+            Error(caller, e);
+        }
+
+        internal void Error(AggregateException ae, string message_format, params object[] message)
+        {
+            Error(message_format, message);
+            if (ae.InnerExceptions != null && ae.InnerExceptions.Count >= 1)
+            {
+                foreach (Exception e in ae.InnerExceptions)
+                {
+                    Error(e);
+                }
+            }
+        }
+
+        internal void Error(CallerInformation caller, AggregateException ae, string message_format, params object[] message)
+        {
+            Error(caller, message_format, message);
+            if (ae.InnerExceptions != null && ae.InnerExceptions.Count >= 1)
+            {
+                foreach (Exception e in ae.InnerExceptions)
+                {
+                    Error(caller, e);
+                }
+            }
         }
 
         internal void Success(string message_format, params object[] message)

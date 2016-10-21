@@ -20,15 +20,10 @@ namespace DevAudit.AuditLibrary
         #endregion
 
         #region Overriden methods
-        public override Task<bool> GetPackageSource()
-        {
-            throw new NotImplementedException();
-        }
-
-        public override async Task<bool> GetWorkspace()
+        public override async Task<bool> GetWorkspaceAsync()
         {
             CallerInformation here = this.AuditEnvironment.Here();
-            if (! await base.GetWorkspace())
+            if (! await base.GetWorkspaceAsync())
             {
                 return false;
             }
@@ -84,7 +79,6 @@ namespace DevAudit.AuditLibrary
                     // Explicitly set root references to null to expressly tell the GarbageCollector 
                     // that the resources have been disposed of and its ok to release the memory 
                     // allocated for them.
-                    this.Compilation = null;
                     if (isDisposing)
                     {
                         // Release all managed resources here 
@@ -160,6 +154,18 @@ namespace DevAudit.AuditLibrary
             }
             //Ensure CSharp assembly gets pulled into build.
             var _ = typeof(Microsoft.CodeAnalysis.CSharp.Formatting.CSharpFormattingOptions);
+
+            AuditFileInfo packages_config = this.AuditEnvironment.ConstructFile(this.CombinePath(this.RootDirectory.FullName, (string)this.CodeProjectOptions["CodeProjectName"], "packages.config"));
+            if (packages_config.Exists)
+            {
+                this.PackageSource = new NuGetPackageSource(new Dictionary<string, object>(), message_handler);
+                this.PackageSource.PackageManagerConfigurationFile = packages_config.FullName;
+                this.AuditEnvironment.Debug("Found NuGet v2 package manager configuration file {0}", packages_config.FullName);
+            }
+            else
+            {
+                this.AuditEnvironment.Debug("NuGet v2 package manager configuration file {0} does not exist.", packages_config.FullName);
+            }
         }
         #endregion
 
