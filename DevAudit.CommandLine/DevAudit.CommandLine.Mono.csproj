@@ -70,7 +70,6 @@
     <Compile Include="SubOptions.cs" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="App.config" />
     <None Include="chunky.flf">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>

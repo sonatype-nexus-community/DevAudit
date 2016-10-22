@@ -278,6 +278,9 @@
     <None Include="Rules\sshd.yml">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+	 <None Include="Rules\drupal8.yml">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Configurations\" />
