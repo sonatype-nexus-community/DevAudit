@@ -26,11 +26,12 @@ namespace DevAudit.CommandLine
             ERROR_CREATING_AUDIT_TARGET,
             NO_PACKAGE_MANAGER,
             ERROR_SCANNING_FOR_PACKAGES,
-            ERROR_SEARCHING_FOR_ARTIFACTs,
-            ERROR_SEARCHING_OSS_INDEX,
+            ERROR_SEARCHING_FOR_ARTIFACTS,
+            ERROR_SCANNING_DEFAULT_CONFIGURATION_RULES,
+            ERROR_SEARCHING_CONFIGURATION_RULES,
             ERROR_SCANNING_SERVER_VERSION,
             ERROR_SCANNING_SERVER_CONFIGURATION,
-            ERROR_EVALUATING_CONFIGURATION_RULES,
+            
             ERROR_SCANNING_PROJECT_WORKSPACE
         }
 
@@ -151,6 +152,10 @@ namespace DevAudit.CommandLine
             }
             #endregion
 
+            if (ProgramOptions.SkipPackagesAudit)
+            {
+                audit_options.Add("SkipPackagesAudit", ProgramOptions.SkipPackagesAudit);
+            }
             if (ProgramOptions.ListPackages)
             {
                 audit_options.Add("ListPackages", ProgramOptions.ListPackages);
@@ -158,6 +163,14 @@ namespace DevAudit.CommandLine
             if (ProgramOptions.ListArtifacts)
             {
                 audit_options.Add("ListArtifacts", ProgramOptions.ListArtifacts);
+            }
+            if (ProgramOptions.ListConfigurationRules)
+            {
+                audit_options.Add("ListConfigurationRules", ProgramOptions.ListConfigurationRules);
+            }
+            if (ProgramOptions.OnlyLocalRules)
+            {
+                audit_options.Add("OnlyLocalRules", ProgramOptions.OnlyLocalRules);
             }
             if (!string.IsNullOrEmpty(ProgramOptions.File))
             {
@@ -236,6 +249,7 @@ namespace DevAudit.CommandLine
                     else if (verb == "drupal8")
                     {
                         Application = new Drupal8Application(audit_options, EnvironmentMessageHandler);
+                        Source = Application as PackageSource;
                     }
                     else if (verb == "drupal7")
                     {
@@ -305,29 +319,32 @@ namespace DevAudit.CommandLine
             PrintBanner();
             if (!ProgramOptions.NonInteractive) Console.CursorVisible = false;
             ExitCodes exit = ExitCodes.ERROR_CREATING_AUDIT_TARGET;
-            if (Application != null) //Auditing an application server
+            if (Application == null && Source != null) //Auditing a package source
             {
-                AuditApplication(out exit);
+                AuditTarget.AuditResult ar = Source.Audit(CTS.Token);
+                AuditPackageSource(ar, out exit);
+                if (Source != null)
+                {
+                    Source.Dispose();
+                }
+            }
+
+            if (Application != null) //Auditing an application
+            {
+                AuditTarget.AuditResult aar = Application.Audit(CTS.Token);
+                AuditPackageSource(aar, out exit);
+                AuditApplication(aar, out exit);
                 if (Application != null)
                 {
                     //Server.Dispose();
                 }
             }
-
-            if (Server != null) //Auditing an application server
+            else if (Server != null) //Auditing an application server
             {
                 AuditServer(out exit);
                 if (Server != null)
                 {
                     //Server.Dispose();
-                }
-            }
-            else if (Source != null) //Auditing a package source
-            {
-                AuditPackageSource(out exit);
-                if (Source != null)
-                {
-                    Source.Dispose();
                 }
             }
             else if (CodeProject != null)
@@ -345,10 +362,8 @@ namespace DevAudit.CommandLine
         }
 
         #region Private methods
-        static void AuditPackageSource(out ExitCodes exit)
+        static void AuditPackageSource(AuditTarget.AuditResult ar, out ExitCodes exit)
         {
-            if (ReferenceEquals(Source, null)) throw new ArgumentNullException("Source");
-            AuditTarget.AuditResult ar = Source.Audit(CTS.Token);
             if (Spinner != null) StopSpinner();
             if (ProgramOptions.ListPackages)
             {
@@ -375,14 +390,7 @@ namespace DevAudit.CommandLine
                     return;
                 }
             }
-            if (Source.Packages.Count() == 0)
-            {
-                PrintMessageLine("Nothing to do, exiting package audit.");
-                exit = ExitCodes.SUCCESS;
-                return;
-            }
-
-            if (ProgramOptions.ListArtifacts)
+            else if (ProgramOptions.ListArtifacts)
             {
                 if (ar == AuditTarget.AuditResult.SUCCESS && Source.Artifacts.Count() > 0)
                 {
@@ -411,9 +419,14 @@ namespace DevAudit.CommandLine
                 }
                 else
                 {
-                    exit = ExitCodes.ERROR_SEARCHING_FOR_ARTIFACTs;
+                    exit = ExitCodes.ERROR_SEARCHING_FOR_ARTIFACTS;
                     return;
                 }
+            }
+            if (ProgramOptions.SkipPackagesAudit || ProgramOptions.ListConfigurationRules)
+            {
+                exit = ExitCodes.SUCCESS;
+                return;
             }
 
             #region Cache stuff
@@ -514,7 +527,7 @@ namespace DevAudit.CommandLine
                 }
             }*/
             #endregion
-            
+
             PrintMessageLine("\nAudit Results\n=============");
             int projects_count = Source.ProjectVulnerabilities.Count;
             int projects_processed = 0;
@@ -564,11 +577,42 @@ namespace DevAudit.CommandLine
             return;
         }
 
-        static void AuditApplication(out ExitCodes exit)
+        static void AuditApplication(AuditTarget.AuditResult ar, out ExitCodes exit)
         {
-            exit = ExitCodes.ERROR_SCANNING_FOR_PACKAGES;
-            Application.AuditResult ar = Application.Audit(CTS.Token);
+            exit = ExitCodes.ERROR_SCANNING_DEFAULT_CONFIGURATION_RULES;
+            if (Spinner != null) StopSpinner();
+            if (ProgramOptions.ListConfigurationRules)
+            {
+                if (ar == AuditTarget.AuditResult.SUCCESS && Application.ProjectConfigurationRules.Count() > 0)
+                {
+                    int i = 1;
+                    foreach (var project_rule in Application.ProjectConfigurationRules)
+                    {
+                        if (project_rule.Key.Name == Application.ApplicationId + "_" + "default") continue;
+                        PrintMessageLine("[{0}/{1}] {2}", i, Application.ProjectConfigurationRules.Count, project_rule.Key.Name);
+                        int j = 1;
+                        foreach (OSSIndexProjectConfigurationRule rule in project_rule.Value)
+                        {
+                            PrintMessageLine("  [{0}/{1}] {2}", j++, i, rule.Title);
+                        }
+                    }
+                    exit = ExitCodes.SUCCESS;
+                    return;
+                }
+                else if (ar == AuditTarget.AuditResult.SUCCESS && Application.ProjectConfigurationRules.Count() == 0)
+                {
+                    PrintMessageLine("No configuration found for {0}. ", Application.ApplicationLabel);
+                    exit = ExitCodes.SUCCESS;
+                    return;
+                }
+                else
+                {
+                    exit = ExitCodes.ERROR_SCANNING_DEFAULT_CONFIGURATION_RULES;
+                    return;
+                }
+            }
         }
+
         static void AuditServer(out ExitCodes exit)
         {
             if (ReferenceEquals(Server, null)) throw new ArgumentNullException("Server");
@@ -593,14 +637,6 @@ namespace DevAudit.CommandLine
                 StopSpinner();
             }
             PrintMessageLine("Detected {0} version: {1}.", Server.ServerLabel, Server.Version);
-            if (!ProgramOptions.SkipPackageAudit)
-            {
-                AuditPackageSource(out exit);
-                if (exit != ExitCodes.SUCCESS)
-                {
-                    PrintMessageLine("Error encountered auditing packages.");
-                }
-            }
             if (ProgramOptions.ListPackages || ProgramOptions.ListArtifacts)
             {
                 return;
@@ -655,7 +691,7 @@ namespace DevAudit.CommandLine
                 return;
             }
             PrintMessageLine("Got {0} configuration rule(s) for {1} server project(s).", Server.ProjectConfigurationRules.Sum(cr => cr.Value.Count()), Server.ProjectConfigurationRules.Keys.Count);
-            exit = ExitCodes.ERROR_EVALUATING_CONFIGURATION_RULES;
+            exit = ExitCodes.ERROR_SEARCHING_CONFIGURATION_RULES;
             int projects_count = Server.ProjectConfigurationRules.Keys.Count;
             int projects_processed = 0;
             foreach (KeyValuePair<OSSIndexProject, IEnumerable<OSSIndexProjectConfigurationRule>> rule in Server.ProjectConfigurationRules)

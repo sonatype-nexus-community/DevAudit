@@ -46,6 +46,8 @@ namespace DevAudit.AuditLibrary
         #region Overriden methods
         protected override Dictionary<string, IEnumerable<OSSIndexQueryObject>> GetModules()
         {
+            if (this.Modules != null) return this.Modules;
+            var M = this.Modules = new Dictionary<string, IEnumerable<OSSIndexQueryObject>>();
             object modules_lock = new object();
             this.Stopwatch.Reset();
             this.Stopwatch.Start();
@@ -83,7 +85,7 @@ namespace DevAudit.AuditLibrary
                         }
                     }
                 });
-                this.Modules.Add("core", core_modules);
+                M.Add("core", core_modules);
                 core_modules.Add(new OSSIndexQueryObject("drupal", "drupal_core", core_version));
                 all_modules.AddRange(core_modules);
             }
@@ -107,7 +109,7 @@ namespace DevAudit.AuditLibrary
                 });
                 if (contrib_modules.Count > 0)
                 {
-                    Modules.Add("contrib", contrib_modules);
+                    M.Add("contrib", contrib_modules);
                     all_modules.AddRange(contrib_modules);
                 }
             }
@@ -134,12 +136,13 @@ namespace DevAudit.AuditLibrary
                     });
                     if (sites_all_contrib_modules.Count > 0)
                     {
-                        Modules.Add("sites_all_contrib", sites_all_contrib_modules);
+                        M.Add("sites_all_contrib", sites_all_contrib_modules);
                         all_modules.AddRange(sites_all_contrib_modules);
                     }
                 }
             }
-            Modules.Add("all", all_modules);
+            M.Add("all", all_modules);
+            this.Modules = M;
             this.Stopwatch.Stop();
             this.AuditEnvironment.Success("Got {0} total {1} modules in {2} ms.", Modules["all"].Count(), this.ApplicationLabel, this.Stopwatch.ElapsedMilliseconds);
             return Modules;
@@ -147,8 +150,8 @@ namespace DevAudit.AuditLibrary
 
         public override IEnumerable<OSSIndexQueryObject> GetPackages(params string[] o)
         {
-            this.Packages = this.Modules["all"];
-            return this.Packages;
+            this.GetModules();
+            return this.Modules["all"];
         }
 
         protected override IConfiguration GetConfiguration()

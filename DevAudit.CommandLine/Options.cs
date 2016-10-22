@@ -116,11 +116,14 @@ namespace DevAudit.CommandLine
         [Option("list-artifacts", Required = false, HelpText = "Only list the artifacts corresponding to local packages found on OSS Index.")]
         public bool ListArtifacts { get; set; }
 
-        [Option("skip-package-audit", Required = false, HelpText = "Skip the package audit for applications or application servers.")]
-        public bool SkipPackageAudit { get; set; }
+        [Option("list-rules", Required = false, HelpText = "Only list the configuration rules found for application and application servers.")]
+        public bool ListConfigurationRules { get; set; }
 
-        [Option("list-rules", Required = false, HelpText = "Only list the configuration rules for the application or application server found on OSS Index.")]
-        public bool ListRules { get; set; }
+        [Option("skip-packages-audit", Required = false, HelpText = "Skip the package audit for applications or application servers.")]
+        public bool SkipPackagesAudit { get; set; }
+
+        [Option("only-local-rules", Required = false, HelpText = "Only use the configuration rules for the application or application server listed in YAML rules files.")]
+        public bool OnlyLocalRules { get; set; }
 
         [Option("code-project", Required = false, HelpText = "The name of the code project to audit.")]
         public string CodeProjectName { get; set; }

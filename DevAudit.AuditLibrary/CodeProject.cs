@@ -14,16 +14,6 @@ namespace DevAudit.AuditLibrary
 {
     public abstract class CodeProject : AuditTarget, IDisposable
     {
-        #region Public enums
-        public enum AuditResult
-        {
-            SUCCESS = 0,
-            ERROR_SCANNING_WORKSPACE,
-            ERROR_SCANNING_ANALYZERS,
-            ERROR_ANALYZING
-        }
-        #endregion
-
         #region Constructors
         public CodeProject(Dictionary<string, object> project_options, EventHandler<EnvironmentEventArgs> message_handler, string analyzer_type) : base(project_options, message_handler)
         {

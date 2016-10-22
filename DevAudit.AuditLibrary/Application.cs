@@ -122,6 +122,17 @@ namespace DevAudit.AuditLibrary
                     this.ApplicationBinary = this.AuditEnvironment.ConstructFile(fn);
                 }
             }
+
+            if (this.ApplicationOptions.ContainsKey("ListConfigurationRules"))
+            {
+                this.ListConfigurationRules = true;
+            }
+
+            if (this.ApplicationOptions.ContainsKey("OnlyLocalRules"))
+            {
+                this.OnlyLocalRules = true;
+            }
+
         }
         #endregion
 
@@ -138,9 +149,7 @@ namespace DevAudit.AuditLibrary
         #endregion
 
         #region Public properties
-        public Dictionary<string, IEnumerable<OSSIndexQueryObject>> Modules { get; protected set; }  = new Dictionary<string, IEnumerable<OSSIndexQueryObject>>();
-
-        public IEnumerable<OSSIndexArtifact> ArtifactsForConfigurationRulesAudit { get; protected set; } = new List<OSSIndexArtifact>();
+        public Dictionary<string, IEnumerable<OSSIndexQueryObject>> Modules { get; protected set; }
 
         public Dictionary<string, AuditFileSystemInfo> ApplicationFileSystemMap { get; } = new Dictionary<string, AuditFileSystemInfo>();
 
@@ -157,6 +166,12 @@ namespace DevAudit.AuditLibrary
         public Dictionary<string, string> RequiredFileLocations { get; protected set; }
 
         public Dictionary<string, string> RequiredDirectoryLocations { get; protected set; }
+
+        public bool ListConfigurationRules { get; protected set; } = false;
+
+        public bool OnlyLocalRules { get; protected set; } = false;
+
+        public bool DefaultConfigurationRulesOnly { get; protected set; } = false;
 
         public IConfiguration Configuration { get; protected set; } = null;
 
@@ -280,50 +295,29 @@ namespace DevAudit.AuditLibrary
         #region Public methods
         public override AuditResult Audit(CancellationToken ct)
         {
-            CallerInformation caller = this.AuditEnvironment.Here(); 
+            base.Audit(ct);
+            CallerInformation caller = this.AuditEnvironment.Here();
+            Task get_default_configuration_rules_task = null, get_configuration_rules_task = null, evaluate_configuration_rules_task = null;
+            if (this.ListPackages || this.ListArtifacts)
+            {
+                get_default_configuration_rules_task = Task.CompletedTask;
+            }
+            else
+            {
+                get_default_configuration_rules_task = Task.Run(() => this.GetDefaultConfigurationRules(), ct);
+            }
+            
+            if (this.ListPackages || this.ListArtifacts || this.SkipPackagesAudit || this.OnlyLocalRules || this.ArtifactsWithProjects.Count() == 0)
+            {
+                get_configuration_rules_task = Task.CompletedTask;
+            }
+            else
+            {
+                get_configuration_rules_task = Task.Run(() => this.GetConfigurationRules(), ct);
+            }
             try
             {
-                Task.Run(() => this.GetModules(), ct).Wait();
-            }
-            catch (AggregateException ae)
-            {                        
-                this.AuditEnvironment.Error(caller, ae.InnerException, "Exception thrown in GetModules task");
-                return AuditResult.ERROR_SCANNING_MODULES;
-            }
-            try
-            {
-                Task.Run(() => this.GetPackages(), ct).Wait();
-            }
-            catch (AggregateException ae)
-            {
-                this.AuditEnvironment.Error(caller, ae.InnerException, "Exception thrown in GetPackages task");
-                return AuditResult.ERROR_SCANNING_PACKAGES;
-            }
-
-            Task get_default_configuration_rules_task = Task.Run(() => this.GetDefaultConfigurationRules(), ct);
-            Task get_artifacts_task = Task.Run(() => this.GetArtifacts(), ct);
-            try
-            {
-                Task.WaitAll(get_default_configuration_rules_task, get_artifacts_task);
-            }
-            catch (AggregateException ae)
-            {
-                if (ae.InnerException.TargetSite.Name == "GetDefaultConfigurationRules")
-                {
-                    this.AuditEnvironment.Error(caller, ae.InnerException, "Exception thrown in GetDefaultConfigurationRules task.");
-                    return AuditResult.ERROR_SCANNING_DEFAULT_CONFIGURATION_RULES;
-                }
-                else if (ae.InnerException.TargetSite.Name == "GetArtifacts")
-                {
-                    this.AuditEnvironment.Error(caller, ae.InnerException, "Exception thrown in GetArtifacts task.");
-                    return AuditResult.ERROR_SEARCHING_ARTIFACTS;
-                }
-            }
-            Task get_configuration_rules_task = Task.Run(() => this.GetConfigurationRules(), ct);
-            Task get_vulnerabilities_task = Task.Run(() => this.GetVulnerabilties(), ct);
-            try
-            {
-                Task.WaitAll(get_configuration_rules_task, get_vulnerabilities_task);
+                Task.WaitAll(get_default_configuration_rules_task, get_configuration_rules_task);
             }
             catch (AggregateException ae)
             {
@@ -332,13 +326,31 @@ namespace DevAudit.AuditLibrary
                     this.AuditEnvironment.Error(caller, ae.InnerException, "Exception thrown in GetConfigurationRules task.");
                     return AuditResult.ERROR_SEARCHING_CONFIGURATION_RULES;
                 }
-                else if (ae.InnerException.TargetSite.Name == "GetVulnerabilities")
-                {
-                    this.AuditEnvironment.Error(caller, ae.InnerException, "Exception thrown in GetVulnerabilities task.");
-                    return AuditResult.ERROR_SEARCHING_VULNERABILITIES;
+                else
+                {  
+                    this.AuditEnvironment.Error(caller, ae.InnerException, "Exception thrown in GetDefaultConfigurationRules task.");
+                    return AuditResult.ERROR_SCANNING_DEFAULT_CONFIGURATION_RULES;
                 }
             }
-            throw new NotImplementedException();
+            if (this.ListPackages || this.ListArtifacts || this.ListConfigurationRules)
+            {
+                evaluate_configuration_rules_task = Task.CompletedTask;
+            }
+            else
+            {
+                evaluate_configuration_rules_task = Task.Run(() => this.EvaluateProjectConfigurationRules(null), ct);
+            }
+            
+            try
+            {
+                evaluate_configuration_rules_task.Wait();
+            }
+            catch (AggregateException ae)
+            {
+                this.AuditEnvironment.Error(caller, ae.InnerException, "Exception thrown in {0} task.", ae.InnerException.TargetSite.Name);
+                return AuditResult.ERROR_EVALUATING_CONFIGURATION_RULES;
+            }
+            return AuditResult.SUCCESS;
         }
         #endregion
 
@@ -369,15 +381,10 @@ namespace DevAudit.AuditLibrary
 
         protected void GetConfigurationRules()
         {
-            if (this.ArtifactsForConfigurationRulesAudit.Count() == 0)
-            {
-                this.AuditEnvironment.Info("No artifacts with configuration rules specified.");
-                return;
-            }
             this.AuditEnvironment.Info("Searching OSS Index for configuration rules for {0} artifact(s).", this.ArtifactsWithProjects.Count);
             System.Diagnostics.Stopwatch sw = new System.Diagnostics.Stopwatch();
             sw.Start();
-            Parallel.ForEach(this.ArtifactsForConfigurationRulesAudit, (a) =>
+            Parallel.ForEach(this.ArtifactsWithProjects, (a) =>
             {
                 OSSIndexProject project;
                 lock (artifact_project_lock)

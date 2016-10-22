@@ -40,6 +40,11 @@ namespace DevAudit.AuditLibrary
                 this.ListArtifacts = true;
             }
 
+            if (this.PackageSourceOptions.ContainsKey("SkipPackagesAudit"))
+            {
+                this.SkipPackagesAudit = true;
+            }
+
             #region Cache option
             if (this.PackageSourceOptions.ContainsKey("Cache") && (bool)this.PackageSourceOptions["Cache"] == true)
             {
@@ -234,51 +239,82 @@ namespace DevAudit.AuditLibrary
         public bool ListPackages { get; protected set; } = false;
 
         public bool ListArtifacts { get; protected set; } = false;
+
+        public bool SkipPackagesAudit { get; protected set; } = false;
         #endregion
 
         #region Public methods
         public virtual AuditResult Audit(CancellationToken ct)
         {
             CallerInformation caller = this.AuditEnvironment.Here();
-            this.AuditEnvironment.Status("Scanning {0} packages.", this.PackageManagerLabel);
+            Task get_packages_task = null, get_artifacts_task = null, get_vulnerabilities_task = null, evaluate_vulnerabilities_task = null;
+            if (this.SkipPackagesAudit)
+            {
+                get_packages_task = get_artifacts_task = get_vulnerabilities_task = evaluate_vulnerabilities_task = Task.CompletedTask;
+                this.Packages = new List<OSSIndexQueryObject>();
+            }
+            else
+            {
+                this.AuditEnvironment.Status("Scanning {0} packages.", this.PackageManagerLabel);
+                get_packages_task = Task.Run(() => this.Packages = this.GetPackages(), ct);
+            }
             try
             {
-                Task.Run(() => this.Packages = this.GetPackages(), ct).Wait();
+                get_packages_task.Wait();
+                if (!this.SkipPackagesAudit) AuditEnvironment.Success("Scanned {0} {1} packages.", this.Packages.Count(), this.PackageManagerLabel);
             }
             catch (AggregateException ae)
             {
-                this.AuditEnvironment.Error(caller, ae.InnerException, "Exception thrown in GetPackages task");
+                this.AuditEnvironment.Error("Exception thrown in GetPackages task.", ae.InnerException);
                 return AuditResult.ERROR_SCANNING_PACKAGES;
             }
-            this.AuditEnvironment.Success("Scanned {0} {1} packages.", this.Packages.Count(), this.PackageManagerLabel);
-            if (this.ListPackages || this.Packages.Count() == 0) return AuditResult.SUCCESS;
-
+            if (this.ListPackages || this.Packages.Count() == 0)
+            {
+                get_artifacts_task = evaluate_vulnerabilities_task = evaluate_vulnerabilities_task = Task.CompletedTask;
+            }
+            else
+            {
+                get_artifacts_task = Task.Run(() => this.GetArtifacts(), ct);
+            }
             try
             {
-                Task.Run(() => this.GetArtifacts(), ct).Wait();
+                get_artifacts_task.Wait();
             }
             catch (AggregateException ae)
             {
-                this.AuditEnvironment.Error(caller, ae.InnerException, "Exception thrown in GetArtifacts task.");
+                this.AuditEnvironment.Error("Exception thrown in GetArtifacts task.", ae.InnerException);
                 return AuditResult.ERROR_SEARCHING_ARTIFACTS;
             }
-            if (this.ListArtifacts || this.Artifacts.Count() == 0 || this.ArtifactsWithProjects.Count() == 0) return AuditResult.SUCCESS;
 
+            if (this.ListArtifacts || this.ArtifactsWithProjects.Count == 0)
+            {
+                get_vulnerabilities_task = evaluate_vulnerabilities_task = Task.CompletedTask;
+            }
+            else
+            {
+                get_vulnerabilities_task = Task.Run(() => this.GetVulnerabilties(), ct);
+            }
             try
             {
-                Task.Run(() => this.GetVulnerabilties(), ct).Wait();
+                get_vulnerabilities_task.Wait();
             }
             catch (AggregateException ae)
             {
-                this.AuditEnvironment.Error(caller, ae.InnerException, "Exception thrown in GetVulnerabilities task.");
+                this.AuditEnvironment.Error(caller, ae.InnerException, "Exception thrown in GetVulnerabilities task");
                 return AuditResult.ERROR_SEARCHING_VULNERABILITIES;
             }
-            this.AuditEnvironment.Info("Evaluating vulnerabilities in packages.");
-            Task evaluate_project_vulnerabilities = Task.Run(() => this.EvaluateProjectVulnerabilities());
-            Task evaluate_package_vulnerabilities = Task.Run(() => this.EvaluatePackageVulnerabilities());
+            
+            if (this.PackageVulnerabilities.Count == 0 && this.ProjectVulnerabilities.Count == 0)
+            {
+                evaluate_vulnerabilities_task = Task.CompletedTask;
+            }
+            else
+            {
+                evaluate_vulnerabilities_task = Task.WhenAll(Task.Run(() => this.EvaluateProjectVulnerabilities(), ct), Task.Run(() => this.EvaluatePackageVulnerabilities(), ct));
+            }
             try
             {
-                Task.WaitAll(evaluate_project_vulnerabilities, evaluate_package_vulnerabilities);
+                evaluate_vulnerabilities_task.Wait();
             }
             catch (AggregateException ae)
             {
@@ -462,8 +498,8 @@ namespace DevAudit.AuditLibrary
                    }
                    catch (Exception e)
                    {
-                       this.AuditEnvironment.Error(e, "Error determining vulnerability version range ({0}) in package version range ({1}).",
-                           vulnerability.Versions.Aggregate((f, s) => { return f + "," + s; }), pv.Key.Package.Version);
+                       this.AuditEnvironment.Warning("Error determining vulnerability version range ({0}) in package version range ({1}). Message: {2}",
+                           vulnerability.Versions.Aggregate((f, s) => { return f + "," + s; }), pv.Key.Package.Version, e.Message);
                    }
                 });
             });

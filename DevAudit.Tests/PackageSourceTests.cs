@@ -16,20 +16,16 @@ namespace DevAudit.Tests
         protected abstract PackageSource s { get; }
         
         [Fact]
-        public void CanGetPackagesTask()
+        public void CanGetPackages()
         {
-            Task<IEnumerable<OSSIndexQueryObject>> packages_task = s.PackagesTask;
-            packages_task.Wait();
-            Assert.NotEmpty(packages_task.Result);
-            Assert.NotEmpty(s.Packages.Where(p => p.PackageManager == s.PackageManagerId));
+            Assert.NotEmpty(s.GetPackages().Where(p => p.PackageManager == s.PackageManagerId));
         }
 
         [Fact]
         public void CanGetArtifactsTask()
         {
-            s.PackagesTask.Wait();
-            Task.WaitAll(s.ArtifactsTask.ToArray());
-            Assert.NotEmpty(s.Artifacts);
+            
+            Assert.NotEmpty(s.);
             Assert.NotEmpty(s.Artifacts.Where(a => a.PackageManager == s.PackageManagerId));
         }
 

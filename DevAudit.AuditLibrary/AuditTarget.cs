@@ -21,7 +21,9 @@ namespace DevAudit.AuditLibrary
             ERROR_SEARCHING_CONFIGURATION_RULES,
             ERROR_EVALUATING_CONFIGURATION_RULES,
             ERROR_SCANNING_PROJECTS,
-            ERROR_ANALYZING
+            ERROR_ANALYZING,
+            ERROR_SCANNING_WORKSPACE,
+            ERROR_SCANNING_ANALYZERS,
         }
 
         #region Events
