@@ -334,21 +334,6 @@ namespace DevAudit.AuditLibrary
             this.EvaluateVulnerabilitiesTask = evaluate_vulnerabilities_task;
             return AuditResult.SUCCESS;
         }
-
-        public async Task<bool> AuditAsync()
-        {
-            Tuple<int, int> package_artifact_count = await this.GetArtifactsAsync();
-            if (package_artifact_count.Item1 > 0 && package_artifact_count.Item2 > 0)
-            {
-                return true;
-            }
-            else
-            {
-                this.AuditEnvironment.Warning("No OSS Index artifacts found, exiting {0} packagee audit.");
-                return false;
-            }
-        }
-
         #endregion
 
         #region Protected methods
@@ -363,139 +348,100 @@ namespace DevAudit.AuditLibrary
             int i = 0;
             IGrouping<int, OSSIndexQueryObject>[] packages_groups = this.Packages.GroupBy(x => i++ / 100).ToArray();
             IEnumerable<OSSIndexQueryObject>[] queries = packages_groups.Select(group => packages_groups.Where(g => g.Key == group.Key).SelectMany(g => g)).ToArray();
-            Parallel.ForEach(queries, new ParallelOptions() { MaxDegreeOfParallelism = 10, TaskScheduler = TaskScheduler.Default }, (q) =>
+            List<Task> tasks = new List<Task>();
+            foreach (IEnumerable<OSSIndexQueryObject> q in queries)
             {
-                try
+                Task t = Task.Factory.StartNew(async (o) =>
                 {
-                    IEnumerable<OSSIndexArtifact> artifacts = this.HttpClient.SearchAsync(this.PackageManagerId, q, this.ArtifactsTransform).Result;
+                    IEnumerable<OSSIndexArtifact> artifacts = await this.HttpClient.SearchAsync(this.PackageManagerId, q, this.ArtifactsTransform);
                     lock (artifacts_lock)
                     {
                         var aa = AddArtifiact(q, artifacts);
                         package_count += aa.Key.Count();
                         artifact_count += aa.Value.Count();
                     }
-                }
-                catch (AggregateException ae)
-                {
-                    this.AuditEnvironment.Error(caller, ae, "Exception thrown attempting to search for artifacts.");
-                }
-            });
-            sw.Stop();
+                }, q, CancellationToken.None, TaskCreationOptions.DenyChildAttach, TaskScheduler.Default).Unwrap();
+                tasks.Add(t);
+            }
+            try
+            {
+                Task.WaitAll(tasks.ToArray());
+            }
+            catch (Exception e)
+            {
+                this.AuditEnvironment.Error(caller, "Exception thrown waiting for tasks,", e);
+            }
+            finally
+            {
+                sw.Stop();
+            }
             this.AuditEnvironment.Success("Found {0} artifacts from OSS Index in {1} ms.", artifact_count, sw.ElapsedMilliseconds);
             return new Tuple<int, int>(package_count, artifact_count);
         }
 
-        protected async Task<Tuple<int, int>> GetArtifactsAsync()
-        {
-            CallerInformation caller = this.AuditEnvironment.Here();
-            object artifacts_lock = new object();
-            int package_count = 0, artifact_count = 0;
-            int i = 0;
-            IGrouping<int, OSSIndexQueryObject>[] packages_groups = this.Packages.GroupBy(x => i++ / 100).ToArray();
-            foreach (IGrouping<int, OSSIndexQueryObject> group in packages_groups)
-            {
-                IEnumerable<OSSIndexQueryObject> query = packages_groups.Where(g => g.Key == group.Key).SelectMany(g => g);
-                try
-                {
-                    IEnumerable<OSSIndexArtifact> artifacts = await this.HttpClient.SearchAsync(this.PackageManagerId, query, this.ArtifactsTransform).ConfigureAwait(false);
-                    var aa = AddArtifiact(query, artifacts);
-                    package_count += aa.Key.Count();
-                    artifact_count += aa.Value.Count();
-                }
-                catch (AggregateException ae)
-                {
-                    this.AuditEnvironment.Error(caller, ae, "Exception thrown attempting to search for artifacts.");
-                }
-            }
-            this.AuditEnvironment.Info("Got {0} artifacts for {1} modules or plugins in {2} ms.", artifact_count, package_count, this.Stopwatch.ElapsedMilliseconds);
-            return new Tuple<int, int>(package_count, artifact_count);
-        }
-
-
         protected void GetVulnerabilties()
         {
+            CallerInformation caller = this.AuditEnvironment.Here();
             this.AuditEnvironment.Status("Searching OSS Index for vulnerabilities for {0} artifacts.", this.Artifacts.Count());
             Stopwatch sw = new Stopwatch();
             sw.Start();
             this.GetVulnerabilitiesExceptions = new ConcurrentDictionary<OSSIndexArtifact, Exception>(5, this.Artifacts.Count());
-            Parallel.ForEach(this.ArtifactsWithProjects, new ParallelOptions() { MaxDegreeOfParallelism = 30, TaskScheduler = TaskScheduler.Default },(artifact) =>
+            List<Task> tasks = new List<Task>();
+            foreach (var artifact in this.ArtifactsWithProjects)
             {
-                List<OSSIndexPackageVulnerability> package_vulnerabilities = null;//this.HttpClient.GetPackageVulnerabilitiesAsync(artifact.PackageId).Result;
-                OSSIndexProject project = null; // this.HttpClient.GetProjectForIdAsync(artifact.ProjectId).Result;
+                Task t = Task.Factory.StartNew(async (o) =>
+                {
+                    OSSIndexProject project = await this.HttpClient.GetProjectForIdAsync(artifact.ProjectId);
+                    List<OSSIndexPackageVulnerability> package_vulnerabilities = await this.HttpClient.GetPackageVulnerabilitiesAsync(artifact.PackageId);
 
-                try
-                {
-                    Parallel.Invoke(() => package_vulnerabilities = this.HttpClient.GetPackageVulnerabilitiesAsync(artifact.PackageId).Result, () => project = this.HttpClient.GetProjectForIdAsync(artifact.ProjectId).Result);
-                }
-                catch (AggregateException e)
-                {
-                    this.GetVulnerabilitiesExceptions.TryAdd(artifact, e.InnerException);
-                }
-                project.Artifact = artifact;
-                project.Package = artifact.Package;
-                lock (artifact_project_lock)
-                {
-                    if (!ArtifactProject.Keys.Any(a => a.ProjectId == project.Id.ToString()))
+                    project.Artifact = artifact;
+                    project.Package = artifact.Package;
+                    lock (artifact_project_lock)
                     {
-                        this._ArtifactProject.Add(Artifacts.Where(a => a.ProjectId == project.Id.ToString()).First(), project);
+                        if (!ArtifactProject.Keys.Any(a => a.ProjectId == project.Id.ToString()))
+                        {
+                            this._ArtifactProject.Add(Artifacts.Where(a => a.ProjectId == project.Id.ToString()).First(), project);
+                        }
                     }
-                }
-                IEnumerable<OSSIndexProjectVulnerability> project_vulnerabilities = null;
-                try
-                {
-                    project_vulnerabilities = this.HttpClient.GetVulnerabilitiesForIdAsync(project.Id.ToString()).Result;
-                }
-                catch (AggregateException ae)
-                {
-                    this.GetVulnerabilitiesExceptions.TryAdd(artifact, ae.InnerException);
-                }
-                this.AddPackageVulnerability(artifact.Package, package_vulnerabilities);
-                this.AddProjectVulnerability(project, project_vulnerabilities);
-                this.AuditEnvironment.Info("Found {0} project vulnerabilities and {1} package vulnerabilities for package artifact {2}.", project_vulnerabilities.Count(), package_vulnerabilities.Count, artifact.PackageName);
-            });
-            sw.Stop();
-            this.AuditEnvironment.Success("Found {0} total vulnerabilities for {1} artifacts in {2} ms with errors searching vulnerabilities for {3} artifacts.", this.PackageVulnerabilities.Count + this.ProjectVulnerabilities.Count, this.ArtifactsWithProjects.Count(), sw.ElapsedMilliseconds, this.GetVulnerabilitiesExceptions.Count);
-        }
-
-        protected async Task GetVulnerabiltiesAsync()
-        {
-            this.AuditEnvironment.Status("Searching OSS Index for vulnerabilities for {0} artifacts.", this.Artifacts.Count());
-            Stopwatch sw = new Stopwatch();
-            sw.Start();
-            this.GetVulnerabilitiesExceptions = new ConcurrentDictionary<OSSIndexArtifact, Exception>(5, this.Artifacts.Count());
-            foreach( var artifact in this.ArtifactsWithProjects) 
-            {
-                List<OSSIndexPackageVulnerability> package_vulnerabilities = await this.HttpClient.GetPackageVulnerabilitiesAsync(artifact.PackageId);
-                OSSIndexProject project = await this.HttpClient.GetProjectForIdAsync(artifact.ProjectId);
-                project.Artifact = artifact;
-                project.Package = artifact.Package;
-                lock (artifact_project_lock)
-                {
-                    if (!ArtifactProject.Keys.Any(a => a.ProjectId == project.Id.ToString()))
+                    IEnumerable<OSSIndexProjectVulnerability> project_vulnerabilities = null;
+                    try
                     {
-                        this._ArtifactProject.Add(Artifacts.Where(a => a.ProjectId == project.Id.ToString()).First(), project);
+                        project_vulnerabilities = await this.HttpClient.GetVulnerabilitiesForIdAsync(project.Id.ToString());
+                        this.AddPackageVulnerability(artifact.Package, package_vulnerabilities);
+                        this.AddProjectVulnerability(project, project_vulnerabilities);
+                        this.AuditEnvironment.Debug("Found {0} project vulnerabilities and {1} package vulnerabilities for package artifact {2}.", project_vulnerabilities.Count(), package_vulnerabilities.Count, artifact.PackageName);
                     }
-                }
-                IEnumerable<OSSIndexProjectVulnerability> project_vulnerabilities = null;
-                try
-                {
-                    project_vulnerabilities = await this.HttpClient.GetVulnerabilitiesForIdAsync(project.Id.ToString());
-                }
-                catch (AggregateException ae)
-                {
-                    this.GetVulnerabilitiesExceptions.TryAdd(artifact, ae.InnerException);
-                }
-                this.AddPackageVulnerability(artifact.Package, package_vulnerabilities);
-                this.AddProjectVulnerability(project, project_vulnerabilities);
-                this.AuditEnvironment.Info("Found {0} project vulnerabilities and {1} package vulnerabilities for package artifact {2}.", project_vulnerabilities.Count(), package_vulnerabilities.Count, artifact.PackageName);
+                    catch (AggregateException ae)
+                    {
+                        this.GetVulnerabilitiesExceptions.TryAdd(artifact, ae.InnerException);
+                    }
+                    catch (Exception e)
+                    {
+                        this.GetVulnerabilitiesExceptions.TryAdd(artifact, e.InnerException);
+                    }
+                }, artifact, CancellationToken.None, TaskCreationOptions.DenyChildAttach, TaskScheduler.Default).Unwrap();
+                tasks.Add(t);
             }
-            sw.Stop();
+            try
+            {
+                Task.WaitAll(tasks.ToArray());
+            }
+            catch (Exception e)
+            {
+                this.AuditEnvironment.Error(caller, "Exception thrown waiting for tasks,", e);
+            }
+            finally
+            {
+                sw.Stop();
+            }
             this.AuditEnvironment.Success("Found {0} total vulnerabilities for {1} artifacts in {2} ms with errors searching vulnerabilities for {3} artifacts.", this.PackageVulnerabilities.Count + this.ProjectVulnerabilities.Count, this.ArtifactsWithProjects.Count(), sw.ElapsedMilliseconds, this.GetVulnerabilitiesExceptions.Count);
         }
 
         protected void EvaluateProjectVulnerabilities()
         {
-            Parallel.ForEach(this.ProjectVulnerabilities, (pv) =>
+            Stopwatch sw = new Stopwatch();
+            sw.Start();
+            this.ProjectVulnerabilities.AsParallel().ForAll((pv) =>
             {
                 Parallel.ForEach(pv.Value.GroupBy(v => new { v.CVEId, v.Uri, v.Title, v.Summary }).SelectMany(v => v), (vulnerability) =>
                 {
@@ -514,13 +460,17 @@ namespace DevAudit.AuditLibrary
                    }
                 });
             });
+            sw.Stop();
+            this.AuditEnvironment.Info("Evaluated {0} project vulnerabilities in {1} ms.", this.ProjectVulnerabilities.Count, sw.ElapsedMilliseconds);
         }
 
         protected void EvaluatePackageVulnerabilities()
         {
-            Parallel.ForEach(this.PackageVulnerabilities, (pv) =>
+            Stopwatch sw = new Stopwatch();
+            sw.Start();
+            this.PackageVulnerabilities.AsParallel().ForAll((pv) =>
             {
-                Parallel.ForEach(pv.Value, (vulnerability) =>
+                pv.Value.AsParallel().ForAll((vulnerability) =>
                 {
                     try
                     {
@@ -536,6 +486,9 @@ namespace DevAudit.AuditLibrary
                     }
                 });
             });
+            sw.Stop();
+            this.AuditEnvironment.Info("Evaluated {0} package vulnerabilities in {1} ms.", this.PackageVulnerabilities
+                .Sum(pv => pv.Value.Count())  , sw.ElapsedMilliseconds);
         }
 
         #endregion
