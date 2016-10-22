@@ -136,7 +136,6 @@ namespace DevAudit.AuditLibrary
 
         public Task<AuditResult> Audit()
         {
-            CancellationToken ct = new CancellationToken();
             Task<bool> get_package_source_audit = Task.FromResult(false);//this.PackageSource != null ? Task.Run(() => this.PackageSource.Audit()) : Task.FromResult(false);
             Task<bool> get_workspace = this.GetWorkspaceAsync();
             Task<bool> get_analyzers;

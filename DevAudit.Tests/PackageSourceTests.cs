@@ -25,7 +25,7 @@ namespace DevAudit.Tests
         public void CanGetArtifactsTask()
         {
             
-            Assert.NotEmpty(s.);
+            s.
             Assert.NotEmpty(s.Artifacts.Where(a => a.PackageManager == s.PackageManagerId));
         }
 

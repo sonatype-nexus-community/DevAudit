@@ -102,8 +102,7 @@ namespace DevAudit.AuditLibrary
 
         public abstract string PackageManagerLabel { get; }
 
-        public string PackageManagerConfigurationFile { get; set; }
-
+        #region Cache stuff
         public bool ProjectVulnerabilitiesCacheEnabled { get; set; }
 
         public TimeSpan ProjectVulnerabilitiesCacheTTL { get; set; }
@@ -156,8 +155,16 @@ namespace DevAudit.AuditLibrary
                    select artifact;
             }
         }
-
+        #endregion
         public Dictionary<string, object> PackageSourceOptions { get; set; } = new Dictionary<string, object>();
+
+        public bool ListPackages { get; protected set; } = false;
+
+        public bool ListArtifacts { get; protected set; } = false;
+
+        public bool SkipPackagesAudit { get; protected set; } = false;
+
+        public string PackageManagerConfigurationFile { get; set; }
 
         public IEnumerable<OSSIndexQueryObject> Packages { get; protected set; }
 
@@ -169,7 +176,6 @@ namespace DevAudit.AuditLibrary
             }
         }
 
-        
         public Dictionary<OSSIndexArtifact, OSSIndexProject> ArtifactProject
         {
             get
@@ -178,7 +184,6 @@ namespace DevAudit.AuditLibrary
             }
         }
         
-
         public IEnumerable<OSSIndexArtifact> Artifacts
         {
             get
@@ -232,15 +237,16 @@ namespace DevAudit.AuditLibrary
             }
         }
 
-
         public ConcurrentDictionary<OSSIndexArtifact, Exception> GetVulnerabilitiesExceptions { get; protected set; } 
 
+        public Task PackagesTask { get; protected set; } 
 
-        public bool ListPackages { get; protected set; } = false;
+        public Task ArtifactsTask { get; protected set; }
 
-        public bool ListArtifacts { get; protected set; } = false;
+        public Task VulnerabilitiesTask { get; protected set; }
 
-        public bool SkipPackagesAudit { get; protected set; } = false;
+        public Task EvaluateVulnerabilitiesTask { get; protected set; }
+
         #endregion
 
         #region Public methods
@@ -268,6 +274,8 @@ namespace DevAudit.AuditLibrary
                 this.AuditEnvironment.Error("Exception thrown in GetPackages task.", ae.InnerException);
                 return AuditResult.ERROR_SCANNING_PACKAGES;
             }
+            this.PackagesTask = get_packages_task;
+
             if (this.ListPackages || this.Packages.Count() == 0)
             {
                 get_artifacts_task = evaluate_vulnerabilities_task = evaluate_vulnerabilities_task = Task.CompletedTask;
@@ -285,6 +293,7 @@ namespace DevAudit.AuditLibrary
                 this.AuditEnvironment.Error("Exception thrown in GetArtifacts task.", ae.InnerException);
                 return AuditResult.ERROR_SEARCHING_ARTIFACTS;
             }
+            this.ArtifactsTask = get_artifacts_task; 
 
             if (this.ListArtifacts || this.ArtifactsWithProjects.Count == 0)
             {
@@ -303,6 +312,7 @@ namespace DevAudit.AuditLibrary
                 this.AuditEnvironment.Error(caller, ae.InnerException, "Exception thrown in GetVulnerabilities task");
                 return AuditResult.ERROR_SEARCHING_VULNERABILITIES;
             }
+            this.VulnerabilitiesTask = get_vulnerabilities_task;
             
             if (this.PackageVulnerabilities.Count == 0 && this.ProjectVulnerabilities.Count == 0)
             {
@@ -321,6 +331,7 @@ namespace DevAudit.AuditLibrary
                 this.AuditEnvironment.Error(caller, ae.InnerException, "Exception thrown in {0} task.", ae.InnerException.TargetSite.Name);
                 return AuditResult.ERROR_EVALUATING_VULNERABILITIES;
             }
+            this.EvaluateVulnerabilitiesTask = evaluate_vulnerabilities_task;
             return AuditResult.SUCCESS;
         }
 
