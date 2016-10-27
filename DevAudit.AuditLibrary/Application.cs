@@ -254,18 +254,34 @@ namespace DevAudit.AuditLibrary
         {
             CallerInformation caller = this.AuditEnvironment.Here();
             this.GetPackagesTask(ct);
+            if (this.ListPackages || this.ListArtifacts)
+            {
+                this.GetConfigurationTask = Task.CompletedTask;
+            }
+            else
+            {
+                this.GetConfigurationTask = Task.Run(() => this.GetConfiguration(), ct);
+            }
             try
             {
-                this.PackagesTask.Wait();
+                Task.WaitAll(this.PackagesTask, this.GetConfigurationTask);
                 if (!this.SkipPackagesAudit) AuditEnvironment.Success("Scanned {0} {1} packages.", this.Packages.Count(), this.PackageManagerLabel);
             }
             catch (AggregateException ae)
             {
-                this.AuditEnvironment.Error("Exception thrown in GetPackages task.", ae.InnerException);
-                return AuditResult.ERROR_SCANNING_PACKAGES;
+
+                this.AuditEnvironment.Error(caller, ae, "Exception thrown in {0} task.", ae.TargetSite.Name);
+                if (ae.TargetSite.Name == "GetPackages")
+                {
+                    return AuditResult.ERROR_SCANNING_PACKAGES;
+                }
+                else
+                {
+                    return AuditResult.ERROR_SCANNING_CONFIGURATION;
+                }
             }
 
-            if (this.ListPackages || this.Packages.Count() == 0 || this.OnlyLocalRules)
+            if (this.ListPackages || this.Packages.Count() == 0 || (this.SkipPackagesAudit && this.OnlyLocalRules))
             {
                 this.ArtifactsTask = this.VulnerabilitiesTask = this.EvaluateVulnerabilitiesTask = Task.CompletedTask;
             }
@@ -381,14 +397,14 @@ namespace DevAudit.AuditLibrary
                 this.AddConfigurationRules(kv.Key, kv.Value);
             }
             sw.Stop();
-            this.AuditEnvironment.Info("Got {0} default configuration rule(s) from {1}.yml in {2} ms.", rules.Count, this.ApplicationId, sw.ElapsedMilliseconds);
+            this.AuditEnvironment.Info("Got {0} default configuration rule(s) for {1} project(s) from {2}.yml in {3} ms.", rules.Sum(kv => kv.Value.Count()), rules.Keys.Count, this.ApplicationId, sw.ElapsedMilliseconds);
             return rules.Count;
         }
 
         protected void GetConfigurationRules()
         {
             this.AuditEnvironment.Info("Searching OSS Index for configuration rules for {0} artifact(s).", this.ArtifactsWithProjects.Count);
-            Stopwatch sw = new System.Diagnostics.Stopwatch();
+            Stopwatch sw = new Stopwatch();
             List<Task> tasks = new List<Task>();
             this.GetProjectConfigurationRulesExceptions = new ConcurrentDictionary<OSSIndexArtifact, Exception>();
             this.ProjectConfigurationRulesEvaluations = new Dictionary<OSSIndexProjectConfigurationRule, Tuple<bool, List<string>, string>>();
@@ -451,7 +467,7 @@ namespace DevAudit.AuditLibrary
 
         protected Dictionary<OSSIndexProjectConfigurationRule, Tuple<bool, List<string>, string>> EvaluateProjectConfigurationRules(IEnumerable<OSSIndexProjectConfigurationRule> rules)
         {
-            this.AuditEnvironment.Status("Evaluating {0} configuration rule(s).", this.ProjectConfigurationRules.Count);
+            this.AuditEnvironment.Status("Evaluating {0} configuration rule(s).", this.ProjectConfigurationRules.Sum(kv => kv.Value.Count()));
             Stopwatch sw = new Stopwatch();
             sw.Start();
             Dictionary<OSSIndexProjectConfigurationRule, Tuple<bool, List<string>, string>> results = new Dictionary<OSSIndexProjectConfigurationRule, Tuple<bool, List<string>, string>>(this.ProjectConfigurationRules.Count());
@@ -473,7 +489,7 @@ namespace DevAudit.AuditLibrary
             });
             this.ProjectConfigurationRulesEvaluations = results;
             sw.Stop();
-            this.AuditEnvironment.Success("Evaluated {0} configuration rule(s) in {1} ms.", this.ProjectConfigurationRules.Count, sw.ElapsedMilliseconds);
+            this.AuditEnvironment.Success("Evaluated {0} configuration rule(s) in {1} ms.", this.ProjectConfigurationRulesEvaluations.Keys.Count, sw.ElapsedMilliseconds);
             return this.ProjectConfigurationRulesEvaluations;
         }
 
@@ -570,6 +586,10 @@ namespace DevAudit.AuditLibrary
                 if (project == null)
                 {
                     project = new OSSIndexProject() { Name = project_name };
+                }
+                foreach (OSSIndexProjectConfigurationRule r in rules)
+                {
+                    r.Project = project;
                 }
                 this._ConfigurationRulesForProject.Add(project, rules);
             }

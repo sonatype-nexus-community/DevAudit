@@ -10,7 +10,19 @@ sshd:
             Set PermitRootLogin='yes' in configuration file.
         urls:
             -   http://www.thegeekstuff.com/2011/05/openssh-options/
+
     -   id: 2
+        title:  SSH protocol 2 should be enabled (Protocol)
+        xpathtest:  not(/SSHD/Values/Protocol='2')
+        summary: |
+            SSH protocol version 1 (SSH-1) has man-in-the-middle attacks problems and security vulnerabilities. 
+            SSH-1 is obsolete and should be avoided at all cost.
+        resolution: |
+            Add Protocol=2 directive to configuration file.
+        urls:
+            -   http://www.thegeekstuff.com/2011/05/openssh-options/
+
+    -   id: 3
         title:  Access is not restricted to specific users or groups (AllowUsers AllowGroups DenyUsers DenyGroups)
         xpathtest: not(boolean(/SSHD/Values/AllowUsers)) and not(boolean(/SSHD/Values/AllowGroups)) and not(boolean(/SSHD/Values/DenyUsers)) and not(boolean(/SSHD/Values/DenyGroups))
         summary: |
@@ -20,7 +32,7 @@ sshd:
             Add directives like the following to configuration file: AllowUsers ramesh john jason and AllowGroups remote_workers.
         urls:
             -   http://www.thegeekstuff.com/2011/05/openssh-options/
-    -   id: 3
+    -   id: 4
         title:  Port is set to default (Port)
         xpathtest:  /SSHD/Values/Port='22' 
         summary: |
@@ -31,7 +43,7 @@ sshd:
             Add directives like the following to configuration file: Port 773. This will result in ssh listening on port 773.
         urls:
             -   http://www.thegeekstuff.com/2011/05/openssh-options/
-    -   id: 4
+    -   id: 5
         title:  User .rhosts files are not disabled (IgnoreRhosts)
         xpathtest:  not(/SSHD/Values/IgnoreRhosts='yes')
         summary: |
@@ -40,5 +52,4 @@ sshd:
             Add IgnoreRhosts=yes directive to configuration file.
         urls:
             -   http://www.thegeekstuff.com/2011/05/openssh-options/
-
    

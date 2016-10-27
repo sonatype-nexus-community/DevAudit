@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Security;
@@ -106,10 +107,15 @@ namespace DevAudit.AuditLibrary
 
         protected override IConfiguration GetConfiguration()
         {
+            this.AuditEnvironment.Status("Scanning {0} configuration.", this.ApplicationLabel);
+            Stopwatch sw = new Stopwatch();
+            sw.Start();
             SSHD sshd = new SSHD(this.ConfigurationFile);
             if (sshd.ParseSucceded)
             {
                 this.Configuration = sshd;
+                sw.Stop();
+                this.AuditEnvironment.Success("Read configuration from {0} in {1} ms.", this.Configuration.File.Name, sw.ElapsedMilliseconds);
             }
             return this.Configuration;
         }

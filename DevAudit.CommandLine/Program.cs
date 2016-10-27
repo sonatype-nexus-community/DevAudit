@@ -204,6 +204,8 @@ namespace DevAudit.CommandLine
             }
             #endregion
 
+            PrintBanner();
+
             #region Handle command line verbs
             Exit = AuditTarget.AuditResult.ERROR_CREATING_AUDIT_TARGET;
             CL.Parser.Default.ParseArguments(args, ProgramOptions, (verb, options) =>
@@ -339,7 +341,6 @@ namespace DevAudit.CommandLine
             }
             #endregion
 
-            PrintBanner();
             if (!ProgramOptions.NonInteractive) Console.CursorVisible = false;
             if (Application == null && Source != null) //Auditing a package source
             {
@@ -611,7 +612,7 @@ namespace DevAudit.CommandLine
                         int j = 1;
                         foreach (OSSIndexProjectConfigurationRule rule in project_rule.Value)
                         {
-                            PrintMessageLine("  [{0}/{1}] {2}", j++, i, rule.Title);
+                            PrintMessageLine("  [{0}/{1}] {2}", j++, project_rule.Value.Count(), rule.Title);
                         }
                     }
                     return;
@@ -627,11 +628,11 @@ namespace DevAudit.CommandLine
                 int projects_count = Server.ProjectConfigurationRules.Count, projects_processed = 0;
                 foreach (KeyValuePair<OSSIndexProject, IEnumerable<OSSIndexProjectConfigurationRule>> rule in Server.ProjectConfigurationRules)
                 {
-                    Dictionary<OSSIndexProjectConfigurationRule, Tuple<bool, List<string>, string>> evals = new Dictionary<OSSIndexProjectConfigurationRule, Tuple<bool, List<string>, string>>(); //Server.EvaluateProjectConfigurationRules(rule.Value);
+                    IEnumerable<KeyValuePair<OSSIndexProjectConfigurationRule, Tuple<bool, List<string>, string>>> evals = Server.ProjectConfigurationRulesEvaluations.Where(pcre => pcre.Key.Project.Name == rule.Key.Name);
                     PrintMessage("[{0}/{1}] Project: ", ++projects_processed, projects_count);
                     PrintMessage(ConsoleColor.Blue, "{0}. ", rule.Key.Name);
                     int total_project_rules = rule.Value.Count();
-                    int succeded_project_rules = 0;// evals.Count(ev => ev.Value.Item1);
+                    int succeded_project_rules = evals.Count(ev => ev.Value.Item1);
                     int processed_project_rules = 0;
                     PrintMessage("{0} rule(s). ", total_project_rules);
                     if (succeded_project_rules > 0)
@@ -883,7 +884,8 @@ namespace DevAudit.CommandLine
         static void PrintBanner()
         {
             if (ProgramOptions.NonInteractive) return;
-            Color banner_color;
+            /*
+            Color banner_color = Color.Green;
             if (Environment.OSVersion.Platform == PlatformID.Win32NT)
             {
                 banner_color = Color.White;
@@ -892,9 +894,11 @@ namespace DevAudit.CommandLine
             {
                 banner_color = Color.White;
             }
-
-            CC.Console.WriteLine(FigletFont.ToAscii("DevAudit"), banner_color);
-            CC.Console.WriteLine("v" + Assembly.GetExecutingAssembly().GetName().Version.ToString(), banner_color);
+            */
+            Console.ForegroundColor = ConsoleColor.Cyan;
+            CC.Console.WriteLine(FigletFont.ToAscii("DevAudit"));
+            CC.Console.WriteLine("v" + Assembly.GetExecutingAssembly().GetName().Version.ToString());
+            Console.ForegroundColor = OriginalConsoleForeColor;
         }
 
         static string GetProgressOutput(OperationProgress progress)

@@ -255,7 +255,7 @@ namespace DevAudit.AuditLibrary
             CallerInformation caller = this.AuditEnvironment.Here();
             if (this.SkipPackagesAudit)
             {
-                this.PackagesTask = Task.CompletedTask;
+                this.PackagesTask = this.ArtifactsTask = this.VulnerabilitiesTask = this.EvaluateVulnerabilitiesTask = Task.CompletedTask;
                 this.Packages = new List<OSSIndexQueryObject>();
             }
             else
@@ -436,11 +436,12 @@ namespace DevAudit.AuditLibrary
             {
                 sw.Stop();
             }
-            this.AuditEnvironment.Success("Found {0} total vulnerabilities for {1} artifacts in {2} ms with errors searching vulnerabilities for {3} artifacts.", this.PackageVulnerabilities.Count + this.ProjectVulnerabilities.Count, this.ArtifactsWithProjects.Count(), sw.ElapsedMilliseconds, this.GetVulnerabilitiesExceptions.Count);
+            this.AuditEnvironment.Success("Found {0} total vulnerabilities for {1} artifacts in {2} ms with errors searching vulnerabilities for {3} artifacts.", this.PackageVulnerabilities.Sum(kv => kv.Value.Count()) + this.ProjectVulnerabilities.Sum(kv => kv.Value.Count()), this.ArtifactsWithProjects.Count(), sw.ElapsedMilliseconds, this.GetVulnerabilitiesExceptions.Count);
         }
 
         protected void EvaluateProjectVulnerabilities()
         {
+            if (this.ProjectVulnerabilities.Count == 0 || this.ProjectVulnerabilities.Sum(kv => kv.Value.Count()) == 0) return;
             Stopwatch sw = new Stopwatch();
             sw.Start();
             this.ProjectVulnerabilities.AsParallel().ForAll((pv) =>
@@ -463,11 +464,12 @@ namespace DevAudit.AuditLibrary
                 });
             });
             sw.Stop();
-            this.AuditEnvironment.Info("Evaluated {0} project vulnerabilities in {1} ms.", this.ProjectVulnerabilities.Count, sw.ElapsedMilliseconds);
+            this.AuditEnvironment.Info("Evaluated {0} project vulnerabilities in {1} ms.", this.ProjectVulnerabilities.Sum(kv => kv.Value.Count()), sw.ElapsedMilliseconds);
         }
 
         protected void EvaluatePackageVulnerabilities()
         {
+            if (this.PackageVulnerabilities.Count == 0 || this.PackageVulnerabilities.Sum(kv => kv.Value.Count()) == 0) return;
             Stopwatch sw = new Stopwatch();
             sw.Start();
             this.PackageVulnerabilities.AsParallel().ForAll((pv) =>
