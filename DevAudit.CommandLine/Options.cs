@@ -116,8 +116,11 @@ namespace DevAudit.CommandLine
         [Option("list-artifacts", Required = false, HelpText = "Only list the artifacts corresponding to local packages found on OSS Index.")]
         public bool ListArtifacts { get; set; }
 
-        [Option("list-rules", Required = false, HelpText = "Only list the configuration rules found for application and application servers.")]
+        [Option("list-rules", Required = false, HelpText = "Only list the configuration rules found for the application or application server.")]
         public bool ListConfigurationRules { get; set; }
+
+        [Option("list-analyzers", Required = false, HelpText = "Only list the analyzers found for the code project.")]
+        public bool ListCodeProjectAnalyzers { get; set; }
 
         [Option("skip-packages-audit", Required = false, HelpText = "Skip the package audit for applications or application servers.")]
         public bool SkipPackagesAudit { get; set; }
@@ -128,6 +131,7 @@ namespace DevAudit.CommandLine
         [Option("code-project", Required = false, HelpText = "The name of the code project to audit.")]
         public string CodeProjectName { get; set; }
 
+        #region Cache stuff
         [Option("cache", Required = false, HelpText = "Cache results from querying OSS Index. Projects and vulnerabilities will be cached by default for 180 minutes or the duration specified by the --cache-ttl parameter.")]
         public bool Cache { get; set; }
 
@@ -136,6 +140,7 @@ namespace DevAudit.CommandLine
 
         [Option("cache-dump", Required = false, HelpText = "Cache Dump - projects and vulnearabilities will be cached for the number of minutes specified here.")]
         public bool CacheDump { get; set; }
+        #endregion
 
         [ParserState]
         public IParserState LastParserState { get; set; }

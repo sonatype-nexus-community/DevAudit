@@ -23,7 +23,7 @@ namespace DevAudit.AuditLibrary
             if (this.PackageSourceOptions.ContainsKey("File"))
             {
                 this.PackageManagerConfigurationFile = (string)this.PackageSourceOptions["File"];
-                if (!this.AuditEnvironment.FileExists(this.PackageManagerConfigurationFile)) throw new ArgumentException("Could not find the file " + this.PackageManagerConfigurationFile + ".");
+                if (!this.AuditEnvironment.FileExists(this.PackageManagerConfigurationFile)) throw new ArgumentException("Could not find the file " + this.PackageManagerConfigurationFile + ".", "package_source_options");
             }
             else
             {
@@ -156,6 +156,7 @@ namespace DevAudit.AuditLibrary
             }
         }
         #endregion
+
         public Dictionary<string, object> PackageSourceOptions { get; set; } = new Dictionary<string, object>();
 
         public bool ListPackages { get; protected set; } = false;
@@ -237,7 +238,7 @@ namespace DevAudit.AuditLibrary
             }
         }
 
-        public ConcurrentDictionary<OSSIndexArtifact, Exception> GetVulnerabilitiesExceptions { get; protected set; } 
+        public ConcurrentDictionary<OSSIndexArtifact, Exception> GetVulnerabilitiesExceptions { get; protected set; }
 
         public Task PackagesTask { get; protected set; } 
 
@@ -246,27 +247,32 @@ namespace DevAudit.AuditLibrary
         public Task VulnerabilitiesTask { get; protected set; }
 
         public Task EvaluateVulnerabilitiesTask { get; protected set; }
-
         #endregion
 
         #region Public methods
-        public virtual AuditResult Audit(CancellationToken ct)
+        public virtual Task GetPackagesTask(CancellationToken ct)
         {
             CallerInformation caller = this.AuditEnvironment.Here();
-            Task get_packages_task = null, get_artifacts_task = null, get_vulnerabilities_task = null, evaluate_vulnerabilities_task = null;
             if (this.SkipPackagesAudit)
             {
-                get_packages_task = get_artifacts_task = get_vulnerabilities_task = evaluate_vulnerabilities_task = Task.CompletedTask;
+                this.PackagesTask = Task.CompletedTask;
                 this.Packages = new List<OSSIndexQueryObject>();
             }
             else
             {
                 this.AuditEnvironment.Status("Scanning {0} packages.", this.PackageManagerLabel);
-                get_packages_task = Task.Run(() => this.Packages = this.GetPackages(), ct);
+                this.PackagesTask = Task.Run(() => this.Packages = this.GetPackages(), ct);
             }
+            return this.PackagesTask;
+        }
+
+        public virtual AuditResult Audit(CancellationToken ct)
+        {
+            CallerInformation caller = this.AuditEnvironment.Here();
+            this.GetPackagesTask(ct);
             try
             {
-                get_packages_task.Wait();
+                this.PackagesTask.Wait();
                 if (!this.SkipPackagesAudit) AuditEnvironment.Success("Scanned {0} {1} packages.", this.Packages.Count(), this.PackageManagerLabel);
             }
             catch (AggregateException ae)
@@ -274,64 +280,60 @@ namespace DevAudit.AuditLibrary
                 this.AuditEnvironment.Error("Exception thrown in GetPackages task.", ae.InnerException);
                 return AuditResult.ERROR_SCANNING_PACKAGES;
             }
-            this.PackagesTask = get_packages_task;
 
             if (this.ListPackages || this.Packages.Count() == 0)
             {
-                get_artifacts_task = evaluate_vulnerabilities_task = evaluate_vulnerabilities_task = Task.CompletedTask;
+                this.ArtifactsTask = this.VulnerabilitiesTask = this.EvaluateVulnerabilitiesTask = Task.CompletedTask;
             }
             else
             {
-                get_artifacts_task = Task.Run(() => this.GetArtifacts(), ct);
+                this.ArtifactsTask = Task.Run(() => this.GetArtifacts(), ct);
             }
             try
             {
-                get_artifacts_task.Wait();
+                this.ArtifactsTask.Wait();
             }
             catch (AggregateException ae)
             {
                 this.AuditEnvironment.Error("Exception thrown in GetArtifacts task.", ae.InnerException);
                 return AuditResult.ERROR_SEARCHING_ARTIFACTS;
             }
-            this.ArtifactsTask = get_artifacts_task; 
-
             if (this.ListArtifacts || this.ArtifactsWithProjects.Count == 0)
             {
-                get_vulnerabilities_task = evaluate_vulnerabilities_task = Task.CompletedTask;
+                this.VulnerabilitiesTask = this.EvaluateVulnerabilitiesTask = Task.CompletedTask;
             }
             else
             {
-                get_vulnerabilities_task = Task.Run(() => this.GetVulnerabilties(), ct);
+                this.VulnerabilitiesTask = Task.Run(() => this.GetVulnerabilties(), ct);
             }
             try
             {
-                get_vulnerabilities_task.Wait();
+                this.VulnerabilitiesTask.Wait();
             }
             catch (AggregateException ae)
             {
                 this.AuditEnvironment.Error(caller, ae.InnerException, "Exception thrown in GetVulnerabilities task");
                 return AuditResult.ERROR_SEARCHING_VULNERABILITIES;
             }
-            this.VulnerabilitiesTask = get_vulnerabilities_task;
-            
+          
+          
             if (this.PackageVulnerabilities.Count == 0 && this.ProjectVulnerabilities.Count == 0)
             {
-                evaluate_vulnerabilities_task = Task.CompletedTask;
+                this.EvaluateVulnerabilitiesTask = Task.CompletedTask;
             }
             else
             {
-                evaluate_vulnerabilities_task = Task.WhenAll(Task.Run(() => this.EvaluateProjectVulnerabilities(), ct), Task.Run(() => this.EvaluatePackageVulnerabilities(), ct));
+                this.EvaluateVulnerabilitiesTask = Task.WhenAll(Task.Run(() => this.EvaluateProjectVulnerabilities(), ct), Task.Run(() => this.EvaluatePackageVulnerabilities(), ct));
             }
             try
             {
-                evaluate_vulnerabilities_task.Wait();
+                this.EvaluateVulnerabilitiesTask.Wait();
             }
             catch (AggregateException ae)
             {
                 this.AuditEnvironment.Error(caller, ae.InnerException, "Exception thrown in {0} task.", ae.InnerException.TargetSite.Name);
                 return AuditResult.ERROR_EVALUATING_VULNERABILITIES;
             }
-            this.EvaluateVulnerabilitiesTask = evaluate_vulnerabilities_task;
             return AuditResult.SUCCESS;
         }
         #endregion
@@ -375,7 +377,7 @@ namespace DevAudit.AuditLibrary
             {
                 sw.Stop();
             }
-            this.AuditEnvironment.Success("Found {0} artifacts from OSS Index in {1} ms.", artifact_count, sw.ElapsedMilliseconds);
+            this.AuditEnvironment.Success("Found {0} artifacts on OSS Index in {1} ms.", artifact_count, sw.ElapsedMilliseconds);
             return new Tuple<int, int>(package_count, artifact_count);
         }
 

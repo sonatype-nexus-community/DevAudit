@@ -249,9 +249,8 @@ namespace DevAudit.AuditLibrary
             Error(caller, e);
         }
 
-        internal void Error(AggregateException ae, string message_format, params object[] message)
+        internal void Error(AggregateException ae)
         {
-            Error(message_format, message);
             if (ae.InnerExceptions != null && ae.InnerExceptions.Count >= 1)
             {
                 foreach (Exception e in ae.InnerExceptions)
@@ -259,6 +258,12 @@ namespace DevAudit.AuditLibrary
                     Error(e);
                 }
             }
+        }
+
+        internal void Error(AggregateException ae, string message_format, params object[] message)
+        {
+            Error(message_format, message);
+            Error(ae);
         }
 
         internal void Error(CallerInformation caller, AggregateException ae, string message_format, params object[] message)

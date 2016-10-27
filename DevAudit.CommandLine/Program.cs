@@ -19,22 +19,6 @@ namespace DevAudit.CommandLine
 {
     class Program
     {
-        public enum ExitCodes
-        {
-            SUCCESS = 0,
-            INVALID_ARGUMENTS,
-            ERROR_CREATING_AUDIT_TARGET,
-            NO_PACKAGE_MANAGER,
-            ERROR_SCANNING_FOR_PACKAGES,
-            ERROR_SEARCHING_FOR_ARTIFACTS,
-            ERROR_SCANNING_DEFAULT_CONFIGURATION_RULES,
-            ERROR_SEARCHING_CONFIGURATION_RULES,
-            ERROR_SCANNING_SERVER_VERSION,
-            ERROR_SCANNING_SERVER_CONFIGURATION,
-            
-            ERROR_SCANNING_PROJECT_WORKSPACE
-        }
-
         static CC.Figlet FigletFont = new CC.Figlet(CC.FigletFont.Load("chunky.flf"));
 
         static Options ProgramOptions = new Options();
@@ -71,6 +55,8 @@ namespace DevAudit.CommandLine
 
         static int SpinnerCursorTop;
 
+        static AuditTarget.AuditResult Exit;
+
         static int Main(string[] args)
         {
             #region Setup console colors
@@ -81,9 +67,10 @@ namespace DevAudit.CommandLine
             #endregion
 
             #region Handle command line options
+            Exit = AuditTarget.AuditResult.INVALID_AUDIT_TARGET_OPTIONS;
             if (!CL.Parser.Default.ParseArguments(args, ProgramOptions))
             {
-                return (int)ExitCodes.INVALID_ARGUMENTS;
+                return (int) Exit;
             }
             Dictionary<string, object> audit_options = new Dictionary<string, object>();
 
@@ -99,7 +86,7 @@ namespace DevAudit.CommandLine
                 if (Uri.CheckHostName(ProgramOptions.RemoteHost) == UriHostNameType.Unknown)
                 {
                     PrintErrorMessage("Unknown host name type: {0}.", ProgramOptions.RemoteHost);
-                    return (int)ExitCodes.INVALID_ARGUMENTS;
+                    return (int)Exit; 
                 }
                 else
                 {
@@ -134,7 +121,7 @@ namespace DevAudit.CommandLine
                         if (!File.Exists(ProgramOptions.RemoteKey))
                         {
                             PrintErrorMessage("Error in parameter: Could not find file {0}.", ProgramOptions.RemoteKey);
-                            return (int)ExitCodes.INVALID_ARGUMENTS;
+                            return (int) Exit;
                         }
                         else
                         {
@@ -171,6 +158,10 @@ namespace DevAudit.CommandLine
             if (ProgramOptions.OnlyLocalRules)
             {
                 audit_options.Add("OnlyLocalRules", ProgramOptions.OnlyLocalRules);
+            }
+            if (ProgramOptions.ListCodeProjectAnalyzers)
+            {
+                audit_options.Add("ListCodeProjectAnalyzers", ProgramOptions.ListCodeProjectAnalyzers);
             }
             if (!string.IsNullOrEmpty(ProgramOptions.File))
             {
@@ -214,6 +205,7 @@ namespace DevAudit.CommandLine
             #endregion
 
             #region Handle command line verbs
+            Exit = AuditTarget.AuditResult.ERROR_CREATING_AUDIT_TARGET;
             CL.Parser.Default.ParseArguments(args, ProgramOptions, (verb, options) =>
             {
                 try
@@ -264,6 +256,7 @@ namespace DevAudit.CommandLine
                     {
                         Server = new SSHDServer(audit_options, EnvironmentMessageHandler);
                         Application = Server as Application;
+                        Source = Server as PackageSource;
                     }
                     else if (verb == "httpd")
                     {
@@ -278,14 +271,20 @@ namespace DevAudit.CommandLine
                     else if (verb == "netfx")
                     {
                         CodeProject = new NetFxCodeProject(audit_options, EnvironmentMessageHandler);
+                        Application = CodeProject as Application;
+                        Source = CodeProject as PackageSource;
                     }
                     else if (verb == "php")
                     {
                         CodeProject = new  PHPCodeProject(audit_options, EnvironmentMessageHandler);
+                        Application = CodeProject as Application;
+                        Source = CodeProject as PackageSource;
                     }
                     else if (verb == "drupal8-module")
                     {
                         CodeProject = new Drupal8ModuleCodeProject(audit_options, EnvironmentMessageHandler);
+                        Application = CodeProject as Application;
+                        Source = CodeProject as PackageSource;
                     }
                 }
                 catch (ArgumentException ae)
@@ -305,65 +304,91 @@ namespace DevAudit.CommandLine
                 if (AuditLibraryException == null)
                 {
                     Console.WriteLine("No audit target specified.");
-                    return (int)ExitCodes.INVALID_ARGUMENTS;
+                    return (int) Exit;
+                }
+                else if (AuditLibraryException != null && AuditLibraryException is ArgumentException)
+                {
+                    ArgumentException arge = AuditLibraryException as ArgumentException;
+                    if (arge.ParamName == "package_source_options")
+                    {
+                        PrintErrorMessage("Error initialzing audit library for package source audit target: {0}.", arge.Message);
+                    }
+                    else if (arge.ParamName == "application_options")
+                    {
+                        PrintErrorMessage("Error initialzing audit library for application audit target: {0}.", arge.Message);
+                    }
+                    else if (arge.ParamName == "server_options")
+                    {
+                        PrintErrorMessage("Error initialzing audit library for application server audit target: {0}.", arge.Message);
+                    }
+                    else if (arge.ParamName == "project_options")
+                    {
+                        PrintErrorMessage("Error initialzing audit library for code project audit target: {0}.", arge.Message);
+                    }
+                    else
+                    {
+                        PrintErrorMessage(AuditLibraryException);
+                    }
+                    return (int) Exit;
                 }
                 else
                 {
-                    PrintErrorMessage("Error initialzing audit library for audit target.");
                     PrintErrorMessage(AuditLibraryException);
-                    return (int)ExitCodes.ERROR_CREATING_AUDIT_TARGET;
+                    return (int)Exit;
                 }
             }
             #endregion
 
             PrintBanner();
             if (!ProgramOptions.NonInteractive) Console.CursorVisible = false;
-            ExitCodes exit = ExitCodes.ERROR_CREATING_AUDIT_TARGET;
             if (Application == null && Source != null) //Auditing a package source
             {
                 AuditTarget.AuditResult ar = Source.Audit(CTS.Token);
-                AuditPackageSource(ar, out exit);
+                AuditPackageSource(ar, out Exit);
                 if (Source != null)
                 {
                     Source.Dispose();
                 }
             }
 
-            if (Application != null) //Auditing an application
+            else if (CodeProject == null && Server == null && Application != null) //Auditing an application
             {
                 AuditTarget.AuditResult aar = Application.Audit(CTS.Token);
-                AuditPackageSource(aar, out exit);
-                AuditApplication(aar, out exit);
+                AuditPackageSource(aar, out Exit);
+                AuditApplication(aar, out Exit);
                 if (Application != null)
                 {
                     //Server.Dispose();
                 }
             }
-            else if (Server != null) //Auditing an application server
+            else if (CodeProject == null && Server != null)
             {
-                AuditServer(out exit);
-                if (Server != null)
+                AuditTarget.AuditResult aar = Application.Audit(CTS.Token);
+                AuditPackageSource(aar, out Exit);
+                AuditApplication(aar, out Exit);
+                if (Application != null)
                 {
                     //Server.Dispose();
                 }
             }
             else if (CodeProject != null)
             {
-                AuditCodeProject(out exit);
+                AuditTarget.AuditResult cpar = CodeProject.Audit(CTS.Token); 
+                AuditCodeProject(cpar, out Exit);
                 if (CodeProject != null)
                 {
                     CodeProject.Dispose();
                 }
-
             }
             if (!ProgramOptions.NonInteractive) Console.CursorVisible = true;
-            return (int) exit;
+            return (int) Exit;
 
         }
 
         #region Private methods
-        static void AuditPackageSource(AuditTarget.AuditResult ar, out ExitCodes exit)
+        static void AuditPackageSource(AuditTarget.AuditResult ar, out AuditTarget.AuditResult exit)
         {
+            exit = ar;
             if (Spinner != null) StopSpinner();
             if (ProgramOptions.ListPackages)
             {
@@ -375,18 +400,15 @@ namespace DevAudit.CommandLine
                         PrintMessageLine("[{0}/{1}] {2} {3} {4}", i++, Source.Packages.Count(), package.Name,
                             package.Version, package.Vendor);
                     }
-                    exit = ExitCodes.SUCCESS;
                     return;
                 }
                 else if (ar == AuditTarget.AuditResult.SUCCESS && Source.Packages.Count() == 0)
                 {
                     PrintMessageLine("No packages found for {0}. ", Source.PackageManagerLabel);
-                    exit = ExitCodes.SUCCESS;
                     return;
                 }
                 else
                 {
-                    exit = ExitCodes.ERROR_SCANNING_FOR_PACKAGES;
                     return;
                 }
             }
@@ -408,24 +430,20 @@ namespace DevAudit.CommandLine
                             PrintMessage(ConsoleColor.DarkRed, "No project id found.\n");
                         }
                     }
-                    exit = ExitCodes.SUCCESS;
                     return;
                 }
                 else if (ar == AuditTarget.AuditResult.SUCCESS && Source.Artifacts.Count() == 0)
                 {
                     PrintMessageLine("No artifacts found for {0}. ", Source.PackageManagerLabel);
-                    exit = ExitCodes.SUCCESS;
                     return;
                 }
                 else
                 {
-                    exit = ExitCodes.ERROR_SEARCHING_FOR_ARTIFACTS;
                     return;
                 }
             }
             if (ProgramOptions.SkipPackagesAudit || ProgramOptions.ListConfigurationRules)
             {
-                exit = ExitCodes.SUCCESS;
                 return;
             }
 
@@ -573,13 +591,12 @@ namespace DevAudit.CommandLine
                 }
             }
             Source.Dispose();
-            exit = ExitCodes.SUCCESS;
             return;
         }
 
-        static void AuditApplication(AuditTarget.AuditResult ar, out ExitCodes exit)
+        static void AuditApplication(AuditTarget.AuditResult ar, out AuditTarget.AuditResult exit)
         {
-            exit = ExitCodes.ERROR_SCANNING_DEFAULT_CONFIGURATION_RULES;
+            exit = ar;
             if (Spinner != null) StopSpinner();
             if (ProgramOptions.ListConfigurationRules)
             {
@@ -589,183 +606,95 @@ namespace DevAudit.CommandLine
                     foreach (var project_rule in Application.ProjectConfigurationRules)
                     {
                         if (project_rule.Key.Name == Application.ApplicationId + "_" + "default") continue;
-                        PrintMessageLine("[{0}/{1}] {2}", i, Application.ProjectConfigurationRules.Count, project_rule.Key.Name);
+                        PrintMessage("[{0}/{1}]", i, Application.ProjectConfigurationRules.Count);
+                        PrintMessageLine(ConsoleColor.Blue, " {0} ", project_rule.Key.Name);
                         int j = 1;
                         foreach (OSSIndexProjectConfigurationRule rule in project_rule.Value)
                         {
                             PrintMessageLine("  [{0}/{1}] {2}", j++, i, rule.Title);
                         }
                     }
-                    exit = ExitCodes.SUCCESS;
                     return;
                 }
                 else if (ar == AuditTarget.AuditResult.SUCCESS && Application.ProjectConfigurationRules.Count() == 0)
                 {
-                    PrintMessageLine("No configuration found for {0}. ", Application.ApplicationLabel);
-                    exit = ExitCodes.SUCCESS;
-                    return;
-                }
-                else
-                {
-                    exit = ExitCodes.ERROR_SCANNING_DEFAULT_CONFIGURATION_RULES;
+                    PrintMessageLine("No configuration rules found for {0}. ", Application.ApplicationLabel);
                     return;
                 }
             }
-        }
-
-        static void AuditServer(out ExitCodes exit)
-        {
-            if (ReferenceEquals(Server, null)) throw new ArgumentNullException("Server");
-            PrintMessage("Scanning {0} version, modules, extensions, or plugins...", Server.ServerLabel);
-            StartSpinner();
-            string version;
-            exit = ExitCodes.ERROR_SCANNING_SERVER_VERSION;
-            try
+            else
             {
-                version = Server.GetVersion();
-                exit = ExitCodes.ERROR_SCANNING_FOR_PACKAGES;
-                Server.ModulesTask.Wait();
-                //Server.PackagesTask.Wait();
-            }
-            catch (Exception e)
-            {
-                PrintErrorMessage(e);
-                return;
-            }
-            finally
-            {
-                StopSpinner();
-            }
-            PrintMessageLine("Detected {0} version: {1}.", Server.ServerLabel, Server.Version);
-            if (ProgramOptions.ListPackages || ProgramOptions.ListArtifacts)
-            {
-                return;
-            }
-            Task t = Server.ConfigurationTask;
-            PrintMessage("Scanning {0} configuration...", Server.ServerLabel);
-            StartSpinner();
-            try
-            {
-                t.Wait();
-            }
-            catch (Exception e)
-            {
-                PrintErrorMessage(e);
-            }
-            finally
-            {
-                StopSpinner();
-            }
-            if (t.IsFaulted || t.IsCanceled  || Server.XmlConfiguration == null)
-            {
-                PrintMessageLine("Error encountered scanning server configuration. Exiting");
-                return;
-            }
-            else if (Server.XmlConfiguration.Root.Elements().Count() == 0)
-            {
-                
-                PrintMessageLine("Got zero top-level nodes from scanning server configuration. Exiting.");
-                return;
-            }
-            PrintMessageLine(Server.ConfigurationStatistics);
-            PrintMessage("Scanning {0} configuration rules...", Server.ServerLabel);
-            StartSpinner();
-            try
-            {
-                Task.WaitAll(Server.ConfigurationRulesTask.ToArray());
-            }
-            catch (AggregateException ae)
-            {
-                StopSpinner();
-                PrintErrorMessage("Error encountered searching OSS Index for {0} configuration rules: {1}...", Server.ApplicationLabel, ae.InnerException.Message);
-                ae.InnerExceptions.ToList().ForEach(i => HandleOSSIndexHttpException(i));
-            }
-            finally
-            {
-                StopSpinner();
-            }
-            if (Server.ProjectConfigurationRules.Count() == 0)
-            {
-                exit = ExitCodes.SUCCESS;
-                PrintErrorMessage("No configuration rules found for {0} server. Exiting.", Server.ServerLabel);
-                return;
-            }
-            PrintMessageLine("Got {0} configuration rule(s) for {1} server project(s).", Server.ProjectConfigurationRules.Sum(cr => cr.Value.Count()), Server.ProjectConfigurationRules.Keys.Count);
-            exit = ExitCodes.ERROR_SEARCHING_CONFIGURATION_RULES;
-            int projects_count = Server.ProjectConfigurationRules.Keys.Count;
-            int projects_processed = 0;
-            foreach (KeyValuePair<OSSIndexProject, IEnumerable<OSSIndexProjectConfigurationRule>> rule in Server.ProjectConfigurationRules)
-            {
-                Dictionary<OSSIndexProjectConfigurationRule, Tuple<bool, List<string>, string>> evals = new Dictionary<OSSIndexProjectConfigurationRule, Tuple<bool, List<string>, string>>(); //Server.EvaluateProjectConfigurationRules(rule.Value);
-                PrintMessage("[{0}/{1}] Project: ", ++projects_processed, projects_count);
-                PrintMessage(ConsoleColor.Blue, "{0}. ", rule.Key.Name);
-                int total_project_rules = rule.Value.Count();
-                int succeded_project_rules = 0;// evals.Count(ev => ev.Value.Item1);
-                int processed_project_rules = 0;
-                PrintMessage("{0} rule(s). ", total_project_rules);
-                if (succeded_project_rules > 0 )
+                int projects_count = Server.ProjectConfigurationRules.Count, projects_processed = 0;
+                foreach (KeyValuePair<OSSIndexProject, IEnumerable<OSSIndexProjectConfigurationRule>> rule in Server.ProjectConfigurationRules)
                 {
-                    PrintMessage(ConsoleColor.Magenta, " {0} rule(s) succeded. ", succeded_project_rules);
-                    PrintMessageLine(ConsoleColor.Red, "[VULNERABLE]");
-                }
-                else
-                {
-                    PrintMessage(ConsoleColor.DarkGreen, " {0} rule(s) succeded. \n", succeded_project_rules);
-                }
-                foreach (KeyValuePair<OSSIndexProjectConfigurationRule, Tuple <bool, List<string>, string>> e in evals)
-                {
-                    ++processed_project_rules;
-                    if (!e.Value.Item1)
+                    Dictionary<OSSIndexProjectConfigurationRule, Tuple<bool, List<string>, string>> evals = new Dictionary<OSSIndexProjectConfigurationRule, Tuple<bool, List<string>, string>>(); //Server.EvaluateProjectConfigurationRules(rule.Value);
+                    PrintMessage("[{0}/{1}] Project: ", ++projects_processed, projects_count);
+                    PrintMessage(ConsoleColor.Blue, "{0}. ", rule.Key.Name);
+                    int total_project_rules = rule.Value.Count();
+                    int succeded_project_rules = 0;// evals.Count(ev => ev.Value.Item1);
+                    int processed_project_rules = 0;
+                    PrintMessage("{0} rule(s). ", total_project_rules);
+                    if (succeded_project_rules > 0)
                     {
-                        PrintMessage("--[{0}/{1}] Rule: {2}. Result: ", processed_project_rules, total_project_rules, e.Key.Title);
+                        PrintMessage(ConsoleColor.Magenta, " {0} rule(s) succeded. ", succeded_project_rules);
+                        PrintMessageLine(ConsoleColor.Red, "[VULNERABLE]");
                     }
                     else
                     {
-                        PrintMessage(ConsoleColor.White, "--[{0}/{1}] Rule: {2}. Result: ", processed_project_rules, total_project_rules, e.Key.Title);
+                        PrintMessage(ConsoleColor.DarkGreen, " {0} rule(s) succeded. \n", succeded_project_rules);
                     }
-                    PrintMessageLine(e.Value.Item1 ? ConsoleColor.Red : ConsoleColor.DarkGreen, "{0}.", e.Value.Item1);
-                    if (e.Value.Item1)
+                    foreach (KeyValuePair<OSSIndexProjectConfigurationRule, Tuple<bool, List<string>, string>> e in evals)
                     {
-                        PrintProjectConfigurationRuleMultiLineField(ConsoleColor.White, 2, "Summary", e.Key.Summary);
-                        if (e.Value.Item2 != null && e.Value.Item2.Count > 0)
+                        ++processed_project_rules;
+                        if (!e.Value.Item1)
                         {
-                            PrintProjectConfigurationRuleMultiLineField(ConsoleColor.White, 2, "Results", e.Value.Item2);
+                            PrintMessage("--[{0}/{1}] Rule: {2}. Result: ", processed_project_rules, total_project_rules, e.Key.Title);
                         }
-                        PrintProjectConfigurationRuleMultiLineField(ConsoleColor.Magenta, 2, "Resolution", e.Key.Resolution);
-                        PrintProjectConfigurationRuleMultiLineField(ConsoleColor.White, 2, "Urls", e.Key.Urls);
+                        else
+                        {
+                            PrintMessage(ConsoleColor.White, "--[{0}/{1}] Rule: {2}. Result: ", processed_project_rules, total_project_rules, e.Key.Title);
+                        }
+                        PrintMessageLine(e.Value.Item1 ? ConsoleColor.Red : ConsoleColor.DarkGreen, "{0}.", e.Value.Item1);
+                        if (e.Value.Item1)
+                        {
+                            PrintProjectConfigurationRuleMultiLineField(ConsoleColor.White, 2, "Summary", e.Key.Summary);
+                            if (e.Value.Item2 != null && e.Value.Item2.Count > 0)
+                            {
+                                PrintProjectConfigurationRuleMultiLineField(ConsoleColor.White, 2, "Results", e.Value.Item2);
+                            }
+                            PrintProjectConfigurationRuleMultiLineField(ConsoleColor.Magenta, 2, "Resolution", e.Key.Resolution);
+                            PrintProjectConfigurationRuleMultiLineField(ConsoleColor.White, 2, "Urls", e.Key.Urls);
+                        }
                     }
                 }
             }
-            return;
+                    
+                
         }
 
-        static void AuditCodeProject(out ExitCodes exit)
+        static void AuditCodeProject(AuditTarget.AuditResult ar, out AuditTarget.AuditResult exit)
         {
-            exit = ExitCodes.ERROR_SCANNING_PROJECT_WORKSPACE;
-            SpinnerText = string.Format("Auditing {0} project...", CodeProject.CodeProjectLabel);
-            StartSpinner();
-            CodeProject.AuditResult audit_result = CodeProject.Audit().Result;
-            if (Spinner != null) StopSpinner();
-            if (audit_result == CodeProject.AuditResult.ERROR_SCANNING_WORKSPACE)
+            exit = ar;
+            if (ar == AuditTarget.AuditResult.ERROR_SCANNING_WORKSPACE)
             {
                 PrintErrorMessage("There was an error scanning the code project workspace.");
                 return;
             }
-            else if (audit_result == CodeProject.AuditResult.ERROR_SCANNING_ANALYZERS)
+            else if (ar == AuditTarget.AuditResult.ERROR_SCANNING_ANALYZERS)
             {
                 PrintErrorMessage("There was an error scanning the code project analyzer scripts.");
                 return;
             }
-            else if (audit_result == CodeProject.AuditResult.ERROR_ANALYZING)
+            else if (ar == AuditTarget.AuditResult.ERROR_ANALYZING)
             {
                 PrintErrorMessage("There was an error analyzing the code project;");
                 return;
             }
-            else if (audit_result != CodeProject.AuditResult.SUCCESS)
+            else if (ar != AuditTarget.AuditResult.SUCCESS)
             {
                 throw new Exception("Unknown audit target state.");
             }
-            foreach (AnalyzerResult ar in CodeProject.AnalyzerResults)
+            foreach (AnalyzerResult analyzer_result in CodeProject.AnalyzerResults)
             {
 
             }
@@ -779,18 +708,19 @@ namespace DevAudit.CommandLine
             }
             if (ProgramOptions.NonInteractive)
             {
-                PrintMessageLine("{0:HH:mm:ss} [{1}] [{2}] {3}", e.DateTime, e.EnvironmentLocation, e.MessageType.ToString(), e.Message);
+                PrintMessageLine("{0:HH:mm:ss}<{4,2:##}> [{1}] [{2}] {3}", e.DateTime, e.EnvironmentLocation, e.MessageType.ToString(), e.Message, e.CurrentThread.ManagedThreadId.ToString("D2"));
             }   
             else if (e.MessageType == EventMessageType.STATUS)
             {
                 if (Spinner != null)
                 {
                     PauseSpinner();
+                    
                     SpinnerText = e.Message + "..";
                 }
                 else
                 {
-                    PrintMessageLine(ConsoleMessageColors[e.MessageType], "{0:HH:mm:ss} [{1}] [{2}] {3}", e.DateTime, e.EnvironmentLocation, e.MessageType.ToString(), e.Message);
+                    PrintMessageLine(ConsoleMessageColors[e.MessageType], "{0:HH:mm:ss}<{4,2:##}> [{1}] [{2}] {3}", e.DateTime, e.EnvironmentLocation, e.MessageType.ToString(), e.Message, e.CurrentThread.ManagedThreadId.ToString("D2"));
                     SpinnerText = e.Message + "..";
                     StartSpinner();
                 }
@@ -804,7 +734,7 @@ namespace DevAudit.CommandLine
                 }
                 else
                 {
-                    PrintMessageLine(ConsoleMessageColors[e.MessageType], "{0:HH:mm:ss} [{1}] [{2}] {3}", e.DateTime, e.EnvironmentLocation, e.MessageType.ToString(), e.Message);
+                    PrintMessageLine(ConsoleMessageColors[e.MessageType], "{0:HH:mm:ss}<{4,2:##}> [{1}] [{2}] {3}", e.DateTime, e.EnvironmentLocation, e.MessageType.ToString(), e.Message, e.CurrentThread.ManagedThreadId.ToString("D2"));
                 }
             }
             else
@@ -813,7 +743,7 @@ namespace DevAudit.CommandLine
                 {
                     PauseSpinner();
                 }
-                PrintMessageLine(ConsoleMessageColors[e.MessageType], "{0:HH:mm:ss} [{1}] [{2}] {3}", e.DateTime, e.EnvironmentLocation, e.MessageType.ToString(), e.Message);
+                PrintMessageLine(ConsoleMessageColors[e.MessageType], "{0:HH:mm:ss}<{4,2:##}> [{1}] [{2}] {3}", e.DateTime, e.EnvironmentLocation, e.MessageType.ToString(), e.Message, e.CurrentThread.ManagedThreadId.ToString("D2"));
                 if (e.MessageType == EventMessageType.ERROR && e.Exception != null)
                 {
                     PrintErrorMessage(e.Exception);

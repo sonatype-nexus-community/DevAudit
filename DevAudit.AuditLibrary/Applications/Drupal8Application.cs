@@ -44,16 +44,13 @@ namespace DevAudit.AuditLibrary
         #endregion
 
         #region Overriden methods
-        protected override Dictionary<string, IEnumerable<OSSIndexQueryObject>> GetModules()
+        protected override string GetVersion()
         {
-            if (this.Modules != null) return this.Modules;
-            var M = this.Modules = new Dictionary<string, IEnumerable<OSSIndexQueryObject>>();
-            object modules_lock = new object();
+            string core_version = "8.x";
             this.Stopwatch.Reset();
             this.Stopwatch.Start();
             AuditFileInfo changelog = this.ApplicationFileSystemMap["ChangeLog"] as AuditFileInfo;
             string[] c = changelog.ReadAsText()?.Split(this.AuditEnvironment.LineTerminator.ToCharArray(), StringSplitOptions.RemoveEmptyEntries);
-            string core_version = "8.x";
             if (c != null && c.Count() > 0)
             {
                 foreach (string l in c)
@@ -64,6 +61,15 @@ namespace DevAudit.AuditLibrary
                     }
                 }
             }
+            this.Version = core_version;
+            return this.Version;
+        }
+        protected override Dictionary<string, IEnumerable<OSSIndexQueryObject>> GetModules()
+        {
+            if (this.Modules != null) return this.Modules;
+            var M = this.Modules = new Dictionary<string, IEnumerable<OSSIndexQueryObject>>();
+            object modules_lock = new object();
+            string core_version = this.Version;
             List<AuditFileInfo> core_module_files = this.CoreModulesDirectory.GetFiles("*.info.yml")?.Where(f => !f.Name.Contains("_test") && !f.Name.Contains("test_")).Select(f => f as AuditFileInfo).ToList();
             List<AuditFileInfo> contrib_module_files = this.ContribModulesDirectory.GetFiles("*.info.yml")?.Where(f => !f.Name.Contains("_test") && !f.Name.Contains("test_")).Select(f => f as AuditFileInfo).ToList();
             List<OSSIndexQueryObject> all_modules = new List<OSSIndexQueryObject>(100);

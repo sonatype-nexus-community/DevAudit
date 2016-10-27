@@ -6,6 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
+using Alpheus;
 using Devsense.PHP.Syntax;
 namespace DevAudit.AuditLibrary
 {
@@ -18,19 +19,33 @@ namespace DevAudit.AuditLibrary
         { }
         #endregion
 
-        #region Overriden properties
+        #region Public overriden properties
         public override string CodeProjectId { get { return "php"; } }
 
         public override string CodeProjectLabel { get { return "PHP"; } }
         #endregion
 
-        #region Overriden methods
-        public override  async Task<bool> GetWorkspaceAsync()
+        #region Public overriden methods
+        public override bool IsConfigurationRuleVersionInServerVersionRange(string configuration_rule_version, string server_version)
         {
-            if (! await base.GetWorkspaceAsync())
-            {
-                return false;
-            }
+            throw new NotImplementedException();
+        }
+        #endregion
+
+        #region Protected overriden methods
+        protected override string GetVersion()
+        {
+            throw new NotImplementedException();
+        }
+
+        protected override IConfiguration GetConfiguration()
+        {
+            throw new NotImplementedException();
+        }
+
+        protected override async Task GetWorkspaceAsync()
+        {
+            await base.GetWorkspaceAsync();
             object psu_lock = new object();
             this.HostEnvironment.Status("Parsing PHP source files.");
             this.Stopwatch.Start();
@@ -59,11 +74,13 @@ namespace DevAudit.AuditLibrary
                 {
                     this.HostEnvironment.Error("I/O exception thrown attempting to read PHP file {0}.", f.FullName);
                     this.HostEnvironment.Error(ioe);
+                    throw ioe;
                 }
                 catch (Exception e)
                 {
                     this.HostEnvironment.Error("Exception thrown attempting to read PHP file {0}.", f.FullName);
                     this.HostEnvironment.Error(e);
+                    throw e;
                 }
             });
             this.WorkSpace = new Dictionary<string, List<FileInfo>>(3)
@@ -71,12 +88,11 @@ namespace DevAudit.AuditLibrary
                 {"PHP", PHPFiles },
                 {"YAML", YamlFiles },
                 {"JSON", wd.GetFiles("*.json", SearchOption.AllDirectories).ToList() }
-              
+
             };
             this.Project = PHPSourceUnits;
             this.Stopwatch.Stop();
             this.HostEnvironment.Success("Parsed {0} PHP files in {1} ms.", PHPSourceUnits.Count(), this.Stopwatch.ElapsedMilliseconds);
-            return true;
         }
         #endregion
 

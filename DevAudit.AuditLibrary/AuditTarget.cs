@@ -12,11 +12,14 @@ namespace DevAudit.AuditLibrary
         public enum AuditResult
         {
             SUCCESS = 0,
+            INVALID_AUDIT_TARGET_OPTIONS,
+            ERROR_CREATING_AUDIT_TARGET,
             ERROR_SCANNING_MODULES,
             ERROR_SCANNING_PACKAGES,
             ERROR_SEARCHING_ARTIFACTS,
             ERROR_SEARCHING_VULNERABILITIES,
             ERROR_EVALUATING_VULNERABILITIES,
+            ERROR_SCANNING_VERSION,
             ERROR_SCANNING_DEFAULT_CONFIGURATION_RULES,
             ERROR_SEARCHING_CONFIGURATION_RULES,
             ERROR_EVALUATING_CONFIGURATION_RULES,
@@ -24,6 +27,7 @@ namespace DevAudit.AuditLibrary
             ERROR_ANALYZING,
             ERROR_SCANNING_WORKSPACE,
             ERROR_SCANNING_ANALYZERS,
+            ERROR_RUNNING_ANALYZERS,
         }
 
         #region Events

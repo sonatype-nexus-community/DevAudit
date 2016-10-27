@@ -18,6 +18,16 @@ namespace DevAudit.AuditLibrary
 {
     public class Drupal7Application : Application
     {
+        #region Constructors
+        public Drupal7Application(Dictionary<string, object> application_options, EventHandler<EnvironmentEventArgs> message_handler = null) : base(application_options, new Dictionary<string, string[]>(), new Dictionary<string, string[]>()
+            {
+                { "CoreModulesDirectory", new string[] { "@", "modules" } },
+                { "ContribModulesDirectory", new string[] { "@", "sites", "all", "modules" } },
+                { "DefaultSiteDirectory", new string[] { "@", "sites", "default" } },
+            }, message_handler)
+        {}
+        #endregion
+
         #region Overriden properties
         public override string ApplicationId { get { return "drupal7"; } }
 
@@ -62,6 +72,11 @@ namespace DevAudit.AuditLibrary
         #endregion
 
         #region Overriden methods
+        protected override string GetVersion()
+        {
+            throw new NotImplementedException();
+        }
+
         protected override Dictionary<string, IEnumerable<OSSIndexQueryObject>> GetModules()
         {
             object modules_lock = new object();
@@ -205,16 +220,5 @@ namespace DevAudit.AuditLibrary
             return (configuration_rule_version == server_version) || configuration_rule_version == ">0";
         }
         #endregion
-
-        #region Constructors
-        public Drupal7Application(Dictionary<string, object> application_options, EventHandler<EnvironmentEventArgs> message_handler = null) : base(application_options, new Dictionary<string, string[]>(), new Dictionary<string, string[]>()
-            {
-                { "CoreModulesDirectory", new string[] { "@", "modules" } },
-                { "ContribModulesDirectory", new string[] { "@", "sites", "all", "modules" } },
-                { "DefaultSiteDirectory", new string[] { "@", "sites", "default" } },
-            }, message_handler)
-        {}
-        #endregion
-
     }
 }

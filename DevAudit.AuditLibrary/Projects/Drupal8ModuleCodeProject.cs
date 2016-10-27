@@ -26,14 +26,11 @@ namespace DevAudit.AuditLibrary
         }
         #endregion
 
-        #region Overriden methods
-        public override async Task<bool> GetWorkspaceAsync()
+        #region Protected overriden methods
+        protected override async Task GetWorkspaceAsync()
         {
             CallerInformation here = this.AuditEnvironment.Here();
-            if (!await base.GetWorkspaceAsync())
-            {
-                return false;
-            }
+            await base.GetWorkspaceAsync();
             this.WorkspaceFile = this.HostEnvironment.ConstructFile(this.WorkspaceFilePath) as LocalAuditFileInfo;
             this.HostEnvironment.Status("Loading Drupal 8 module files.");
             DirectoryInfo d = this.WorkspaceDirectory.GetAsSysDirectoryInfo();
@@ -42,7 +39,8 @@ namespace DevAudit.AuditLibrary
             {
                 this.AuditEnvironment.Error(here, "Could not find local Drupal 8 file {0} in local directory {1}.", wf.Name,
                     d.FullName);
-                return false;
+                throw new Exception(string.Format("Could not find local Drupal 8 file {0} in local directory {1}.", wf.Name,
+                    d.FullName));
             }
             try
             {
@@ -54,8 +52,8 @@ namespace DevAudit.AuditLibrary
             {
                 this.HostEnvironment.Error("Exception thrown reading {0} as YAML file.", wf.FullName);
                 this.HostEnvironment.Error(e);
+                throw;
             }
-            return true;
         }
         #endregion
 

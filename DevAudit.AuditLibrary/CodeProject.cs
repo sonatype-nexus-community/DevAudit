@@ -12,26 +12,14 @@ using csscript;
 
 namespace DevAudit.AuditLibrary
 {
-    public abstract class CodeProject : AuditTarget, IDisposable
+    public abstract class CodeProject : Application
     {
         #region Constructors
-        public CodeProject(Dictionary<string, object> project_options, EventHandler<EnvironmentEventArgs> message_handler, string analyzer_type) : base(project_options, message_handler)
+        public CodeProject(Dictionary<string, object> project_options, EventHandler<EnvironmentEventArgs> message_handler, string analyzer_type) : base(project_options, new Dictionary<string, string[]>(), new Dictionary<string, string[]>(), message_handler)
         {
             CallerInformation here = this.AuditEnvironment.Here();
             this.CodeProjectOptions = project_options;
-            if (!this.CodeProjectOptions.ContainsKey("RootDirectory"))
-            {
-                throw new ArgumentException(string.Format("The root application directory was not specified in the project_options dictionary."), "project_options");
-            }
-            else if (!this.AuditEnvironment.DirectoryExists((string)this.CodeProjectOptions["RootDirectory"]))
-            {
-                throw new ArgumentException(string.Format("The root application directory {0} was not found.", this.CodeProjectOptions["RootDirectory"]), "application_options");
-            }
-            else
-            {
-                this.CodeProjectFileSystemMap.Add("RootDirectory", this.AuditEnvironment.ConstructDirectory((string)this.CodeProjectOptions["RootDirectory"]));
-            }
-
+           
             if (this.CodeProjectOptions.ContainsKey("CodeProjectName"))
             {
                 this.CodeProjectName = (string)CodeProjectOptions["CodeProjectName"];
@@ -42,7 +30,7 @@ namespace DevAudit.AuditLibrary
                 string fn = (string)this.CodeProjectOptions["File"];
                 if (!fn.StartsWith("@"))
                 {
-                    throw new ArgumentException("The workspace file parameter must be relative to the root directory for this audit target.");
+                    throw new ArgumentException("The workspace file parameter must be relative to the root directory for this audit target.", "project_options");
                 }
                 AuditFileInfo wf = this.AuditEnvironment.ConstructFile(this.CombinePath("@", fn.Substring(1)));
                 if (wf.Exists)
@@ -51,11 +39,15 @@ namespace DevAudit.AuditLibrary
                 }
                 else
                 {
-                    throw new ArgumentException(string.Format("The workspace file {0} was not found.", wf.FullName));
+                    throw new ArgumentException(string.Format("The workspace file {0} was not found.", wf.FullName), "project_options");
 
                 }
             }
             this.AnalyzerType = analyzer_type;
+            if (this.CodeProjectOptions.ContainsKey("ListCodeProjectAnalyzers"))
+            {
+                this.ListCodeProjectAnalyzers = true;
+            }
         }
         #endregion
 
@@ -65,18 +57,90 @@ namespace DevAudit.AuditLibrary
         public abstract string CodeProjectLabel { get; }
         #endregion
 
+        #region Public overriden properties
+        public override string ApplicationId => this.CodeProjectId;
+
+        public override string ApplicationLabel => this.CodeProjectLabel;
+
+        public override string PackageManagerId => this.PackageSource?.PackageManagerId;
+
+        public override OSSIndexHttpClient HttpClient { get; } = new OSSIndexHttpClient("1.1");
+
+        public override string PackageManagerLabel => this.PackageSource?.PackageManagerLabel;
+
+        public override Func<List<OSSIndexArtifact>, List<OSSIndexArtifact>> ArtifactsTransform => this.PackageSource?.ArtifactsTransform;
+        #endregion
+
+        #region Protected overriden methods
+        public override IEnumerable<OSSIndexQueryObject> GetPackages(params string[] o) => this.PackageSource?.GetPackages(o);
+
+        public override bool IsVulnerabilityVersionInPackageVersionRange(string vulnerability_version, string package_version) => this.PackageSource?.IsVulnerabilityVersionInPackageVersionRange(vulnerability_version, package_version) ?? false;
+
+        protected override Dictionary<string, IEnumerable<OSSIndexQueryObject>> GetModules()
+        {
+            if (this.PackageSource != null)
+            {
+                return new Dictionary<string, IEnumerable<OSSIndexQueryObject>>()
+                {
+                    ["all"] = this.PackageSource.Packages
+                };
+            }
+            else return null;
+        }
+
+        protected override void Dispose(bool isDisposing)
+        {
+            // TODO If you need thread safety, use a lock around these 
+            // operations, as well as in your methods that use the resource. 
+            try
+            {
+                base.Dispose();
+                if (!this.IsDisposed)
+                {
+                    // Explicitly set root references to null to expressly tell the GarbageCollector 
+                    // that the resources have been disposed of and its ok to release the memory 
+                    // allocated for them.
+                    this.CodeProjectOptions = null;
+                    this.CodeProjectFileSystemMap = null;
+                    this.WorkspaceFile = null;
+                    this.WorkspaceDirectory = null;
+                    this.WorkSpace = null;
+                    this.Project = null;
+                    this.Compilation = null;
+                    this.AnalyzerScripts = null;
+                    this.Analyzers = null;
+                    this.AnalyzerResults = null;
+                    this.Stopwatch = null;
+                    if (isDisposing)
+                    {
+                        // Release all managed resources here 
+                        // Need to unregister/detach yourself from the events. Always make sure 
+                        // the object is not null first before trying to unregister/detach them! 
+                        // Failure to unregister can be a BIG source of memory leaks 
+                        //if (someDisposableObjectWithAnEventHandler != null)
+                        //{ someDisposableObjectWithAnEventHandler.SomeEvent -= someDelegate; 
+                        //someDisposableObjectWithAnEventHandler.Dispose(); 
+                        //someDisposableObjectWithAnEventHandler = null; } 
+                        // If this is a WinForm/UI control, uncomment this code 
+                        //if (components != null) //{ // components.Dispose(); //} } 
+                        // Release all unmanaged resources here 
+                        // (example) if (someComObject != null && Marshal.IsComObject(someComObject)) { Marshal.FinalReleaseComObject(someComObject); someComObject = null; 
+                    }
+                }
+            }
+            finally
+            {
+                this.IsDisposed = true;
+            }
+        }
+
+        #endregion
+
         #region Public properties
         public Dictionary<string, object> CodeProjectOptions { get; set; } = new Dictionary<string, object>();
 
+        public PackageSource PackageSource { get; protected set; }
         public Dictionary<string, AuditFileSystemInfo> CodeProjectFileSystemMap { get; protected set; } = new Dictionary<string, AuditFileSystemInfo>();
-
-        public AuditDirectoryInfo RootDirectory
-        {
-            get
-            {
-                return (AuditDirectoryInfo)this.CodeProjectFileSystemMap["RootDirectory"];
-            }
-        }
 
         public string CodeProjectName { get; protected set; }
 
@@ -98,13 +162,71 @@ namespace DevAudit.AuditLibrary
 
         public List<Analyzer> Analyzers { get; protected set; } = new List<Analyzer>();
 
-        public List<AnalyzerResult> AnalyzerResults { get; protected set; } = new List<AnalyzerResult>();
+        public List<AnalyzerResult> AnalyzerResults { get; protected set; }
 
-        public PackageSource PackageSource { get; protected set; }
+        public bool ListCodeProjectAnalyzers { get; protected set; }
+
+        public Task GetWorkspaceTask { get; protected set; }
+
+        public Task GetAnalyzersTask { get; protected set; }
+
+        public Task GetAnalyzerResultsTask { get; protected set; }
         #endregion
 
         #region Public methods
-        public virtual async Task<bool> GetWorkspaceAsync()
+        public override AuditResult Audit(CancellationToken ct)
+        {
+            CallerInformation caller = this.AuditEnvironment.Here();
+            Task audit_application = Task.Run(() => base.Audit(ct), ct);
+            this.GetWorkspaceTask = this.GetWorkspaceAsync();
+            try
+            {
+                this.GetWorkspaceTask.Wait();
+            }
+            catch (AggregateException ae)
+            {
+                this.HostEnvironment.Error(caller, ae, "Exception throw during GetWorkspace task.");
+            }
+
+            try
+            {
+                this.GetAnalyzersTask.Wait();
+            }
+            catch (AggregateException ae)
+            {
+                this.HostEnvironment.Error(caller, ae, "Exception throw during GetAnalyzers task.");
+                return AuditResult.ERROR_SCANNING_ANALYZERS;
+            }
+            if (this.ListCodeProjectAnalyzers || this.GetAnalyzersTask.Status != TaskStatus.RanToCompletion || this.Analyzers.Count == 0)
+            {
+                this.GetAnalyzerResultsTask = Task.CompletedTask;
+            }
+            else
+            {
+                this.GetAnalyzerResultsTask = Task.Run(() => this.GetAnalyzers());
+            }
+            try
+            {
+                Task.WaitAll(audit_application, this.GetAnalyzerResultsTask);
+            }
+            catch (AggregateException ae)
+            {
+                if (ae.TargetSite.Name == "GetAnalyzers")
+                {
+                    this.HostEnvironment.Error(caller, ae, "Exception throw during GetAnalyzerResults task.");
+                    return AuditResult.ERROR_RUNNING_ANALYZERS;
+                }
+                else
+                {
+                    throw;
+                }
+            }
+            return AuditResult.SUCCESS;
+        }
+        #endregion
+
+        #region Protected methods
+        protected virtual async Task GetWorkspaceAsync()
         {
             CallerInformation here = this.AuditEnvironment.Here();
             if (!(this.AuditEnvironment is LocalEnvironment))
@@ -115,70 +237,26 @@ namespace DevAudit.AuditLibrary
             if (this.WorkspaceDirectory == null && !(this.AuditEnvironment is LocalEnvironment))
             {
                 this.HostEnvironment.Error(here, "Could not download {0} as local directory.", this.WorkspaceDirectory);
-                return false;
+                throw new Exception(string.Format("Could not download {0} as local directory.", this.WorkspaceDirectory));
             }
             else if (this.WorkspaceDirectory == null)
             {
                 this.HostEnvironment.Error(here, "Could not get {0} as local directory.", this.WorkspaceDirectory);
-                return false;
+                throw new Exception(string.Format("Could not get {0} as local directory.", this.WorkspaceDirectory));
             }
             else if (this.WorkspaceDirectory != null && !(this.AuditEnvironment is LocalEnvironment))
             {
                 this.HostEnvironment.Success("Using {0} as workspace directory for code analysis.", this.WorkspaceDirectory.FullName);
-                return true;
+                return;
             }
             else // (this.AuditEnvironment is LocalEnvironment)
             {
                 this.HostEnvironment.Info("Using local directory {0} for code analysis.", this.WorkspaceDirectory.FullName);
-                return true;
+                return;
             }
         }
 
-        public Task<AuditResult> Audit()
-        {
-            Task<bool> get_package_source_audit = Task.FromResult(false);//this.PackageSource != null ? Task.Run(() => this.PackageSource.Audit()) : Task.FromResult(false);
-            Task<bool> get_workspace = this.GetWorkspaceAsync();
-            Task<bool> get_analyzers;
-            Task<List<AnalyzerResult>> get_analyzer_results = null;
-            get_workspace.Wait();
-            if (get_workspace.Status == TaskStatus.RanToCompletion && get_workspace.Result == true)
-            {
-                get_analyzers = this.GetAnalyzers();
-            }
-            else
-            {
-                return Task.FromResult(AuditResult.ERROR_SCANNING_WORKSPACE);
-            }
-            get_analyzers.Wait();
-            if (get_analyzers.Status == TaskStatus.RanToCompletion && get_analyzers.Result == true)
-            {
-                get_analyzer_results = this.GetAnalyzerResults();
-            }
-            else
-            {
-                return Task.FromResult(AuditResult.ERROR_SCANNING_ANALYZERS);
-            }           
-            Task.WaitAll(get_analyzer_results, get_package_source_audit);
-            if (get_analyzer_results.Status == TaskStatus.RanToCompletion && get_analyzer_results.Result != null)
-            {
-                this.AnalyzerResults = get_analyzer_results.Result;
-                if (this.AnalyzerResults.Count(ar => ar.Succeded) > 0)
-                {
-                    this.HostEnvironment.Success("Code analysis by {0} analyzers succeded.", this.AnalyzerResults.Count(ar => ar.Succeded));
-                }
-                if (get_analyzer_results.Result.Count(ar => !ar.Succeded) > 0)
-                {
-                    this.HostEnvironment.Warning("Code analysis by {0} analyzers did not succed.", this.AnalyzerResults.Count(ar => !ar.Succeded));
-                }
-                return Task.FromResult(AuditResult.SUCCESS);
-            }
-            else
-            {
-                return Task.FromResult(AuditResult.ERROR_ANALYZING);
-            }
-        }
-     
-        public async Task<bool> GetAnalyzers()
+        protected async Task GetAnalyzers()
         {
             this.Stopwatch.Restart();
             // Just in case clear AlternativeCompiler so it is not set to Roslyn or anything else by 
@@ -227,18 +305,14 @@ namespace DevAudit.AuditLibrary
                             }
                         }
                     }
-                }
-                catch (Exception e)
-                {
-                    HostEnvironment.Error("Unknown error compiling analyzer {0}.", f.FullName);
-                    HostEnvironment.Error(e);
+                    throw ce;
                 }
             }
             this.Stopwatch.Stop();
             if (this.AnalyzerScripts.Count == 0)
             {
                 this.HostEnvironment.Info("No {0} analyzers found in {1}.", this.AnalyzerType, analyzers_dir.FullName);
-                return false;
+                return;
             }
             else if (this.AnalyzerScripts.Count > 0 && this.Analyzers.Count > 0)
             {
@@ -247,18 +321,18 @@ namespace DevAudit.AuditLibrary
                     this.HostEnvironment.Warning("Failed to load {0} of {1} analyzer(s).", this.AnalyzerScripts.Count - this.Analyzers.Count, this.AnalyzerScripts.Count);
                 }
                 this.HostEnvironment.Success("Loaded {0} out of {1} analyzer(s) in {2} ms.", this.Analyzers.Count, this.AnalyzerScripts.Count, this.Stopwatch.ElapsedMilliseconds);
-                return true;
+                return;
             }
             else
             {
                 this.HostEnvironment.Error("Failed to load {0} analyzer(s).", this.AnalyzerScripts.Count);
-                return false;
+                return;
             }
         }
 
-        public async Task<List<AnalyzerResult>> GetAnalyzerResults()
+        protected async Task GetAnalyzerResults()
         {
-            List<AnalyzerResult> results = new List<AnalyzerResult>(this.Analyzers.Count);
+            this.AnalyzerResults = new List<AnalyzerResult>(this.Analyzers.Count);
             foreach (Analyzer a in this.Analyzers)
             {
                 this.HostEnvironment.Status("{0} analyzing.", a.Name);
@@ -274,121 +348,17 @@ namespace DevAudit.AuditLibrary
                 }
                 finally
                 {
-                    results.Add(ar);
+                    this.AnalyzerResults.Add(ar);
                 }
                 
             }
-            return results;
+            return;
         }
-        #endregion 
-
-        #region Protected methods
-        protected string CombinePath(params string[] paths)
-        {
-            if (paths == null || paths.Count() == 0)
-            {
-                throw new ArgumentOutOfRangeException("paths", "paths must be non-null or at least length 1.");
-            }
-            if (this.AuditEnvironment.OS.Platform == PlatformID.Unix || this.AuditEnvironment.OS.Platform == PlatformID.MacOSX)
-            {
-                List<string> paths_list = new List<string>(paths.Length + 1);
-                if (paths.First() == "@")
-                {
-                    paths[0] = this.RootDirectory.FullName == "/" ? "" : this.RootDirectory.FullName;
-                }
-                paths_list.AddRange(paths);
-                return paths_list.Aggregate((p, n) => p + "/" + n);
-            }
-            else
-            {
-                if (paths.First() == "@")
-                {
-                    paths[0] = this.RootDirectory.FullName;
-                    return Path.Combine(paths);
-                }
-                else
-                {
-                    return Path.Combine(paths);
-                }
-            }
-        }
-
-        protected string LocatePathUnderRoot(params string[] paths)
-        {
-            if (this.AuditEnvironment.OS.Platform == PlatformID.Unix || this.AuditEnvironment.OS.Platform == PlatformID.MacOSX)
-            {
-                return "@" + paths.Aggregate((p, n) => p + "/" + n);
-            }
-            else
-            {
-
-                return "@" + Path.Combine(paths);
-            }
-
-        }
-
-        
         #endregion
 
-        #region Disposer
+        #region Private fields
         private bool IsDisposed { get; set; }
-        /// <summary> 
-        /// /// Implementation of Dispose according to .NET Framework Design Guidelines. 
-        /// /// </summary> 
-        /// /// <remarks>Do not make this method virtual. 
-        /// /// A derived class should not be able to override this method. 
-        /// /// </remarks>         
-        public void Dispose()
-        {
-            Dispose(true); // This object will be cleaned up by the Dispose method. // Therefore, you should call GC.SupressFinalize to // take this object off the finalization queue // and prevent finalization code for this object // from executing a second time. // Always use SuppressFinalize() in case a subclass // of this type implements a finalizer. GC.SuppressFinalize(this); }
-            GC.SuppressFinalize(this);
-        }
-
-        protected virtual void Dispose(bool isDisposing)
-        {
-            // TODO If you need thread safety, use a lock around these 
-            // operations, as well as in your methods that use the resource. 
-            try
-            {
-                if (!this.IsDisposed)
-                {
-                    // Explicitly set root references to null to expressly tell the GarbageCollector 
-                    // that the resources have been disposed of and its ok to release the memory 
-                    // allocated for them.
-                    this.CodeProjectOptions = null;
-                    this.CodeProjectFileSystemMap = null;
-                    this.WorkspaceFile = null;
-                    this.WorkspaceDirectory = null;
-                    this.WorkSpace = null;
-                    this.Project = null;
-                    this.Compilation = null;
-                    this.AnalyzerScripts = null;
-                    this.Analyzers = null;
-                    this.AnalyzerResults = null;
-                    this.PackageSource = null;
-                    this.Stopwatch = null;
-                    if (isDisposing)
-                    {
-                        // Release all managed resources here 
-                        // Need to unregister/detach yourself from the events. Always make sure 
-                        // the object is not null first before trying to unregister/detach them! 
-                        // Failure to unregister can be a BIG source of memory leaks 
-                        //if (someDisposableObjectWithAnEventHandler != null)
-                        //{ someDisposableObjectWithAnEventHandler.SomeEvent -= someDelegate; 
-                        //someDisposableObjectWithAnEventHandler.Dispose(); 
-                        //someDisposableObjectWithAnEventHandler = null; } 
-                        // If this is a WinForm/UI control, uncomment this code 
-                        //if (components != null) //{ // components.Dispose(); //} } 
-                        // Release all unmanaged resources here 
-                        // (example) if (someComObject != null && Marshal.IsComObject(someComObject)) { Marshal.FinalReleaseComObject(someComObject); someComObject = null; 
-                    }
-                }
-            }
-            finally
-            {
-                this.IsDisposed = true;
-            }
-        }
         #endregion
+
     }
 }

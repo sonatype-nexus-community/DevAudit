@@ -3,21 +3,32 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace DevAudit.AuditLibrary
 {
     public abstract class ApplicationServer : Application
     {
+        #region Constructors
+        public ApplicationServer(Dictionary<string, object> server_options, Dictionary<PlatformID, string[]> default_configuration_file_path, Dictionary<string, string[]> RequiredFilePaths, Dictionary<string, string[]> RequiredDirectoryPaths, EventHandler<EnvironmentEventArgs> message_handler = null) : base(server_options, RequiredFilePaths, RequiredDirectoryPaths, message_handler)
+        {
+            if (default_configuration_file_path == null) throw new ArgumentNullException("default_configuration_file");
+            InitialiseConfigurationFile(default_configuration_file_path);
+        }
+
+        public ApplicationServer(Dictionary<string, object> server_options, string[] default_configuration_file_path, Dictionary<string, string[]> RequiredFilePaths, Dictionary<string, string[]> RequiredDirectoryPaths, EventHandler<EnvironmentEventArgs> message_handler = null) : base(server_options, RequiredFilePaths, RequiredDirectoryPaths, message_handler)
+        {
+            if (default_configuration_file_path == null) throw new ArgumentNullException("default_configuration_file");
+            InitialiseConfigurationFile(default_configuration_file_path);
+        }
+        #endregion
+
         #region Public abstract properties
         public abstract string ServerId { get; }
         public abstract string ServerLabel { get; }
         public abstract Dictionary<string, string> OptionalFileLocations { get; }
         public abstract Dictionary<string, string> OptionalDirectoryLocations { get; }
-        #endregion
-
-        #region Public abstract methods
-        public abstract string GetVersion();
         #endregion
 
         #region Public properties
@@ -32,25 +43,15 @@ namespace DevAudit.AuditLibrary
             }
         }
 
-        public string Version { get; set; }
-
         public Dictionary<string, object> ServerOptions { get; set; } = new Dictionary<string, object>();
         #endregion
 
-        #region Constructors
-        public ApplicationServer(Dictionary<string, object> server_options, Dictionary<PlatformID, string[]> default_configuration_file_path, Dictionary<string, string[]> RequiredFilePaths, Dictionary<string, string[]> RequiredDirectoryPaths, EventHandler<EnvironmentEventArgs> message_handler = null) : base(server_options, RequiredFilePaths, RequiredDirectoryPaths, message_handler)
+        #region Public methods
+        public override AuditResult Audit(CancellationToken ct)
         {
-            if (default_configuration_file_path == null) throw new ArgumentNullException("default_configuration_file");
-            InitialiseConfigurationFile(default_configuration_file_path);
+            this.GetVersion();
+            return base.Audit(ct);
         }
-
-        public ApplicationServer(Dictionary<string, object> server_options, string[] default_configuration_file_path, Dictionary<string, string[]> RequiredFilePaths, Dictionary<string, string[]> RequiredDirectoryPaths, EventHandler<EnvironmentEventArgs> message_handler = null) : base(server_options, RequiredFilePaths, RequiredDirectoryPaths, message_handler)
-        {
-            if (default_configuration_file_path == null) throw new ArgumentNullException("default_configuration_file");
-            InitialiseConfigurationFile(default_configuration_file_path);
-        }
-
-
         #endregion
 
         #region Protected methods

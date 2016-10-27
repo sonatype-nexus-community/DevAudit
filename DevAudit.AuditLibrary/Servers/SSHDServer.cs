@@ -15,96 +15,6 @@ namespace DevAudit.AuditLibrary
 {
     public class SSHDServer : ApplicationServer
     {
-        #region Overriden properties
-        public override string ServerId { get { return "sshd"; } }
-
-        public override string ServerLabel { get { return "SSHD Server"; } }
-
-        public override string ApplicationId { get { return "sshd"; } }
-
-        public override string ApplicationLabel { get { return "SSHD server"; } }
-
-        public override Dictionary<string, string> OptionalDirectoryLocations { get; } = new Dictionary<string, string>();
-
-        public override Dictionary<string, string> OptionalFileLocations { get; } = new Dictionary<string, string>();
-
-        public override string PackageManagerId { get { return "ossi"; } }
-
-        public override string PackageManagerLabel { get { return "SSHD"; } }
-
-        public override OSSIndexHttpClient HttpClient { get; } = new OSSIndexHttpClient("1.1");
-        #endregion
-
-        #region Public properties
-        #endregion
-
-        #region Overriden methods
-        protected override Dictionary<string, IEnumerable<OSSIndexQueryObject>> GetModules()
-        {
-            Dictionary<string, IEnumerable<OSSIndexQueryObject>> m = new Dictionary<string, IEnumerable<OSSIndexQueryObject>>
-            {
-                {"sshd", new List<OSSIndexQueryObject> {new OSSIndexQueryObject(this.PackageManagerId, "sshd", this.Version) }}
-            };
-            this.Modules = m;
-            return this.Modules;
-        }
-
-        protected override IConfiguration GetConfiguration()
-        {
-            SSHD sshd = new SSHD(this.ConfigurationFile);
-            if (sshd.ParseSucceded)
-            {
-                this.Configuration = sshd;
-            }
-            return this.Configuration;
-        }
-
-        public override bool IsConfigurationRuleVersionInServerVersionRange(string configuration_rule_version, string server_version)
-        {
-            return (configuration_rule_version == server_version) || configuration_rule_version == ">0";
-        }
-
-        public override string GetVersion()
-        {
-            AuditEnvironment.ProcessExecuteStatus process_status;
-            string process_output;
-            string process_error;
-            AuditEnvironment.Execute(this.ApplicationBinary.FullName, "-?", out process_status, out process_output, out process_error);
-            if (process_status == AuditEnvironment.ProcessExecuteStatus.Completed)
-            {
-                if (!string.IsNullOrEmpty(process_error) && string.IsNullOrEmpty(process_output))
-                {
-                    process_output = process_error;
-                }
-                this.Version = process_output.Split("\n".ToCharArray(), StringSplitOptions.RemoveEmptyEntries)[1];
-                return this.Version;
-            }
-            else if (!string.IsNullOrEmpty(process_error) && string.IsNullOrEmpty(process_output) && process_error.Contains("unknown option"))
-            {
-                this.Version = process_error.Split("\n".ToCharArray(), StringSplitOptions.RemoveEmptyEntries)[1];
-                return this.Version;
-            }
-            else
-            {
-                throw new Exception(string.Format("Did not execute process {0} successfully. Error: {1}.", this.ApplicationBinary.Name, process_error));
-            }
-        }
-
-        public override IEnumerable<OSSIndexQueryObject> GetPackages(params string[] o)
-        {
-            if (this.Modules == null)
-            {
-                this.GetModules();
-            }
-            return this.Modules["sshd"];
-        }
-        
-        public override bool IsVulnerabilityVersionInPackageVersionRange(string vulnerability_version, string package_version)
-        {
-            return vulnerability_version == package_version;
-        }
-        #endregion
-
         #region Constructors
         public SSHDServer(Dictionary<string, object> server_options, EventHandler<EnvironmentEventArgs> message_handler = null) : base(server_options, new Dictionary<PlatformID, string[]>()
             {
@@ -131,6 +41,97 @@ namespace DevAudit.AuditLibrary
                     this.ApplicationFileSystemMap["sshd"] = this.ApplicationBinary;
                 }
             }
+        }
+        #endregion
+
+        #region Overriden properties
+        public override string ServerId { get { return "sshd"; } }
+
+        public override string ServerLabel { get { return "OpenSSH sshd server"; } }
+
+        public override string ApplicationId => this.ServerId;
+
+        public override string ApplicationLabel => this.ServerLabel;
+
+        public override string PackageManagerId { get { return "ossi"; } }
+
+        public override string PackageManagerLabel => this.ServerLabel;
+
+        public override Dictionary<string, string> OptionalDirectoryLocations { get; } = new Dictionary<string, string>();
+
+        public override Dictionary<string, string> OptionalFileLocations { get; } = new Dictionary<string, string>();
+
+        public override OSSIndexHttpClient HttpClient { get; } = new OSSIndexHttpClient("1.1");
+        #endregion
+
+        #region Overriden methods
+        protected override string GetVersion()
+        {
+            this.AuditEnvironment.Status("Scanning {0} version.", this.ApplicationLabel);
+            AuditEnvironment.ProcessExecuteStatus process_status;
+            string process_output;
+            string process_error;
+            AuditEnvironment.Execute(this.ApplicationBinary.FullName, "-?", out process_status, out process_output, out process_error);
+            if (process_status == AuditEnvironment.ProcessExecuteStatus.Completed)
+            {
+                if (!string.IsNullOrEmpty(process_error) && string.IsNullOrEmpty(process_output))
+                {
+                    process_output = process_error;
+                }
+                this.Version = process_output.Split("\n".ToCharArray(), StringSplitOptions.RemoveEmptyEntries)[1];
+                this.AuditEnvironment.Success("Got {0} version {1}.", this.ApplicationLabel, this.Version);
+                return this.Version;
+            }
+            else if (!string.IsNullOrEmpty(process_error) && string.IsNullOrEmpty(process_output) && process_error.Contains("unknown option"))
+            {
+                this.Version = process_error.Split("\n".ToCharArray(), StringSplitOptions.RemoveEmptyEntries)[1];
+                this.AuditEnvironment.Success("Got {0} version {1}.", this.ApplicationLabel, this.Version);
+                return this.Version;
+            }
+            else
+            {
+                throw new Exception(string.Format("Did not execute process {0} successfully. Error: {1}.", this.ApplicationBinary.Name, process_error));
+            }
+        }
+
+        protected override Dictionary<string, IEnumerable<OSSIndexQueryObject>> GetModules()
+        {
+            Dictionary<string, IEnumerable<OSSIndexQueryObject>> m = new Dictionary<string, IEnumerable<OSSIndexQueryObject>>
+            {
+                {"sshd", new List<OSSIndexQueryObject> {new OSSIndexQueryObject(this.PackageManagerId, "sshd", this.Version) }}
+            };
+            this.Modules = m;
+            return this.Modules;
+        }
+
+        protected override IConfiguration GetConfiguration()
+        {
+            SSHD sshd = new SSHD(this.ConfigurationFile);
+            if (sshd.ParseSucceded)
+            {
+                this.Configuration = sshd;
+            }
+            return this.Configuration;
+        }
+
+        public override bool IsConfigurationRuleVersionInServerVersionRange(string configuration_rule_version, string server_version)
+        {
+            return (configuration_rule_version == server_version) || configuration_rule_version == ">0";
+        }
+
+
+        public override IEnumerable<OSSIndexQueryObject> GetPackages(params string[] o)
+        {
+            if (this.Modules == null)
+            {
+                this.GetModules();
+            }
+            return this.Modules["sshd"];
+        }
+        
+        public override bool IsVulnerabilityVersionInPackageVersionRange(string vulnerability_version, string package_version)
+        {
+            return vulnerability_version == package_version;
         }
         #endregion
     }

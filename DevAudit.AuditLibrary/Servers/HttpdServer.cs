@@ -57,7 +57,7 @@ namespace DevAudit.AuditLibrary
             return this.Configuration;
         }
 
-        public override string GetVersion()
+        protected override string GetVersion()
         {
             AuditEnvironment.ProcessExecuteStatus process_status;
             string process_output;

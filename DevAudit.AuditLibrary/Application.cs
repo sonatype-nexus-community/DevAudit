@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Security;
@@ -50,7 +52,7 @@ namespace DevAudit.AuditLibrary
                         if (!this.AuditEnvironment.FileExists(fn))
                         {
                             throw new ArgumentException(string.Format("The default path {0} for required application file {1} does not exist.",
-                                fn, f.Key), "RequiredFileLocations");
+                                fn, f.Key), "application_options");
                         }
                         else
                         {
@@ -87,7 +89,7 @@ namespace DevAudit.AuditLibrary
                         if (!this.AuditEnvironment.DirectoryExists(dn))
                         {
                             throw new ArgumentException(string.Format("The default path {0} for required application directory {1} does not exist.",
-                                dn, d.Key), "RequiredDirectoryLocations");
+                                dn, d.Key), "application_options");
                         }
                         else
                         {
@@ -143,6 +145,7 @@ namespace DevAudit.AuditLibrary
         #endregion
 
         #region Protected abstract methods
+        protected abstract string GetVersion();
         protected abstract Dictionary<string, IEnumerable<OSSIndexQueryObject>> GetModules();
         protected abstract IConfiguration GetConfiguration();
         public abstract bool IsConfigurationRuleVersionInServerVersionRange(string configuration_rule_version, string server_version);
@@ -172,6 +175,8 @@ namespace DevAudit.AuditLibrary
         public bool OnlyLocalRules { get; protected set; } = false;
 
         public bool DefaultConfigurationRulesOnly { get; protected set; } = false;
+
+        public string Version { get; protected set; }
 
         public IConfiguration Configuration { get; protected set; } = null;
 
@@ -218,66 +223,17 @@ namespace DevAudit.AuditLibrary
             }
         }
 
-        public Task<Dictionary<string, IEnumerable<OSSIndexQueryObject>>> ModulesTask
-        {
-            get
-            {
-                if (_ModulesTask == null)
-                {
-                    _ModulesTask = Task.Run(() => this.GetModules());
-                }
-                return _ModulesTask;
-            }
-        }
+        public Task GetVersionTask { get; protected set; }
 
-        public Task ConfigurationTask
-        {
-            get
-            {
-                if (_ConfigurationTask == null)
-                {
-                    _ConfigurationTask = Task.Run(() => this.GetConfiguration());
-                }
-                return _ConfigurationTask;
-            }
-        }
+        public Task GetModulesTask { get; protected set; }
 
-        public List<Task<KeyValuePair<OSSIndexProject, IEnumerable<OSSIndexProjectConfigurationRule>>>> ConfigurationRulesTask
-        {
-            get
-            {
-                if (_ConfigurationRulesTask == null)
-                {
-                    this._ConfigurationRulesForProject = new Dictionary<OSSIndexProject, IEnumerable<OSSIndexProjectConfigurationRule>>();
-                    
-                    List<string> projects_to_query = this.ArtifactsWithProjects.Select(a => a.ProjectId).ToList();
-                    this._ConfigurationRulesTask = new List<Task<KeyValuePair<OSSIndexProject, IEnumerable<OSSIndexProjectConfigurationRule>>>>(projects_to_query.Count);
-                    projects_to_query.ForEach(pr => this._ConfigurationRulesTask.Add(Task<Task<KeyValuePair<OSSIndexProject, IEnumerable<OSSIndexProjectConfigurationRule>>>>.Factory.StartNew(async (o) =>
-                    {
-                        string project_id = o as string;
-                        OSSIndexProject project = null;
-                        if (!ArtifactProject.Values.Any(ap => ap.Id.ToString() == project_id))
-                        {
-                            project = await this.HttpClient.GetProjectForIdAsync(project_id);
+        public Task GetConfigurationTask { get; protected set; }
 
-                        }
-                        else
-                        {
-                            project = ArtifactProject.Values.Where(ap => ap.Id.ToString() == project_id).First();
-                        }
-                        IEnumerable<OSSIndexProjectConfigurationRule> rules = await this.HttpClient.GetConfigurationRulesForIdAsync(project_id);
-                        if (rules != null)
-                        {
-                            this.AddConfigurationRules(project, rules);
-                        }
-                        return new KeyValuePair<OSSIndexProject, IEnumerable<OSSIndexProjectConfigurationRule>>
-                        (project, rules);
-                    }, pr, CancellationToken.None, TaskCreationOptions.DenyChildAttach, TaskScheduler.Default).Unwrap()));
-                }
-                return this._ConfigurationRulesTask;
-            }
-        }
+        public Task GetDefaultConfigurationRulesTask { get; protected set; }
 
+        public Task GetConfigurationRulesTask { get; protected set; }
+
+        public Task EvaluateConfigurationRulesTask { get; protected set; }
 
         public Dictionary<OSSIndexProject, IEnumerable<OSSIndexProjectConfigurationRule>> ProjectConfigurationRules
         {
@@ -286,6 +242,7 @@ namespace DevAudit.AuditLibrary
                 return _ConfigurationRulesForProject;
             }
         }
+        public ConcurrentDictionary<OSSIndexArtifact, Exception> GetProjectConfigurationRulesExceptions { get; protected set; }
 
         public Dictionary<OSSIndexProjectConfigurationRule, Tuple<bool, List<string>, string>> ProjectConfigurationRulesEvaluations = new Dictionary<OSSIndexProjectConfigurationRule, Tuple<bool, List<string>, string>>();
 
@@ -295,33 +252,73 @@ namespace DevAudit.AuditLibrary
         #region Public methods
         public override AuditResult Audit(CancellationToken ct)
         {
-            base.Audit(ct);
             CallerInformation caller = this.AuditEnvironment.Here();
-            Task get_default_configuration_rules_task = null, get_configuration_rules_task = null, evaluate_configuration_rules_task = null;
-            if (this.ListPackages || this.ListArtifacts)
-            {
-                get_default_configuration_rules_task = Task.CompletedTask;
-            }
-            else
-            {
-                get_default_configuration_rules_task = Task.Run(() => this.GetDefaultConfigurationRules(), ct);
-            }
-            
-            if (this.ListPackages || this.ListArtifacts || this.SkipPackagesAudit || this.OnlyLocalRules || this.ArtifactsWithProjects.Count() == 0)
-            {
-                get_configuration_rules_task = Task.CompletedTask;
-            }
-            else
-            {
-                get_configuration_rules_task = Task.Run(() => this.GetConfigurationRules(), ct);
-            }
+            this.GetPackagesTask(ct);
             try
             {
-                Task.WaitAll(get_default_configuration_rules_task, get_configuration_rules_task);
+                this.PackagesTask.Wait();
+                if (!this.SkipPackagesAudit) AuditEnvironment.Success("Scanned {0} {1} packages.", this.Packages.Count(), this.PackageManagerLabel);
             }
             catch (AggregateException ae)
             {
-                if (ae.InnerException.TargetSite.Name == "GetConfigurationRules")
+                this.AuditEnvironment.Error("Exception thrown in GetPackages task.", ae.InnerException);
+                return AuditResult.ERROR_SCANNING_PACKAGES;
+            }
+
+            if (this.ListPackages || this.Packages.Count() == 0 || this.OnlyLocalRules)
+            {
+                this.ArtifactsTask = this.VulnerabilitiesTask = this.EvaluateVulnerabilitiesTask = Task.CompletedTask;
+            }
+            else
+            {
+                this.ArtifactsTask = Task.Run(() => this.GetArtifacts(), ct);
+            }
+            try
+            {
+                this.ArtifactsTask.Wait();
+            }
+            catch (AggregateException ae)
+            {
+                this.AuditEnvironment.Error("Exception thrown in GetArtifacts task.", ae.InnerException);
+                return AuditResult.ERROR_SEARCHING_ARTIFACTS;
+            }
+            if (this.ListArtifacts || this.ListPackages || this.ListConfigurationRules || this.ArtifactsWithProjects.Count == 0)
+            {
+                this.VulnerabilitiesTask = this.EvaluateVulnerabilitiesTask = Task.CompletedTask; ;
+            }
+            else
+            {
+                this.VulnerabilitiesTask = Task.Run(() => this.GetVulnerabilties(), ct);
+            }
+
+            if (this.ListPackages || this.ListArtifacts || this.SkipPackagesAudit || this.OnlyLocalRules || this.ArtifactsWithProjects.Count() == 0)
+            {
+                this.GetConfigurationRulesTask = Task.CompletedTask;
+            }
+            else
+            {
+                this.GetConfigurationRulesTask = Task.Run(() => this.GetConfigurationRules(), ct);
+            }
+            if (this.ListPackages || this.ListArtifacts)
+            {
+                this.GetDefaultConfigurationRulesTask = Task.CompletedTask;
+            }
+            else
+            {
+                this.GetDefaultConfigurationRulesTask = Task.Run(() => this.GetDefaultConfigurationRules());
+            }
+            try
+            {
+                Task.WaitAll(this.VulnerabilitiesTask, this.GetConfigurationRulesTask, this.GetDefaultConfigurationRulesTask);
+            }
+            catch (AggregateException ae)
+            {
+                if (ae.InnerException.TargetSite.Name == "GetVulnerabilities")
+                {
+                    this.AuditEnvironment.Error(caller, ae.InnerException, "Exception thrown in GetVulnerabilities task.");
+                    return AuditResult.ERROR_SEARCHING_VULNERABILITIES;
+                }
+                else if (ae.InnerException.TargetSite.Name == "GetConfigurationRules")
                 {
                     this.AuditEnvironment.Error(caller, ae.InnerException, "Exception thrown in GetConfigurationRules task.");
                     return AuditResult.ERROR_SEARCHING_CONFIGURATION_RULES;
@@ -332,18 +329,27 @@ namespace DevAudit.AuditLibrary
                     return AuditResult.ERROR_SCANNING_DEFAULT_CONFIGURATION_RULES;
                 }
             }
-            if (this.ListPackages || this.ListArtifacts || this.ListConfigurationRules)
-            {
-                evaluate_configuration_rules_task = Task.CompletedTask;
+
+            if (this.ListPackages || this.ListArtifacts || this.ListConfigurationRules || (this.PackageVulnerabilities.Count == 0 && this.ProjectVulnerabilities.Count == 0))
+            { 
+                this.EvaluateVulnerabilitiesTask = Task.CompletedTask;
             }
             else
             {
-                evaluate_configuration_rules_task = Task.Run(() => this.EvaluateProjectConfigurationRules(null), ct);
+                this.EvaluateVulnerabilitiesTask = Task.WhenAll(Task.Run(() => this.EvaluateProjectVulnerabilities(), ct), Task.Run(() => this.EvaluatePackageVulnerabilities(), ct));
             }
-            
+            if (this.ListConfigurationRules)
+            {
+                this.EvaluateConfigurationRulesTask = Task.CompletedTask;
+            }
+            else
+            {
+                this.EvaluateConfigurationRulesTask = Task.Run(() => this.EvaluateProjectConfigurationRules(null), ct);
+            }
+
             try
             {
-                evaluate_configuration_rules_task.Wait();
+                Task.WaitAll(this.EvaluateVulnerabilitiesTask, this.EvaluateConfigurationRulesTask);
             }
             catch (AggregateException ae)
             {
@@ -358,7 +364,7 @@ namespace DevAudit.AuditLibrary
         protected int GetDefaultConfigurationRules()
         {
             this.AuditEnvironment.Info("Loading default configuration rules for {0} application.", this.ApplicationLabel);
-            System.Diagnostics.Stopwatch sw = new System.Diagnostics.Stopwatch();
+            Stopwatch sw = new Stopwatch();
             sw.Start();
             AuditFileInfo rules_file = this.HostEnvironment.ConstructFile(this.CombinePath("Rules", this.ApplicationId + "." + "yml"));
             if (!rules_file.Exists) throw new Exception(string.Format("The default rules file {0} does not exist.", rules_file.FullName));
@@ -375,55 +381,85 @@ namespace DevAudit.AuditLibrary
                 this.AddConfigurationRules(kv.Key, kv.Value);
             }
             sw.Stop();
-            this.AuditEnvironment.Info("Got {0} default configuration rule(s) in {1} ms.", rules.Count, sw.ElapsedMilliseconds);
+            this.AuditEnvironment.Info("Got {0} default configuration rule(s) from {1}.yml in {2} ms.", rules.Count, this.ApplicationId, sw.ElapsedMilliseconds);
             return rules.Count;
         }
 
         protected void GetConfigurationRules()
         {
             this.AuditEnvironment.Info("Searching OSS Index for configuration rules for {0} artifact(s).", this.ArtifactsWithProjects.Count);
-            System.Diagnostics.Stopwatch sw = new System.Diagnostics.Stopwatch();
+            Stopwatch sw = new System.Diagnostics.Stopwatch();
+            List<Task> tasks = new List<Task>();
+            this.GetProjectConfigurationRulesExceptions = new ConcurrentDictionary<OSSIndexArtifact, Exception>();
+            this.ProjectConfigurationRulesEvaluations = new Dictionary<OSSIndexProjectConfigurationRule, Tuple<bool, List<string>, string>>();
+            Int32 i = new Int32();
             sw.Start();
-            Parallel.ForEach(this.ArtifactsWithProjects, (a) =>
+            foreach(OSSIndexArtifact a in this.ArtifactsWithProjects) 
             {
-                OSSIndexProject project;
-                lock (artifact_project_lock)
+                Task t = Task.Factory.StartNew(async (o) =>
                 {
-
-                    if (!ArtifactProject.Values.Any(p => p.Id.ToString() == a.ProjectId))
+                    OSSIndexProject project = null;
+                    
+                    lock (artifact_project_lock)
                     {
-                        project = this.HttpClient.GetProjectForIdAsync(a.ProjectId).Result;
-                        project.Artifact = a;
-                        this._ArtifactProject.Add(a, project);
+                        if (ArtifactProject.Values.Any(p => p.Id.ToString() == a.ProjectId))
+                        {
+                            project = ArtifactProject.Values.Where(ap => ap.Id.ToString() == a.ProjectId).First();
+                        }
                     }
-                    else
+                    try
                     {
-                        project = ArtifactProject.Values.Where(ap => ap.Id.ToString() == a.ProjectId).First();
+                        if (project == null)
+                        {
+                            project = await this.HttpClient.GetProjectForIdAsync(a.ProjectId);
+                            project.Artifact = a;
+                            lock (artifact_project_lock)
+                            {
+                                if (!ArtifactProject.Values.Any(p => p.Id.ToString() == a.ProjectId)) this._ArtifactProject.Add(a, project);
+                            }
+                        }
+                        IEnumerable<OSSIndexProjectConfigurationRule> rules = await this.HttpClient.GetConfigurationRulesForIdAsync(project.Id.ToString());
+                        if (rules != null && rules.Count() > 0)
+                        {
+                            this.AddConfigurationRules(project, rules);
+                            this.AuditEnvironment.Debug("Found {0} rule(s) for artifact {1}.", rules.Count(), project.Artifact.PackageName);
+                            Interlocked.Add(ref i, 1);
+                        }
                     }
-                }
-                IEnumerable<OSSIndexProjectConfigurationRule> rules = this.HttpClient.GetConfigurationRulesForIdAsync(project.Id.ToString()).Result;
-                if (rules != null)
-                {
-                    this.AddConfigurationRules(project, rules);
-                    this.AuditEnvironment.Info("Found {0} rule(s) for artifact {1}.", rules.Count(), project.Artifact.PackageName);
-                }
-            });
+                    catch (AggregateException ae)
+                    {
+                        this.GetProjectConfigurationRulesExceptions.TryAdd(a, ae.InnerException);
+                        this.AuditEnvironment.Warning("Exception thrown in {0} task: {1}", ae.InnerException.TargetSite.Name, ae.Message);
+                    }
+                    catch (Exception e)
+                    {
+                        this.GetProjectConfigurationRulesExceptions.TryAdd(a, e);
+                        this.AuditEnvironment.Warning("Exception thrown in {0} task: {1}", e.TargetSite.Name, e.Message);
+                    }
+                    finally
+                    {
+                        sw.Stop();
+                    }
+                }, i, CancellationToken.None, TaskCreationOptions.DenyChildAttach, TaskScheduler.Default).Unwrap();
+                tasks.Add(t);
+            }
+            Task.WaitAll(tasks.ToArray());
             sw.Stop();
-            this.AuditEnvironment.Info("Searched OSS Index configuration rules in {0} ms.", sw.ElapsedMilliseconds);
+            this.AuditEnvironment.Info("Found {0} configuration rule(s) on OSS Index in {1} ms.", i, sw.ElapsedMilliseconds);
             return;
         }
 
         protected Dictionary<OSSIndexProjectConfigurationRule, Tuple<bool, List<string>, string>> EvaluateProjectConfigurationRules(IEnumerable<OSSIndexProjectConfigurationRule> rules)
         {
-            this.AuditEnvironment.Status("Evaluating {0} configuration rules.", this.ProjectConfigurationRules.Count);
-            System.Diagnostics.Stopwatch sw = new System.Diagnostics.Stopwatch();
+            this.AuditEnvironment.Status("Evaluating {0} configuration rule(s).", this.ProjectConfigurationRules.Count);
+            Stopwatch sw = new Stopwatch();
             sw.Start();
             Dictionary<OSSIndexProjectConfigurationRule, Tuple<bool, List<string>, string>> results = new Dictionary<OSSIndexProjectConfigurationRule, Tuple<bool, List<string>, string>>(this.ProjectConfigurationRules.Count());
             object evaluate_rules = new object();
-            Parallel.ForEach(this.ProjectConfigurationRules.Values, (pr) =>
+            this.ProjectConfigurationRules.Values.AsParallel().ForAll(pr =>
             {
-                Parallel.ForEach(pr, (r) =>
-               {
+                pr.AsParallel().ForAll(r =>
+                {
                    if (!string.IsNullOrEmpty(r.XPathTest))
                    {
                        List<string> result;
@@ -433,11 +469,11 @@ namespace DevAudit.AuditLibrary
                            results.Add(r, new Tuple<bool, List<string>, string>(this.Configuration.XPathEvaluate(r.XPathTest, out result, out message), result, message));
                        }
                    }
-               });
+                });
             });
             this.ProjectConfigurationRulesEvaluations = results;
             sw.Stop();
-            this.AuditEnvironment.Success("Evaluated {0} configuration rules in {1} ms.", this.ProjectConfigurationRules.Count, sw.ElapsedMilliseconds);
+            this.AuditEnvironment.Success("Evaluated {0} configuration rule(s) in {1} ms.", this.ProjectConfigurationRules.Count, sw.ElapsedMilliseconds);
             return this.ProjectConfigurationRulesEvaluations;
         }
 

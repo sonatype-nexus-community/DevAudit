@@ -13,6 +13,35 @@ namespace DevAudit.AuditLibrary
 {
     public class NginxServer : ApplicationServer
     {
+        #region Constructors
+        public NginxServer(Dictionary<string, object> server_options, EventHandler<EnvironmentEventArgs> message_handler = null) : base(server_options, new Dictionary<PlatformID, string[]>()
+            {
+                { PlatformID.Unix, new string[] { "@", "etc", "nginx", "nginx.conf" } },
+                { PlatformID.MacOSX, new string[] { "@", "etc", "nginx", "nginx.conf" } },
+                { PlatformID.Win32NT, new string[] { "@", "conf", "nginx.conf" } }
+            }, new Dictionary<string, string[]>(), new Dictionary<string, string[]>(), message_handler)
+        {
+            if (this.ApplicationBinary != null)
+            {
+                this.ApplicationFileSystemMap["nginx"] = this.ApplicationBinary;
+            }
+            else
+            {
+                string fn = this.AuditEnvironment.OS.Platform == PlatformID.Unix || Environment.OSVersion.Platform == PlatformID.MacOSX
+                ? CombinePath("@", "usr", "bin", "nginx") : CombinePath("@", "nginx.exe");
+                if (!this.AuditEnvironment.FileExists(fn))
+                {
+                    throw new ArgumentException(string.Format("The server binary for Nginx was not specified and the default file path {0} does not exist.", fn));
+                }
+                else
+                {
+                    this.ApplicationBinary = this.AuditEnvironment.ConstructFile(fn);
+                    this.ApplicationFileSystemMap["nginx"] = this.ApplicationBinary;
+                }
+            }
+        }
+        #endregion
+
         #region Overriden properties
         public override string ServerId { get { return "nginx"; } }
 
@@ -58,7 +87,7 @@ namespace DevAudit.AuditLibrary
             return this.Configuration;
         }
 
-        public override string GetVersion()
+        protected override string GetVersion()
         {
             AuditEnvironment.ProcessExecuteStatus process_status;
             string process_output;
@@ -104,33 +133,5 @@ namespace DevAudit.AuditLibrary
         }
         #endregion
 
-        #region Constructors
-        public NginxServer(Dictionary<string, object> server_options, EventHandler<EnvironmentEventArgs> message_handler = null) : base(server_options, new Dictionary<PlatformID, string[]>()
-            {
-                { PlatformID.Unix, new string[] { "@", "etc", "nginx", "nginx.conf" } },
-                { PlatformID.MacOSX, new string[] { "@", "etc", "nginx", "nginx.conf" } },
-                { PlatformID.Win32NT, new string[] { "@", "conf", "nginx.conf" } }
-            }, new Dictionary<string, string[]>(), new Dictionary<string, string[]>(), message_handler)
-        {
-            if (this.ApplicationBinary != null)
-            {
-                this.ApplicationFileSystemMap["nginx"] = this.ApplicationBinary;
-            }
-            else
-            {
-                string fn = this.AuditEnvironment.OS.Platform == PlatformID.Unix || Environment.OSVersion.Platform == PlatformID.MacOSX
-                ? CombinePath("@", "usr", "bin", "nginx") : CombinePath("@", "nginx.exe");
-                if (!this.AuditEnvironment.FileExists(fn))
-                {
-                    throw new ArgumentException(string.Format("The server binary for Nginx was not specified and the default file path {0} does not exist.", fn));
-                }
-                else
-                {
-                    this.ApplicationBinary = this.AuditEnvironment.ConstructFile(fn);
-                    this.ApplicationFileSystemMap["nginx"] = this.ApplicationBinary;
-                }
-            }
-        }
-        #endregion
     }
 }
