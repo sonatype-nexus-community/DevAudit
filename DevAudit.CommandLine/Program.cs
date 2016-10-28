@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Reflection;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Drawing;
 using System.IO;
 using System.Linq;
@@ -39,6 +40,7 @@ namespace DevAudit.CommandLine
 
         static string SpinnerText { get; set; }
 
+        static Stopwatch Stopwatch { get; } = new Stopwatch();
         static CC.StyleSheet MessageStyleSheet { get; set; }
 
         static ConsoleColor OriginalConsoleForeColor;
@@ -216,6 +218,7 @@ namespace DevAudit.CommandLine
             {
                 try
                 {
+                    Stopwatch.Start();
                     if (verb == "nuget")
                     {
                         Source = new NuGetPackageSource(audit_options, EnvironmentMessageHandler);
@@ -295,11 +298,13 @@ namespace DevAudit.CommandLine
                 }
                 catch (ArgumentException ae)
                 {
+                    Stopwatch.Stop();
                     AuditLibraryException = ae;
                     return;
                 }
                 catch (Exception e)
                 {
+                    Stopwatch.Stop();
                     AuditLibraryException = e;
                     return;
                 }
@@ -309,6 +314,7 @@ namespace DevAudit.CommandLine
             {
                 if (AuditLibraryException == null)
                 {
+                    if (Stopwatch.IsRunning) Stopwatch.Stop();
                     Console.WriteLine("No audit target specified.");
                     return (int) Exit;
                 }
@@ -349,6 +355,7 @@ namespace DevAudit.CommandLine
             if (Application == null && Source != null) //Auditing a package source
             {
                 AuditTarget.AuditResult ar = Source.Audit(CTS.Token);
+                if (Stopwatch.IsRunning) Stopwatch.Stop();
                 AuditPackageSource(ar, out Exit);
                 if (Source != null)
                 {
@@ -359,6 +366,7 @@ namespace DevAudit.CommandLine
             else if (CodeProject == null && Server == null && Application != null) //Auditing an application
             {
                 AuditTarget.AuditResult aar = Application.Audit(CTS.Token);
+                if (Stopwatch.IsRunning) Stopwatch.Stop();
                 AuditPackageSourcev1(aar, out Exit);
                 AuditApplication(aar, out Exit);
                 if (Application != null)
@@ -369,6 +377,7 @@ namespace DevAudit.CommandLine
             else if (CodeProject == null && Server != null) //Auditing server
             {
                 AuditTarget.AuditResult aar = Application.Audit(CTS.Token);
+                if (Stopwatch.IsRunning) Stopwatch.Stop();
                 AuditPackageSourcev1(aar, out Exit);
                 AuditApplication(aar, out Exit);
                 if (Application != null)
@@ -378,7 +387,8 @@ namespace DevAudit.CommandLine
             }
             else if (CodeProject != null)
             {
-                AuditTarget.AuditResult cpar = CodeProject.Audit(CTS.Token); 
+                AuditTarget.AuditResult cpar = CodeProject.Audit(CTS.Token);
+                if (Stopwatch.IsRunning) Stopwatch.Stop();
                 AuditCodeProject(cpar, out Exit);
                 if (CodeProject != null)
                 {
@@ -551,8 +561,8 @@ namespace DevAudit.CommandLine
             }*/
             #endregion
 
-            PrintMessageLine(ConsoleColor.White, "\nAudit Results\n=============");
-            PrintMessageLine(ConsoleColor.White, "{0} total vulnerabilities found in {1} package source audit.\n", Source.Vulnerabilities.Sum(v => v.Value != null ? v.Value.Count(pv => pv.CurrentPackageVersionIsInRange) : 0), Source.PackageManagerLabel);
+            PrintMessageLine(ConsoleColor.White, "\nPackage Source Audit Results\n============================");
+            PrintMessageLine(ConsoleColor.White, "{0} total vulnerabilities found in {1} package source audit. Total time for audit: {2} ms.\n", Source.Vulnerabilities.Sum(v => v.Value != null ? v.Value.Count(pv => pv.CurrentPackageVersionIsInRange) : 0), Source.PackageManagerLabel, Stopwatch.ElapsedMilliseconds);
             int packages_count = Source.Vulnerabilities.Count;
             int packages_processed = 0;
             foreach (var pv in Source.Vulnerabilities)
@@ -593,6 +603,7 @@ namespace DevAudit.CommandLine
 
         static void AuditPackageSourcev1(AuditTarget.AuditResult ar, out AuditTarget.AuditResult exit)
         {
+            if (Stopwatch.IsRunning) Stopwatch.Stop();
             exit = ar;
             if (Spinner != null) StopSpinner();
             if (ProgramOptions.ListPackages)
@@ -751,7 +762,7 @@ namespace DevAudit.CommandLine
             }*/
             #endregion
 
-            PrintMessageLine(ConsoleColor.White, "\nAudit Results\n=============");
+            PrintMessageLine(ConsoleColor.White, "\nPackage Source Audit Results\n============================");
             int projects_count = Source.ProjectVulnerabilities.Count;
             int projects_processed = 0;
             foreach (var pv in Source.ProjectVulnerabilities)
@@ -801,6 +812,7 @@ namespace DevAudit.CommandLine
 
         static void AuditApplication(AuditTarget.AuditResult ar, out AuditTarget.AuditResult exit)
         {
+            if (Stopwatch.IsRunning) Stopwatch.Stop();
             exit = ar;
             if (Spinner != null) StopSpinner();
             if (ProgramOptions.ListConfigurationRules)
@@ -829,6 +841,8 @@ namespace DevAudit.CommandLine
             }
             else if (Application.ProjectConfigurationRules.Count() > 0)
             {
+                PrintMessageLine(ConsoleColor.White, "\nApplication Configuration Audit Results\n=======================================");
+                PrintMessageLine(ConsoleColor.White, "{0} total vulnerabilities found in {1} application configuration audit. Total time for audit: {2} ms.\n", Application.ProjectConfigurationRulesEvaluations.Values.Where(v => v.Item1).Count(), Application.ApplicationLabel, Stopwatch.ElapsedMilliseconds);
                 int projects_count = Application.ProjectConfigurationRules.Count, projects_processed = 0;
                 foreach (KeyValuePair<OSSIndexProject, IEnumerable<OSSIndexProjectConfigurationRule>> rule in Application.ProjectConfigurationRules)
                 {
@@ -872,6 +886,11 @@ namespace DevAudit.CommandLine
                         }
                     }
                 }
+            }
+            else
+            {
+                PrintMessageLine(ConsoleColor.White, "\nApplication Configuration Audit Results\n=======================================");
+                PrintMessageLine(ConsoleColor.White, "{0} total vulnerabilities found in {1} application configuration audit. Total time for audit: {2} ms.\n", Application.ProjectConfigurationRulesEvaluations.Values.Where(v => v.Item1).Count(), Application.ApplicationLabel, Stopwatch.ElapsedMilliseconds);
             }
         }
 
