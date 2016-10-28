@@ -1,0 +1,12 @@
+﻿---
+nginx:
+    -   id: 1
+        title: Nginx version and OS identity are not hidden (server_tokens)
+        xpathtest: not(/Nginx/http/server_tokens='off')
+        summary: |
+            The version of Nginx and the name of the operating system can be seen on every server response.       
+        resolution: |
+            Add server_tokens=off to the http context of your configuration.
+        urls:
+            -   https://www.digitalocean.com/community/tutorials/how-to-secure-nginx-on-ubuntu-14-04
+       

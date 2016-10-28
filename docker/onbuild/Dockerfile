@@ -11,4 +11,7 @@ ONBUILD RUN nuget sources add -Name OSSIndex -Source https://www.myget.org/F/oss
             && rm -rf packages \
             && rm -rf DevAudit.AuditLibrary \
             && rm -rf DevAudit.AuditLibrary.Analyzers.CSharp
+			&& rm -rf DevAudit.AuditLibrary.Tests
+			&& rm -rf Renci.SshNet
+			&& rm -rf Expect.NET
 

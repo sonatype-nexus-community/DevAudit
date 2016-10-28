@@ -305,6 +305,7 @@
   </ItemGroup>
   <ItemGroup>
 	<Examples Include="Examples\**\*.*"/>
+	<Rules Include="Rules\**\*.*"/>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
@@ -313,6 +314,7 @@
   </Target> -->
   <Target Name="AfterBuild">
   <Copy SourceFiles="@(Examples)" DestinationFiles="@(Examples->'$(SolutionDir)Examples\%(RecursiveDir)%(Filename)%(Extension)')" />
+  <Copy SourceFiles="@(Rules)" DestinationFiles="@(Rules->'$(SolutionDir)Rules\%(RecursiveDir)%(Filename)%(Extension)')" />
   </Target>
   
 </Project>

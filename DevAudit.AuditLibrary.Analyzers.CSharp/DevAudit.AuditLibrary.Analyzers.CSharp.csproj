@@ -200,6 +200,7 @@
 	<Target Name="BeforeBuild">
   	</Target> -->
   <Target Name="AfterBuild">
-	<Copy SourceFiles="@(AnalyzerSourceFiles)" DestinationFiles="@(AnalyzerSourceFiles->'$(SolutionDir)DevAudit.CommandLine\bin\Debug\Analyzers\%(RecursiveDir)%(Filename)%(Extension)')" />	
+	<Copy SourceFiles="@(AnalyzerSourceFiles)" DestinationFiles="@(AnalyzerSourceFiles->'$(SolutionDir)DevAudit.CommandLine\bin\Debug\Analyzers\%(RecursiveDir)%(Filename)%(Extension)')" />
+<Copy SourceFiles="@(AnalyzerSourceFiles)" DestinationFiles="@(AnalyzerSourceFiles->'$(SolutionDir)Analyzers\%(RecursiveDir)%(Filename)%(Extension)')" />	
   </Target>
 </Project>

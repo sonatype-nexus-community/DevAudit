@@ -12,7 +12,7 @@ sshd:
             -   http://www.thegeekstuff.com/2011/05/openssh-options/
 
     -   id: 2
-        title:  SSH protocol 2 is not enabled (Protocol)
+        title:  SSH protocol 2 should be enabled (Protocol)
         xpathtest:  not(/SSHD/Values/Protocol='2')
         summary: |
             SSH protocol version 1 (SSH-1) has man-in-the-middle attacks problems and security vulnerabilities. 
