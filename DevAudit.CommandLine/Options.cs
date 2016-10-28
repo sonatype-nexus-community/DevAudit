@@ -68,6 +68,9 @@ namespace DevAudit.CommandLine
         [Option('n', "non-interact", Required = false, HelpText = "Disable any interctive console output (for redirecting console output to other devices.)")]
         public bool NonInteractive { get; set; }
 
+        [Option("api-v2", Required = false, HelpText = "Disable any interctive console output (for redirecting console output to other devices.)")]
+        public bool UseApiv2 { get; set; }
+
         [Option('f', "file", Required = false, HelpText = "For a package source, specifies the file containing packages to be audited. For a code project, specifies the code project file.")]
         public string File { get; set; }
 

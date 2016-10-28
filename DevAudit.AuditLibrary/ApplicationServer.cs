@@ -27,14 +27,19 @@ namespace DevAudit.AuditLibrary
         #region Public abstract properties
         public abstract string ServerId { get; }
         public abstract string ServerLabel { get; }
-        public abstract Dictionary<string, string> OptionalFileLocations { get; }
-        public abstract Dictionary<string, string> OptionalDirectoryLocations { get; }
         #endregion
 
         #region Public properties
+        public override string ApplicationId => this.ServerId;
+
+        public override string ApplicationLabel => this.ServerLabel;
+
+        public override string PackageManagerId { get { return "ossi"; } }
+
+        public override string PackageManagerLabel => this.ServerLabel;
+
         public string DefaultConfigurationFile { get; protected set; }
       
-  
         public AuditFileInfo ConfigurationFile
         {
             get
@@ -42,6 +47,9 @@ namespace DevAudit.AuditLibrary
                 return (AuditFileInfo)this.ApplicationFileSystemMap["ConfigurationFile"];
             }
         }
+        public Dictionary<string, string> OptionalFileLocations { get; } = new Dictionary<string, string>();
+
+        public Dictionary<string, string> OptionalDirectoryLocations { get; } = new Dictionary<string, string>();
 
         public Dictionary<string, object> ServerOptions { get; set; } = new Dictionary<string, object>();
         #endregion

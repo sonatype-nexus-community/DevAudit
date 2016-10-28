@@ -11,8 +11,6 @@ namespace DevAudit.AuditLibrary
 {
     public class NuGetPackageSource : PackageSource
     {
-        public override OSSIndexHttpClient HttpClient { get; } = new OSSIndexHttpClient("1.1");
-
         public override string PackageManagerId { get { return "nuget"; } }
 
         public override string PackageManagerLabel { get { return "NuGet"; } }
@@ -25,8 +23,7 @@ namespace DevAudit.AuditLibrary
             }      
         }
 
-        //Get NuGet packages from reading packages.config
-        public override IEnumerable<OSSIndexQueryObject> GetPackages(params string[] o)
+        public override IEnumerable<OSSIndexQueryObject> GetPackages(params string[] o) ////Get NuGet packages from reading packages.config
         {
             try
             {

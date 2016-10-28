@@ -16,21 +16,7 @@ namespace DevAudit.AuditLibrary
         #region Overriden properties
         public override string ServerId { get { return "httpd"; } }
 
-        public override string ServerLabel { get { return "Apache Httpd Server"; } }
-
-        public override string ApplicationId { get { return "httpd"; } }
-
-        public override string ApplicationLabel { get { return "Apache Httpd server"; } }
-
-        public override Dictionary<string, string> OptionalDirectoryLocations { get; } = new Dictionary<string, string>();
-
-        public override Dictionary<string, string> OptionalFileLocations { get; } = new Dictionary<string, string>();
-
-        public override string PackageManagerId { get { return "ossi"; } }
-
-        public override string PackageManagerLabel { get { return "Apache Httpd"; } }
-
-        public override OSSIndexHttpClient HttpClient { get; } = new OSSIndexHttpClient("1.1");
+        public override string ServerLabel { get { return "Apache httpd"; } }
         #endregion
 
         #region Public properties

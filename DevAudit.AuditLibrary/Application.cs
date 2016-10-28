@@ -253,6 +253,7 @@ namespace DevAudit.AuditLibrary
         public override AuditResult Audit(CancellationToken ct)
         {
             CallerInformation caller = this.AuditEnvironment.Here();
+            this.GetVersion();
             this.GetPackagesTask(ct);
             if (this.ListPackages || this.ListArtifacts)
             {
@@ -269,15 +270,21 @@ namespace DevAudit.AuditLibrary
             }
             catch (AggregateException ae)
             {
-
-                this.AuditEnvironment.Error(caller, ae, "Exception thrown in {0} task.", ae.TargetSite.Name);
-                if (ae.TargetSite.Name == "GetPackages")
+                if (ae.InnerException is NotImplementedException && ae.InnerException.TargetSite.Name == "GetConfiguration")
                 {
-                    return AuditResult.ERROR_SCANNING_PACKAGES;
+                    this.AuditEnvironment.Debug("{0} application doe not implement standalone GetConfiguration method.", this.ApplicationId);
                 }
                 else
                 {
-                    return AuditResult.ERROR_SCANNING_CONFIGURATION;
+                    this.AuditEnvironment.Error(caller, ae, "Exception thrown in {0} task.", ae.InnerException.TargetSite.Name);
+                    if (ae.TargetSite.Name == "GetPackages")
+                    {
+                        return AuditResult.ERROR_SCANNING_PACKAGES;
+                    }
+                    else
+                    {
+                        return AuditResult.ERROR_SCANNING_CONFIGURATION;
+                    }
                 }
             }
 
@@ -285,10 +292,11 @@ namespace DevAudit.AuditLibrary
             {
                 this.ArtifactsTask = this.VulnerabilitiesTask = this.EvaluateVulnerabilitiesTask = Task.CompletedTask;
             }
-            else
+            else 
             {
                 this.ArtifactsTask = Task.Run(() => this.GetArtifacts(), ct);
             }
+
             try
             {
                 this.ArtifactsTask.Wait();
@@ -360,7 +368,7 @@ namespace DevAudit.AuditLibrary
             }
             else
             {
-                this.EvaluateConfigurationRulesTask = Task.Run(() => this.EvaluateProjectConfigurationRules(null), ct);
+                this.EvaluateConfigurationRulesTask = Task.Run(() => this.EvaluateProjectConfigurationRules(), ct);
             }
 
             try
@@ -392,6 +400,7 @@ namespace DevAudit.AuditLibrary
                 sw.Stop();
                 throw new Exception(string.Format("Parsing the default rules file {0} returned null.", rules_file.FullName));
             }
+            if (rules.ContainsKey(this.ApplicationId + "_default")) rules.Remove(this.ApplicationId + "_default");
             foreach (KeyValuePair<string, List<OSSIndexProjectConfigurationRule>> kv in rules)
             {
                 this.AddConfigurationRules(kv.Key, kv.Value);
@@ -465,12 +474,18 @@ namespace DevAudit.AuditLibrary
             return;
         }
 
-        protected Dictionary<OSSIndexProjectConfigurationRule, Tuple<bool, List<string>, string>> EvaluateProjectConfigurationRules(IEnumerable<OSSIndexProjectConfigurationRule> rules)
+        protected Dictionary<OSSIndexProjectConfigurationRule, Tuple<bool, List<string>, string>> EvaluateProjectConfigurationRules()
         {
+            Dictionary<OSSIndexProjectConfigurationRule, Tuple<bool, List<string>, string>> results = new Dictionary<OSSIndexProjectConfigurationRule, Tuple<bool, List<string>, string>>(this.ProjectConfigurationRules.Count());
+            if (this.ProjectConfigurationRules.Count == 0)
+            {
+                return results;
+            }
+
             this.AuditEnvironment.Status("Evaluating {0} configuration rule(s).", this.ProjectConfigurationRules.Sum(kv => kv.Value.Count()));
             Stopwatch sw = new Stopwatch();
             sw.Start();
-            Dictionary<OSSIndexProjectConfigurationRule, Tuple<bool, List<string>, string>> results = new Dictionary<OSSIndexProjectConfigurationRule, Tuple<bool, List<string>, string>>(this.ProjectConfigurationRules.Count());
+           
             object evaluate_rules = new object();
             this.ProjectConfigurationRules.Values.AsParallel().ForAll(pr =>
             {
@@ -614,6 +629,5 @@ namespace DevAudit.AuditLibrary
         private List<Task<KeyValuePair<OSSIndexProject, IEnumerable<OSSIndexProjectConfigurationRule>>>> _ConfigurationRulesTask;
         private object configuration_rules_lock = new object();
         #endregion
-
     }
 }

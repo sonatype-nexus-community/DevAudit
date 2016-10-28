@@ -36,8 +36,6 @@ namespace DevAudit.AuditLibrary
         public override string PackageManagerId { get { return "drupal"; } }
 
         public override string PackageManagerLabel { get { return "Drupal"; } }
-
-        public override OSSIndexHttpClient HttpClient { get; } = new OSSIndexHttpClient("1.1");
         #endregion
 
         #region Public properties

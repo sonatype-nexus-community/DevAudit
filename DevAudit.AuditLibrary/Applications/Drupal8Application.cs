@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -30,7 +31,6 @@ namespace DevAudit.AuditLibrary
         #endregion
 
         #region Overriden properties
-
         public override string ApplicationId { get { return "drupal8"; } }
 
         public override string ApplicationLabel { get { return "Drupal 8"; } }
@@ -38,17 +38,14 @@ namespace DevAudit.AuditLibrary
         public override string PackageManagerId { get { return "drupal"; } }
 
         public override string PackageManagerLabel { get { return "Drupal"; } }
-
-        public override OSSIndexHttpClient HttpClient { get; } = new OSSIndexHttpClient("1.1");
-
         #endregion
 
-        #region Overriden methods
+        #region Overriden protected methods
         protected override string GetVersion()
         {
             string core_version = "8.x";
-            this.Stopwatch.Reset();
-            this.Stopwatch.Start();
+            Stopwatch sw = new Stopwatch();
+            sw.Start();
             AuditFileInfo changelog = this.ApplicationFileSystemMap["ChangeLog"] as AuditFileInfo;
             string[] c = changelog.ReadAsText()?.Split(this.AuditEnvironment.LineTerminator.ToCharArray(), StringSplitOptions.RemoveEmptyEntries);
             if (c != null && c.Count() > 0)
@@ -62,11 +59,15 @@ namespace DevAudit.AuditLibrary
                 }
             }
             this.Version = core_version;
+            sw.Stop();
             return this.Version;
         }
+
         protected override Dictionary<string, IEnumerable<OSSIndexQueryObject>> GetModules()
         {
             if (this.Modules != null) return this.Modules;
+            Stopwatch sw = new Stopwatch();
+            sw.Start();
             var M = this.Modules = new Dictionary<string, IEnumerable<OSSIndexQueryObject>>();
             object modules_lock = new object();
             string core_version = this.Version;
@@ -149,8 +150,8 @@ namespace DevAudit.AuditLibrary
             }
             M.Add("all", all_modules);
             this.Modules = M;
-            this.Stopwatch.Stop();
-            this.AuditEnvironment.Success("Got {0} total {1} modules in {2} ms.", Modules["all"].Count(), this.ApplicationLabel, this.Stopwatch.ElapsedMilliseconds);
+            sw.Stop();
+            this.AuditEnvironment.Success("Got {0} total {1} modules in {2} ms.", Modules["all"].Count(), this.ApplicationLabel, sw.ElapsedMilliseconds);
             return Modules;
         }
 
@@ -164,25 +165,6 @@ namespace DevAudit.AuditLibrary
         {
             throw new NotImplementedException();
         }
-
-        public override Func<List<OSSIndexArtifact>, List<OSSIndexArtifact>> ArtifactsTransform { get; } = (artifacts) =>
-        {
-            List<OSSIndexArtifact> o = artifacts.ToList();
-            foreach (OSSIndexArtifact a in o)
-            {
-                if (a.Search == null || a.Search.Count() != 4)
-                {
-                    throw new Exception("Did not receive expected Search field properties for artifact name: " + a.PackageName + " id: " +
-                        a.PackageId + " project id: " + a.ProjectId + ".");
-                }
-                else
-                {
-                    OSSIndexQueryObject package = new OSSIndexQueryObject(a.Search[0], a.Search[1], a.Search[3], "");
-                    a.Package = package;
-                }
-            }
-            return o;
-        };
 
         public override bool IsConfigurationRuleVersionInServerVersionRange(string configuration_rule_version, string server_version)
         {

@@ -235,6 +235,8 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Analyzers\PHPAnalyzer.cs" />
+    <Compile Include="OSSIndexApiv2Result.cs" />
+    <Compile Include="OSSIndexApiv2Vulnerability.cs" />
     <Compile Include="Projects\Drupal8ModuleCodeProject.cs" />
     <Compile Include="Projects\PHPAuditCodeSourceUnit.cs" />
     <Compile Include="Projects\PHPAuditErrorSink.cs" />

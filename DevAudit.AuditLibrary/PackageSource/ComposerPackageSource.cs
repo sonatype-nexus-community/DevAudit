@@ -15,8 +15,6 @@ namespace DevAudit.AuditLibrary
 {
     public class ComposerPackageSource : PackageSource
     {
-        public override OSSIndexHttpClient HttpClient { get; } = new OSSIndexHttpClient("1.1");
-
         public override string PackageManagerId { get { return "composer"; } }
 
         public override string PackageManagerLabel { get { return "Composer"; } }

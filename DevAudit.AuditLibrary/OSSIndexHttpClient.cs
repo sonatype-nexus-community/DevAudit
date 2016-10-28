@@ -35,13 +35,14 @@ namespace DevAudit.AuditLibrary
                              
         public async Task<IEnumerable<OSSIndexArtifact>> SearchAsync(string package_manager, OSSIndexQueryObject package, Func<List<OSSIndexArtifact>, List<OSSIndexArtifact>> transform)
         {
+            string api_version = "1.1";
             using (HttpClient client = new HttpClient())
             {
                 client.BaseAddress = new Uri(@HOST);
                 client.DefaultRequestHeaders.Accept.Clear();
                 client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
                 client.DefaultRequestHeaders.Add("user-agent", "DevAudit");
-                HttpResponseMessage response = await client.GetAsync("v" + this.ApiVersion + "/search/artifact/" +
+                HttpResponseMessage response = await client.GetAsync("v" + api_version + "/search/artifact/" +
                     string.Format("{0}/{1}/{2}", package_manager, package.Name, package.Version, package.Vendor));
                 if (response.IsSuccessStatusCode)
                 {
@@ -66,13 +67,14 @@ namespace DevAudit.AuditLibrary
         public async Task<IEnumerable<OSSIndexArtifact>> SearchAsync(string package_manager, IEnumerable<OSSIndexQueryObject> packages, 
             Func<List<OSSIndexArtifact>, List<OSSIndexArtifact>> transform)
         {
+            string api_version = "1.1";
             using (HttpClient client = new HttpClient())
             {
                 client.BaseAddress = new Uri(@HOST);
                 client.DefaultRequestHeaders.Accept.Clear();
                 client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
                 client.DefaultRequestHeaders.Add("user-agent", "DevAudit");
-                HttpResponseMessage response = await client.PostAsync("v" + this.ApiVersion + "/search/artifact/" + package_manager,
+                HttpResponseMessage response = await client.PostAsync("v" + api_version + "/search/artifact/" + package_manager,
                     new StringContent(JsonConvert.SerializeObject(packages),Encoding.UTF8, "application/json"));
                 if (response.IsSuccessStatusCode)
                 {
@@ -96,6 +98,7 @@ namespace DevAudit.AuditLibrary
 
         public async Task<OSSIndexProject> GetProjectForIdAsync(string id)
         {
+            string api_version = "1.1";
             if (string.IsNullOrEmpty(id))throw new ArgumentNullException("Project id.");
             using (HttpClient client = new HttpClient())
             {
@@ -103,8 +106,7 @@ namespace DevAudit.AuditLibrary
                 client.DefaultRequestHeaders.Accept.Clear();
                 client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
                 client.DefaultRequestHeaders.Add("user-agent", "DevAudit");
-                HttpResponseMessage response = this.ApiVersion == "1.0" ? 
-                    await client.GetAsync(string.Format("v" + this.ApiVersion + "/scm/{0}", id)) : await client.GetAsync(string.Format("v" + this.ApiVersion + "/project/{0}", id));
+                HttpResponseMessage response = await client.GetAsync(string.Format("v" + api_version + "/project/{0}", id));
                 if (response.IsSuccessStatusCode)
                 {
                     string r = await response.Content.ReadAsStringAsync();
@@ -120,13 +122,14 @@ namespace DevAudit.AuditLibrary
         public async Task<List<OSSIndexPackageVulnerability>> GetPackageVulnerabilitiesAsync(string id)
         {
             if (string.IsNullOrEmpty(id)) throw new ArgumentNullException("Package id.");
+            string api_version = "1.1";
             using (HttpClient client = new HttpClient())
             {
                 client.BaseAddress = new Uri(@HOST);
                 client.DefaultRequestHeaders.Accept.Clear();
                 client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
                 client.DefaultRequestHeaders.Add("user-agent", "DevAudit");
-                HttpResponseMessage response = await client.GetAsync(string.Format("v" + this.ApiVersion + "/package/{0}/vulnerabilities", id)); 
+                HttpResponseMessage response = await client.GetAsync(string.Format("v" + api_version + "/package/{0}/vulnerabilities", id)); 
                     
                 if (response.IsSuccessStatusCode)
                 {
@@ -143,14 +146,15 @@ namespace DevAudit.AuditLibrary
 
         public async Task<IEnumerable<OSSIndexProjectVulnerability>> GetVulnerabilitiesForIdAsync(string id)
         {
+            string api_version = "1.1";
             using (HttpClient client = new HttpClient())
             {
                 client.BaseAddress = new Uri(@HOST);
                 client.DefaultRequestHeaders.Accept.Clear();
                 client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
                 client.DefaultRequestHeaders.Add("user-agent", "DevAudit");
-                HttpResponseMessage response = this.ApiVersion == "1.0" ?
-                    await client.GetAsync(string.Format("v" + this.ApiVersion + "/scm/{0}/vulnerabilities", id)) : await client.GetAsync(string.Format("v" + this.ApiVersion + "/project/{0}/vulnerabilities", id)); if (response.IsSuccessStatusCode)
+                HttpResponseMessage response = await client.GetAsync(string.Format("v" + api_version + "/project/{0}/vulnerabilities", id));
+                if (response.IsSuccessStatusCode)
                 {
                     string r = await response.Content.ReadAsStringAsync();
                     List<OSSIndexProjectVulnerability> result = JsonConvert.DeserializeObject<List<OSSIndexProjectVulnerability>>(r);
@@ -172,14 +176,15 @@ namespace DevAudit.AuditLibrary
 
         public async Task<IEnumerable<OSSIndexProjectConfigurationRule>> GetConfigurationRulesForIdAsync(string id)
         {
+            string api_version = "1.1";
             using (HttpClient client = new HttpClient())
             {
                 client.BaseAddress = new Uri(@HOST);
                 client.DefaultRequestHeaders.Accept.Clear();
                 client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
                 client.DefaultRequestHeaders.Add("user-agent", "DevAudit");
-                HttpResponseMessage response = this.ApiVersion == "1.0" ?
-                    await client.GetAsync(string.Format("v" + this.ApiVersion + "/scm/{0}/rules", id)) : await client.GetAsync(string.Format("v" + this.ApiVersion + "/project/{0}/rules", id)); if (response.IsSuccessStatusCode)
+                HttpResponseMessage response = await client.GetAsync(string.Format("v" + api_version + "/project/{0}/rules", id));
+                if (response.IsSuccessStatusCode)
                 {
                     string r = await response.Content.ReadAsStringAsync();
                     List<OSSIndexProjectConfigurationRule> result = JsonConvert.DeserializeObject<List<OSSIndexProjectConfigurationRule>>(r);
@@ -198,5 +203,38 @@ namespace DevAudit.AuditLibrary
                 }
             }
         }
+
+        public async Task<List<OSSIndexApiv2Result>> SearchVulnerabilitiesAsync(IEnumerable<OSSIndexQueryObject> packages,
+        Func<List<OSSIndexApiv2Result>, List<OSSIndexApiv2Result>> transform)
+        {
+            string server_api_version = this.ApiVersion;
+            using (HttpClient client = new HttpClient())
+            {
+                client.BaseAddress = new Uri(@HOST);
+                client.DefaultRequestHeaders.Accept.Clear();
+                client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+                client.DefaultRequestHeaders.Add("user-agent", "DevAudit");
+                HttpResponseMessage response = await client.PostAsync("v" + server_api_version + "/package",
+                    new StringContent(JsonConvert.SerializeObject(packages), Encoding.UTF8, "application/json"));
+                if (response.IsSuccessStatusCode)
+                {
+                    string r = await response.Content.ReadAsStringAsync();
+                    List<OSSIndexApiv2Result> results = JsonConvert.DeserializeObject<List<OSSIndexApiv2Result>>(r);
+                    if (results != null && results.Count > 0 && transform != null)
+                    {
+                        return transform(results);
+                    }
+                    else
+                    {
+                        return results;
+                    }
+                }
+                else
+                {
+                    throw new OSSIndexHttpException("packages", response.StatusCode, response.ReasonPhrase, response.RequestMessage);
+                }
+            }
+        }
+
     }
 }

@@ -16,8 +16,6 @@ namespace DevAudit.AuditLibrary
 {
     public class OneGetPackageSource : PackageSource
     {
-        public override OSSIndexHttpClient HttpClient { get; } = new OSSIndexHttpClient("1.1");
-
         public override string PackageManagerId { get { return "oneget"; } }
 
         public override string PackageManagerLabel { get { return "OneGet"; } }

@@ -9,8 +9,6 @@ namespace DevAudit.AuditLibrary
 {
     public class DpkgPackageSource : PackageSource
     {
-        public override OSSIndexHttpClient HttpClient { get; } = new OSSIndexHttpClient("1.1");
-
         public override string PackageManagerId { get { return "dpkg"; } }
 
         public override string PackageManagerLabel { get { return "dpkg"; } }

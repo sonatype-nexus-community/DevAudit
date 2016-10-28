@@ -139,6 +139,10 @@ namespace DevAudit.CommandLine
             }
             #endregion
 
+            if (ProgramOptions.UseApiv2)
+            {
+                audit_options.Add("UseApiv2", ProgramOptions.UseApiv2);
+            }
             if (ProgramOptions.SkipPackagesAudit)
             {
                 audit_options.Add("SkipPackagesAudit", ProgramOptions.SkipPackagesAudit);
@@ -355,17 +359,17 @@ namespace DevAudit.CommandLine
             else if (CodeProject == null && Server == null && Application != null) //Auditing an application
             {
                 AuditTarget.AuditResult aar = Application.Audit(CTS.Token);
-                AuditPackageSource(aar, out Exit);
+                AuditPackageSourcev1(aar, out Exit);
                 AuditApplication(aar, out Exit);
                 if (Application != null)
                 {
                     //Server.Dispose();
                 }
             }
-            else if (CodeProject == null && Server != null)
+            else if (CodeProject == null && Server != null) //Auditing server
             {
                 AuditTarget.AuditResult aar = Application.Audit(CTS.Token);
-                AuditPackageSource(aar, out Exit);
+                AuditPackageSourcev1(aar, out Exit);
                 AuditApplication(aar, out Exit);
                 if (Application != null)
                 {
@@ -547,7 +551,207 @@ namespace DevAudit.CommandLine
             }*/
             #endregion
 
-            PrintMessageLine("\nAudit Results\n=============");
+            PrintMessageLine(ConsoleColor.White, "\nAudit Results\n=============");
+            PrintMessageLine(ConsoleColor.White, "{0} total vulnerabilities found in {1} package source audit.\n", Source.Vulnerabilities.Sum(v => v.Value != null ? v.Value.Count(pv => pv.CurrentPackageVersionIsInRange) : 0), Source.PackageManagerLabel);
+            int packages_count = Source.Vulnerabilities.Count;
+            int packages_processed = 0;
+            foreach (var pv in Source.Vulnerabilities)
+            {
+                OSSIndexQueryObject package = pv.Key;
+                List<OSSIndexApiv2Vulnerability> package_vulnerabilities = pv.Value;
+                PrintMessage(ConsoleColor.White, "[{0}/{1}] {2} {3}", ++packages_processed, packages_count, package.Name, package.Version);
+                if (package_vulnerabilities.Count() == 0)
+                {
+                    PrintMessage(" no known vulnerabilities.");
+                }
+                else if (package_vulnerabilities.Count(v => v.CurrentPackageVersionIsInRange) == 0)
+                {
+                    PrintMessage(" {0} known vulnerabilities, 0 affecting current package version.", package_vulnerabilities.Count());
+                }
+                else
+                {
+                    PrintMessage(ConsoleColor.Red, " [VULNERABLE] ");
+                    PrintMessage(" {0} known vulnerabilities, ", package_vulnerabilities.Count());
+                    PrintMessageLine(ConsoleColor.Magenta, " {0} affecting installed version. ", package_vulnerabilities.Count(v => v.CurrentPackageVersionIsInRange));
+                    var matched_vulnerabilities = package_vulnerabilities.Where(v => v.CurrentPackageVersionIsInRange).ToList();
+                    int matched_vulnerabilities_count = matched_vulnerabilities.Count;
+                    int c = 0;
+                    matched_vulnerabilities.ForEach(v =>
+                    {
+                        PrintMessage(ConsoleColor.White, "--[{0}/{1}] ", ++c, matched_vulnerabilities_count);
+                        PrintMessageLine(ConsoleColor.Red, "{0} ", v.Title.Trim());
+                        PrintMessageLine(ConsoleColor.White, "  --Description: {0}", v.Description.Trim());
+                        PrintMessage(ConsoleColor.White, "  --Affected versions: ");
+                        PrintMessageLine(ConsoleColor.Red, "{0}", string.Join(", ", v.Versions.ToArray()));
+                    });
+                }
+                PrintMessageLine("");
+            }
+            Source.Dispose();
+            return;
+        }
+
+        static void AuditPackageSourcev1(AuditTarget.AuditResult ar, out AuditTarget.AuditResult exit)
+        {
+            exit = ar;
+            if (Spinner != null) StopSpinner();
+            if (ProgramOptions.ListPackages)
+            {
+                if (ar == AuditTarget.AuditResult.SUCCESS && Source.Packages.Count() > 0)
+                {
+                    int i = 1;
+                    foreach (OSSIndexQueryObject package in Source.Packages)
+                    {
+                        PrintMessageLine("[{0}/{1}] {2} {3} {4}", i++, Source.Packages.Count(), package.Name,
+                            package.Version, package.Vendor);
+                    }
+                    return;
+                }
+                else if (ar == AuditTarget.AuditResult.SUCCESS && Source.Packages.Count() == 0)
+                {
+                    PrintMessageLine("No packages found for {0}. ", Source.PackageManagerLabel);
+                    return;
+                }
+                else
+                {
+                    return;
+                }
+            }
+            else if (ProgramOptions.ListArtifacts)
+            {
+                if (ar == AuditTarget.AuditResult.SUCCESS && Source.Artifacts.Count() > 0)
+                {
+                    int i = 1;
+                    foreach (OSSIndexArtifact artifact in Source.Artifacts)
+                    {
+                        PrintMessage("[{0}/{1}] {2} ({3}) ", i++, Source.Artifacts.Count(), artifact.PackageName,
+                            !string.IsNullOrEmpty(artifact.Version) ? artifact.Version : string.Format("No version reported for package version {0}", artifact.Package.Version));
+                        if (!string.IsNullOrEmpty(artifact.ProjectId))
+                        {
+                            PrintMessage(ConsoleColor.Blue, artifact.ProjectId + "\n");
+                        }
+                        else
+                        {
+                            PrintMessage(ConsoleColor.DarkRed, "No project id found.\n");
+                        }
+                    }
+                    return;
+                }
+                else if (ar == AuditTarget.AuditResult.SUCCESS && Source.Artifacts.Count() == 0)
+                {
+                    PrintMessageLine("No artifacts found for {0}. ", Source.PackageManagerLabel);
+                    return;
+                }
+                else
+                {
+                    return;
+                }
+            }
+            if (ProgramOptions.SkipPackagesAudit || ProgramOptions.ListConfigurationRules)
+            {
+                return;
+            }
+
+            #region Cache stuff
+            /*
+            if (ProgramOptions.CacheDump)
+            {
+                Console.WriteLine("Dumping cache...");
+                Console.WriteLine("\nCurrently Cached Items\n===========");
+                int i = 0;
+                foreach (var v in Source.ProjectVulnerabilitiesCacheItems)
+                {
+                    Console.WriteLine("{0} {1} {2}", i++, v.Item1.Id, v.Item1.Name);
+
+                }
+                int k = 0;
+                Console.WriteLine("\nCache Keys\n==========");
+                foreach (var v in Source.ProjectVulnerabilitiesCacheKeys)
+                {
+                    Console.WriteLine("{0} {1}", k++, v);
+
+                }
+                Source.Dispose();
+                exit = ExitCodes.SUCCESS;
+                return;
+            }
+            if (Source.ArtifactsWithProjects.Count == 0)
+            {
+                PrintMessageLine("No found artifacts have associated projects.");
+                PrintMessageLine("No vulnerability data for your packages currently exists in OSS Index, exiting.");
+                exit = ExitCodes.SUCCESS;
+                return;
+            }
+            if (ProgramOptions.Cache)
+            {
+                PrintMessageLine("{0} projects have cached values.", Source.CachedArtifacts.Count());
+                PrintMessageLine("{0} cached project entries are stale and will be removed from cache.", Source.ProjectVulnerabilitiesExpiredCacheKeys.Count());
+            }
+            
+            
+            if (Source.ProjectVulnerabilitiesCacheEnabled)
+            {
+                foreach (Tuple<OSSIndexProject, IEnumerable<OSSIndexProjectVulnerability>> c in Source.ProjectVulnerabilitiesCacheItems)
+                {
+                    if (projects_processed++ == 0) Console.WriteLine("\nAudit Results\n=============");
+                    OSSIndexProject p = c.Item1;
+                    IEnumerable<OSSIndexProjectVulnerability> vulnerabilities = c.Item2;
+                    OSSIndexArtifact a = p.Artifact;
+                    PrintMessage(ConsoleColor.White, "[{0}/{1}] {2}", projects_processed, projects_count, a.PackageName);
+                    PrintMessage(ConsoleColor.DarkCyan, "[CACHED]");
+                    PrintMessage(ConsoleColor.White, " {0} ", a.Version);
+                    if (vulnerabilities.Count() == 0)
+                    {
+                        PrintMessageLine("No known vulnerabilities.");
+                    }
+                    else
+                    {
+                        List<OSSIndexProjectVulnerability> found_vulnerabilities = new List<OSSIndexProjectVulnerability>(vulnerabilities.Count());
+                        foreach (OSSIndexProjectVulnerability vulnerability in vulnerabilities.GroupBy(v => new { v.CVEId, v.Uri, v.Title, v.Summary }).SelectMany(v => v).ToList())
+                        {
+                            try
+                            {
+                                if (vulnerability.Versions.Any(v => !string.IsNullOrEmpty(v) && Source.IsVulnerabilityVersionInPackageVersionRange(v, a.Package.Version)))
+                                {
+                                    found_vulnerabilities.Add(vulnerability);
+                                }
+                            }
+                            catch (Exception e)
+                            {
+                                PrintErrorMessage("Error determining vulnerability version range {0} in package version range {1}: {2}.",
+                                    vulnerability.Versions.Aggregate((f, s) => { return f + "," + s; }), a.Package.Version, e.Message);
+                            }
+                        }
+                        //found_vulnerabilities = found_vulnerabilities.GroupBy(v => new { v.CVEId, v.Uri, v.Title, v.Summary }).SelectMany(v => v).ToList();
+                        if (found_vulnerabilities.Count() > 0)
+                        {
+                            Console.ForegroundColor = ConsoleColor.Red;
+                            Console.WriteLine("[VULNERABLE]");
+                        }
+                        Console.ForegroundColor = ConsoleColor.DarkGray;
+                        Console.Write("{0} distinct ({1} total) known vulnerabilities, ", vulnerabilities.GroupBy(v => new { v.CVEId, v.Uri, v.Title, v.Summary }).SelectMany(v => v).Count(),
+                            vulnerabilities.Count());
+                        Console.WriteLine("{0} affecting installed version.", found_vulnerabilities.Count());
+                        found_vulnerabilities.ForEach(v =>
+                        {
+                            Console.ForegroundColor = ConsoleColor.Red;
+                            if (!string.IsNullOrEmpty(v.CVEId)) Console.Write("{0} ", v.CVEId);
+                            Console.WriteLine(v.Title);
+                            Console.ResetColor();
+                            Console.WriteLine(v.Summary);
+                            Console.ForegroundColor = ConsoleColor.DarkGray;
+                            Console.Write("\nAffected versions: ");
+                            Console.ForegroundColor = ConsoleColor.White;
+                            Console.WriteLine(string.Join(", ", v.Versions.ToArray()));
+                        });
+                    }
+                    Console.ResetColor();
+                    projects_successful++;
+                }
+            }*/
+            #endregion
+
+            PrintMessageLine(ConsoleColor.White, "\nAudit Results\n=============");
             int projects_count = Source.ProjectVulnerabilities.Count;
             int projects_processed = 0;
             foreach (var pv in Source.ProjectVulnerabilities)
@@ -623,12 +827,12 @@ namespace DevAudit.CommandLine
                     return;
                 }
             }
-            else
+            else if (Application.ProjectConfigurationRules.Count() > 0)
             {
-                int projects_count = Server.ProjectConfigurationRules.Count, projects_processed = 0;
-                foreach (KeyValuePair<OSSIndexProject, IEnumerable<OSSIndexProjectConfigurationRule>> rule in Server.ProjectConfigurationRules)
+                int projects_count = Application.ProjectConfigurationRules.Count, projects_processed = 0;
+                foreach (KeyValuePair<OSSIndexProject, IEnumerable<OSSIndexProjectConfigurationRule>> rule in Application.ProjectConfigurationRules)
                 {
-                    IEnumerable<KeyValuePair<OSSIndexProjectConfigurationRule, Tuple<bool, List<string>, string>>> evals = Server.ProjectConfigurationRulesEvaluations.Where(pcre => pcre.Key.Project.Name == rule.Key.Name);
+                    IEnumerable<KeyValuePair<OSSIndexProjectConfigurationRule, Tuple<bool, List<string>, string>>> evals = Application.ProjectConfigurationRulesEvaluations.Where(pcre => pcre.Key.Project.Name == rule.Key.Name);
                     PrintMessage("[{0}/{1}] Project: ", ++projects_processed, projects_count);
                     PrintMessage(ConsoleColor.Blue, "{0}. ", rule.Key.Name);
                     int total_project_rules = rule.Value.Count();
@@ -669,8 +873,6 @@ namespace DevAudit.CommandLine
                     }
                 }
             }
-                    
-                
         }
 
         static void AuditCodeProject(AuditTarget.AuditResult ar, out AuditTarget.AuditResult exit)

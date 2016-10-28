@@ -49,20 +49,6 @@ namespace DevAudit.AuditLibrary
         public override string ServerId { get { return "sshd"; } }
 
         public override string ServerLabel { get { return "OpenSSH sshd server"; } }
-
-        public override string ApplicationId => this.ServerId;
-
-        public override string ApplicationLabel => this.ServerLabel;
-
-        public override string PackageManagerId { get { return "ossi"; } }
-
-        public override string PackageManagerLabel => this.ServerLabel;
-
-        public override Dictionary<string, string> OptionalDirectoryLocations { get; } = new Dictionary<string, string>();
-
-        public override Dictionary<string, string> OptionalFileLocations { get; } = new Dictionary<string, string>();
-
-        public override OSSIndexHttpClient HttpClient { get; } = new OSSIndexHttpClient("1.1");
         #endregion
 
         #region Overriden methods

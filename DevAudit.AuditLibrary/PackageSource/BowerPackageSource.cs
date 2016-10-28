@@ -12,8 +12,6 @@ namespace DevAudit.AuditLibrary
 {
     public class BowerPackageSource : PackageSource
     {
-        public override OSSIndexHttpClient HttpClient { get; } = new OSSIndexHttpClient("1.1");
-
         public override string PackageManagerId { get { return "bower"; } }
 
         public override string PackageManagerLabel { get { return "Bower"; } }

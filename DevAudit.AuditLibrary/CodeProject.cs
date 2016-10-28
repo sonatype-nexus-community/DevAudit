@@ -64,8 +64,6 @@ namespace DevAudit.AuditLibrary
 
         public override string PackageManagerId => this.PackageSource?.PackageManagerId;
 
-        public override OSSIndexHttpClient HttpClient { get; } = new OSSIndexHttpClient("1.1");
-
         public override string PackageManagerLabel => this.PackageSource?.PackageManagerLabel;
 
         public override Func<List<OSSIndexArtifact>, List<OSSIndexArtifact>> ArtifactsTransform => this.PackageSource?.ArtifactsTransform;

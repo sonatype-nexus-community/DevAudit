@@ -46,21 +46,6 @@ namespace DevAudit.AuditLibrary
         public override string ServerId { get { return "nginx"; } }
 
         public override string ServerLabel { get { return "Nginx"; } }
-
-        public override string ApplicationId { get { return "nginx"; } }
-
-        public override string ApplicationLabel { get { return "Nginx"; } }
-
-        public override Dictionary<string, string> OptionalDirectoryLocations { get; } = new Dictionary<string, string>();
-
-        public override Dictionary<string, string> OptionalFileLocations { get; } = new Dictionary<string, string>();
-
-        public override string PackageManagerId { get { return "ossi"; } }
-
-        public override string PackageManagerLabel { get { return "Nginx"; } }
-
-        public override OSSIndexHttpClient HttpClient { get; } = new OSSIndexHttpClient("1.1");
-
         #endregion
 
         #region Public properties

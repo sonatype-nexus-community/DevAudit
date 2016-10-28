@@ -14,9 +14,7 @@ using Microsoft.Win32;
 namespace DevAudit.AuditLibrary
 {
     public class MSIPackageSource : PackageSource
-    {
-        public override OSSIndexHttpClient HttpClient { get; } = new OSSIndexHttpClient("1.1");
-
+    { 
         public override string PackageManagerId { get { return "msi"; } }
 
         public override string PackageManagerLabel { get { return "MSI"; } }

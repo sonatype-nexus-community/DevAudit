@@ -16,8 +16,6 @@ namespace DevAudit.AuditLibrary
 {
     public class ChocolateyPackageSource : PackageSource
     {
-        public override OSSIndexHttpClient HttpClient { get; } = new OSSIndexHttpClient("1.1");
-
         public override string PackageManagerId { get { return "chocolatey"; } }
 
         public override string PackageManagerLabel { get { return "Chocolatey"; } }
