@@ -207,6 +207,8 @@
     <Compile Include="OSSIndexProject.cs" />
     <Compile Include="OSSIndexProjectVulnerability.cs" />
     <Compile Include="OSSIndexQueryObject.cs" />
+	<Compile Include="OSSIndexApiv2Result.cs" />
+    <Compile Include="OSSIndexApiv2Vulnerability.cs" />
     <Compile Include="PackageSource.cs" />
     <Compile Include="PackageSource\BowerPackageSource.cs" />
     <Compile Include="PackageSource\ChocolateyPackageSource.cs" />
