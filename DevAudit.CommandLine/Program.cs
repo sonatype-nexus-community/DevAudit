@@ -60,7 +60,7 @@ namespace DevAudit.CommandLine
         static AuditTarget.AuditResult Exit;
 
         static int Main(string[] args)
-        {
+        { 
             #region Setup console colors
             ConsoleMessageColors.Add(EventMessageType.INFO, Console.ForegroundColor);
             ConsoleMessageColors.Add(EventMessageType.PROGRESS, Console.ForegroundColor);
@@ -225,11 +225,11 @@ namespace DevAudit.CommandLine
                     }
                     else if (verb == "msi")
                     {
-                        Source = new MSIPackageSource(audit_options);
+                        Source = new MSIPackageSource(audit_options, EnvironmentMessageHandler);
                     }
                     else if (verb == "choco")
                     {
-                        Source = new ChocolateyPackageSource(audit_options);
+                        Source = new ChocolateyPackageSource(audit_options, EnvironmentMessageHandler);
                     }
                     else if (verb == "bower")
                     {
@@ -237,7 +237,7 @@ namespace DevAudit.CommandLine
                     }
                     else if (verb == "oneget")
                     {
-                        Source = new OneGetPackageSource(audit_options);
+                        Source = new OneGetPackageSource(audit_options, EnvironmentMessageHandler);
                     }
                     else if (verb == "composer")
                     {

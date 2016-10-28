@@ -188,9 +188,12 @@
   <ItemGroup>
     <Folder Include="Analyzers\PHP\" />
   </ItemGroup>
-	<ItemGroup>
-        <AnalyzerSourceFiles Include="Analyzers\**\*.*"/>
-    </ItemGroup>
+  <ItemGroup>
+	<AnalyzerSourceFiles Include="Analyzers\**\*.*"/>
+  </ItemGroup>
+    <ItemGroup>
+	<Examples Include="Examples\**\*.*"/>
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
     <PostBuildEvent></PostBuildEvent>
@@ -200,6 +203,7 @@
 	<Target Name="BeforeBuild">
   	</Target> -->
   <Target Name="AfterBuild">
-	<Copy SourceFiles="@(AnalyzerSourceFiles)" DestinationFiles="@(AnalyzerSourceFiles->'$(SolutionDir)DevAudit.CommandLine\bin\Debug\Analyzers\%(RecursiveDir)%(Filename)%(Extension)')" />  
+	<Copy SourceFiles="@(Examples)" DestinationFiles="@(Examples->'$(SolutionDir)%(RecursiveDir)%(Filename)%(Extension)')" />
+	<Copy SourceFiles="@(AnalyzerSourceFiles)" DestinationFiles="@(AnalyzerSourceFiles->'$(SolutionDir)DevAudit.CommandLine\bin\Debug\Analyzers\%(RecursiveDir)%(Filename)%(Extension)')" />	
   </Target>
 </Project>

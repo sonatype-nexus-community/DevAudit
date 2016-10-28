@@ -77,7 +77,7 @@ namespace DevAudit.AuditLibrary
             return vulnerability_version == package_version;
         }
 
-        public MSIPackageSource(Dictionary<string, object> package_source_options) : base(package_source_options) { }
+        public MSIPackageSource(Dictionary<string, object> package_source_options, EventHandler<EnvironmentEventArgs> message_handler) : base(package_source_options, message_handler) { }
 
     }
 }

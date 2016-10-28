@@ -208,6 +208,8 @@ namespace DevAudit.AuditLibrary
         Func<List<OSSIndexApiv2Result>, List<OSSIndexApiv2Result>> transform)
         {
             string server_api_version = this.ApiVersion;
+            IEnumerable<OSSIndexQueryObject> packages_for_query = packages.Select(p => new OSSIndexQueryObject(p.PackageManager, p.Name, p.Version, string.Empty, string.Empty));
+
             using (HttpClient client = new HttpClient())
             {
                 client.BaseAddress = new Uri(@HOST);
@@ -215,7 +217,7 @@ namespace DevAudit.AuditLibrary
                 client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
                 client.DefaultRequestHeaders.Add("user-agent", "DevAudit");
                 HttpResponseMessage response = await client.PostAsync("v" + server_api_version + "/package",
-                    new StringContent(JsonConvert.SerializeObject(packages), Encoding.UTF8, "application/json"));
+                    new StringContent(JsonConvert.SerializeObject(packages_for_query), Encoding.UTF8, "application/json"));
                 if (response.IsSuccessStatusCode)
                 {
                     string r = await response.Content.ReadAsStringAsync();

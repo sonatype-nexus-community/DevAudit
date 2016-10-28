@@ -1,5 +1,4 @@
 @echo off
-cd .\DevAudit.CommandLine\bin\Debug
-devaudit.exe %*
+set DEVAUDIT_DIR=%CD%
+.\DevAudit.CommandLine\bin\Debug\devaudit.exe %*
 :end
-cd ..\..\..

@@ -119,7 +119,7 @@ namespace DevAudit.AuditLibrary
             return packages;
         }
 
-        public OneGetPackageSource(Dictionary<string, object> package_source_options) : base(package_source_options) { }
+        public OneGetPackageSource(Dictionary<string, object> package_source_options, EventHandler<EnvironmentEventArgs> message_handler) : base(package_source_options, message_handler) { }
 
         public override bool IsVulnerabilityVersionInPackageVersionRange(string vulnerability_version, string package_version)
         {

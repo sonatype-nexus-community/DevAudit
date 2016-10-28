@@ -17,7 +17,7 @@ namespace DevAudit.AuditLibrary
     public abstract class PackageSource : AuditTarget, IDisposable
     {
         #region Constructors
-        public PackageSource(Dictionary<string, object> package_source_options, EventHandler<EnvironmentEventArgs> message_handler = null) : base(package_source_options, message_handler)
+        public PackageSource(Dictionary<string, object> package_source_options, EventHandler<EnvironmentEventArgs> message_handler) : base(package_source_options, message_handler)
         {
             this.PackageSourceOptions = this.AuditOptions;
             if (this.PackageSourceOptions.ContainsKey("File"))
@@ -228,7 +228,7 @@ namespace DevAudit.AuditLibrary
             List<OSSIndexApiv2Result> o = results;
             foreach (OSSIndexApiv2Result r in o)
             {
-                if (string.IsNullOrEmpty(r.PackageManager) || string.IsNullOrEmpty(r.PackageName) || string.IsNullOrEmpty(r.PackageVersion))
+                if (string.IsNullOrEmpty(r.PackageManager) || string.IsNullOrEmpty(r.PackageName))
                 {
                     throw new Exception("Did not receive expected fields for result with id: " + r.Id);
                 }
@@ -597,9 +597,14 @@ namespace DevAudit.AuditLibrary
                 {
                     try
                     {
-                        if (vulnerability.Versions.Any(version => !string.IsNullOrEmpty(version) && this.IsVulnerabilityVersionInPackageVersionRange(version, pv.Key.Version)))
+                        List<OSSIndexQueryObject> packages = this.Packages.Where(p => p.PackageManager == vulnerability.Package.PackageManager && p.Name == vulnerability.Package.Name).ToList();
+                        foreach (OSSIndexQueryObject p in packages)
                         {
-                            vulnerability.CurrentPackageVersionIsInRange = true;
+                            if (vulnerability.Versions.Any(version => !string.IsNullOrEmpty(version) && this.IsVulnerabilityVersionInPackageVersionRange(version, p.Version)))
+                            {
+                                vulnerability.CurrentPackageVersionIsInRange = true;
+                                vulnerability.Package = p;
+                            }
                         }
                     }
                     catch (Exception e)
