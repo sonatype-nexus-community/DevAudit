@@ -321,7 +321,7 @@ namespace DevAudit.AuditLibrary
             }
             catch (AggregateException ae)
             {
-                this.AuditEnvironment.Error("Exception thrown in GetPackages task.", ae.InnerException);
+                this.AuditEnvironment.Error(caller, ae, "Exception thrown in {0} method in GetPackages task.", ae.InnerException.TargetSite.Name);
                 return AuditResult.ERROR_SCANNING_PACKAGES;
             }
             
