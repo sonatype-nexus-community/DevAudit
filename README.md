@@ -22,10 +22,24 @@ DevAudit helps developers address at least 2 of the [OWASP Top 10](https://www.o
 
 * **PowerShell** support*. DevAudit can also be run inside the PowerShell system administration environment as cmdlets. Work on PowerShell support is paused at present but will resume in the near future with support for cross-platform Powershell both on Windows and Linux.
 
-Installation
-============
-Currently there are pre-built binaries for Windows. Linux support is in development.
+## Installation
+DevAudit can be installed by either: 
 
+1. Building from source.
+2. On Windows using the binary package releases installed via the MSI installer or Chocolatey package manager.
+3. On Linux pulling the DevAudit image from Docker Hub.
+
+### Installing from source on Linux
+
+1. Pre-requisites: You must have a recent version (4.4.* or higher) of Mono. Check that the existing Mono packages provided by your distro are at least for Mono version 4.4 and above, otherwise you may have to install Mono packages manually.  Installation instructions for the most recent packages provided by the Mono project for several major Linux distros is [here](http://www.mono-project.com/docs/getting-started/install/linux/)  
+
+2. Clone the DevAudit repository from https://github.com/OSSIndex/DevAudit.git
+
+3. Run the build.sh script in the root DevAudit directory. DevAudit should compile without any errors.
+
+4. Run ./devaudit --help and you should see the DevAudit version and help screen printed.
+
+### Installing from a binar
 Pre-built DevAudit binaries may be installed in one of three ways:
 
 1. MSI Installer
