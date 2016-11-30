@@ -1,27 +1,45 @@
-DevAudit
-==========
-Identify known vulnerabilities in development packages and applications (NuGet, MSI, Chocolatey, OneGet, Bower, Drupal)
+# DevAudit: Software Development Auditing
+![Screenshot of DevAudit package source audit](https://lh3.googleusercontent.com/tR98RwJops5G97vjm6-lXWHAxAhLA_pvan7qKF9wrxJttPt6C8VW9kGnruvPnUJ7q1jV2exWGH9w=w1382-h957-no)
 
-```
-Usage
+![Screenshot of DevAudit configuration audit](https://lh3.googleusercontent.com/ZLnNFiFH-4KSFhE9Tvwqwz1jYUKpaxwlUhL7Zg_4Xojhp465fo4_armzWZ6kCIqE7C31qmQpcfuG=w1440-h957-no)
+##About
+DevAudit is an open-source, cross-platform, multi-purpose security auditing tool targeted at developers and DevOps practitioners that detects security vulnerabilities at multiple levels of the solution stack. DevAudit provides a wide array of auditing capabilities that automate security practices and implementation of security auditing in the software development life-cycle. DevAudit can scan your operating system and application package dependencies, application server configurations, and application source code for potential vulnerabilities based on data aggregated by OSS Index from a wide array of sources and data feeds such as the NVD CVE data feed, Debian Security Tracker feed, Drupal Security Advisories, and several others. Support for other vulnerability databases like vulners.com is also planned.
 
-devaudit <package-source> [--file <file>]
+DevAudit helps developers address at least 2 of the [OWASP Top 10](https://www.owasp.org/index.php/Top_10_2013) risks to web application development: [A9 Using Components with Known Vulnerabilities](https://www.owasp.org/index.php/Top_10_2013-A9-Using_Components_with_Known_Vulnerabilities) and [A5 Security Misconfiguration](https://www.owasp.org/index.php/Top_10_2013-A5-Security_Misconfiguration) as well as risks classified by MITRE in the CWE dictionary such as [CWE-2 Environment](http://cwe.mitre.org/data/definitions/2.html). As development progress and its capabilities mature, DevAudit will be able to address the other risks on the OWASP Top 10 and CWE lists like Injection, XSS, and Sensitive Data Disclosure. With the focus on web and cloud and distributed multi-user applications, software development today is increasingly a complex affair with security issues and potential vulnerabilities arising at all levels of the stack developers rely on to deliver applications. The goal of DevAudit is to provide a platform for automating implementation of development security reviews and best practices at all levels of the solution stack from library package dependencies to application and server configuration to source code.  
 
-package-source is one of nuget, msi, chocolatey, bower, oneget.
---file <file>
-    For use with **nuget** and **bower** package sources. The file argument
-    specifies the dependency file to be processed. For NuGet this would be
-    "packages.config" and for bower a "bower.json" file.
+## Features
+* **Cross-platform with a Docker image also available.** DevAudit runs on Windows and Linux with *BSD and Mac support coming and ARM Linux a possibility. Only an up-to-date version of .NET or Mono is required to run DevAudit. A [DevAudit Docker image](https://hub.docker.com/r/ossindex/devaudit/) can also be pulled from Docker Hub and run on Linux without the need to install Mono.
 
--n, --non-interact
-    Run in non-interactive mode. Useful for when running with a script or
-    redirecting output to a file
-```
+* **CLI interface** DevAudit has a CLI interface with an option for non-interactive output and can be easily integrated into CI build pipelines or as post-build command-line tasks in developer IDEs. Work on integration of the core audit library into IDEs has already begun with the [Audit.Net](https://visualstudiogallery.msdn.microsoft.com/73493090-b219-452a-989e-e3d228023927?SRC=Home) Visual Studio extension.
 
-Installation
-============
-Currently there are pre-built binaries for Windows. Linux support is in development.
+* **Audit operating system and development package dependencies.** DevAudit audits packages installed with the dpkg and yum/rpm Linux package mangers, Chocolatey, Windows MSI and OneGet installed applications and packages on Windows, and the NuGet v2, Bower, and Composer package managers for .NET and nodejs and PHP development. Support for many more is coming.
 
+* **Audit application server configurations.** DevAudit audits the server configuration for OpenSSH sshd, Apache httpd, MySQL and Nginx with many more coming. Configuration auditing is based on the [Alpheus](https://github.com/allisterb/Alpheus) library and is done using full syntactic (and eventually semantic) analysis of the server configuration files. Server configuration rules are stored in YAML text files and can be customized to the needs of the developer. Support for many more servers and applications is coming.
+ 
+* **Audit application code by static analysis.** DevAudit currently supports static analysis of PHP7 code, and C# code via Roslyn. Analyzers reside in external script files and can be fully customized based on the needs of the developer. Support for many more languages and external static code analysis tools is coming.
+
+* **Remote auditing**. DevAudit can connect to remote hosts via SSH with identical auditing features available in remote environments as in local environments. Support for other remote protocols like WinRM is also planned.
+
+* **PowerShell** support*. DevAudit can also be run inside the PowerShell system administration environment as cmdlets. Work on PowerShell support is paused at present but will resume in the near future with support for cross-platform Powershell both on Windows and Linux.
+
+## Installation
+DevAudit can be installed by either: 
+
+1. Building from source.
+2. On Windows using the binary package releases installed via the MSI installer or Chocolatey package manager.
+3. On Linux pulling the DevAudit image from Docker Hub.
+
+### Installing from source on Linux
+
+1. Pre-requisites: You must have a recent version (4.4.* or higher) of Mono. Check that the existing Mono packages provided by your distro are at least for Mono version 4.4 and above, otherwise you may have to install Mono packages manually.  Installation instructions for the most recent packages provided by the Mono project for several major Linux distros is [here](http://www.mono-project.com/docs/getting-started/install/linux/)  
+
+2. Clone the DevAudit repository from https://github.com/OSSIndex/DevAudit.git
+
+3. Run the build.sh script in the root DevAudit directory. DevAudit should compile without any errors.
+
+4. Run ./devaudit --help and you should see the DevAudit version and help screen printed.
+
+### Installing from a binar
 Pre-built DevAudit binaries may be installed in one of three ways:
 
 1. MSI Installer
