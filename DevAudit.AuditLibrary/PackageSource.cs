@@ -44,7 +44,7 @@ namespace DevAudit.AuditLibrary
             {
                 this.SkipPackagesAudit = true;
             }
-            
+
             if (this.PackageSourceOptions.ContainsKey("UseApiv2"))
             {
                 this.UseApiv2 = true;
@@ -111,7 +111,7 @@ namespace DevAudit.AuditLibrary
         public bool ProjectVulnerabilitiesCacheEnabled { get; set; }
 
         public TimeSpan ProjectVulnerabilitiesCacheTTL { get; set; }
-        
+
         public IEnumerable<Tuple<OSSIndexProject, IEnumerable<OSSIndexProjectVulnerability>>> ProjectVulnerabilitiesCacheItems
         {
             get
@@ -123,7 +123,7 @@ namespace DevAudit.AuditLibrary
                         where DateTime.UtcNow.Subtract(GetProjectVulnerabilitiesCacheEntry(cache_key).Item2) < this.ProjectVulnerabilitiesCacheTTL
                         join artifact in ArtifactsWithProjects
                         on GetProjectVulnerabilitiesCacheEntry(cache_key).Item1 equals artifact.ProjectId
-                        select cache_key;                    
+                        select cache_key;
                     return
                         from pvc in this.ProjectVulnerabilitiesCache
                         join k in alive_cache_keys
@@ -138,7 +138,7 @@ namespace DevAudit.AuditLibrary
         }
 
         public bool ProjectVulnerabilitiesCacheDump { get; set; }
-        
+
         public IEnumerable<string> ProjectVulnerabilitiesCacheKeys
         {
             get
@@ -147,7 +147,7 @@ namespace DevAudit.AuditLibrary
             }
         }
         public IEnumerable<string> ProjectVulnerabilitiesExpiredCacheKeys { get; set; }
-                    
+
         public IEnumerable<OSSIndexArtifact> CachedArtifacts
         {
             get
@@ -193,12 +193,12 @@ namespace DevAudit.AuditLibrary
                 return this._ArtifactProject;
             }
         }
-        
+
         public IEnumerable<OSSIndexArtifact> Artifacts
         {
             get
             {
-                return this._ArtifactsForQuery.Values.SelectMany(a => a).Where(a => string.IsNullOrEmpty(a.Version) || (!string.IsNullOrEmpty(a.Version) 
+                return this._ArtifactsForQuery.Values.SelectMany(a => a).Where(a => string.IsNullOrEmpty(a.Version) || (!string.IsNullOrEmpty(a.Version)
                     && this.IsVulnerabilityVersionInPackageVersionRange(a.Version, a.Package.Version)));//.GroupBy(a => new { a.PackageName}).Select(d => d.First());
             }
         }
@@ -222,6 +222,17 @@ namespace DevAudit.AuditLibrary
             }
             return o.ToList();
         };
+
+        public virtual Func<List<OSSIndexQueryObject>, List<OSSIndexQueryObject>> VulnerabilitiesQueryTransform { get; } = (packages) =>
+        {
+            List<OSSIndexQueryObject> o = packages;
+            foreach (OSSIndexQueryObject p in o)
+            {
+                OSSIndexQueryObject package = new OSSIndexQueryObject(p.PackageManager, p.Name, "*", p.Group);
+            }
+            return o.ToList();
+        };
+    
 
         public virtual Func<List<OSSIndexApiv2Result>, List<OSSIndexApiv2Result>> VulnerabilitiesResultsTransform { get; } = (results) =>
         {
@@ -346,7 +357,7 @@ namespace DevAudit.AuditLibrary
                 this.AuditEnvironment.Error("Exception thrown in GetArtifacts task.", ae.InnerException);
                 return AuditResult.ERROR_SEARCHING_ARTIFACTS;
             }
-            if (this.ListArtifacts)
+            if (this.ListPackages || this.Packages.Count() == 0 || this.ListArtifacts)
             {
                 this.VulnerabilitiesTask = this.EvaluateVulnerabilitiesTask = Task.CompletedTask;
             }

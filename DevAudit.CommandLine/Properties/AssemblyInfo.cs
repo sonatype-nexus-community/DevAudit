@@ -7,10 +7,10 @@ using System.Runtime.InteropServices;
 // associated with an assembly.
 [assembly: AssemblyTitle("DevAudit.CommandLine")]
 [assembly: AssemblyDescription("DevAudit command-line interface.")]
-[assembly: AssemblyConfiguration("")]
+[assembly: AssemblyConfiguration("Debug")]
 [assembly: AssemblyCompany("Vör Security")]
 [assembly: AssemblyProduct("DevAudit")]
-[assembly: AssemblyCopyright("Copyright ©  2016")]
+[assembly: AssemblyCopyright("Copyright © 2016 Vör Security")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
@@ -32,5 +32,5 @@ using System.Runtime.InteropServices;
 // You can specify all the values or you can default the Build and Revision Numbers 
 // by using the '*' as shown below:
 // [assembly: AssemblyVersion("1.0.*")]
-[assembly: AssemblyVersion("0.1.12.2")]
-[assembly: AssemblyFileVersion("0.1.12.2")]
+[assembly: AssemblyVersion("0.1.12.3")]
+[assembly: AssemblyFileVersion("0.1.12.3")]

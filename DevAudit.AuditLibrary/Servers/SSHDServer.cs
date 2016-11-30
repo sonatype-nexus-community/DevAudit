@@ -54,6 +54,8 @@ namespace DevAudit.AuditLibrary
         #region Overriden methods
         protected override string GetVersion()
         {
+            Stopwatch sw = new Stopwatch();
+            sw.Start();
             this.AuditEnvironment.Status("Scanning {0} version.", this.ApplicationLabel);
             AuditEnvironment.ProcessExecuteStatus process_status;
             string process_output;
@@ -66,17 +68,20 @@ namespace DevAudit.AuditLibrary
                     process_output = process_error;
                 }
                 this.Version = process_output.Split("\n".ToCharArray(), StringSplitOptions.RemoveEmptyEntries)[1];
-                this.AuditEnvironment.Success("Got {0} version {1}.", this.ApplicationLabel, this.Version);
+                sw.Stop();
+                this.AuditEnvironment.Success("Got {0} version {1} in {2} ms.", this.ApplicationLabel, this.Version, sw.ElapsedMilliseconds);
                 return this.Version;
             }
             else if (!string.IsNullOrEmpty(process_error) && string.IsNullOrEmpty(process_output) && process_error.Contains("unknown option"))
             {
                 this.Version = process_error.Split("\n".ToCharArray(), StringSplitOptions.RemoveEmptyEntries)[1];
-                this.AuditEnvironment.Success("Got {0} version {1}.", this.ApplicationLabel, this.Version);
+                sw.Stop();
+                this.AuditEnvironment.Success("Got {0} version {1} in {2} ms.", this.ApplicationLabel, this.Version, sw.ElapsedMilliseconds);
                 return this.Version;
             }
             else
             {
+                sw.Stop();
                 throw new Exception(string.Format("Did not execute process {0} successfully. Error: {1}.", this.ApplicationBinary.Name, process_error));
             }
         }

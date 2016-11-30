@@ -2,7 +2,7 @@
 httpd:
     -   id: 1
         title: Httpd version and OS identity are not hidden(ServerSignature)
-        xpathtest: not(/Httpd/ServerSignature='Off') and not(/Httpd/ServerTokens='Prod')
+        xpathtest: not(/Httpd/ServerSignature='Off') | not(/Httpd/ServerTokens='Prod')
         summary: |
            When you install Apache with source or any other package installers like yum, it displays the version of your Apache web server installed on your server 
            with the Operating system name of your server in Errors. 

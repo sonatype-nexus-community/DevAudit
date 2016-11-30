@@ -204,11 +204,11 @@ namespace DevAudit.AuditLibrary
             }
         }
 
-        public async Task<List<OSSIndexApiv2Result>> SearchVulnerabilitiesAsync(IEnumerable<OSSIndexQueryObject> packages,
-        Func<List<OSSIndexApiv2Result>, List<OSSIndexApiv2Result>> transform)
+        public async Task<List<OSSIndexApiv2Result>> SearchVulnerabilitiesAsync(IEnumerable<OSSIndexQueryObject> packages, 
+            Func<List<OSSIndexApiv2Result>, List<OSSIndexApiv2Result>> transform)
         {
             string server_api_version = this.ApiVersion;
-            IEnumerable<OSSIndexQueryObject> packages_for_query = packages.Select(p => new OSSIndexQueryObject(p.PackageManager, p.Name, p.Version, string.Empty, string.Empty));
+            IEnumerable<OSSIndexQueryObject> packages_for_query = packages.Select(p => new OSSIndexQueryObject(p.PackageManager, p.Name, "*", string.Empty, p.Group));
 
             using (HttpClient client = new HttpClient())
             {

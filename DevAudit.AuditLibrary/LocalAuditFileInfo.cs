@@ -122,6 +122,8 @@ namespace DevAudit.AuditLibrary
         {
             this.LocalAuditEnvironment = env;
             this.file = new FileInfo(file_path);
+            this.Name = this.file.Name;
+            this.FullName = this.file.FullName;
         }
 
         public LocalAuditFileInfo(LocalEnvironment env, FileInfo f) : base(env, f.FullName)

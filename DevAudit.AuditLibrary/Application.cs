@@ -481,11 +481,9 @@ namespace DevAudit.AuditLibrary
             {
                 return results;
             }
-
             this.AuditEnvironment.Status("Evaluating {0} configuration rule(s).", this.ProjectConfigurationRules.Sum(kv => kv.Value.Count()));
             Stopwatch sw = new Stopwatch();
             sw.Start();
-           
             object evaluate_rules = new object();
             this.ProjectConfigurationRules.Values.AsParallel().ForAll(pr =>
             {

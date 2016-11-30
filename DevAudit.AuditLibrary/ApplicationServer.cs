@@ -55,11 +55,6 @@ namespace DevAudit.AuditLibrary
         #endregion
 
         #region Public methods
-        public override AuditResult Audit(CancellationToken ct)
-        {
-            this.GetVersion();
-            return base.Audit(ct);
-        }
         #endregion
 
         #region Protected methods

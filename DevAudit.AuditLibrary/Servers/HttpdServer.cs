@@ -35,10 +35,19 @@ namespace DevAudit.AuditLibrary
 
         protected override IConfiguration GetConfiguration()
         {
-            Httpd httpd = new Httpd(this.ConfigurationFile);
-            if (httpd.ParseSucceded)
-            {
-                this.Configuration = httpd;
+            if (this.Configuration == null)
+            { 
+                Httpd httpd = new Httpd(this.ConfigurationFile);
+                if (httpd.ParseSucceded)
+                {
+                    this.Configuration = httpd;
+                }
+                else
+                {
+                    this.AuditEnvironment.Error("Failed to parse {0} configuration file {1}.", this.ApplicationLabel, this.ConfigurationFile.FullName);
+                    if (httpd.LastException != null) this.AuditEnvironment.Error(httpd.LastException);
+                    throw new Exception("Exception thrown parsing configuration file.", httpd.LastException);
+                }
             }
             return this.Configuration;
         }

@@ -316,7 +316,7 @@ namespace DevAudit.CommandLine
                 {
                     if (Stopwatch.IsRunning) Stopwatch.Stop();
                     Console.WriteLine("No audit target specified.");
-                    return (int) Exit;
+                    return (int) ExitApplication(Exit);
                 }
                 else if (AuditLibraryException != null && AuditLibraryException is ArgumentException)
                 {
@@ -341,12 +341,12 @@ namespace DevAudit.CommandLine
                     {
                         PrintErrorMessage(AuditLibraryException);
                     }
-                    return (int) Exit;
+                    return (int)ExitApplication(Exit);
                 }
                 else
                 {
                     PrintErrorMessage(AuditLibraryException);
-                    return (int)Exit;
+                    return (int)ExitApplication(Exit);
                 }
             }
             #endregion
@@ -356,7 +356,15 @@ namespace DevAudit.CommandLine
             {
                 AuditTarget.AuditResult ar = Source.Audit(CTS.Token);
                 if (Stopwatch.IsRunning) Stopwatch.Stop();
-                AuditPackageSource(ar, out Exit);
+                if (ar != AuditTarget.AuditResult.SUCCESS)
+                {
+                    Exit = ar;
+                }
+                else
+                {
+                    PrintPackageSourceAuditResults(ar, out Exit);
+                }
+
                 if (Source != null)
                 {
                     Source.Dispose();
@@ -367,19 +375,33 @@ namespace DevAudit.CommandLine
             {
                 AuditTarget.AuditResult aar = Application.Audit(CTS.Token);
                 if (Stopwatch.IsRunning) Stopwatch.Stop();
-                AuditPackageSourcev1(aar, out Exit);
-                AuditApplication(aar, out Exit);
+                if (aar != AuditTarget.AuditResult.SUCCESS)
+                {
+                    Exit = aar;
+                }
+                else
+                {
+                    PrintPackageSourcev1AuditResults(aar, out Exit);
+                    PrintApplicationAuditResults(aar, out Exit);
+                }
                 if (Application != null)
                 {
-                    //Server.Dispose();
+                    Application.Dispose();
                 }
             }
             else if (CodeProject == null && Server != null) //Auditing server
             {
                 AuditTarget.AuditResult aar = Application.Audit(CTS.Token);
                 if (Stopwatch.IsRunning) Stopwatch.Stop();
-                AuditPackageSourcev1(aar, out Exit);
-                AuditApplication(aar, out Exit);
+                if (aar != AuditTarget.AuditResult.SUCCESS)
+                {
+                    Exit = aar;
+                }
+                else
+                {
+                    PrintPackageSourcev1AuditResults(aar, out Exit);
+                    PrintApplicationAuditResults(aar, out Exit);
+                }
                 if (Application != null)
                 {
                     //Server.Dispose();
@@ -389,19 +411,32 @@ namespace DevAudit.CommandLine
             {
                 AuditTarget.AuditResult cpar = CodeProject.Audit(CTS.Token);
                 if (Stopwatch.IsRunning) Stopwatch.Stop();
-                AuditCodeProject(cpar, out Exit);
+                if (cpar != AuditTarget.AuditResult.SUCCESS)
+                {
+                    Exit = cpar;
+                }
+                else
+                {
+                    PrintCodeProjectAuditResults(cpar, out Exit);
+                }
                 if (CodeProject != null)
                 {
                     CodeProject.Dispose();
                 }
-            }
-            if (!ProgramOptions.NonInteractive) Console.CursorVisible = true;
-            return (int) Exit;
 
+            }
+            return (int)ExitApplication(Exit);
         }
 
         #region Private methods
-        static void AuditPackageSource(AuditTarget.AuditResult ar, out AuditTarget.AuditResult exit)
+        static int ExitApplication(AuditTarget.AuditResult exit)
+        {
+            if (Spinner != null) StopSpinner();
+            if (!ProgramOptions.NonInteractive) Console.CursorVisible = true;
+            return (int) exit;
+        }
+
+        static void PrintPackageSourceAuditResults(AuditTarget.AuditResult ar, out AuditTarget.AuditResult exit)
         {
             exit = ar;
             if (Spinner != null) StopSpinner();
@@ -410,7 +445,7 @@ namespace DevAudit.CommandLine
                 if (ar == AuditTarget.AuditResult.SUCCESS && Source.Packages.Count() > 0)
                 {
                     int i = 1;
-                    foreach (OSSIndexQueryObject package in Source.Packages)
+                    foreach (OSSIndexQueryObject package in Source.Packages.OrderBy(p => p.Name))
                     {
                         PrintMessageLine("[{0}/{1}] {2} {3} {4}", i++, Source.Packages.Count(), package.Name,
                             package.Version, package.Vendor);
@@ -561,28 +596,29 @@ namespace DevAudit.CommandLine
             }*/
             #endregion
 
+            int total_vulnerabilities = Source.Vulnerabilities.Sum(v => v.Value != null ? v.Value.Count(pv => pv.CurrentPackageVersionIsInRange) : 0);
             PrintMessageLine(ConsoleColor.White, "\nPackage Source Audit Results\n============================");
-            PrintMessageLine(ConsoleColor.White, "{0} total vulnerabilities found in {1} package source audit. Total time for audit: {2} ms.\n", Source.Vulnerabilities.Sum(v => v.Value != null ? v.Value.Count(pv => pv.CurrentPackageVersionIsInRange) : 0), Source.PackageManagerLabel, Stopwatch.ElapsedMilliseconds);
+            PrintMessageLine(ConsoleColor.White, "{0} total vulnerabilit{3} found in {1} package source audit. Total time for audit: {2} ms.\n", total_vulnerabilities, Source.PackageManagerLabel, Stopwatch.ElapsedMilliseconds, total_vulnerabilities > 1 ? "ies" : "y");
             int packages_count = Source.Vulnerabilities.Count;
             int packages_processed = 0;
-            foreach (var pv in Source.Vulnerabilities)
+            foreach (var pv in Source.Vulnerabilities.OrderByDescending(sv => sv.Value.Count(v => v.CurrentPackageVersionIsInRange)))
             {
                 OSSIndexQueryObject package = pv.Key;
                 List<OSSIndexApiv2Vulnerability> package_vulnerabilities = pv.Value;
-                PrintMessage(ConsoleColor.White, "[{0}/{1}] {2} {3}", ++packages_processed, packages_count, package.Name, package.Version);
+                PrintMessage(ConsoleColor.White, "[{0}/{1}] {2}", ++packages_processed, packages_count, package.Name);
                 if (package_vulnerabilities.Count() == 0)
                 {
                     PrintMessage(" no known vulnerabilities.");
                 }
                 else if (package_vulnerabilities.Count(v => v.CurrentPackageVersionIsInRange) == 0)
                 {
-                    PrintMessage(" {0} known vulnerabilities, 0 affecting current package version.", package_vulnerabilities.Count());
+                    PrintMessage(" {0} known vulnerabilit{1}, 0 affecting installed package version(s).", package_vulnerabilities.Count(), package_vulnerabilities.Count() > 1 ? "ies" : "y");
                 }
                 else
                 {
                     PrintMessage(ConsoleColor.Red, " [VULNERABLE] ");
                     PrintMessage(" {0} known vulnerabilities, ", package_vulnerabilities.Count());
-                    PrintMessageLine(ConsoleColor.Magenta, " {0} affecting installed version. ", package_vulnerabilities.Count(v => v.CurrentPackageVersionIsInRange));
+                    PrintMessageLine(ConsoleColor.Magenta, " {0} affecting installed package version(s): [{1}]", package_vulnerabilities.Count(v => v.CurrentPackageVersionIsInRange), package_vulnerabilities.Where(v => v.CurrentPackageVersionIsInRange).Select(v => v.Package.Version).Distinct().Aggregate((s1, s2) => s1 + "," + s2));
                     var matched_vulnerabilities = package_vulnerabilities.Where(v => v.CurrentPackageVersionIsInRange).ToList();
                     int matched_vulnerabilities_count = matched_vulnerabilities.Count;
                     int c = 0;
@@ -601,7 +637,7 @@ namespace DevAudit.CommandLine
             return;
         }
 
-        static void AuditPackageSourcev1(AuditTarget.AuditResult ar, out AuditTarget.AuditResult exit)
+        static void PrintPackageSourcev1AuditResults(AuditTarget.AuditResult ar, out AuditTarget.AuditResult exit)
         {
             if (Stopwatch.IsRunning) Stopwatch.Stop();
             exit = ar;
@@ -810,7 +846,7 @@ namespace DevAudit.CommandLine
             return;
         }
 
-        static void AuditApplication(AuditTarget.AuditResult ar, out AuditTarget.AuditResult exit)
+        static void PrintApplicationAuditResults(AuditTarget.AuditResult ar, out AuditTarget.AuditResult exit)
         {
             if (Stopwatch.IsRunning) Stopwatch.Stop();
             exit = ar;
@@ -850,7 +886,7 @@ namespace DevAudit.CommandLine
                     PrintMessage("[{0}/{1}] Project: ", ++projects_processed, projects_count);
                     PrintMessage(ConsoleColor.Blue, "{0}. ", rule.Key.Name);
                     int total_project_rules = rule.Value.Count();
-                    int succeded_project_rules = evals.Count(ev => ev.Value.Item1);
+                    int succeded_project_rules = evals.Count() > 0 ? evals.Count(ev => ev.Value.Item1) : 0;
                     int processed_project_rules = 0;
                     PrintMessage("{0} rule(s). ", total_project_rules);
                     if (succeded_project_rules > 0)
@@ -894,7 +930,7 @@ namespace DevAudit.CommandLine
             }
         }
 
-        static void AuditCodeProject(AuditTarget.AuditResult ar, out AuditTarget.AuditResult exit)
+        static void PrintCodeProjectAuditResults(AuditTarget.AuditResult ar, out AuditTarget.AuditResult exit)
         {
             exit = ar;
             if (ar == AuditTarget.AuditResult.ERROR_SCANNING_WORKSPACE)

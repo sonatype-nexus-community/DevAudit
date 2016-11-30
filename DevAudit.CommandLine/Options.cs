@@ -157,8 +157,12 @@ namespace DevAudit.CommandLine
         [HelpOption]
         public string GetUsage()
         {
+            //DevAudit.AuditLibrary.
+            //BaseSentenceBuilder b = BaseSentenceBuilder.CreateBuiltIn();
+            //HelpText help_text = new HelpText(b, "")
+            
             return HelpText.AutoBuild(this,
-              (HelpText current) => HelpText.DefaultParsingErrorsHandler(this, current));
+              (HelpText current) => HelpText.DefaultParsingErrorsHandler(this, current), true);
         }
     }
 }

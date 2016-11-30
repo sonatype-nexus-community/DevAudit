@@ -54,7 +54,7 @@ namespace DevAudit.AuditLibrary
                     select new OSSIndexQueryObject("msi", (string)k.OpenSubKey(sn).GetValue("DisplayName"),
                         (string)k.OpenSubKey(sn).GetValue("DisplayVersion"), (string)k.OpenSubKey(sn).GetValue("Publisher"));
                 packages.AddRange(packages_query.Where(p => !string.IsNullOrEmpty(p.Name)));
-                return packages.GroupBy(p => new { p.Name, p.Version, p.Vendor }).SelectMany(p => p).ToList();
+                return packages.GroupBy(p => new { p.Name, p.Version, p.Vendor }).Select(p => p.First()).ToList();
             }
 
             catch (SecurityException se)
