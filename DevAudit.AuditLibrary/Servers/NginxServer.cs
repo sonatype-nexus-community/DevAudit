@@ -109,7 +109,7 @@ namespace DevAudit.AuditLibrary
         
         public override IEnumerable<OSSIndexQueryObject> GetPackages(params string[] o)
         {
-            return this.Modules["nginx"];
+            return this.GetModules()["nginx"];
         }
 
         public override bool IsVulnerabilityVersionInPackageVersionRange(string vulnerability_version, string package_version)

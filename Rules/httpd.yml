@@ -37,4 +37,15 @@ httpd:
         urls:
             -   http://www.tecmint.com/apache-security-tips/
 
+    -   id: 4
+        title:  Run Apache as separate user and group (User Group)
+        xpathtest: not(boolean(/Httpd/User)) or not(boolean(/Httpd/Group))
+        summary: |
+            With a default installation Apache runs its process with user nobody or daemon. 
+            For security reasons it is recommended to run Apache in its own non-privileged account. For example: http-web. 
+        resolution: |
+            Add a directive like User http-web to your configuration file.
+        urls:
+            -   http://www.tecmint.com/apache-security-tips/
+
    

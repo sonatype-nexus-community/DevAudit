@@ -260,6 +260,7 @@ namespace DevAudit.CommandLine
                     {
                         Server = new MySQLServer(audit_options, EnvironmentMessageHandler);
                         Application = Server as Application;
+                        Source = Server as PackageSource;
                     }
                     else if (verb == "sshd")
                     {
@@ -271,11 +272,13 @@ namespace DevAudit.CommandLine
                     {
                         Server = new HttpdServer(audit_options, EnvironmentMessageHandler);
                         Application = Server as Application;
+                        Source = Server as PackageSource;
                     }
                     else if (verb == "nginx")
                     {
                         Server = new NginxServer(audit_options, EnvironmentMessageHandler);
                         Application = Server as Application;
+                        Source = Server as PackageSource;
                     }
                     else if (verb == "netfx")
                     {
@@ -381,7 +384,7 @@ namespace DevAudit.CommandLine
                 }
                 else
                 {
-                    PrintPackageSourcev1AuditResults(aar, out Exit);
+                    PrintPackageSourceAuditResults(aar, out Exit);
                     PrintApplicationAuditResults(aar, out Exit);
                 }
                 if (Application != null)
@@ -399,7 +402,7 @@ namespace DevAudit.CommandLine
                 }
                 else
                 {
-                    PrintPackageSourcev1AuditResults(aar, out Exit);
+                    PrintPackageSourceAuditResults(aar, out Exit);
                     PrintApplicationAuditResults(aar, out Exit);
                 }
                 if (Application != null)
@@ -598,7 +601,7 @@ namespace DevAudit.CommandLine
 
             int total_vulnerabilities = Source.Vulnerabilities.Sum(v => v.Value != null ? v.Value.Count(pv => pv.CurrentPackageVersionIsInRange) : 0);
             PrintMessageLine(ConsoleColor.White, "\nPackage Source Audit Results\n============================");
-            PrintMessageLine(ConsoleColor.White, "{0} total vulnerabilit{3} found in {1} package source audit. Total time for audit: {2} ms.\n", total_vulnerabilities, Source.PackageManagerLabel, Stopwatch.ElapsedMilliseconds, total_vulnerabilities > 1 ? "ies" : "y");
+            PrintMessageLine(ConsoleColor.White, "{0} total vulnerabilit{3} found in {1} package source audit. Total time for audit: {2} ms.\n", total_vulnerabilities, Source.PackageManagerLabel, Stopwatch.ElapsedMilliseconds, total_vulnerabilities == 0 || total_vulnerabilities > 1 ? "ies" : "y");
             int packages_count = Source.Vulnerabilities.Count;
             int packages_processed = 0;
             foreach (var pv in Source.Vulnerabilities.OrderByDescending(sv => sv.Value.Count(v => v.CurrentPackageVersionIsInRange)))
@@ -882,7 +885,7 @@ namespace DevAudit.CommandLine
                 int projects_count = Application.ProjectConfigurationRules.Count, projects_processed = 0;
                 foreach (KeyValuePair<OSSIndexProject, IEnumerable<OSSIndexProjectConfigurationRule>> rule in Application.ProjectConfigurationRules)
                 {
-                    IEnumerable<KeyValuePair<OSSIndexProjectConfigurationRule, Tuple<bool, List<string>, string>>> evals = Application.ProjectConfigurationRulesEvaluations.Where(pcre => pcre.Key.Project.Name == rule.Key.Name);
+                    IEnumerable<KeyValuePair<OSSIndexProjectConfigurationRule, Tuple<bool, List<string>, string>>> evals = Application.ProjectConfigurationRulesEvaluations.Where(pcre => pcre.Key.Project != null && pcre.Key.Project.Name == rule.Key.Name);
                     PrintMessage("[{0}/{1}] Project: ", ++projects_processed, projects_count);
                     PrintMessage(ConsoleColor.Blue, "{0}. ", rule.Key.Name);
                     int total_project_rules = rule.Value.Count();

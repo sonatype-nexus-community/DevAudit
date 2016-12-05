@@ -86,15 +86,16 @@ namespace DevAudit.AuditLibrary
             }
         }
 
+        public override IEnumerable<OSSIndexQueryObject> GetPackages(params string[] o)
+        {
+            return this.GetModules()["mysqld"];
+        }
+
         public override bool IsConfigurationRuleVersionInServerVersionRange(string configuration_rule_version, string server_version)
         {
             return (configuration_rule_version == server_version) || configuration_rule_version == ">0";
         }
         
-        public override IEnumerable<OSSIndexQueryObject> GetPackages(params string[] o)
-        {
-            return this.Modules["mysqld"];
-        }
 
         public override bool IsVulnerabilityVersionInPackageVersionRange(string vulnerability_version, string package_version)
         {

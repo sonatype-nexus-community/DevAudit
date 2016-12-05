@@ -436,7 +436,14 @@ namespace DevAudit.AuditLibrary
             {
                 sw.Stop();
             }
-            this.AuditEnvironment.Success("Found {0} artifacts on OSS Index in {1} ms.", artifact_count, sw.ElapsedMilliseconds);
+            if (artifact_count > 0)
+            {
+                this.AuditEnvironment.Success("Found {0} artifacts on OSS Index in {1} ms.", artifact_count, sw.ElapsedMilliseconds);
+            }
+            else
+            {
+                this.AuditEnvironment.Warning("Found 0 artifacts on OSS Index in {0} ms.", sw.ElapsedMilliseconds);
+            }
             return new Tuple<int, int>(package_count, artifact_count);
         }
 
@@ -535,8 +542,16 @@ namespace DevAudit.AuditLibrary
             {
                 sw.Stop();
             }
-            this.AuditEnvironment.Success("Found {0} vulnerabilities for {1} packages on OSS Index in {2} ms.", this.Vulnerabilities
-                .Sum(pv => pv.Value.Count()), this.Packages.Count(), sw.ElapsedMilliseconds);
+            if (this.Vulnerabilities.Sum(pv => pv.Value.Count()) > 0)
+            {
+                this.AuditEnvironment.Success("Found {0} vulnerabilities for {1} package(s) on OSS Index in {2} ms.", this.Vulnerabilities
+                    .Sum(pv => pv.Value.Count()), this.Packages.Count(), sw.ElapsedMilliseconds);
+            }
+            else
+            {
+                this.AuditEnvironment.Warning("Found 0 vulnerabilities for {0} package(s) on OSS Index in {1} ms.", 
+                    this.Packages.Count(), sw.ElapsedMilliseconds);
+            }
             return;
 
         }

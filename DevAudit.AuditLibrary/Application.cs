@@ -306,16 +306,16 @@ namespace DevAudit.AuditLibrary
                 this.AuditEnvironment.Error("Exception thrown in GetArtifacts task.", ae.InnerException);
                 return AuditResult.ERROR_SEARCHING_ARTIFACTS;
             }
-            if (this.ListArtifacts || this.ListPackages || this.ListConfigurationRules || this.ArtifactsWithProjects.Count == 0)
+            if (this.ListPackages || this.Packages.Count() == 0 || this.ListArtifacts || this.ListConfigurationRules)
             {
                 this.VulnerabilitiesTask = this.EvaluateVulnerabilitiesTask = Task.CompletedTask; ;
             }
             else
             {
-                this.VulnerabilitiesTask = Task.Run(() => this.GetVulnerabilties(), ct);
+                this.VulnerabilitiesTask = Task.Run(() => this.GetVulnerabiltiesApiv2(), ct);
             }
 
-            if (this.ListPackages || this.ListArtifacts || this.SkipPackagesAudit || this.OnlyLocalRules || this.ArtifactsWithProjects.Count() == 0)
+            if (this.ListPackages || this.Packages.Count() == 0 || this.ListArtifacts || this.SkipPackagesAudit || this.OnlyLocalRules || this.ArtifactsWithProjects.Count() == 0)
             {
                 this.GetConfigurationRulesTask = Task.CompletedTask;
             }
