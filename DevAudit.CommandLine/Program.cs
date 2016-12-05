@@ -854,6 +854,10 @@ namespace DevAudit.CommandLine
             if (Stopwatch.IsRunning) Stopwatch.Stop();
             exit = ar;
             if (Spinner != null) StopSpinner();
+            if (ProgramOptions.ListPackages || ProgramOptions.ListArtifacts)
+            {
+                return;
+            }
             if (ProgramOptions.ListConfigurationRules)
             {
                 if (ar == AuditTarget.AuditResult.SUCCESS && Application.ProjectConfigurationRules.Count() > 0)
