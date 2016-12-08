@@ -1,15 +1,14 @@
 ﻿---
 mysql:
     -   id: 1
-        title: Just a placeholder
-        xpathtest: not(/Httpd/ServerSignature='Off') and not(/Httpd/ServerTokens='Prod')
+        title: mysqld runs as the root user
+        xpathtest: /MySQL/mysqld/user='root'
         summary: |
-           When you install Apache with source or any other package installers like yum, it displays the version of your Apache web server installed on your server 
-           with the Operating system name of your server in Errors. 
-           It also shows the information about Apache modules installed in your server.
+           mysqld can (and should) be run as an ordinary, unprivileged user instead. 
+           You can create a separate Unix account named mysql to make everything even more secure. Use this account only for administering MySQL.           
         resolution: |
             Add ServerSignature=Off directive to configuration value. 
             Add ServerTokens=Prod directive to configuration file.
         urls:
-            -   http://www.tecmint.com/apache-security-tips/
-       
+            -   https://dev.mysql.com/doc/refman/5.7/en/security-against-attack.html
+

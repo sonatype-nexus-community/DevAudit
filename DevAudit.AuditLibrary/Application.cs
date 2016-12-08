@@ -512,9 +512,14 @@ namespace DevAudit.AuditLibrary
             {
                 throw new ArgumentOutOfRangeException("paths", "paths must be non-null or at least length 1.");
             }
+            else if (paths.Count() == 1 && paths[0].StartsWith("@"))
+            {
+                string p = paths[0].Substring(1);
+                paths = new string[] { "@",  p};
+            }
             if (this.AuditEnvironment.OS.Platform == PlatformID.Unix || this.AuditEnvironment.OS.Platform == PlatformID.MacOSX)
             {
-                List<string> paths_list = new List<string>(paths.Length + 1);
+                List<string> paths_list = new List<string>(paths.Length + 1);                
                 if (paths.First() == "@")
                 {
                     paths[0] = this.RootDirectory.FullName == "/" ? "" : this.RootDirectory.FullName;

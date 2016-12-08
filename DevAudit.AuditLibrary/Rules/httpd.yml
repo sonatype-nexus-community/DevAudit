@@ -39,7 +39,7 @@ httpd:
 
     -   id: 4
         title:  Run Apache as separate user and group (User Group)
-        xpathtest: not(boolean(/Httpd/User)) or not(boolean(/Httpd/Group))
+        xpathtest: not(boolean(/Httpd/User)) and not(boolean(/Httpd/Group))
         summary: |
             With a default installation Apache runs its process with user nobody or daemon. 
             For security reasons it is recommended to run Apache in its own non-privileged account. For example: http-web. 
@@ -47,5 +47,19 @@ httpd:
             Add a directive like User http-web to your configuration file.
         urls:
             -   http://www.tecmint.com/apache-security-tips/
+
+    -   id: 5
+        title:  Access to some directories is not restricted (Allow Deny)
+        xpathtest: not(boolean(/*/Directory/Allow)) or not(boolean(/*/Directory/Deny))
+        summary: |
+            You should always restrict user access to directories with “Allow” and “Deny” options. 
+            By default all users are permitted to access any web-accessible directory.
+        resolution: |
+            Add directives like the following to your Directory directives:
+            Deny from all
+            to enable access control for that directory.
+        urls:
+            -   http://www.tecmint.com/apache-security-tips/
+
 
    

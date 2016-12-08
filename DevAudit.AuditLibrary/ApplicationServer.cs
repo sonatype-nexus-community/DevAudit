@@ -13,13 +13,15 @@ namespace DevAudit.AuditLibrary
         #region Constructors
         public ApplicationServer(Dictionary<string, object> server_options, Dictionary<PlatformID, string[]> default_configuration_file_path, Dictionary<string, string[]> RequiredFilePaths, Dictionary<string, string[]> RequiredDirectoryPaths, EventHandler<EnvironmentEventArgs> message_handler = null) : base(server_options, RequiredFilePaths, RequiredDirectoryPaths, message_handler)
         {
-            if (default_configuration_file_path == null) throw new ArgumentNullException("default_configuration_file");
+            this.ServerOptions = server_options;
+            if (default_configuration_file_path == null) throw new ArgumentNullException("default_configuration_file_path");
             InitialiseConfigurationFile(default_configuration_file_path);
         }
 
         public ApplicationServer(Dictionary<string, object> server_options, string[] default_configuration_file_path, Dictionary<string, string[]> RequiredFilePaths, Dictionary<string, string[]> RequiredDirectoryPaths, EventHandler<EnvironmentEventArgs> message_handler = null) : base(server_options, RequiredFilePaths, RequiredDirectoryPaths, message_handler)
         {
-            if (default_configuration_file_path == null) throw new ArgumentNullException("default_configuration_file");
+            this.ServerOptions = server_options;
+            if (default_configuration_file_path == null) throw new ArgumentNullException("default_configuration_file_path");
             InitialiseConfigurationFile(default_configuration_file_path);
         }
         #endregion
