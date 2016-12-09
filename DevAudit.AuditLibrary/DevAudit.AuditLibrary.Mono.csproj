@@ -40,8 +40,8 @@
     <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Alpheus.Core, Version=0.1.7.4, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Alpheus.0.1.7.4\lib\net45\Alpheus.Core.dll</HintPath>
+    <Reference Include="Alpheus.Core, Version=0.1.8.5, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Alpheus.0.1.8.5\lib\net45\Alpheus.Core.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="CSharpTest.Net.BPlusTree, Version=2.14.126.467, Culture=neutral, PublicKeyToken=06aee00cce822474, processorArchitecture=MSIL">
@@ -228,63 +228,7 @@
     <Compile Include="EnvironmentEventArgs.cs" />
     <Compile Include="Analyzers\StyleCopAnalyzer.cs" />
   </ItemGroup>
-  <ItemGroup>
-    <None Include="Examples\bower.json.example">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Include="Examples\bower.json.example.2">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Include="Examples\composer.json.example.3">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Include="Examples\composer.json.example.1">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Include="Examples\composer.json.example.2">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Include="Examples\Drupal\core\composer.json">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Include="Examples\Drupal\core\core.services.yml">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Include="Examples\Drupal\web.config">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Include="Examples\my.cnf" />
-    <None Include="Examples\packages.config.example.3">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-      <SubType>Designer</SubType>
-    </None>
-    <None Include="Examples\packages.config.example">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Include="Examples\packages.config.example.2">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-      <SubType>Designer</SubType>
-    </None>
-    <None Include="packages.config">
-      <SubType>Designer</SubType>
-    </None>
-    <None Include="Rules\mysql.yml">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Include="Rules\nginx.yml">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Include="Rules\httpd.yml">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Include="Rules\sshd.yml">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-	 <None Include="Rules\drupal8.yml">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-  </ItemGroup>
-  <ItemGroup>
+   <ItemGroup>
     <Folder Include="Configurations\" />
     <Folder Include="Examples\Drupal\core\modules\" />
   </ItemGroup>
@@ -305,6 +249,8 @@
   </ItemGroup>
   <ItemGroup>
 	<Examples Include="Examples\**\*.*"/>
+  </ItemGroup>
+  <ItemGroup>
 	<Rules Include="Rules\**\*.*"/>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
