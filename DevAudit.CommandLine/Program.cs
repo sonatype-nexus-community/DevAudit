@@ -255,6 +255,7 @@ namespace DevAudit.CommandLine
                     else if (verb == "drupal7")
                     {
                         Application = new Drupal7Application(audit_options, EnvironmentMessageHandler);
+                        Source = Application as PackageSource;
                     }
                     else if (verb == "mysql")
                     {

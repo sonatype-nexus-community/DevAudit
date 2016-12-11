@@ -253,7 +253,18 @@ namespace DevAudit.AuditLibrary
         public override AuditResult Audit(CancellationToken ct)
         {
             CallerInformation caller = this.AuditEnvironment.Here();
-            this.GetVersion();
+            try
+            {
+                this.GetVersion();
+            }
+            catch (Exception e)
+            {
+                if (e is NotImplementedException)
+                {
+                    this.AuditEnvironment.Debug("{0} application does not implement an individual GetVersion method.", this.ApplicationLabel);
+                }
+                else throw;
+            }
             this.GetPackagesTask(ct);
             if (this.ListPackages || this.ListArtifacts)
             {

@@ -62,7 +62,7 @@ namespace DevAudit.AuditLibrary
                 IDirectoryInfo sites_all;
                 if ((sites_all = this.RootDirectory.GetDirectories(CombinePath("sites", "all")).FirstOrDefault()) != null)
                 {
-                    return (AuditDirectoryInfo) sites_all.GetDirectories(CombinePath("modules")).FirstOrDefault();
+                    return sites_all.GetDirectories(CombinePath("modules")).FirstOrDefault() as AuditDirectoryInfo;
                 }
                 else return null;
             }

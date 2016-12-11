@@ -127,7 +127,7 @@ namespace DevAudit.AuditLibrary
         public override Dictionary<AuditFileInfo, string> ReadFilesAsText(List<AuditFileInfo> files)
         {
             CallerInformation here = this.Here();
-            System.Diagnostics.Stopwatch sw = new System.Diagnostics.Stopwatch();
+            Stopwatch sw = new Stopwatch();
             sw.Start();
             Dictionary<AuditFileInfo, string> results = new Dictionary<AuditFileInfo, string>(files.Count);
             object results_lock = new object();
