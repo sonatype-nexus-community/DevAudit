@@ -1,0 +1,16 @@
+//Match header = process_output_header_pattern.Match(p[0].Trim());
+		//string process_output_pattern_format = string.Format("^(\\S+)\\s{0}(\\S+)\\s{1}(\\S+)\\s{2}(\\S+)\\s{3}(\\S+)\\s{4}(\\S+)\\s{5}",
+		//string process_output_pattern_format = string.Format ("^(\\S+)\\s{{{0}}}(\\S+)\\s{{{1}}}(\\S+)\\s{{{2}}}(\\S+)\\s{{{3}}}(\\S+)\\s{{{4}}}",
+		//	header.Groups[1].Value.Length, header.Groups[2].Value.Length, header.Groups[3].Value.Length, header.Groups[4].Value.Length, header.Groups[5].Value.Length);
+		//header.Groups[1].Value.Length, header.Groups[2].Value.Length, header.Groups[3].Value.Length, header.Groups[4].Value.Length, header.Groups[5].Value.Length);
+		//Regex process_output_pattern = new Regex (process_output_pattern_format, RegexOptions.Compiled);
+		//Match m = process_output_pattern.Match(p[i].Trim());
+		//if (!m.Success)
+		//{						
+		//	this.HostEnvironment.Error(this.Here(), "Could not parse docker ps command output at row {0}: {1}.", i, p[i]);
+		//	throw new Exception(string.Format("Could not parse docker ps command output at row {0}: {1}.", i, p[i]));
+		//}
+		//else
+		//{
+		//	//packages.Add(new OSSIndexQueryObject("dpkg", m.Groups[1].Value, m.Groups[2].Value, ""));
+		//}

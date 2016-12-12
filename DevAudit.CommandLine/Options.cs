@@ -67,10 +67,7 @@ namespace DevAudit.CommandLine
 
         [Option('n', "non-interact", Required = false, HelpText = "Disable any interctive console output (for redirecting console output to other devices.)")]
         public bool NonInteractive { get; set; }
-
-        [Option("api-v2", Required = false, HelpText = "Disable any interctive console output (for redirecting console output to other devices.)")]
-        public bool UseApiv2 { get; set; }
-
+       
         [Option('f', "file", Required = false, HelpText = "For a package source, specifies the file containing packages to be audited. For a code project, specifies the code project file.")]
         public string File { get; set; }
 
@@ -80,18 +77,12 @@ namespace DevAudit.CommandLine
         [Option('u', "user", Required = false, HelpText = "Specifies the user name to login to the remote host.")]
         public string RemoteUser { get; set; }
 
-        [Option('p', "password", Required = false, HelpText = "Specifies that a password will be typed for the user name to login to the remote host.")]
+        [Option('p', "password", Required = false, HelpText = "Specifies that a password will be entered interactively for the user name to login to the remote host.")]
         public bool EnterRemotePassword { get; set; }
 
-        [Option("password-text", Required = false, HelpText = "Specifies that a password will be typed for the user name to login to the remote host.")]
+        [Option("password-text", Required = false, HelpText = "Specifies the password text for the user name to login to the remote host.")]
         public string RemotePasswordText { get; set; }
-
-        [Option("connect-timeout", Required = false, HelpText = "Specifies the timeout for network connection. Default")]
-        public int NetworkConnectTimeout { get; set; }
-
-        [Option('a', "use-agent", Required = false, HelpText = "Attempt to use an agent to retrieve the private key to login to the remote host.")]
-        public bool UseAgent { get; set; }
-
+              
         [Option('k', "key", Required = false, HelpText = "Specifies the private key file for the user to login to the remote host.")]
         public string RemoteKey { get; set; }
 
@@ -100,15 +91,6 @@ namespace DevAudit.CommandLine
 
         [Option('r', "root", Required = false, HelpText = "The root directory of the application instance to audit.")]
         public string RootDirectory { get; set; }
-
-        [Option("use-openssh", Required = false, HelpText = "On Windows use the OpenSSH SSH client bundled with DevAudit.")]
-        public bool WindowsUseOpenSsh { get; set; }
-
-        [Option("use-plink", Required = false, HelpText = "On Windows use the Plink SSH client bundled with DevAudit.")]
-        public bool WindowsUsePlink { get; set; }
-
-        [Option("docker-container", Required = false, HelpText = "Run the audit on a docker container with this id. The command line docker tools are used to execute the required commands on the docker container.")]
-        public string DockerContainerId { get; set; }
 
         [Option('b', "application-binary", Required = false, HelpText = "The path to the application or server binary.")]
         public string ApplicationBinary { get; set; }
@@ -135,6 +117,7 @@ namespace DevAudit.CommandLine
         public string CodeProjectName { get; set; }
 
         #region Cache stuff
+        /*
         [Option("cache", Required = false, HelpText = "Cache results from querying OSS Index. Projects and vulnerabilities will be cached by default for 180 minutes or the duration specified by the --cache-ttl parameter.")]
         public bool Cache { get; set; }
 
@@ -143,6 +126,7 @@ namespace DevAudit.CommandLine
 
         [Option("cache-dump", Required = false, HelpText = "Cache Dump - projects and vulnearabilities will be cached for the number of minutes specified here.")]
         public bool CacheDump { get; set; }
+        */
         #endregion
 
         [ParserState]

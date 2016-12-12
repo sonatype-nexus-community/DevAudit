@@ -94,16 +94,6 @@ namespace DevAudit.CommandLine
                 {
                     audit_options.Add("RemoteHost", ProgramOptions.RemoteHost);
                 }
-                #region Ssh client
-                if (ProgramOptions.WindowsUseOpenSsh && Environment.OSVersion.Platform == PlatformID.Win32NT)
-                {
-                    audit_options.Add("WindowsUseOpenSsh", true);
-                }
-                else if (ProgramOptions.WindowsUsePlink && Environment.OSVersion.Platform == PlatformID.Win32NT)
-                {
-                    audit_options.Add("WindowsUsePlink", true);
-                }
-                #endregion
 
                 #region User and password or key file
                 if (!string.IsNullOrEmpty(ProgramOptions.RemoteUser))
@@ -140,11 +130,7 @@ namespace DevAudit.CommandLine
                 }
             }
             #endregion
-
-            if (ProgramOptions.UseApiv2)
-            {
-                audit_options.Add("UseApiv2", ProgramOptions.UseApiv2);
-            }
+            
             if (ProgramOptions.SkipPackagesAudit)
             {
                 audit_options.Add("SkipPackagesAudit", ProgramOptions.SkipPackagesAudit);
@@ -174,24 +160,23 @@ namespace DevAudit.CommandLine
                 audit_options.Add("File", ProgramOptions.File);
             }
 
+            #region Cache stuff
+            /*
             if (ProgramOptions.Cache)
             {
                 audit_options.Add("Cache", true);
             }
-
+            
             if (!string.IsNullOrEmpty(ProgramOptions.CacheTTL))
             {
                 audit_options.Add("CacheTTL", ProgramOptions.CacheTTL);
             }
+            */
+            #endregion
 
             if (!string.IsNullOrEmpty(ProgramOptions.RootDirectory))
             {
                 audit_options.Add("RootDirectory", ProgramOptions.RootDirectory);
-            }
-
-            if (!string.IsNullOrEmpty(ProgramOptions.DockerContainerId))
-            {
-                audit_options.Add("DockerContainerId", ProgramOptions.DockerContainerId);
             }
 
             if (!string.IsNullOrEmpty(ProgramOptions.ConfigurationFile))
