@@ -35,22 +35,22 @@ namespace DevAudit.CommandLine
 		[VerbOption("dpkg", HelpText = "Audit dpkg packages. The packages are scanned from the system dpkg repository.")]
 		public Options AuditDpkg { get; set; }
 
-		[VerbOption("drupal8", HelpText = "Audit a Drupal 8 application instance. Use the --root option to specify the root directory of the Drupal 8 instance, otherwise the current directory will be used.")]
+		[VerbOption("drupal8", HelpText = "Audit a Drupal 8 application instance. Use the -r option to specify the root directory of the Drupal 8 instance, otherwise the current directory will be used.")]
         public Options AuditDrupal8 { get; set; }
 
-        [VerbOption("drupal7", HelpText = "Audit a Drupal 7 application instance. Use the --root option to specify the root directory of the Drupal 7 instance, otherwise the current directory will be used.")]
+        [VerbOption("drupal7", HelpText = "Audit a Drupal 7 application instance. Use the -r option to specify the root directory of the Drupal 7 instance, otherwise the current directory will be used.")]
         public Options AuditDrupal7 { get; set; }
 
-        [VerbOption("mysql", HelpText = "Audit a MySQL application server instance. Use the --root option to specify the root directory of the MySQL server instance, and the --config-file option to specify the configuration file otherwise my.ini will be used.")]
+        [VerbOption("mysql", HelpText = "Audit a MySQL application server instance. Use the -r option to specify the root directory of the mysqld server. Use the -b option to specify the path to the mysqld server binary and the -c option to specify the configuration file otherwise default values will be used for these 2 parameters.")]
         public Options MySQL { get; set; }
 
-        [VerbOption("sshd", HelpText = "Audit a OpenSSH SSHD-compatibile application server instance. Use the --root option to specify the root directory of the SSHD server instance, and the --config-file option to specify the configuration file otherwise /etc/sshd/sshd_config will be used.")]
+        [VerbOption("sshd", HelpText = "Audit an OpenSSH sshd-compatibile application server instance. Use the -r option to specify the root directory of the sshd server. Use the -b option to specify the path to the sshd server binary, and the -c option to specify the configuration file otherwise default values will be used for these 2 parameters.")]
         public Options SSHD { get; set; }
 
-        [VerbOption("httpd", HelpText = "Audit an Apache Httpd server instance. Use the --root option to specify the root directory of the Httpd server instance, and the --config-file option to specify the configuration file otherwise conf/httpd.conf will be used.")]
+        [VerbOption("httpd", HelpText = "Audit an Apache httpd server instance. Use the -r option to specify the root directory of the httpd server. Use the -b option to specify the path to the httpd server binary and the -c option to specify the configuration file otherwise default values will be used for these 2 parameters.")]
         public Options Httpd { get; set; }
 
-        [VerbOption("nginx", HelpText = "Audit an Nginx server instance. Use the --root option to specify the root directory of the Httpd server instance, and the --config-file option to specify the configuration file otherwise conf/httpd.conf will be used.")]
+        [VerbOption("nginx", HelpText = "Audit an Nginx server instance. Use the -r option to specify the root directory of the httpd server. Use the -b option to specify the path to the httpd server binary and the -c option to specify the configuration file otherwise default values will be used for these 2 parameters.")]
         public Options Nginx { get; set; }
 
         [VerbOption("netfx", HelpText = "Audit a .NET Framework code project. Use the --root option to specify the root directory of the solution, and the --code-project option to specify the name of the project.")]
