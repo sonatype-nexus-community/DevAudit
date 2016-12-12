@@ -173,12 +173,12 @@ namespace DevAudit.AuditLibrary
             if (!string.IsNullOrEmpty(ls_cmd.Result))
             {
                 
-                Debug("ls {0} returned {1} in {2} ms.", file_path, ls_cmd.Result, sw.ElapsedMilliseconds);
+                Debug("stat {0} returned {1} in {2} ms.", file_path, ls_cmd.Result, sw.ElapsedMilliseconds);
                 return true;
             }
             else
             {
-                Debug("ls {0} returned {1} in {2} ms.", file_path, ls_cmd.Error, sw.ElapsedMilliseconds);
+                Debug("stat {0} returned {1} in {2} ms.", file_path, ls_cmd.Error, sw.ElapsedMilliseconds);
                 return false;
             }
 

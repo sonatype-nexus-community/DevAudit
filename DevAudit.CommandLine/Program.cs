@@ -83,7 +83,11 @@ namespace DevAudit.CommandLine
             }
             #endregion
 
-            if (!string.IsNullOrEmpty(ProgramOptions.RemoteHost))
+			if (!string.IsNullOrEmpty(ProgramOptions.Docker))
+			{
+				audit_options.Add("DockerContainer", ProgramOptions.Docker);
+			}
+			else if (!string.IsNullOrEmpty(ProgramOptions.RemoteHost))
             {
                 if (Uri.CheckHostName(ProgramOptions.RemoteHost) == UriHostNameType.Unknown)
                 {

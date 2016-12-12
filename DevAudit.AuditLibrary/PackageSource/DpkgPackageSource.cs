@@ -47,10 +47,8 @@ namespace DevAudit.AuditLibrary
             else
             {
                 Stopwatch.Stop();
-                this.AuditEnvironment.Error(this.AuditEnvironment.Here(), "Error running {0} {1} command in host environment: {2}.", command,
-                    arguments, process_error);
-                throw new Exception(string.Format("Error running {0} {1} command in host environment: {2}.", command,
-                    arguments, process_error));
+				throw new Exception(string.Format("Error running {0} {1} command in audit environment: {2} {3}.", command,
+                    arguments, process_output, process_error));
             }
             return packages;            
         }

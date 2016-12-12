@@ -43,13 +43,7 @@ namespace DevAudit.AuditLibrary
             if (this.PackageSourceOptions.ContainsKey("SkipPackagesAudit"))
             {
                 this.SkipPackagesAudit = true;
-            }
-
-            if (this.PackageSourceOptions.ContainsKey("UseApiv2"))
-            {
-                this.UseApiv2 = true;
-            }
-
+            }				           
             #region Cache option
             if (this.PackageSourceOptions.ContainsKey("Cache") && (bool)this.PackageSourceOptions["Cache"] == true)
             {
@@ -163,9 +157,7 @@ namespace DevAudit.AuditLibrary
         #endregion
 
         public OSSIndexHttpClient HttpClient { get; protected set; } = new OSSIndexHttpClient("2.0");
-
-        public bool UseApiv2 { get; protected set; }
-
+		        
         public Dictionary<string, object> PackageSourceOptions { get; set; } = new Dictionary<string, object>();
 
         public bool ListPackages { get; protected set; } = false;

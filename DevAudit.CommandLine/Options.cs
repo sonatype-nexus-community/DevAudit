@@ -95,6 +95,9 @@ namespace DevAudit.CommandLine
         [Option('b', "application-binary", Required = false, HelpText = "The path to the application or server binary.")]
         public string ApplicationBinary { get; set; }
 
+		[Option('i', "docker", Required = false, HelpText = "Run the audit on a Docker container with this name or id.")]
+		public string Docker { get; set; }
+
         [Option("list-packages", Required = false, HelpText = "Only list the local packages that will be audited.")]
         public bool ListPackages { get; set; }
 

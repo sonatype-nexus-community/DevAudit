@@ -58,7 +58,30 @@ namespace DevAudit.AuditLibrary
             this.HostEnvironment = new LocalEnvironment(this.HostEnvironmentMessageHandler);
             this.HostEnvironment.ScriptEnvironment.MessageHandler += this.AuditTarget_ScriptEnvironmentMessageHandler;
             this.HostEnvironmentInitialised = true;
-            if (this.AuditOptions.Keys.Contains("RemoteHost"))
+			if (this.AuditOptions.Keys.Contains ("DockerContainer")) 
+			{
+				DockerAuditEnvironment docker_environment = new DockerAuditEnvironment (this.HostEnvironmentMessageHandler, (string)this.AuditOptions ["DockerContainer"], new OperatingSystem (PlatformID.Unix, new Version (0, 0)), this.HostEnvironment);
+				if (string.IsNullOrEmpty (docker_environment.Container)) {
+					this.AuditEnvironmentIntialised = false;
+					throw new Exception ("Failed to initialise audit environment.");
+				} 
+				else if (!docker_environment.ContainerRunning) 
+				{
+					this.AuditEnvironmentIntialised = false;
+					throw new Exception ("The Docker container is not currently running and DevAudit does not know how to run your container. Ensure your container is running before attempting to" +
+						"audit it.");
+				}
+				else
+				{
+					this.AuditEnvironment = docker_environment;
+					this.AuditEnvironmentIntialised = true;
+					this.AuditEnvironmentMessageHandler = AuditTarget_AuditEnvironmentMessageHandler;
+					this.AuditEnvironment.MessageHandler -= HostEnvironmentMessageHandler;
+					this.AuditEnvironment.MessageHandler += this.AuditEnvironmentMessageHandler;
+				}
+					
+			}
+            else if (this.AuditOptions.Keys.Contains("RemoteHost"))
             {
                 string client;
                 if (this.HostEnvironment.OS.Platform == PlatformID.Win32NT)
