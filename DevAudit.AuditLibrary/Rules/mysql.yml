@@ -8,7 +8,7 @@ mysql:
            You can create a separate Unix account named mysql to make everything even more secure. Use this account only for administering MySQL.           
         resolution: |
             Create an ordinary, unnprivileged user account called mysql (or a name of your choice.)
-			Add a user=mysql key value to the [mysqld] section of your configuration file.
+            Add a user=mysql key value to the [mysqld] section of your configuration file.
         urls:
             -   https://dev.mysql.com/doc/refman/5.7/en/security-against-attack.html
 
@@ -17,11 +17,11 @@ mysql:
         xpathtest: not(boolean(/MySQL/mysqld/bind_address))
         summary: |
            By default the MySQL server listens on all available addresses and network interfaces. 
-		   It is more secure to bind the mysql network socket to a single address.		    
-		   Note that this socket is bound to a single address, but it is possible for an address to map onto multiple network interfaces. 
+           It is more secure to bind the mysql network socket to a single address.		    
+           Note that this socket is bound to a single address, but it is possible for an address to map onto multiple network interfaces. 
            
         resolution: |
             Create an ordinary, unnprivileged user account called mysql (or a name of your choice.)
-			Add a user=mysql key value to the [mysqld] section of your configuration file.
+            Add a user=mysql key value to the [mysqld] section of your configuration file.
         urls:
             -   https://dev.mysql.com/doc/refman/5.7/en/security-against-attack.html
