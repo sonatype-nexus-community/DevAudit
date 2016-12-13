@@ -20,6 +20,68 @@ namespace DevAudit.AuditLibrary
 {
     public class SshAuditEnvironment : AuditEnvironment
     {
+        #region Constructors
+        public SshAuditEnvironment(EventHandler<EnvironmentEventArgs> message_handler, string client, string host_name, string user, object pass, string keyfile, OperatingSystem os, LocalEnvironment host_environment) : base(message_handler, os, host_environment)
+        {
+            ConnectionInfo ci;
+            Info("Connecting to {0}...", host_name);
+            if (string.IsNullOrEmpty(keyfile))
+            {
+                ci = new ConnectionInfo(host_name, user, new PasswordAuthenticationMethod(user, ToInsecureString(pass)));
+            }
+            else if (!string.IsNullOrEmpty(keyfile) && pass != null)
+            {
+                ci = new ConnectionInfo(host_name, user, new PrivateKeyAuthenticationMethod(user, 
+                    new PrivateKeyFile[] { new PrivateKeyFile(keyfile, ToInsecureString(pass)) }));
+            }
+            else 
+            {
+                ci = new ConnectionInfo(host_name, user, new PrivateKeyAuthenticationMethod(user));
+            }
+            SshClient = new SshClient(ci);
+            SshClient.ErrorOccurred += SshClient_ErrorOccurred;
+            SshClient.HostKeyReceived += SshClient_HostKeyReceived;
+            Stopwatch sw = new Stopwatch();
+            sw.Start();
+            try
+            {
+                SshClient.Connect();
+            }
+            catch (SshConnectionException ce)
+            {
+                Error("Connection error connecting to {0} : {1}", host_name, ce.Message);
+                return;
+            }
+            catch (SshAuthenticationException ae)
+            {
+                Error("Authentication error connecting to {0} : {1}", host_name, ae.Message);
+                return;
+            }
+            catch (System.Net.Sockets.SocketException se)
+            {
+                Error("Socket error connecting to {0} : {1}", host_name, se.Message);
+                return;
+            }
+            finally
+            {
+                sw.Stop();
+            }
+            this.IsConnected = true;
+            this.User = user;
+            this.HostName = host_name;
+            this.pass = pass;
+            Success("Connected to {0} in {1} ms.", host_name, sw.ElapsedMilliseconds);
+            this.WorkDirectory = new DirectoryInfo("work" + this.PathSeparator + this.GetTimestamp());
+            if (!this.WorkDirectory.Exists)
+            {
+                this.WorkDirectory.Create();
+                Debug("Created work directory {0}.", this.WorkDirectory.FullName);
+            }
+            Info("Using work directory: {0}.", this.WorkDirectory.FullName);
+            
+        }
+        #endregion
+
         #region Public methods
         public FileInfo GetFileAsLocal(string remote_path, string local_path)
         {
@@ -302,65 +364,6 @@ namespace DevAudit.AuditLibrary
                 this.IsDisposed = true;
             }
 
-        }
-        #endregion
-
-        #region Constructors
-        public SshAuditEnvironment(EventHandler<EnvironmentEventArgs> message_handler, string client, string host_name, string user, object pass, OperatingSystem os, LocalEnvironment host_environment) : base(message_handler, os, host_environment)
-        {
-            if (client == "openssh")
-            {
-                InitialiseOpenSshSession(host_name, user, pass, os);
-            }
-            else if (client == "plink")
-            {
-                InitialiseOpenSshSession(host_name, user, pass, os);
-            }
-            else
-            {
-                Info("Connecting to {0}...", host_name);
-                ConnectionInfo ci = new ConnectionInfo(host_name, user, new PasswordAuthenticationMethod(user, ToInsecureString(pass)));
-                SshClient = new SshClient(ci);
-                SshClient.ErrorOccurred += SshClient_ErrorOccurred;
-                SshClient.HostKeyReceived += SshClient_HostKeyReceived;
-                System.Diagnostics.Stopwatch sw = new System.Diagnostics.Stopwatch();
-                sw.Start();
-                try
-                {
-                    SshClient.Connect();
-                }
-                catch (SshConnectionException ce)
-                {
-                    Error("Connection error connecting to {0} : {1}", host_name, ce.Message);
-                    return;
-                }
-                catch (SshAuthenticationException ae)
-                {
-                    Error("Authentication error connecting to {0} : {1}", host_name, ae.Message);
-                    return;
-                }
-                catch (System.Net.Sockets.SocketException se)
-                {
-                    Error("Socket error connecting to {0} : {1}", host_name, se.Message);
-                    return;
-                }
-                finally
-                {
-                    sw.Stop();
-                }
-                this.IsConnected = true;
-                this.User = user;
-                this.HostName = host_name;
-                this.pass = pass;
-                Success("Connected to {0} in {1} ms.", host_name, sw.ElapsedMilliseconds);
-                this.WorkDirectory = new DirectoryInfo("work" + this.PathSeparator + this.GetTimestamp());
-                if (!this.WorkDirectory.Exists)
-                {
-                    this.WorkDirectory.Create();
-                    Debug("Created work directory {0}.", this.WorkDirectory.FullName);
-                }
-                Info("Using work directory: {0}.", this.WorkDirectory.FullName);
-            }
         }
         #endregion
 

@@ -84,6 +84,8 @@ namespace DevAudit.AuditLibrary
             else if (this.AuditOptions.Keys.Contains("RemoteHost"))
             {
                 string client;
+                SshAuditEnvironment ssh_environment = null;
+
                 if (this.HostEnvironment.OS.Platform == PlatformID.Win32NT)
                 {
                     client = this.AuditOptions.Keys.Contains("WindowsUsePlink") ? "plink" : this.AuditOptions.Keys.Contains("WindowsUsePlink") ? "openssh" : "ssh";
@@ -92,25 +94,40 @@ namespace DevAudit.AuditLibrary
                 {
                     client = "ssh";
                 }
-                if (this.AuditOptions.Keys.Contains("RemoteUser") && this.AuditOptions.Keys.Contains("RemotePass"))
-                {
 
-                    SshAuditEnvironment ssh_environment = new SshAuditEnvironment(this.HostEnvironmentMessageHandler, client, (string)this.AuditOptions["RemoteHost"],
-                        (string)this.AuditOptions["RemoteUser"], this.AuditOptions["RemotePass"], new OperatingSystem(PlatformID.Unix, new Version(0, 0)), this.HostEnvironment);
-                    if (ssh_environment.IsConnected)
+                if (this.AuditOptions.Keys.Contains("RemoteUser") && this.AuditOptions.Keys.Contains("RemoteKeyFile"))
+                {
+                    if (this.AuditOptions.Keys.Contains("RemoteKeyPassPhrase"))
                     {
-                        this.AuditEnvironment = ssh_environment;
-                        this.AuditEnvironmentIntialised = true;
-                        this.AuditEnvironmentMessageHandler = AuditTarget_AuditEnvironmentMessageHandler;
-                        this.AuditEnvironment.MessageHandler -= HostEnvironmentMessageHandler;
-                        this.AuditEnvironment.MessageHandler += this.AuditEnvironmentMessageHandler;
+                        ssh_environment = new SshAuditEnvironment(this.HostEnvironmentMessageHandler, client, (string)this.AuditOptions["RemoteHost"],
+                            (string)this.AuditOptions["RemoteUser"], this.AuditOptions["RemoteKeyPassPhrase"], (string)this.AuditOptions["RemoteKeyFile"], new OperatingSystem(PlatformID.Unix, new Version(0, 0)), this.HostEnvironment);
                     }
                     else
                     {
-                        ssh_environment = null;
-                        this.AuditEnvironmentIntialised = false;
-                        throw new Exception("Failed to initialise audit environment.");
+                        ssh_environment = new SshAuditEnvironment(this.HostEnvironmentMessageHandler, client, (string)this.AuditOptions["RemoteHost"],
+                            (string)this.AuditOptions["RemoteUser"], null, (string)this.AuditOptions["RemoteKeyFile"], new OperatingSystem(PlatformID.Unix, new Version(0, 0)), this.HostEnvironment);
                     }
+                }
+                else if (this.AuditOptions.Keys.Contains("RemoteUser") && this.AuditOptions.Keys.Contains("RemotePass"))
+                {
+                    ssh_environment = new SshAuditEnvironment(this.HostEnvironmentMessageHandler, client, (string)this.AuditOptions["RemoteHost"],
+                        (string)this.AuditOptions["RemoteUser"], this.AuditOptions["RemotePass"], null, new OperatingSystem(PlatformID.Unix, new Version(0, 0)), this.HostEnvironment);
+                }
+                else throw new Exception("Unknown remote host authentication options.");
+
+                if (ssh_environment.IsConnected)
+                {
+                    this.AuditEnvironment = ssh_environment;
+                    this.AuditEnvironmentIntialised = true;
+                    this.AuditEnvironmentMessageHandler = AuditTarget_AuditEnvironmentMessageHandler;
+                    this.AuditEnvironment.MessageHandler -= HostEnvironmentMessageHandler;
+                    this.AuditEnvironment.MessageHandler += this.AuditEnvironmentMessageHandler;
+                }
+                else
+                {
+                    ssh_environment = null;
+                    this.AuditEnvironmentIntialised = false;
+                    throw new Exception("Failed to initialise audit environment.");
                 }
             }
             else if (this.AuditOptions.Keys.Contains("RemoteUser") || this.AuditOptions.Keys.Contains("RemotePass"))

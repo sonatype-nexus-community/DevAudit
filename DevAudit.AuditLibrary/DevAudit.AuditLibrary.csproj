@@ -235,6 +235,9 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Analyzers\PHPAnalyzer.cs" />
+    <Compile Include="DockerAuditDirectoryInfo.cs" />
+    <Compile Include="DockerAuditEnvironment.cs" />
+    <Compile Include="DockerAuditFileInfo.cs" />
     <Compile Include="OSSIndexApiv2Result.cs" />
     <Compile Include="OSSIndexApiv2Vulnerability.cs" />
     <Compile Include="Projects\Drupal8ModuleCodeProject.cs" />
@@ -348,6 +351,6 @@
   <Target Name="AfterBuild">
     <Copy SourceFiles="@(Examples)" DestinationFiles="@(Examples->'$(SolutionDir)Examples\%(RecursiveDir)%(Filename)%(Extension)')" />
     <Copy SourceFiles="@(Rules)" DestinationFiles="@(Rules->'$(SolutionDir)Rules\%(RecursiveDir)%(Filename)%(Extension)')" />
-	<Copy SourceFiles="@(Rules)" DestinationFiles="@(Rules->'$(SolutionDir)DevAudit.CommandLine\bin\Debug\Rules\%(RecursiveDir)%(Filename)%(Extension)')" />
+    <Copy SourceFiles="@(Rules)" DestinationFiles="@(Rules->'$(SolutionDir)DevAudit.CommandLine\bin\Debug\Rules\%(RecursiveDir)%(Filename)%(Extension)')" />
   </Target>
 </Project>

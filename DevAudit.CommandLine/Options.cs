@@ -77,13 +77,13 @@ namespace DevAudit.CommandLine
         [Option('u', "user", Required = false, HelpText = "Specifies the user name to login to the remote host.")]
         public string RemoteUser { get; set; }
 
-        [Option('p', "password", Required = false, HelpText = "Specifies that a password will be entered interactively for the user name to login to the remote host.")]
+        [Option('p', "password", Required = false, HelpText = "Specifies that a password will be entered interactively for the user name or as a pass-phrase for the user's private-key authentication file to login to the remote host.")]
         public bool EnterRemotePassword { get; set; }
 
-        [Option("password-text", Required = false, HelpText = "Specifies the password text for the user name to login to the remote host.")]
+        [Option("password-text", Required = false, HelpText = "Specifies the password text for the user name or pass-phrase for the user's private-key authentication file to login to the remote host.")]
         public string RemotePasswordText { get; set; }
               
-        [Option('k', "key", Required = false, HelpText = "Specifies the private key file for the user to login to the remote host.")]
+        [Option('k', "key", Required = false, HelpText = "Specifies the private-key file for the user to login to the remote host. Use the -p or --password-text option to specify the pass-phrase for the file if needed." )]
         public string RemoteKey { get; set; }
 
         [Option('c', "config-file", Required = false, HelpText = "Specifies the configuration file for the application server to be audited.")]

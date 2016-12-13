@@ -103,7 +103,26 @@ namespace DevAudit.CommandLine
                 if (!string.IsNullOrEmpty(ProgramOptions.RemoteUser))
                 {
                     audit_options.Add("RemoteUser", ProgramOptions.RemoteUser);
-                    if (ProgramOptions.EnterRemotePassword)
+
+                    if (!string.IsNullOrEmpty(ProgramOptions.RemoteKey))
+                    {
+                        if (!File.Exists(ProgramOptions.RemoteKey))
+                        {
+                            PrintErrorMessage("Error in parameter: Could not find file {0}.", ProgramOptions.RemoteKey);
+                            return (int)Exit;
+                        }                      
+                        audit_options.Add("RemoteKeyFile", ProgramOptions.RemoteKey);
+                        if (ProgramOptions.EnterRemotePassword)
+                        {
+                            SecureString p = ReadPassword('*');                            
+                            audit_options.Add("RemoteKeyPassPhrase", p);
+                        }
+                        else if (!string.IsNullOrEmpty(ProgramOptions.RemotePasswordText))
+                        {
+                            audit_options.Add("RemoteKeyPassPhrase", ToSecureString(ProgramOptions.RemotePasswordText));
+                        }
+                    }
+                    else if (ProgramOptions.EnterRemotePassword)
                     {
                         SecureString p = ReadPassword('*');
                         audit_options.Add("RemotePass", p);
@@ -111,24 +130,12 @@ namespace DevAudit.CommandLine
                     else if (!string.IsNullOrEmpty(ProgramOptions.RemotePasswordText))
                     {
                         audit_options.Add("RemotePass", ToSecureString(ProgramOptions.RemotePasswordText));
-                    }
-                    else if (!string.IsNullOrEmpty(ProgramOptions.RemoteKey))
-                    {
-                        if (!File.Exists(ProgramOptions.RemoteKey))
-                        {
-                            PrintErrorMessage("Error in parameter: Could not find file {0}.", ProgramOptions.RemoteKey);
-                            return (int) Exit;
-                        }
-                        else
-                        {
-                            SecureString p = ReadPassword('*');
-                            audit_options.Add("RemoteKey", ProgramOptions.RemoteKey);
-                            audit_options.Add("RemoteKeyPassPhrase", p);
-                        }
-                    }
+                    }                    
                     else
                     {
-                        audit_options.Add("RemoteUseAgent", true);
+                        //audit_options.Add("RemoteUseAgent", true);
+                        PrintErrorMessage("You must specify either a password or private key file and pass phrase to authenticate with the remote host.");
+                        return (int)Exit;
                     }
 
                 }
