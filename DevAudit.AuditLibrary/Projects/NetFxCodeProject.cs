@@ -59,10 +59,12 @@ namespace DevAudit.AuditLibrary
                 this.AuditEnvironment.Debug("Found NuGet v2 package manager configuration file {0}", packages_config.FullName);
                 this.PackageManagerConfigurationFile = packages_config.FullName;
                 nuget_package_source = new NuGetPackageSource(new Dictionary<string, object>(1) { { "File", this.PackageManagerConfigurationFile } }, message_handler);
+                PackageSourceInitialized = true;
             }
             else
             {
                 this.AuditEnvironment.Debug("NuGet v2 package manager configuration file {0} does not exist.", packages_config.FullName);
+                PackageSourceInitialized = false;
             }
         }
         #endregion
@@ -74,24 +76,28 @@ namespace DevAudit.AuditLibrary
         #endregion
 
         #region Public overriden methods
-        public override bool IsConfigurationRuleVersionInServerVersionRange(string configuration_rule_version, string server_version)
+        public override IEnumerable<OSSIndexQueryObject> GetPackages(params string[] o)
         {
-            throw new NotImplementedException();
+            if (this.nuget_package_source == null)
+            {
+                throw new NotSupportedException();
+            }
+            else
+            {
+                return this.nuget_package_source.GetPackages(o);
+            }
         }
 
         public override bool IsVulnerabilityVersionInPackageVersionRange(string vulnerability_version, string package_version)
         {
-            throw new NotImplementedException();
-        }
-
-        protected override Dictionary<string, IEnumerable<OSSIndexQueryObject>> GetModules()
-        {
-            throw new NotImplementedException();
-        }
-
-        public override IEnumerable<OSSIndexQueryObject> GetPackages(params string[] o)
-        {
-            throw new NotImplementedException();
+            if (this.nuget_package_source == null)
+            {
+                throw new NotSupportedException();
+            }
+            else
+            {
+                return this.nuget_package_source.IsVulnerabilityVersionInPackageVersionRange(vulnerability_version, package_version);
+            }
         }
         #endregion
 
@@ -140,17 +146,7 @@ namespace DevAudit.AuditLibrary
             }
             return;
         }
-
-        protected override string GetVersion()
-        {
-            throw new NotImplementedException();
-        }
-
-        protected override IConfiguration GetConfiguration()
-        {
-            throw new NotImplementedException();
-        }
-
+       
         protected override void Dispose(bool isDisposing)
         {
             base.Dispose(isDisposing);

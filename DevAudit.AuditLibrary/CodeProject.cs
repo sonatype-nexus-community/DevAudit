@@ -12,7 +12,7 @@ using csscript;
 
 namespace DevAudit.AuditLibrary
 {
-    public abstract class CodeProject : Application
+    public abstract class CodeProject : PackageSource
     {
         #region Public abstract properties
         public abstract string CodeProjectId { get; }
@@ -21,7 +21,7 @@ namespace DevAudit.AuditLibrary
         #endregion
 
         #region Constructors
-        public CodeProject(Dictionary<string, object> project_options, EventHandler<EnvironmentEventArgs> message_handler, string analyzer_type) : base(project_options, new Dictionary<string, string[]>(), new Dictionary<string, string[]>(), message_handler)
+        public CodeProject(Dictionary<string, object> project_options, EventHandler<EnvironmentEventArgs> message_handler, string analyzer_type) : base(project_options, message_handler)
         {
             CallerInformation here = this.AuditEnvironment.Here();
             this.CodeProjectOptions = project_options;
@@ -57,10 +57,7 @@ namespace DevAudit.AuditLibrary
         }
         #endregion        
 
-        #region Public overriden properties
-        public override string ApplicationId => this.CodeProjectId;
-
-        public override string ApplicationLabel => this.CodeProjectLabel;
+        #region Public overriden properties       
         public override string PackageManagerId => this.CodeProjectId;
 
         public override string PackageManagerLabel => this.CodeProjectLabel;        
@@ -127,6 +124,8 @@ namespace DevAudit.AuditLibrary
 
         public LocalAuditDirectoryInfo WorkspaceDirectory { get; protected set; }
 
+        public bool PackageSourceInitialized { get; protected set; } = false;
+
         public object WorkSpace { get; protected set; }
 
         public object Project { get; protected set; }
@@ -145,7 +144,7 @@ namespace DevAudit.AuditLibrary
 
         public Task GetWorkspaceTask { get; protected set; }
 
-        public Task AuditApplicationTask { get; protected set; }
+        public Task AuditPackageSourceTask { get; protected set; }
 
         public Task GetAnalyzersTask { get; protected set; }
 
@@ -156,7 +155,15 @@ namespace DevAudit.AuditLibrary
         public override AuditResult Audit(CancellationToken ct)
         {
             CallerInformation caller = this.AuditEnvironment.Here();
-            this.AuditApplicationTask = Task.Run(() => base.Audit(ct));
+            if (PackageSourceInitialized)
+            {
+                this.AuditPackageSourceTask = Task.Run(() => base.Audit(ct));
+            }
+            else
+            {
+                this.AuditPackageSourceTask = Task.CompletedTask;
+            }
+
             this.GetWorkspaceTask = this.GetWorkspaceAsync();
             try
             {
@@ -188,7 +195,7 @@ namespace DevAudit.AuditLibrary
             }
             try
             {
-                Task.WaitAll(this.AuditApplicationTask, this.GetAnalyzerResultsTask);
+                Task.WaitAll(this.AuditPackageSourceTask, this.GetAnalyzerResultsTask);
             }
             catch (AggregateException ae)
             {

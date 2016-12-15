@@ -279,8 +279,7 @@ namespace DevAudit.CommandLine
                     }
                     else if (verb == "netfx")
                     {
-                        CodeProject = new NetFxCodeProject(audit_options, EnvironmentMessageHandler);
-                        Application = CodeProject as Application;
+                        CodeProject = new NetFxCodeProject(audit_options, EnvironmentMessageHandler);                        
                         Source = CodeProject as PackageSource;
                     }                    
                     else if (verb == "drupal8-module")
@@ -344,7 +343,7 @@ namespace DevAudit.CommandLine
             #endregion
 
             if (!ProgramOptions.NonInteractive) Console.CursorVisible = false;
-            if (Application == null && Source != null) //Auditing a package source
+            if (CodeProject == null && Application == null && Source != null) //Auditing a package source
             {
                 AuditTarget.AuditResult ar = Source.Audit(CTS.Token);
                 if (Stopwatch.IsRunning) Stopwatch.Stop();
@@ -381,7 +380,7 @@ namespace DevAudit.CommandLine
                     Application.Dispose();
                 }
             }
-            else if (CodeProject == null && Server != null) //Auditing server
+            else if (CodeProject == null && Application != null) //Auditing server
             {
                 AuditTarget.AuditResult aar = Application.Audit(CTS.Token);
                 if (Stopwatch.IsRunning) Stopwatch.Stop();
@@ -399,7 +398,7 @@ namespace DevAudit.CommandLine
                     //Server.Dispose();
                 }
             }
-            else if (CodeProject != null)
+            else if (CodeProject != null && Application == null)
             {
                 AuditTarget.AuditResult cpar = CodeProject.Audit(CTS.Token);
                 if (Stopwatch.IsRunning) Stopwatch.Stop();
@@ -409,6 +408,10 @@ namespace DevAudit.CommandLine
                 }
                 else
                 {
+                    if (CodeProject.PackageSourceInitialized)
+                    {
+                        PrintPackageSourceAuditResults(cpar, out Exit);
+                    }
                     PrintCodeProjectAuditResults(cpar, out Exit);
                 }
                 if (CodeProject != null)

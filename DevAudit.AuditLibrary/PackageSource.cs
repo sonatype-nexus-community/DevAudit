@@ -19,7 +19,21 @@ namespace DevAudit.AuditLibrary
         #region Constructors
         public PackageSource(Dictionary<string, object> package_source_options, EventHandler<EnvironmentEventArgs> message_handler) : base(package_source_options, message_handler)
         {
+
             this.PackageSourceOptions = this.AuditOptions;
+            if (this.PackageSourceOptions.ContainsKey("RootDirectory"))
+            {
+                if (!this.AuditEnvironment.DirectoryExists((string)this.PackageSourceOptions["RootDirectory"]))
+                {
+                    throw new ArgumentException(string.Format("The root directory {0} was not found.", this.PackageSourceOptions["RootDirectory"]), "package_source_options");
+                }
+                else
+                {
+                    this.ApplicationFileSystemMap.Add("RootDirectory", this.AuditEnvironment.ConstructDirectory((string)this.PackageSourceOptions["RootDirectory"]));
+                }
+
+            }
+
             if (this.PackageSourceOptions.ContainsKey("File"))
             {
                 this.PackageManagerConfigurationFile = (string)this.PackageSourceOptions["File"];
@@ -101,6 +115,7 @@ namespace DevAudit.AuditLibrary
         #endregion
 
         #region Public properties
+
         #region Cache stuff
         public bool ProjectVulnerabilitiesCacheEnabled { get; set; }
 
@@ -159,6 +174,16 @@ namespace DevAudit.AuditLibrary
         public OSSIndexHttpClient HttpClient { get; protected set; } = new OSSIndexHttpClient("2.0");
 		        
         public Dictionary<string, object> PackageSourceOptions { get; set; } = new Dictionary<string, object>();
+
+        public Dictionary<string, AuditFileSystemInfo> ApplicationFileSystemMap { get; } = new Dictionary<string, AuditFileSystemInfo>();
+
+        public AuditDirectoryInfo RootDirectory
+        {
+            get
+            {
+                return (AuditDirectoryInfo)this.ApplicationFileSystemMap["RootDirectory"];
+            }
+        }
 
         public bool ListPackages { get; protected set; } = false;
 
@@ -636,6 +661,55 @@ namespace DevAudit.AuditLibrary
             this.AuditEnvironment.Info("Evaluated {0} vulnerabilities with {1} matches to package version in {2} ms.", this.Vulnerabilities
                 .Sum(pv => pv.Value.Count()), this.Vulnerabilities
                 .Sum(pv => pv.Value.Count(v => v.CurrentPackageVersionIsInRange)), sw.ElapsedMilliseconds);
+        }
+
+        protected string CombinePath(params string[] paths)
+        {
+            if (paths == null || paths.Count() == 0)
+            {
+                throw new ArgumentOutOfRangeException("paths", "paths must be non-null or at least length 1.");
+            }
+            else if (paths.Count() == 1 && paths[0].StartsWith("@"))
+            {
+                string p = paths[0].Substring(1);
+                paths = new string[] { "@", p };
+            }
+            if (this.AuditEnvironment.OS.Platform == PlatformID.Unix || this.AuditEnvironment.OS.Platform == PlatformID.MacOSX)
+            {
+                List<string> paths_list = new List<string>(paths.Length + 1);
+                if (paths.First() == "@")
+                {
+                    paths[0] = this.RootDirectory.FullName == "/" ? "" : this.RootDirectory.FullName;
+                }
+                paths_list.AddRange(paths);
+                return paths_list.Aggregate((p, n) => p + "/" + n);
+            }
+            else
+            {
+                if (paths.First() == "@")
+                {
+                    paths[0] = this.RootDirectory.FullName;
+                    return System.IO.Path.Combine(paths);
+                }
+                else
+                {
+                    return System.IO.Path.Combine(paths);
+                }
+            }
+        }
+
+        protected string LocatePathUnderRoot(params string[] paths)
+        {
+            if (this.AuditEnvironment.OS.Platform == PlatformID.Unix || this.AuditEnvironment.OS.Platform == PlatformID.MacOSX)
+            {
+                return "@" + paths.Aggregate((p, n) => p + "/" + n);
+            }
+            else
+            {
+
+                return "@" + System.IO.Path.Combine(paths);
+            }
+
         }
         #endregion
 

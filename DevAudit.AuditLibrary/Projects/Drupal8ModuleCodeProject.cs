@@ -66,43 +66,13 @@ namespace DevAudit.AuditLibrary
             }
         }
 
-        protected override string GetVersion()
-        {
-            return this.DrupalModuleInfo.Version;
-        }
-
-        protected override Dictionary<string, IEnumerable<OSSIndexQueryObject>> GetModules()
-        {
-            if (this.Modules == null)
-            { 
-                this.Modules = new Dictionary<string, IEnumerable<OSSIndexQueryObject>>(1)
-                {
-                    {"all", new List<OSSIndexQueryObject>(1)
-                        { new OSSIndexQueryObject(this.PackageManagerId, this.DrupalModuleInfo.ShortName, 
-                            !string.IsNullOrEmpty(this.DrupalModuleInfo.Version) ? this.DrupalModuleInfo.Version : 
-                            this.DrupalModuleInfo.Core) }
-                    }
-                };
-            }
-            return this.Modules;
-        }
-
-        protected override IConfiguration GetConfiguration()
-        {
-            throw new NotSupportedException();
-        }
-
-        public override bool IsConfigurationRuleVersionInServerVersionRange(string configuration_rule_version, string server_version)
-        {
-            throw new NotSupportedException();
-        }
-
         public override IEnumerable<OSSIndexQueryObject> GetPackages(params string[] o)
         {
 
             throw new NotSupportedException();
         }
 
+        /*
         public override AuditResult Audit(CancellationToken ct)
         {
             CallerInformation caller = this.AuditEnvironment.Here();            
@@ -153,7 +123,7 @@ namespace DevAudit.AuditLibrary
             }
             return AuditResult.SUCCESS;
         }
-
+        */
         public override bool IsVulnerabilityVersionInPackageVersionRange(string vulnerability_version, string package_version)
         {
             string message = "";

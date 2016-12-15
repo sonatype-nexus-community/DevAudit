@@ -26,15 +26,6 @@ namespace DevAudit.AuditLibrary
             {
                 throw new ArgumentException(string.Format("The root application directory was not specified."), "application_options");
             }
-            else if (!this.AuditEnvironment.DirectoryExists((string)this.ApplicationOptions["RootDirectory"]))
-            {
-                throw new ArgumentException(string.Format("The root application directory {0} was not found.", this.ApplicationOptions["RootDirectory"]), "application_options");
-            }
-            else
-            {
-                this.ApplicationFileSystemMap.Add("RootDirectory", this.AuditEnvironment.ConstructDirectory((string)this.ApplicationOptions["RootDirectory"]));
-            }
-
             this.RequiredFileLocations = RequiredFileLocationPaths.Select(kv => new KeyValuePair<string, string>(kv.Key, this.CombinePath(kv.Value))).ToDictionary(x => x.Key, x => x.Value);
             this.RequiredDirectoryLocations = RequiredDirectoryLocationPaths.Select(kv => new KeyValuePair<string, string>(kv.Key, this.CombinePath(kv.Value))).ToDictionary(x => x.Key, x => x.Value);
 
@@ -153,17 +144,7 @@ namespace DevAudit.AuditLibrary
 
         #region Public properties
         public Dictionary<string, IEnumerable<OSSIndexQueryObject>> Modules { get; protected set; }
-
-        public Dictionary<string, AuditFileSystemInfo> ApplicationFileSystemMap { get; } = new Dictionary<string, AuditFileSystemInfo>();
-
-        public AuditDirectoryInfo RootDirectory
-        {
-            get
-            {
-                return (AuditDirectoryInfo) this.ApplicationFileSystemMap["RootDirectory"];
-            }
-        }
-
+       
         public AuditFileInfo ApplicationBinary { get; protected set; }
 
         public Dictionary<string, string> RequiredFileLocations { get; protected set; }
@@ -515,56 +496,7 @@ namespace DevAudit.AuditLibrary
             sw.Stop();
             this.AuditEnvironment.Success("Evaluated {0} configuration rule(s) in {1} ms.", this.ProjectConfigurationRulesEvaluations.Keys.Count, sw.ElapsedMilliseconds);
             return this.ProjectConfigurationRulesEvaluations;
-        }
-
-        protected string CombinePath(params string[] paths)
-        {
-            if (paths == null || paths.Count() == 0)
-            {
-                throw new ArgumentOutOfRangeException("paths", "paths must be non-null or at least length 1.");
-            }
-            else if (paths.Count() == 1 && paths[0].StartsWith("@"))
-            {
-                string p = paths[0].Substring(1);
-                paths = new string[] { "@",  p};
-            }
-            if (this.AuditEnvironment.OS.Platform == PlatformID.Unix || this.AuditEnvironment.OS.Platform == PlatformID.MacOSX)
-            {
-                List<string> paths_list = new List<string>(paths.Length + 1);                
-                if (paths.First() == "@")
-                {
-                    paths[0] = this.RootDirectory.FullName == "/" ? "" : this.RootDirectory.FullName;
-                }
-                paths_list.AddRange(paths);
-                return paths_list.Aggregate((p, n) => p + "/" + n);
-            }
-            else
-            {
-                if (paths.First() == "@")
-                {
-                    paths[0] = this.RootDirectory.FullName;
-                    return System.IO.Path.Combine(paths);
-                }
-                else
-                {
-                    return System.IO.Path.Combine(paths);
-                }
-            }
-        }
-
-        protected string LocatePathUnderRoot(params string[] paths)
-        {
-            if (this.AuditEnvironment.OS.Platform == PlatformID.Unix || this.AuditEnvironment.OS.Platform == PlatformID.MacOSX)
-            {
-                return "@" + paths.Aggregate((p, n) => p + "/" + n);
-            }
-            else
-            {
-
-                return "@" + System.IO.Path.Combine(paths);
-            }
-
-        }
+        }        
         #endregion
 
         #region Private methods
