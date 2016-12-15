@@ -57,8 +57,8 @@ namespace DevAudit.AuditLibrary
             if (packages_config.Exists)
             {
                 this.AuditEnvironment.Debug("Found NuGet v2 package manager configuration file {0}", packages_config.FullName);
-                this.PackageSource = new NuGetPackageSource(new Dictionary<string, object>()
-                    { {"File", "@" + this.CodeProjectName + this.HostEnvironment.PathSeparator + "packages.config" } }, message_handler);
+                this.PackageManagerConfigurationFile = packages_config.FullName;
+                nuget_package_source = new NuGetPackageSource(new Dictionary<string, object>(1) { { "File", this.PackageManagerConfigurationFile } }, message_handler);
             }
             else
             {
@@ -75,6 +75,21 @@ namespace DevAudit.AuditLibrary
 
         #region Public overriden methods
         public override bool IsConfigurationRuleVersionInServerVersionRange(string configuration_rule_version, string server_version)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override bool IsVulnerabilityVersionInPackageVersionRange(string vulnerability_version, string package_version)
+        {
+            throw new NotImplementedException();
+        }
+
+        protected override Dictionary<string, IEnumerable<OSSIndexQueryObject>> GetModules()
+        {
+            throw new NotImplementedException();
+        }
+
+        public override IEnumerable<OSSIndexQueryObject> GetPackages(params string[] o)
         {
             throw new NotImplementedException();
         }
@@ -184,6 +199,7 @@ namespace DevAudit.AuditLibrary
 
         #region Private fields
         bool IsDisposed = false;
+        NuGetPackageSource nuget_package_source = null;
         #endregion
     }
 

@@ -282,18 +282,10 @@ namespace DevAudit.CommandLine
                         CodeProject = new NetFxCodeProject(audit_options, EnvironmentMessageHandler);
                         Application = CodeProject as Application;
                         Source = CodeProject as PackageSource;
-                    }
-                    else if (verb == "php")
-                    {
-                        CodeProject = new  PHPCodeProject(audit_options, EnvironmentMessageHandler);
-                        Application = CodeProject as Application;
-                        Source = CodeProject as PackageSource;
-                    }
+                    }                    
                     else if (verb == "drupal8-module")
                     {
-                        CodeProject = new Drupal8ModuleCodeProject(audit_options, EnvironmentMessageHandler);
-                        Application = CodeProject as Application;
-                        Source = CodeProject as PackageSource;
+                        CodeProject = new Drupal8ModuleCodeProject(audit_options, EnvironmentMessageHandler);                       
                     }
                 }
                 catch (ArgumentException ae)
@@ -936,30 +928,10 @@ namespace DevAudit.CommandLine
 
         static void PrintCodeProjectAuditResults(AuditTarget.AuditResult ar, out AuditTarget.AuditResult exit)
         {
+            if (Stopwatch.IsRunning) Stopwatch.Stop();
             exit = ar;
-            if (ar == AuditTarget.AuditResult.ERROR_SCANNING_WORKSPACE)
-            {
-                PrintErrorMessage("There was an error scanning the code project workspace.");
-                return;
-            }
-            else if (ar == AuditTarget.AuditResult.ERROR_SCANNING_ANALYZERS)
-            {
-                PrintErrorMessage("There was an error scanning the code project analyzer scripts.");
-                return;
-            }
-            else if (ar == AuditTarget.AuditResult.ERROR_ANALYZING)
-            {
-                PrintErrorMessage("There was an error analyzing the code project;");
-                return;
-            }
-            else if (ar != AuditTarget.AuditResult.SUCCESS)
-            {
-                throw new Exception("Unknown audit target state.");
-            }
-            foreach (AnalyzerResult analyzer_result in CodeProject.AnalyzerResults)
-            {
-
-            }
+            if (Spinner != null) StopSpinner();
+            PrintMessageLine(ConsoleColor.White, "\nCode Project Audit Results\n============================");
         }
 
         static void EnvironmentMessageHandler(object sender, EnvironmentEventArgs e)

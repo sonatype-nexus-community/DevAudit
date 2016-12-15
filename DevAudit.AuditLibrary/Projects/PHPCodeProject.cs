@@ -10,7 +10,7 @@ using Alpheus;
 using Devsense.PHP.Syntax;
 namespace DevAudit.AuditLibrary
 {
-    public class PHPCodeProject : CodeProject
+    public abstract class PHPCodeProject : CodeProject
     {
         #region Constructors
         public PHPCodeProject(Dictionary<string, object> project_options, EventHandler<EnvironmentEventArgs> message_handler) : base(project_options, message_handler, "PHP")
@@ -18,31 +18,8 @@ namespace DevAudit.AuditLibrary
         public PHPCodeProject(Dictionary<string, object> project_options, EventHandler<EnvironmentEventArgs> message_handler, string analyzer_type) : base(project_options, message_handler, analyzer_type)
         { }
         #endregion
-
-        #region Public overriden properties
-        public override string CodeProjectId { get { return "php"; } }
-
-        public override string CodeProjectLabel { get { return "PHP"; } }
-        #endregion
-
-        #region Public overriden methods
-        public override bool IsConfigurationRuleVersionInServerVersionRange(string configuration_rule_version, string server_version)
-        {
-            throw new NotImplementedException();
-        }
-        #endregion
-
+      
         #region Protected overriden methods
-        protected override string GetVersion()
-        {
-            throw new NotImplementedException();
-        }
-
-        protected override IConfiguration GetConfiguration()
-        {
-            throw new NotImplementedException();
-        }
-
         protected override async Task GetWorkspaceAsync()
         {
             await base.GetWorkspaceAsync();

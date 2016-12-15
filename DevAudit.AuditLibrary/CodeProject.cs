@@ -14,6 +14,12 @@ namespace DevAudit.AuditLibrary
 {
     public abstract class CodeProject : Application
     {
+        #region Public abstract properties
+        public abstract string CodeProjectId { get; }
+
+        public abstract string CodeProjectLabel { get; }
+        #endregion
+
         #region Constructors
         public CodeProject(Dictionary<string, object> project_options, EventHandler<EnvironmentEventArgs> message_handler, string analyzer_type) : base(project_options, new Dictionary<string, string[]>(), new Dictionary<string, string[]>(), message_handler)
         {
@@ -49,50 +55,24 @@ namespace DevAudit.AuditLibrary
                 this.ListCodeProjectAnalyzers = true;
             }
         }
-        #endregion
-
-        #region Public abstract properties
-        public abstract string CodeProjectId { get; }
-
-        public abstract string CodeProjectLabel { get; }
-        #endregion
+        #endregion        
 
         #region Public overriden properties
         public override string ApplicationId => this.CodeProjectId;
 
         public override string ApplicationLabel => this.CodeProjectLabel;
+        public override string PackageManagerId => this.CodeProjectId;
 
-        public override string PackageManagerId => this.PackageSource?.PackageManagerId;
-
-        public override string PackageManagerLabel => this.PackageSource?.PackageManagerLabel;
-
-        public override Func<List<OSSIndexArtifact>, List<OSSIndexArtifact>> ArtifactsTransform => this.PackageSource?.ArtifactsTransform;
+        public override string PackageManagerLabel => this.CodeProjectLabel;        
         #endregion
 
-        #region Protected overriden methods
-        public override IEnumerable<OSSIndexQueryObject> GetPackages(params string[] o) => this.PackageSource?.GetPackages(o);
-
-        public override bool IsVulnerabilityVersionInPackageVersionRange(string vulnerability_version, string package_version) => this.PackageSource?.IsVulnerabilityVersionInPackageVersionRange(vulnerability_version, package_version) ?? false;
-
-        protected override Dictionary<string, IEnumerable<OSSIndexQueryObject>> GetModules()
-        {
-            if (this.PackageSource != null)
-            {
-                return new Dictionary<string, IEnumerable<OSSIndexQueryObject>>()
-                {
-                    ["all"] = this.PackageSource.Packages
-                };
-            }
-            else return null;
-        }
-
+        #region Protected overriden methods       
         protected override void Dispose(bool isDisposing)
         {
             // TODO If you need thread safety, use a lock around these 
             // operations, as well as in your methods that use the resource. 
             try
-            {
-                base.Dispose();
+            {                
                 if (!this.IsDisposed)
                 {
                     // Explicitly set root references to null to expressly tell the GarbageCollector 
@@ -136,8 +116,7 @@ namespace DevAudit.AuditLibrary
 
         #region Public properties
         public Dictionary<string, object> CodeProjectOptions { get; set; } = new Dictionary<string, object>();
-
-        public PackageSource PackageSource { get; protected set; }
+        
         public Dictionary<string, AuditFileSystemInfo> CodeProjectFileSystemMap { get; protected set; } = new Dictionary<string, AuditFileSystemInfo>();
 
         public string CodeProjectName { get; protected set; }
@@ -166,6 +145,8 @@ namespace DevAudit.AuditLibrary
 
         public Task GetWorkspaceTask { get; protected set; }
 
+        public Task AuditApplicationTask { get; protected set; }
+
         public Task GetAnalyzersTask { get; protected set; }
 
         public Task GetAnalyzerResultsTask { get; protected set; }
@@ -175,7 +156,7 @@ namespace DevAudit.AuditLibrary
         public override AuditResult Audit(CancellationToken ct)
         {
             CallerInformation caller = this.AuditEnvironment.Here();
-            Task audit_application = Task.Run(() => base.Audit(ct), ct);
+            this.AuditApplicationTask = Task.Run(() => base.Audit(ct));
             this.GetWorkspaceTask = this.GetWorkspaceAsync();
             try
             {
@@ -184,8 +165,10 @@ namespace DevAudit.AuditLibrary
             catch (AggregateException ae)
             {
                 this.HostEnvironment.Error(caller, ae, "Exception throw during GetWorkspace task.");
+                return AuditResult.ERROR_SCANNING_WORKSPACE;
             }
-
+            
+            this.GetAnalyzersTask = Task.Run(() => this.GetAnalyzers());
             try
             {
                 this.GetAnalyzersTask.Wait();
@@ -205,7 +188,7 @@ namespace DevAudit.AuditLibrary
             }
             try
             {
-                Task.WaitAll(audit_application, this.GetAnalyzerResultsTask);
+                Task.WaitAll(this.AuditApplicationTask, this.GetAnalyzerResultsTask);
             }
             catch (AggregateException ae)
             {

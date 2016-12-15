@@ -40,7 +40,7 @@ namespace DevAudit.AuditLibrary
         public override string PackageManagerLabel { get { return "Drupal"; } }
         #endregion
 
-        #region Overriden protected methods
+        #region Overriden methods
         protected override string GetVersion()
         {
             string core_version = "8.x";
