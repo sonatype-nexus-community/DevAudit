@@ -11,6 +11,13 @@ namespace DevAudit.AuditLibrary
 {
     public class SshAuditDirectoryInfo : AuditDirectoryInfo
     {
+        #region Constructors
+        public SshAuditDirectoryInfo(SshAuditEnvironment env, string path) : base(env, path)
+        {
+            this.SshAuditEnvironment = env;
+        }
+        #endregion
+
         #region Overriden properties
         public override string FullName { get; protected set; }
 
@@ -201,13 +208,6 @@ namespace DevAudit.AuditLibrary
             else return null;
         }
 
-        #endregion
-
-        #region Constructors
-        public SshAuditDirectoryInfo(SshAuditEnvironment env, string path) : base(env, path)
-        {
-            this.SshAuditEnvironment = env;
-        }
         #endregion
 
         #region Protected properties
