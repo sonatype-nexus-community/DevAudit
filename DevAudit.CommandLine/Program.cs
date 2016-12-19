@@ -243,6 +243,14 @@ namespace DevAudit.CommandLine
                     {
                         Source = new DpkgPackageSource(audit_options, EnvironmentMessageHandler);
                     }
+					else if (verb == "rpm")
+					{
+						Source = new RpmPackageSource(audit_options, EnvironmentMessageHandler);
+					}
+					else if (verb == "yum")
+					{
+						Source = new YumPackageSource(audit_options, EnvironmentMessageHandler);
+					}
                     else if (verb == "drupal8")
                     {
                         Application = new Drupal8Application(audit_options, EnvironmentMessageHandler);

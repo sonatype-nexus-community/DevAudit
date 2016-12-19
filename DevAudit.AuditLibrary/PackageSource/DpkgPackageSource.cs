@@ -48,12 +48,12 @@ namespace DevAudit.AuditLibrary
             {
                 Stopwatch.Stop();
 				throw new Exception(string.Format("Error running {0} {1} command in audit environment: {2} {3}.", command,
-                    arguments, process_output, process_error));
+                    arguments, process_error, process_output));
             }
             return packages;            
         }
 
-        public DpkgPackageSource(Dictionary<string, object> package_source_options, EventHandler<EnvironmentEventArgs> message_handler = null) : base(package_source_options, message_handler) { }
+        public DpkgPackageSource(Dictionary<string, object> package_source_options, EventHandler<EnvironmentEventArgs> message_handler) : base(package_source_options, message_handler) { }
 
         public override bool IsVulnerabilityVersionInPackageVersionRange(string vulnerability_version, string package_version)
         {

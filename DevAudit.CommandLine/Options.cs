@@ -17,23 +17,29 @@ namespace DevAudit.CommandLine
         [VerbOption("nuget", HelpText = "Audit NuGet packages. Use the --file option to specify a particular packages.config file otherwise the one in the current directory will be used.")]
         public Options AuditNuGet { get; set; }
 
-        [VerbOption("msi", HelpText = "Audit MSI packages. Packages are scanned from the registry.")]
+        [VerbOption("msi", HelpText = "Audit MSI packages on Windows. Packages are scanned from the registry.")]
         public Options AuditMsi { get; set; }
 
-        [VerbOption("choco", HelpText = "Audit Chocolatey packages. Packages are scanned from C:\\ProgramData\\chocolatey.")]
+        [VerbOption("choco", HelpText = "Audit Chocolatey packages on Windows. Packages are scanned from C:\\ProgramData\\chocolatey.")]
         public Options AuditChocolatey { get; set; }
 
         [VerbOption("bower", HelpText = "Audit Bower packages. Use the --file option to specify a particular bower.json file otherwise the one in the current directory will be used.")]
         public Options AuditBower { get; set; }
 
-        [VerbOption("oneget", HelpText = "Audit OneGet packages. Packages are scanned from the system OneGet repository.")]
+        [VerbOption("oneget", HelpText = "Audit OneGet packages on Windows. Packages are scanned from the system OneGet repository.")]
         public Options AuditOneGet { get; set; }
 
 		[VerbOption("composer", HelpText = "Audit PHP Composer packages. Use the --file option to specify a particular composer.json file otherwise the one in the current directory will be used.")]
         public Options AuditComposer { get; set; }
 
-		[VerbOption("dpkg", HelpText = "Audit dpkg packages. The packages are scanned from the system dpkg repository.")]
+		[VerbOption("dpkg", HelpText = "Audit dpkg packages on Linux. The packages are scanned from the system dpkg repository.")]
 		public Options AuditDpkg { get; set; }
+
+		[VerbOption("rpm", HelpText = "Audit rpm packages on Linux. The packages are scanned from the system rpm repository.")]
+		public Options AuditRpm { get; set; }
+
+		[VerbOption("yum", HelpText = "Audit yum packages on Linux. The packages are scanned from the system rpm repository.")]
+		public Options AuditYum { get; set; }
 
 		[VerbOption("drupal8", HelpText = "Audit a Drupal 8 application instance. Use the -r option to specify the root directory of the Drupal 8 instance, otherwise the current directory will be used.")]
         public Options AuditDrupal8 { get; set; }

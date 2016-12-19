@@ -203,6 +203,8 @@
     <Compile Include="DockerAuditEnvironment.cs" />
     <Compile Include="DockerAuditFileInfo.cs" />
     <Compile Include="DockerAuditDirectoryInfo.cs" />
+    <Compile Include="PackageSource\RpmPackageSource.cs" />
+    <Compile Include="PackageSource\YumPackageSource.cs" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Configurations\" />
