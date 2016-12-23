@@ -22,10 +22,23 @@ namespace DevAudit.AuditLibrary
         public Application(Dictionary<string, object> application_options, Dictionary<string, string[]> RequiredFileLocationPaths, Dictionary<string, string[]> RequiredDirectoryLocationPaths, EventHandler<EnvironmentEventArgs> message_handler = null) : base(application_options, message_handler)
         {
             this.ApplicationOptions = application_options;
-            if (!this.ApplicationOptions.ContainsKey("RootDirectory"))
+            if (this.ApplicationOptions.ContainsKey("RootDirectory"))
+            {
+                if (!this.AuditEnvironment.DirectoryExists((string)this.ApplicationOptions["RootDirectory"]))
+                {
+                    throw new ArgumentException(string.Format("The root directory {0} was not found.", this.ApplicationOptions["RootDirectory"]), "package_source_options");
+                }
+                else
+                {
+                    this.ApplicationFileSystemMap.Add("RootDirectory", this.AuditEnvironment.ConstructDirectory((string)this.ApplicationOptions["RootDirectory"]));
+                }
+
+            }
+            else
             {
                 throw new ArgumentException(string.Format("The root application directory was not specified."), "application_options");
             }
+
             this.RequiredFileLocations = RequiredFileLocationPaths.Select(kv => new KeyValuePair<string, string>(kv.Key, this.CombinePath(kv.Value))).ToDictionary(x => x.Key, x => x.Value);
             this.RequiredDirectoryLocations = RequiredDirectoryLocationPaths.Select(kv => new KeyValuePair<string, string>(kv.Key, this.CombinePath(kv.Value))).ToDictionary(x => x.Key, x => x.Value);
 
@@ -143,19 +156,23 @@ namespace DevAudit.AuditLibrary
         #endregion
 
         #region Public properties
-        public Dictionary<string, IEnumerable<OSSIndexQueryObject>> Modules { get; protected set; }
-       
-        public AuditFileInfo ApplicationBinary { get; protected set; }
+        public Dictionary<string, AuditFileSystemInfo> ApplicationFileSystemMap { get; } = new Dictionary<string, AuditFileSystemInfo>();
+
+        public AuditDirectoryInfo RootDirectory
+        {
+            get
+            {
+                return (AuditDirectoryInfo)this.ApplicationFileSystemMap["RootDirectory"];
+            }
+        }
 
         public Dictionary<string, string> RequiredFileLocations { get; protected set; }
 
         public Dictionary<string, string> RequiredDirectoryLocations { get; protected set; }
 
-        public bool ListConfigurationRules { get; protected set; } = false;
+        public AuditFileInfo ApplicationBinary { get; protected set; }
 
-        public bool OnlyLocalRules { get; protected set; } = false;
-
-        public bool DefaultConfigurationRulesOnly { get; protected set; } = false;
+        public Dictionary<string, IEnumerable<OSSIndexQueryObject>> Modules { get; protected set; }
 
         public string Version { get; protected set; }
 
@@ -228,6 +245,13 @@ namespace DevAudit.AuditLibrary
         public Dictionary<OSSIndexProjectConfigurationRule, Tuple<bool, List<string>, string>> ProjectConfigurationRulesEvaluations = new Dictionary<OSSIndexProjectConfigurationRule, Tuple<bool, List<string>, string>>();
 
         public Dictionary<string, object> ApplicationOptions { get; set; } = new Dictionary<string, object>();
+
+        public bool ListConfigurationRules { get; protected set; } = false;
+
+        public bool OnlyLocalRules { get; protected set; } = false;
+
+        public bool DefaultConfigurationRulesOnly { get; protected set; } = false;
+
         #endregion
 
         #region Public methods

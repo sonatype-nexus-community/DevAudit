@@ -12,7 +12,7 @@ using csscript;
 
 namespace DevAudit.AuditLibrary
 {
-    public abstract class CodeProject : PackageSource
+    public abstract class CodeProject : AuditTarget, IDisposable
     {
         #region Public abstract properties
         public abstract string CodeProjectId { get; }
@@ -25,7 +25,23 @@ namespace DevAudit.AuditLibrary
         {
             CallerInformation here = this.AuditEnvironment.Here();
             this.CodeProjectOptions = project_options;
-           
+            if (this.CodeProjectOptions.ContainsKey("RootDirectory"))
+            {
+                if (!this.AuditEnvironment.DirectoryExists((string)this.CodeProjectOptions["RootDirectory"]))
+                {
+                    throw new ArgumentException(string.Format("The root directory {0} was not found.", CodeProjectOptions["RootDirectory"]), "package_source_options");
+                }
+                else
+                {
+                    this.CodeProjectFileSystemMap.Add("RootDirectory", this.AuditEnvironment.ConstructDirectory((string)CodeProjectOptions["RootDirectory"]));
+                }
+
+            }
+            else
+            {
+                throw new ArgumentException(string.Format("The root application directory was not specified."), "application_options");
+            }
+
             if (this.CodeProjectOptions.ContainsKey("CodeProjectName"))
             {
                 this.CodeProjectName = (string)CodeProjectOptions["CodeProjectName"];
@@ -56,12 +72,6 @@ namespace DevAudit.AuditLibrary
             }
         }
         #endregion        
-
-        #region Public overriden properties       
-        public override string PackageManagerId => this.CodeProjectId;
-
-        public override string PackageManagerLabel => this.CodeProjectLabel;        
-        #endregion
 
         #region Protected overriden methods       
         protected override void Dispose(bool isDisposing)
@@ -115,6 +125,14 @@ namespace DevAudit.AuditLibrary
         public Dictionary<string, object> CodeProjectOptions { get; set; } = new Dictionary<string, object>();
         
         public Dictionary<string, AuditFileSystemInfo> CodeProjectFileSystemMap { get; protected set; } = new Dictionary<string, AuditFileSystemInfo>();
+
+        public AuditDirectoryInfo RootDirectory
+        {
+            get
+            {
+                return (AuditDirectoryInfo)this.CodeProjectFileSystemMap["RootDirectory"];
+            }
+        }
 
         public string CodeProjectName { get; protected set; }
 
@@ -342,6 +360,56 @@ namespace DevAudit.AuditLibrary
             }
             return;
         }
+
+        protected string CombinePath(params string[] paths)
+        {
+            if (paths == null || paths.Count() == 0)
+            {
+                throw new ArgumentOutOfRangeException("paths", "paths must be non-null or at least length 1.");
+            }
+            else if (paths.Count() == 1 && paths[0].StartsWith("@"))
+            {
+                string p = paths[0].Substring(1);
+                paths = new string[] { "@", p };
+            }
+            if (this.AuditEnvironment.OS.Platform == PlatformID.Unix || this.AuditEnvironment.OS.Platform == PlatformID.MacOSX)
+            {
+                List<string> paths_list = new List<string>(paths.Length + 1);
+                if (paths.First() == "@")
+                {
+                    paths[0] = this.RootDirectory.FullName == "/" ? "" : this.RootDirectory.FullName;
+                }
+                paths_list.AddRange(paths);
+                return paths_list.Aggregate((p, n) => p + "/" + n);
+            }
+            else
+            {
+                if (paths.First() == "@")
+                {
+                    paths[0] = this.RootDirectory.FullName;
+                    return System.IO.Path.Combine(paths);
+                }
+                else
+                {
+                    return System.IO.Path.Combine(paths);
+                }
+            }
+        }
+
+        protected string LocatePathUnderRoot(params string[] paths)
+        {
+            if (this.AuditEnvironment.OS.Platform == PlatformID.Unix || this.AuditEnvironment.OS.Platform == PlatformID.MacOSX)
+            {
+                return "@" + paths.Aggregate((p, n) => p + "/" + n);
+            }
+            else
+            {
+
+                return "@" + System.IO.Path.Combine(paths);
+            }
+
+        }
+
         #endregion
 
         #region Private fields

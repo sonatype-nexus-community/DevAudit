@@ -82,139 +82,63 @@ namespace DevAudit.AuditLibrary
         }
         #endregion
 
-        #region Public methods
-        public FileInfo GetFileAsLocal(string remote_path, string local_path)
-        {
-            CallerInformation here = this.Here();
-            Stopwatch sw = new Stopwatch();
-            sw.Start();
-            ScpClient c = this.CreateScpClient();
-            c.BufferSize = 16 * 16384;
-            if (c == null) return null;
-            try
-            {
-                FileInfo f = new FileInfo(local_path);            
-                c.Download(remote_path, f);
-                sw.Stop();
-                Debug(here, "Downloaded remote file {0} to {1} via SCP in {2} ms.", remote_path, f.FullName, sw.ElapsedMilliseconds);
-                return f;
-               
-            }
-            catch (Exception e)
-            {
-                Error("Exception thrown attempting to download file {0} from {1} to {2} via SCP.", remote_path, this.HostName, remote_path);
-                Error(here, e);
-                return null;
-            }
-            finally
-            {
-                this.DestroyScpClient(c);
-                if (sw.IsRunning) sw.Stop();
-            }
-        }
-
-        public DirectoryInfo GetDirectoryAsLocal(string remote_path, string local_path)
-        {
-            CallerInformation here = this.Here();
-            Stopwatch sw = new Stopwatch();
-            string dir_archive_filename = string.Format("_devaudit_{0}.tgz", this.GetTimestamp());
-            SshCommandSpawanble cs = new SshCommandSpawanble(this.SshClient.CreateCommand(string.Format("tar -czf {0} -C {1} . && stat {0} || echo Failed", dir_archive_filename, remote_path)));
-            sw.Start();
-            ExpectNet.Session cmd_session = Expect.Spawn(cs, this.LineTerminator);
-            List<IResult> r = cmd_session.Expect.RegexEither("Size:\\s+([0-9]+)", null, "Failed", null);
-            sw.Stop();
-            long dir_archive_size;
-            cs.Dispose();
-            if (r[0].IsMatch)
-            {
-                Match m = r[0].Result as Match;
-                dir_archive_size = long.Parse(m.Groups[1].Value);
-                Debug(here, "Archive file {0} created with size {1} bytes in {2} ms.", dir_archive_filename, dir_archive_size, sw.ElapsedMilliseconds);
-            }
-            else
-            {
-                Error(here, "Archive file {0} could not be created, command output: {1}", dir_archive_filename, r[1].Text);
-                return null;
-            }
-            sw.Reset();
-            sw.Start();
-            SshAuditFileInfo dir_archive_file = new SshAuditFileInfo(this, dir_archive_filename);
-            LocalAuditFileInfo lf = dir_archive_file.GetAsLocalFile();
-            sw.Stop();
-            if (lf == null)
-            {
-                Error(here, "Failed to get archive file {0} as local file.", dir_archive_filename);
-                return null;
-            }
-            Info("Downloaded archive file {0} in to local file {1} in {2} ms.", dir_archive_file.FullName,  lf.FullName, sw.ElapsedMilliseconds);
-            Debug("Extracting archive file {0} to work directory {1}.", lf.FullName, this.WorkDirectory.FullName);
-            sw.Restart();
-            try
-            {
-                using (Stream fs = File.OpenRead(lf.FullName))
-                {
-                    ReaderFactory.Open(fs).WriteAllToDirectory(this.WorkDirectory.FullName,
-                        new ExtractionOptions()
-                        {
-                            Overwrite = true,
-                            ExtractFullPath = true
-                        });
-                }
-                /*
-                ArchiveFactory.WriteToDirectory(lf.FullName, , new ExtractionOptions()
-                {
-                    Overwrite = true,
-
-                });*/
-                sw.Stop();
-                Debug(here, "Extracting archive file {0} to work directory {1} in {2} ms.", lf.FullName, this.WorkDirectory.FullName, sw.ElapsedMilliseconds);
-                return this.WorkDirectory;
-            }
-            catch (Exception e)
-            {
-                Error(here, e);
-                return null;
-            }
-            finally
-            {
-                if (sw != null && sw.IsRunning) sw.Stop();
-            }
-        }
-
-        public string ToInsecureString(object o)
-        {
-            SecureString s = o as SecureString;
-            if (s == null) throw new ArgumentException("Object is not of type SecureString.", "o");
-            string r = string.Empty;
-            IntPtr ptr = Marshal.SecureStringToBSTR(s);
-            try
-            {
-                r = Marshal.PtrToStringBSTR(ptr);
-            }
-            finally
-            {
-                Marshal.ZeroFreeBSTR(ptr);
-            }
-            return r;
-        }
-        #endregion
-
-        #region Public properties
-        public string HostName { get; private set; }
-        public string User { get; private set; }
-        public bool UsePageant { get; private set; }
-        public bool UseSshAgent { get; private set; }
-        public string HostKey { get; private set; }
-        public bool IsConnected { get; private set; }
-        public string LastEvent { get; set; }
-        public int NetworkConnectTimeout { get; private set; } = 3000;
-        #endregion
-
         #region Overriden properties
         protected override TraceSource TraceSource { get; set; } = new TraceSource("SshAuditEnvironment");
         #endregion
 
-        #region Overriden methods     
+        #region Overriden methods
+        protected override void Dispose(bool isDisposing)
+        {
+            try
+            {
+                if (!this.IsDisposed)
+                {
+                    // Explicitly set root references to null to expressly tell the GarbageCollector 
+                    // that the resources have been disposed of and its ok to release the memory 
+                    // allocated for them.
+
+                    if (isDisposing)
+                    {
+                        // Release all managed resources here 
+                        // Need to unregister/detach yourself from the events. Always make sure 
+                        // the object is not null first before trying to unregister/detach them! 
+                        // Failure to unregister can be a BIG source of memory leaks 
+                        //if (someDisposableObjectWithAnEventHandler != null)
+                        //{ someDisposableObjectWithAnEventHandler.SomeEvent -= someDelegate; 
+                        //someDisposableObjectWithAnEventHandler.Dispose(); 
+                        //someDisposableObjectWithAnEventHandler = null; } 
+                        // If this is a WinForm/UI control, uncomment this code 
+                        //if (components != null) //{ // components.Dispose(); //} } 
+                        // Release all unmanaged resources here 
+                        // (example) if (someComObject != null && Marshal.IsComObject(someComObject)) { Marshal.FinalReleaseComObject(someComObject); someComObject = null; 
+                        if (!ReferenceEquals(this.SshClient, null))
+                        {
+                            this.SshClient.HostKeyReceived -= SshClient_HostKeyReceived;
+                            this.SshClient.ErrorOccurred -= SshClient_ErrorOccurred;
+                            this.SshClient.Dispose();
+                            this.SshClient = null;
+                        }
+                        if (this.WorkDirectory != null)
+                        {
+                            if (this.WorkDirectory.Exists)
+                            {
+                                this.WorkDirectory.Delete(true);
+                            }
+                        }
+                    }
+                }
+            }
+            catch (Exception e)
+            {
+                Error("Exception thrown during disposal of Ssh audit environment.", e);
+            }
+            finally
+            {
+                this.IsDisposed = true;
+            }
+
+        }
+
         public override AuditFileInfo ConstructFile(string file_path)
         {
             return new SshAuditFileInfo(this, file_path);
@@ -325,45 +249,142 @@ namespace DevAudit.AuditLibrary
         }
 
 
-        protected override void Dispose(bool isDisposing)
+        #endregion
+
+        #region Public properties
+        public string HostName { get; private set; }
+        public string User { get; private set; }
+        public bool UsePageant { get; private set; }
+        public bool UseSshAgent { get; private set; }
+        public string HostKey { get; private set; }
+        public bool IsConnected { get; private set; }
+        public string LastEvent { get; set; }
+        public int NetworkConnectTimeout { get; private set; } = 3000;
+        #endregion
+
+        #region Public methods
+        public FileInfo GetFileAsLocal(string remote_path, string local_path)
         {
+            CallerInformation here = this.Here();
+            Stopwatch sw = new Stopwatch();
+            sw.Start();
+            ScpClient c = this.CreateScpClient();
+            c.BufferSize = 16 * 16384;
+            if (c == null) return null;
             try
             {
-                if (!this.IsDisposed)
-                {
-                    // Explicitly set root references to null to expressly tell the GarbageCollector 
-                    // that the resources have been disposed of and its ok to release the memory 
-                    // allocated for them.
-                    
-                    if (isDisposing)
-                    {
-                        // Release all managed resources here 
-                        // Need to unregister/detach yourself from the events. Always make sure 
-                        // the object is not null first before trying to unregister/detach them! 
-                        // Failure to unregister can be a BIG source of memory leaks 
-                        //if (someDisposableObjectWithAnEventHandler != null)
-                        //{ someDisposableObjectWithAnEventHandler.SomeEvent -= someDelegate; 
-                        //someDisposableObjectWithAnEventHandler.Dispose(); 
-                        //someDisposableObjectWithAnEventHandler = null; } 
-                        // If this is a WinForm/UI control, uncomment this code 
-                        //if (components != null) //{ // components.Dispose(); //} } 
-                        // Release all unmanaged resources here 
-                        // (example) if (someComObject != null && Marshal.IsComObject(someComObject)) { Marshal.FinalReleaseComObject(someComObject); someComObject = null; 
-                        if (!ReferenceEquals(this.SshClient, null))
-                        {
-                            this.SshClient.HostKeyReceived -= SshClient_HostKeyReceived;
-                            this.SshClient.ErrorOccurred -= SshClient_ErrorOccurred;
-                            this.SshClient.Dispose();
-                            this.SshClient = null;
-                        }
-                    }
-                }
+                FileInfo f = new FileInfo(local_path);
+                c.Download(remote_path, f);
+                sw.Stop();
+                Debug(here, "Downloaded remote file {0} to {1} via SCP in {2} ms.", remote_path, f.FullName, sw.ElapsedMilliseconds);
+                return f;
+
+            }
+            catch (Exception e)
+            {
+                Error("Exception thrown attempting to download file {0} from {1} to {2} via SCP.", remote_path, this.HostName, remote_path);
+                Error(here, e);
+                return null;
             }
             finally
             {
-                this.IsDisposed = true;
+                this.DestroyScpClient(c);
+                if (sw.IsRunning) sw.Stop();
             }
+        }
 
+        public DirectoryInfo GetDirectoryAsLocal(string remote_path, string local_path)
+        {
+            CallerInformation here = this.Here();
+            Stopwatch sw = new Stopwatch();
+            string dir_archive_filename = string.Format("_devaudit_{0}.tgz", this.GetTimestamp());
+            SshCommandSpawanble cs = new SshCommandSpawanble(this.SshClient.CreateCommand(string.Format("tar -czf {0} -C {1} . && stat {0} || echo Failed", dir_archive_filename, remote_path)));
+            sw.Start();
+            ExpectNet.Session cmd_session = Expect.Spawn(cs, this.LineTerminator);
+            List<IResult> r = cmd_session.Expect.RegexEither("Size:\\s+([0-9]+)", null, "Failed", null);
+            sw.Stop();
+            long dir_archive_size;
+            cs.Dispose();
+            if (r[0].IsMatch)
+            {
+                Match m = r[0].Result as Match;
+                dir_archive_size = long.Parse(m.Groups[1].Value);
+                Debug(here, "Archive file {0} created with size {1} bytes in {2} ms.", dir_archive_filename, dir_archive_size, sw.ElapsedMilliseconds);
+            }
+            else
+            {
+                Error(here, "Archive file {0} could not be created, command output: {1}", dir_archive_filename, r[1].Text);
+                return null;
+            }
+            sw.Restart();
+            SshAuditFileInfo dir_archive_file = new SshAuditFileInfo(this, dir_archive_filename);
+            LocalAuditFileInfo lf = dir_archive_file.GetAsLocalFile();
+            sw.Stop();
+            if (lf == null)
+            {
+                Error(here, "Failed to get archive file {0} as local file.", dir_archive_filename);
+                return null;
+            }
+            Info("Downloaded archive file {0} in to local file {1} in {2} ms.", dir_archive_file.FullName, lf.FullName, sw.ElapsedMilliseconds);
+            cs = new SshCommandSpawanble(this.SshClient.CreateCommand(string.Format("rm {0} && echo Succeded || echo Failed", dir_archive_filename)));
+            cmd_session = Expect.Spawn(cs, this.LineTerminator);
+            r = cmd_session.Expect.RegexEither("Succeded", null, "Failed", null);
+            if (r[0].IsMatch)
+            {
+                Debug("Deleted archive file {0} from remote server.", dir_archive_file.FullName);
+            }
+            else
+            {
+                Debug("Failed to delete archive file {0} from remote server. It is safe to delete this file manually.", dir_archive_file.FullName);
+            }
+            sw.Restart();
+            try
+            {
+                using (Stream fs = File.OpenRead(lf.FullName))
+                {
+                    ReaderFactory.Open(fs).WriteAllToDirectory(this.WorkDirectory.FullName,
+                        new ExtractionOptions()
+                        {
+                            Overwrite = true,
+                            ExtractFullPath = true
+                        });
+                }
+                /*
+                ArchiveFactory.WriteToDirectory(lf.FullName, , new ExtractionOptions()
+                {
+                    Overwrite = true,
+
+                });*/
+                sw.Stop();
+                Debug(here, "Extracting archive file {0} to work directory {1} in {2} ms.", lf.FullName, this.WorkDirectory.FullName, sw.ElapsedMilliseconds);
+                return this.WorkDirectory;
+            }
+            catch (Exception e)
+            {
+                Error(here, e);
+                return null;
+            }
+            finally
+            {
+                if (sw != null && sw.IsRunning) sw.Stop();
+            }
+        }
+
+        public string ToInsecureString(object o)
+        {
+            SecureString s = o as SecureString;
+            if (s == null) throw new ArgumentException("Object is not of type SecureString.", "o");
+            string r = string.Empty;
+            IntPtr ptr = Marshal.SecureStringToBSTR(s);
+            try
+            {
+                r = Marshal.PtrToStringBSTR(ptr);
+            }
+            finally
+            {
+                Marshal.ZeroFreeBSTR(ptr);
+            }
+            return r;
         }
         #endregion
 
