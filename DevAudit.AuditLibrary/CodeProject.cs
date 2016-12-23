@@ -144,6 +144,8 @@ namespace DevAudit.AuditLibrary
 
         public bool PackageSourceInitialized { get; protected set; } = false;
 
+        public PackageSource PackageSource { get; protected set; }
+
         public object WorkSpace { get; protected set; }
 
         public object Project { get; protected set; }
@@ -170,12 +172,12 @@ namespace DevAudit.AuditLibrary
         #endregion
 
         #region Public methods
-        public override AuditResult Audit(CancellationToken ct)
+        public virtual AuditResult Audit(CancellationToken ct)
         {
             CallerInformation caller = this.AuditEnvironment.Here();
             if (PackageSourceInitialized)
             {
-                this.AuditPackageSourceTask = Task.Run(() => base.Audit(ct));
+                this.AuditPackageSourceTask = Task.Run(() => this.PackageSource.Audit(ct));
             }
             else
             {

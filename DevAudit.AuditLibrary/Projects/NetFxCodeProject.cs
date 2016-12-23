@@ -56,9 +56,8 @@ namespace DevAudit.AuditLibrary
             AuditFileInfo packages_config = this.AuditEnvironment.ConstructFile(this.CombinePath(this.RootDirectory.FullName, this.CodeProjectName, "packages.config"));
             if (packages_config.Exists)
             {
-                this.AuditEnvironment.Debug("Found NuGet v2 package manager configuration file {0}", packages_config.FullName);
-                this.PackageManagerConfigurationFile = packages_config.FullName;
-                nuget_package_source = new NuGetPackageSource(new Dictionary<string, object>(1) { { "File", this.PackageManagerConfigurationFile } }, message_handler);
+                this.AuditEnvironment.Debug("Found NuGet v2 package manager configuration file {0}", packages_config.FullName);                
+                this.PackageSource = new NuGetPackageSource(new Dictionary<string, object>(1) { { "File", packages_config.FullName } }, message_handler);
                 PackageSourceInitialized = true;
             }
             else
@@ -69,39 +68,13 @@ namespace DevAudit.AuditLibrary
         }
         #endregion
 
-        #region Public overriden properties
+        #region Overriden properties
         public override string CodeProjectId { get { return "netfx"; } }
 
         public override string CodeProjectLabel { get { return ".NET Framework"; } }
         #endregion
 
-        #region Public overriden methods
-        public override IEnumerable<OSSIndexQueryObject> GetPackages(params string[] o)
-        {
-            if (this.nuget_package_source == null)
-            {
-                throw new NotSupportedException();
-            }
-            else
-            {
-                return this.nuget_package_source.GetPackages(o);
-            }
-        }
-
-        public override bool IsVulnerabilityVersionInPackageVersionRange(string vulnerability_version, string package_version)
-        {
-            if (this.nuget_package_source == null)
-            {
-                throw new NotSupportedException();
-            }
-            else
-            {
-                return this.nuget_package_source.IsVulnerabilityVersionInPackageVersionRange(vulnerability_version, package_version);
-            }
-        }
-        #endregion
-
-        #region Protected overriden methods
+        #region Overriden methods
         protected override async Task GetWorkspaceAsync()
         {
             CallerInformation here = this.AuditEnvironment.Here();
@@ -194,8 +167,7 @@ namespace DevAudit.AuditLibrary
         #endregion
 
         #region Private fields
-        bool IsDisposed = false;
-        NuGetPackageSource nuget_package_source = null;
+        bool IsDisposed = false;        
         #endregion
     }
 

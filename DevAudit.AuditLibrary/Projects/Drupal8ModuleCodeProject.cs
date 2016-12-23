@@ -66,11 +66,7 @@ namespace DevAudit.AuditLibrary
             }
         }
 
-        public override IEnumerable<OSSIndexQueryObject> GetPackages(params string[] o)
-        {
-
-            throw new NotSupportedException();
-        }
+       
 
         /*
         public override AuditResult Audit(CancellationToken ct)
@@ -124,16 +120,7 @@ namespace DevAudit.AuditLibrary
             return AuditResult.SUCCESS;
         }
         */
-        public override bool IsVulnerabilityVersionInPackageVersionRange(string vulnerability_version, string package_version)
-        {
-            string message = "";
-            bool r = Drupal.RangeIntersect(vulnerability_version, package_version, out message);
-            if (!r && !string.IsNullOrEmpty(message))
-            {
-                throw new Exception(message);
-            }
-            else return r;
-        }
+       
         #endregion
 
         #region Public properties

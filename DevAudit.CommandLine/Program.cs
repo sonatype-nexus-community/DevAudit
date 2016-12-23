@@ -288,7 +288,7 @@ namespace DevAudit.CommandLine
                     else if (verb == "netfx")
                     {
                         CodeProject = new NetFxCodeProject(audit_options, EnvironmentMessageHandler);                        
-                        Source = CodeProject as PackageSource;
+                        Source = CodeProject.PackageSource;
                     }                    
                     else if (verb == "drupal8-module")
                     {
