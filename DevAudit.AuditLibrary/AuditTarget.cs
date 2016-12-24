@@ -153,7 +153,7 @@ namespace DevAudit.AuditLibrary
         protected event EventHandler<EnvironmentEventArgs> ControllerMessageHandler;
         #endregion
 
-        #region Public properties
+        #region Properties
         public string Id { get; protected set; }
         public string Label { get; protected set; }
         public Dictionary<string, object> AuditOptions { get; set; } = new Dictionary<string, object>();
@@ -162,13 +162,8 @@ namespace DevAudit.AuditLibrary
         public bool HostEnvironmentInitialised { get; private set; } = false;
         public bool AuditEnvironmentIntialised { get; private set; } = false;
         public bool UseAsyncMethods { get; private set; } = false;
-        #endregion
-
-        #region Internal properties
+        
         internal Stopwatch Stopwatch { get; set; } = new Stopwatch();
-        #endregion
-
-        #region Public methods
         #endregion
 
         #region Disposer

@@ -184,7 +184,7 @@ namespace DevAudit.AuditLibrary
 
         #endregion
 
-        #region Public properties
+        #region Properties
         public AuditDirectoryInfo CoreModulesDirectory
         {
             get

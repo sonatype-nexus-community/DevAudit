@@ -142,20 +142,20 @@ namespace DevAudit.AuditLibrary
         }
         #endregion
 
-        #region Public abstract properties
+        #region Abstract properties
         public abstract string ApplicationId { get; }
 
         public abstract string ApplicationLabel { get; }
         #endregion
 
-        #region Protected abstract methods
+        #region Abstract methods
         protected abstract string GetVersion();
         protected abstract Dictionary<string, IEnumerable<OSSIndexQueryObject>> GetModules();
         protected abstract IConfiguration GetConfiguration();
         public abstract bool IsConfigurationRuleVersionInServerVersionRange(string configuration_rule_version, string server_version);
         #endregion
 
-        #region Public properties
+        #region Properties
         public Dictionary<string, AuditFileSystemInfo> ApplicationFileSystemMap { get; } = new Dictionary<string, AuditFileSystemInfo>();
 
         public AuditDirectoryInfo RootDirectory
@@ -242,6 +242,8 @@ namespace DevAudit.AuditLibrary
         }
         public ConcurrentDictionary<OSSIndexArtifact, Exception> GetProjectConfigurationRulesExceptions { get; protected set; }
 
+        public bool PackageSourceInitialised { get; protected set; }
+
         public Dictionary<OSSIndexProjectConfigurationRule, Tuple<bool, List<string>, string>> ProjectConfigurationRulesEvaluations = new Dictionary<OSSIndexProjectConfigurationRule, Tuple<bool, List<string>, string>>();
 
         public Dictionary<string, object> ApplicationOptions { get; set; } = new Dictionary<string, object>();
@@ -254,7 +256,7 @@ namespace DevAudit.AuditLibrary
 
         #endregion
 
-        #region Public methods
+        #region Methods
         public override AuditResult Audit(CancellationToken ct)
         {
             CallerInformation caller = this.AuditEnvironment.Here();
@@ -398,9 +400,7 @@ namespace DevAudit.AuditLibrary
             }
             return AuditResult.SUCCESS;
         }
-        #endregion
-
-        #region Protected methods
+     
         protected int GetDefaultConfigurationRules()
         {
             this.AuditEnvironment.Info("Loading default configuration rules for {0} application.", this.ApplicationLabel);
@@ -570,9 +570,7 @@ namespace DevAudit.AuditLibrary
             }
 
         }
-        #endregion
-
-        #region Private methods
+        
         private KeyValuePair<OSSIndexQueryObject, IEnumerable<OSSIndexPackageVulnerability>>
           AddPackageVulnerability(OSSIndexQueryObject package, IEnumerable<OSSIndexPackageVulnerability> vulnerability)
         {
@@ -630,7 +628,7 @@ namespace DevAudit.AuditLibrary
         }
         #endregion
 
-        #region Private fields
+        #region Fields
         private readonly object artifacts_lock = new object(), package_vulnerabilities_lock = new object(), project_vulnerabilities_lock = new object(), artifact_project_lock = new object();
         private Dictionary<IEnumerable<OSSIndexQueryObject>, IEnumerable<OSSIndexArtifact>> _ArtifactsForQuery =
             new Dictionary<IEnumerable<OSSIndexQueryObject>, IEnumerable<OSSIndexArtifact>>();
@@ -642,7 +640,6 @@ namespace DevAudit.AuditLibrary
             new Dictionary<OSSIndexProject, IEnumerable<OSSIndexProjectVulnerability>>();
         protected Dictionary<OSSIndexProject, IEnumerable<OSSIndexProjectConfigurationRule>> _ConfigurationRulesForProject = new Dictionary<OSSIndexProject, IEnumerable<OSSIndexProjectConfigurationRule>>();
         private List<Task<KeyValuePair<OSSIndexProject, IEnumerable<OSSIndexProjectVulnerability>>>> _VulnerabilitiesTask;
-        
         private Task<Dictionary<string, IEnumerable<OSSIndexQueryObject>>> _ModulesTask;
         private Task _ConfigurationTask;
         private List<Task<KeyValuePair<OSSIndexProject, IEnumerable<OSSIndexProjectConfigurationRule>>>> _ConfigurationRulesTask;

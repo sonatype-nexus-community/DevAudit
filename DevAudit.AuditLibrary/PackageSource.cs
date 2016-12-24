@@ -94,14 +94,17 @@ namespace DevAudit.AuditLibrary
         }
         #endregion
 
-        #region Public abstract properties
+        #region Abstract properties
         public abstract string PackageManagerId { get; }
-
         public abstract string PackageManagerLabel { get; }
         #endregion
 
-        #region Public properties
+        #region Abstract methods
+        public abstract IEnumerable<OSSIndexQueryObject> GetPackages(params string[] o);
+        public abstract bool IsVulnerabilityVersionInPackageVersionRange(string vulnerability_version, string package_version);
+        #endregion
 
+        #region Properties
         #region Cache stuff
         public bool ProjectVulnerabilitiesCacheEnabled { get; set; }
 
@@ -294,9 +297,30 @@ namespace DevAudit.AuditLibrary
         public Task VulnerabilitiesTask { get; protected set; }
 
         public Task EvaluateVulnerabilitiesTask { get; protected set; }
+
+        #region Cache stuff
+        private string ProjectVulnerabilitiesCacheFile { get; set; }
+
+        private Task<BPlusTree<string, Tuple<OSSIndexProject, IEnumerable<OSSIndexProjectVulnerability>>>> ProjectVulnerabilitiesCacheInitialiseTask { get; set; }
+
+        private BPlusTree<string, Tuple<OSSIndexProject, IEnumerable<OSSIndexProjectVulnerability>>> ProjectVulnerabilitiesCache
+        {
+            get
+            {
+                if (this._ProjectVulnerabilitiesCache == null)
+                {
+                    this.ProjectVulnerabilitiesCacheInitialiseTask.Wait();
+                    this._ProjectVulnerabilitiesCache = this.ProjectVulnerabilitiesCacheInitialiseTask.Result;
+
+                }
+                return this._ProjectVulnerabilitiesCache;
+            }
+        }
+        #endregion
+        
         #endregion
 
-        #region Public methods
+        #region Methods
         public virtual Task GetPackagesTask(CancellationToken ct)
         {
             CallerInformation caller = this.AuditEnvironment.Here();
@@ -388,9 +412,7 @@ namespace DevAudit.AuditLibrary
             }
             return AuditResult.SUCCESS;
         }
-        #endregion
-
-        #region Protected methods
+        
         protected Tuple<int, int> GetArtifacts()
         {
             CallerInformation caller = this.AuditEnvironment.Here();
@@ -638,48 +660,7 @@ namespace DevAudit.AuditLibrary
                 .Sum(pv => pv.Value.Count()), this.Vulnerabilities
                 .Sum(pv => pv.Value.Count(v => v.CurrentPackageVersionIsInRange)), sw.ElapsedMilliseconds);
         }
-        #endregion
 
-        #region Public abstract methods
-        public abstract IEnumerable<OSSIndexQueryObject> GetPackages(params string[] o);
-        public abstract bool IsVulnerabilityVersionInPackageVersionRange(string vulnerability_version, string package_version);
-        #endregion
-        
-        #region Private properties
-        private string ProjectVulnerabilitiesCacheFile { get; set; }
-
-        private Task<BPlusTree<string, Tuple<OSSIndexProject, IEnumerable<OSSIndexProjectVulnerability>>>> ProjectVulnerabilitiesCacheInitialiseTask { get; set; }
-
-        private BPlusTree<string, Tuple<OSSIndexProject, IEnumerable<OSSIndexProjectVulnerability>>> ProjectVulnerabilitiesCache
-        {
-            get
-            {
-                if (this._ProjectVulnerabilitiesCache == null)
-                {
-                    this.ProjectVulnerabilitiesCacheInitialiseTask.Wait();
-                    this._ProjectVulnerabilitiesCache = this.ProjectVulnerabilitiesCacheInitialiseTask.Result;
-
-                }
-                return this._ProjectVulnerabilitiesCache;
-            }
-        }
-        #endregion
-
-        #region Private fields
-        private readonly object artifacts_lock = new object(), vulnerabilities_lock = new object(), project_vulnerabilities_cache_lock = new object(), artifact_project_lock = new object();
-        private BPlusTree<string, Tuple<OSSIndexProject, IEnumerable<OSSIndexProjectVulnerability>>>
-            _ProjectVulnerabilitiesCache = null;
-        private Dictionary<IEnumerable<OSSIndexQueryObject>, IEnumerable<OSSIndexArtifact>> _ArtifactsForQuery =
-            new Dictionary<IEnumerable<OSSIndexQueryObject>, IEnumerable<OSSIndexArtifact>>();
-        private Dictionary<OSSIndexArtifact, OSSIndexProject> _ArtifactProject = new Dictionary<OSSIndexArtifact, OSSIndexProject>();
-        private Dictionary<OSSIndexQueryObject, IEnumerable<OSSIndexPackageVulnerability>> _VulnerabilitiesForPackage =
-            new Dictionary<OSSIndexQueryObject, IEnumerable<OSSIndexPackageVulnerability>>();
-        private Dictionary<OSSIndexProject, IEnumerable<OSSIndexProjectVulnerability>> _VulnerabilitiesForProject =
-            new Dictionary<OSSIndexProject, IEnumerable<OSSIndexProjectVulnerability>>();
-        private Dictionary<OSSIndexQueryObject, List<OSSIndexApiv2Vulnerability>> _Vulnerabilities = new Dictionary<OSSIndexQueryObject, List<OSSIndexApiv2Vulnerability>>();
-        #endregion
-     
-        #region Private methods
         private async Task<KeyValuePair<IEnumerable<OSSIndexQueryObject>, IEnumerable<OSSIndexArtifact>>> AddArtifiactAsync(IEnumerable<OSSIndexQueryObject> query, Task<IEnumerable<OSSIndexArtifact>> artifact_task)
         {
             var artifact = await artifact_task;
@@ -715,7 +696,7 @@ namespace DevAudit.AuditLibrary
             lock (vulnerabilities_lock)
             {
                 this._VulnerabilitiesForProject.Add(project, vulnerability);
-                
+
                 return new KeyValuePair<OSSIndexProject, IEnumerable<OSSIndexProjectVulnerability>>(project, vulnerability);
             }
         }
@@ -754,7 +735,7 @@ namespace DevAudit.AuditLibrary
                 }
                 return c;
             }
-                        
+
         }
 
         private string GetProjectVulnerabilitiesCacheKey(long project_id)
@@ -789,14 +770,29 @@ namespace DevAudit.AuditLibrary
                     if (!ProjectVulnerabilitiesCache.Remove(k)) throw new Exception("Error removing expired cache item with key: " + k + ".");
                 }
                 return expired_cache_keys.Count();
-                    
+
             }
             else
             {
                 throw new Exception("Project vulnerabilities cache is not enabled.");
             }
-            
+
         }
+
+        #endregion
+
+        #region Fields
+        private readonly object artifacts_lock = new object(), vulnerabilities_lock = new object(), project_vulnerabilities_cache_lock = new object(), artifact_project_lock = new object();
+        private BPlusTree<string, Tuple<OSSIndexProject, IEnumerable<OSSIndexProjectVulnerability>>>
+            _ProjectVulnerabilitiesCache = null;
+        private Dictionary<IEnumerable<OSSIndexQueryObject>, IEnumerable<OSSIndexArtifact>> _ArtifactsForQuery =
+            new Dictionary<IEnumerable<OSSIndexQueryObject>, IEnumerable<OSSIndexArtifact>>();
+        private Dictionary<OSSIndexArtifact, OSSIndexProject> _ArtifactProject = new Dictionary<OSSIndexArtifact, OSSIndexProject>();
+        private Dictionary<OSSIndexQueryObject, IEnumerable<OSSIndexPackageVulnerability>> _VulnerabilitiesForPackage =
+            new Dictionary<OSSIndexQueryObject, IEnumerable<OSSIndexPackageVulnerability>>();
+        private Dictionary<OSSIndexProject, IEnumerable<OSSIndexProjectVulnerability>> _VulnerabilitiesForProject =
+            new Dictionary<OSSIndexProject, IEnumerable<OSSIndexProjectVulnerability>>();
+        private Dictionary<OSSIndexQueryObject, List<OSSIndexApiv2Vulnerability>> _Vulnerabilities = new Dictionary<OSSIndexQueryObject, List<OSSIndexApiv2Vulnerability>>();
         #endregion
 
     }

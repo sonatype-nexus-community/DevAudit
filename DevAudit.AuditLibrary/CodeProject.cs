@@ -14,12 +14,6 @@ namespace DevAudit.AuditLibrary
 {
     public abstract class CodeProject : AuditTarget, IDisposable
     {
-        #region Public abstract properties
-        public abstract string CodeProjectId { get; }
-
-        public abstract string CodeProjectLabel { get; }
-        #endregion
-
         #region Constructors
         public CodeProject(Dictionary<string, object> project_options, EventHandler<EnvironmentEventArgs> message_handler, string analyzer_type) : base(project_options, message_handler)
         {
@@ -71,9 +65,15 @@ namespace DevAudit.AuditLibrary
                 this.ListCodeProjectAnalyzers = true;
             }
         }
-        #endregion        
+        #endregion
 
-        #region Protected overriden methods       
+        #region Abstract properties
+        public abstract string CodeProjectId { get; }
+
+        public abstract string CodeProjectLabel { get; }
+        #endregion
+
+        #region Overriden methods       
         protected override void Dispose(bool isDisposing)
         {
             // TODO If you need thread safety, use a lock around these 
@@ -121,7 +121,7 @@ namespace DevAudit.AuditLibrary
 
         #endregion
 
-        #region Public properties
+        #region Properties
         public Dictionary<string, object> CodeProjectOptions { get; set; } = new Dictionary<string, object>();
         
         public Dictionary<string, AuditFileSystemInfo> CodeProjectFileSystemMap { get; protected set; } = new Dictionary<string, AuditFileSystemInfo>();
