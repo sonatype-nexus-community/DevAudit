@@ -15,8 +15,10 @@ namespace DevAudit.AuditLibrary
         #region Constructors
         public NetFxCodeProject(Dictionary<string, object> project_options, EventHandler<EnvironmentEventArgs> message_handler) : base(project_options, message_handler, "Roslyn")
         {
+
             if (this.CodeProjectOptions.ContainsKey("CodeProjectName"))
             {
+                this.message_handler = message_handler;
                 string fn_1 = this.CombinePath(this.RootDirectory.FullName, (string)this.CodeProjectOptions["CodeProjectName"], (string)this.CodeProjectOptions["CodeProjectName"]); //CodeProjectName/CodeProjectName.xxx
                 string fn_2 = this.CombinePath(this.RootDirectory.FullName, "src", (string)this.CodeProjectOptions["CodeProjectName"], (string)this.CodeProjectOptions["CodeProjectName"]); //CodeProjectName/src/CodeProjectName.xxx
 
@@ -28,6 +30,7 @@ namespace DevAudit.AuditLibrary
                 if (wf_11.Exists)
                 {
                     this.WorkspaceFilePath = Path.Combine((string)this.CodeProjectOptions["CodeProjectName"], (string)this.CodeProjectOptions["CodeProjectName"]) + ".csproj";
+                    
                 }
                 else if (wf_12.Exists)
                 {
@@ -65,6 +68,7 @@ namespace DevAudit.AuditLibrary
                 this.AuditEnvironment.Debug("NuGet v2 package manager configuration file {0} does not exist.", packages_config.FullName);
                 PackageSourceInitialized = false;
             }
+            
         }
         #endregion
 
@@ -100,6 +104,14 @@ namespace DevAudit.AuditLibrary
             {
                 this.MSBuildWorkspace = MSBuildWorkspace.Create();
                 Project p = this.MSBuildWorkspace.OpenProjectAsync(wf.FullName).Result;
+                this.OutputFile = new FileInfo(p.OutputFilePath);
+                this.OutputDirectory = this.OutputFile.Directory;
+                Dictionary<string, object> application_options = new Dictionary<string, object>()
+                {
+                    { "RootDirectory", this.OutputDirectory.FullName }
+                };
+
+                this.Application = new NetFx4Application(application_options, this.message_handler, this.PackageSource as NuGetPackageSource);                
                 Compilation c = await p.GetCompilationAsync();
                 this.Project = p;
                 this.Compilation = c;
@@ -167,7 +179,8 @@ namespace DevAudit.AuditLibrary
         #endregion
 
         #region Private fields
-        bool IsDisposed = false;        
+        bool IsDisposed = false;
+        EventHandler<EnvironmentEventArgs> message_handler;
         #endregion
     }
 

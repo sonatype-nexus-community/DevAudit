@@ -142,9 +142,17 @@ namespace DevAudit.AuditLibrary
 
         public LocalAuditDirectoryInfo WorkspaceDirectory { get; protected set; }
 
+        public FileInfo OutputFile { get; protected set; }
+
+        public DirectoryInfo OutputDirectory { get; protected set; }
+
         public bool PackageSourceInitialized { get; protected set; } = false;
 
         public PackageSource PackageSource { get; protected set; }
+
+        public bool ApplicationInitialised { get; protected set; }
+         
+        public Application Application { get; protected set; }
 
         public object WorkSpace { get; protected set; }
 
@@ -171,7 +179,7 @@ namespace DevAudit.AuditLibrary
         public Task GetAnalyzerResultsTask { get; protected set; }
         #endregion
 
-        #region Public methods
+        #region Methods
         public virtual AuditResult Audit(CancellationToken ct)
         {
             CallerInformation caller = this.AuditEnvironment.Here();
@@ -231,9 +239,7 @@ namespace DevAudit.AuditLibrary
             }
             return AuditResult.SUCCESS;
         }
-        #endregion
-
-        #region Protected methods
+        
         protected virtual async Task GetWorkspaceAsync()
         {
             CallerInformation here = this.AuditEnvironment.Here();
@@ -414,7 +420,7 @@ namespace DevAudit.AuditLibrary
 
         #endregion
 
-        #region Private fields
+        #region Fields
         private bool IsDisposed { get; set; }
         #endregion
 

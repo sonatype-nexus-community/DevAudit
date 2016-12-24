@@ -11,17 +11,29 @@ namespace DevAudit.AuditLibrary
     public class NetFx4Application : Application
     {
         #region Constructors
-        public NetFx4Application(Dictionary<string, object> application_options, EventHandler<EnvironmentEventArgs> message_handler) : base(application_options, new Dictionary<string, string[]>()
-            {
-                { "AppConfig", new string[] { "@", "app.config" } },
-            },
+        public NetFx4Application(Dictionary<string, object> application_options, EventHandler<EnvironmentEventArgs> message_handler) : base(application_options, new Dictionary<string, string[]>(),           
             new Dictionary<string, string[]>(), message_handler)
-        { }
+        {
+            if (application_options.ContainsKey("File"))
+            {
+                this.NugetPackageSource = new NuGetPackageSource(application_options, message_handler);
+                this.PackageSourceInitialised = true;
+            }
+        }
 
         public NetFx4Application(Dictionary<string, object> application_options, Dictionary<string, string[]> required_files,
             Dictionary<string, string[]> required_directories, EventHandler<EnvironmentEventArgs> message_handler) : base(application_options,
                 required_files, required_directories, message_handler)
         { }
+
+        public NetFx4Application(Dictionary<string, object> application_options, EventHandler<EnvironmentEventArgs> message_handler, NuGetPackageSource package_source) : this(application_options, message_handler)
+        {
+            if (package_source != null)
+            {
+                this.NugetPackageSource = package_source;
+                this.PackageSourceInitialised = true;
+            }
+        }
         #endregion
 
         #region Overriden properties
