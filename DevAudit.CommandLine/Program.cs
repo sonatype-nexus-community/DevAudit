@@ -287,9 +287,17 @@ namespace DevAudit.CommandLine
                     }
                     else if (verb == "netfx")
                     {
-                        CodeProject = new NetFxCodeProject(audit_options, EnvironmentMessageHandler);                        
+                        CodeProject = new NetFxCodeProject(audit_options, EnvironmentMessageHandler);
+                        Application = CodeProject.Application;                        
                         Source = CodeProject.PackageSource;
-                    }                    
+                    }
+                    else if (verb == "mvc5")
+                    {
+                        CodeProject = new MVC5CodeProject(audit_options, EnvironmentMessageHandler);
+                        Application = CodeProject.Application;
+                        Source = CodeProject.PackageSource;
+                    }
+
                     else if (verb == "drupal8-module")
                     {
                         CodeProject = new Drupal8ModuleCodeProject(audit_options, EnvironmentMessageHandler);                       
@@ -388,7 +396,7 @@ namespace DevAudit.CommandLine
                     Application.Dispose();
                 }
             }
-            else if (CodeProject == null && Application != null) //Auditing server
+            else if (CodeProject == null && Server != null) //Auditing server
             {
                 AuditTarget.AuditResult aar = Application.Audit(CTS.Token);
                 if (Stopwatch.IsRunning) Stopwatch.Stop();
@@ -406,7 +414,7 @@ namespace DevAudit.CommandLine
                     //Server.Dispose();
                 }
             }
-            else if (CodeProject != null && Application == null)
+            else if (CodeProject != null)
             {
                 AuditTarget.AuditResult cpar = CodeProject.Audit(CTS.Token);
                 if (Stopwatch.IsRunning) Stopwatch.Stop();

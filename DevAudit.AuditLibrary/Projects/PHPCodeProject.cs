@@ -1,6 +1,7 @@
 ﻿using System;
 using System.CodeDom;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -13,9 +14,11 @@ namespace DevAudit.AuditLibrary
     public abstract class PHPCodeProject : CodeProject
     {
         #region Constructors
-        public PHPCodeProject(Dictionary<string, object> project_options, EventHandler<EnvironmentEventArgs> message_handler) : base(project_options, message_handler, "PHP")
+        public PHPCodeProject(Dictionary<string, object> project_options, EventHandler<EnvironmentEventArgs> message_handler) : 
+            base(project_options, message_handler, new Dictionary<string, string[]>(), "PHP")
         { }
-        public PHPCodeProject(Dictionary<string, object> project_options, EventHandler<EnvironmentEventArgs> message_handler, string analyzer_type) : base(project_options, message_handler, analyzer_type)
+        public PHPCodeProject(Dictionary<string, object> project_options, EventHandler<EnvironmentEventArgs> message_handler, string analyzer_type) : 
+            base(project_options, message_handler, new Dictionary<string, string[]>(), analyzer_type)
         { }
         #endregion
       
@@ -25,7 +28,8 @@ namespace DevAudit.AuditLibrary
             await base.GetWorkspaceAsync();
             object psu_lock = new object();
             this.HostEnvironment.Status("Parsing PHP source files.");
-            this.Stopwatch.Start();
+            Stopwatch sw = new Stopwatch();
+            sw.Start();            
             DirectoryInfo wd = this.WorkspaceDirectory.GetAsSysDirectoryInfo();
             List<FileInfo> PHPFiles = wd.GetFiles("*.php*", SearchOption.AllDirectories).Concat(wd.GetFiles("*.module", SearchOption.AllDirectories).Concat(wd.GetFiles("*.inc", SearchOption.AllDirectories))).ToList();
             this.YamlFiles = wd.GetFiles("*.yml", SearchOption.AllDirectories).ToList();
@@ -68,8 +72,8 @@ namespace DevAudit.AuditLibrary
 
             };
             this.Project = PHPSourceUnits;
-            this.Stopwatch.Stop();
-            this.HostEnvironment.Success("Parsed {0} PHP files in {1} ms.", PHPSourceUnits.Count(), this.Stopwatch.ElapsedMilliseconds);
+            sw.Stop();
+            this.HostEnvironment.Success("Parsed {0} PHP files in {1} ms.", PHPSourceUnits.Count(), sw.ElapsedMilliseconds);
         }
         #endregion
 

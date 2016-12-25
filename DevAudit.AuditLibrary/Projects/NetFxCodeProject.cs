@@ -1,9 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+
 using Alpheus;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.MSBuild;
@@ -13,12 +15,13 @@ namespace DevAudit.AuditLibrary
     public class NetFxCodeProject : CodeProject
     {
         #region Constructors
-        public NetFxCodeProject(Dictionary<string, object> project_options, EventHandler<EnvironmentEventArgs> message_handler) : base(project_options, message_handler, "Roslyn")
+        public NetFxCodeProject(Dictionary<string, object> project_options, Dictionary<string, string[]> default_file_location_paths, EventHandler<EnvironmentEventArgs> message_handler) : base(project_options, message_handler,
+                 default_file_location_paths, "Roslyn")
         {
 
             if (this.CodeProjectOptions.ContainsKey("CodeProjectName"))
             {
-                this.message_handler = message_handler;
+                this.message_handler = message_handler;                
                 string fn_1 = this.CombinePath(this.RootDirectory.FullName, (string)this.CodeProjectOptions["CodeProjectName"], (string)this.CodeProjectOptions["CodeProjectName"]); //CodeProjectName/CodeProjectName.xxx
                 string fn_2 = this.CombinePath(this.RootDirectory.FullName, "src", (string)this.CodeProjectOptions["CodeProjectName"], (string)this.CodeProjectOptions["CodeProjectName"]); //CodeProjectName/src/CodeProjectName.xxx
 
@@ -68,8 +71,39 @@ namespace DevAudit.AuditLibrary
                 this.AuditEnvironment.Debug("NuGet v2 package manager configuration file {0} does not exist.", packages_config.FullName);
                 PackageSourceInitialized = false;
             }
-            
+            this.ProjectDirectory = this.AuditEnvironment.ConstructDirectory(this.CombinePath(this.RootDirectory.FullName, (string) this.CodeProjectOptions["CodeProjectName"]));        
+            this.ConfigurationFiles = this.ProjectDirectory.GetFiles("*.config", SearchOption.TopDirectoryOnly).Select(f => f as AuditFileInfo).ToList();
+            if (this.CodeProjectOptions.ContainsKey("ConfigurationFile"))
+            {
+                AuditFileInfo cf = this.AuditEnvironment.ConstructFile(this.CombinePath(this.ProjectDirectory.FullName, (string)this.CodeProjectOptions["ConfigurationFile"]));
+                if (!cf.Exists)
+                {
+                    throw new ArgumentException("The configuration file {0} does not exist.", cf.FullName);
+                }
+                else
+                {                    
+                    this.AppConfigurationFile = cf;
+                    this.AuditEnvironment.Info("Using application configuration file {0}.", cf.FullName);
+                }
+            }
+            else
+            {
+                AuditFileInfo cf = this.AuditEnvironment.ConstructFile(this.CombinePath(this.ProjectDirectory.FullName, this.CombinePath(this.DefaultFileLocationPaths["AppConfig"])));
+                if (!cf.Exists)
+                {
+                    this.AuditEnvironment.Warning("No application configuration file found.");
+                }
+                else
+                {
+                    this.AppConfigurationFile = cf;
+                    this.AuditEnvironment.Info("Using application configuration file {0}.", cf.FullName);
+                }
+            }
         }
+
+        public NetFxCodeProject(Dictionary<string, object> project_options, EventHandler<EnvironmentEventArgs> message_handler) : this(project_options,
+            new Dictionary<string, string[]> { { "AppConfig", new string[] { "app.config" } } }, message_handler)
+        { }
         #endregion
 
         #region Overriden properties
@@ -99,28 +133,25 @@ namespace DevAudit.AuditLibrary
                 throw new Exception("Using the MSBuild workspace is not yet supported on Mono. See " + @"https://gitter.im/dotnet/roslyn/archives/2016/09/25");
             }
             this.HostEnvironment.Status("Compiling project file {0}.", wf.FullName);
-            this.Stopwatch.Start();
+            Stopwatch sw = new Stopwatch();
+            sw.Start();
             try
             {
                 this.MSBuildWorkspace = MSBuildWorkspace.Create();
                 Project p = this.MSBuildWorkspace.OpenProjectAsync(wf.FullName).Result;
                 this.OutputFile = new FileInfo(p.OutputFilePath);
                 this.OutputDirectory = this.OutputFile.Directory;
-                Dictionary<string, object> application_options = new Dictionary<string, object>()
-                {
-                    { "RootDirectory", this.OutputDirectory.FullName }
-                };
-
-                this.Application = new NetFx4Application(application_options, this.message_handler, this.PackageSource as NuGetPackageSource);                
+                this.GetApplication(p);              
                 Compilation c = await p.GetCompilationAsync();
                 this.Project = p;
                 this.Compilation = c;
                 this.WorkSpace = this.MSBuildWorkspace;
-                this.Stopwatch.Stop();
-                this.HostEnvironment.Success("Roslyn compiled {2} file(s) in project {0} in {1} ms.", p.Name, this.Stopwatch.ElapsedMilliseconds, c.SyntaxTrees.Count());
+                sw.Stop();
+                this.HostEnvironment.Success("Roslyn compiled {2} file(s) in project {0} in {1} ms.", p.Name, sw.ElapsedMilliseconds, c.SyntaxTrees.Count());
             }
             catch (Exception e)
             {
+                sw.Stop();
                 this.HostEnvironment.Error(here, e);
                 this.MSBuildWorkspace.Dispose();
                 throw;
@@ -174,13 +205,54 @@ namespace DevAudit.AuditLibrary
         }
         #endregion
 
-        #region Public properties
+        #region Properties
         public MSBuildWorkspace MSBuildWorkspace { get; protected set; }
+        public AuditDirectoryInfo ProjectDirectory { get; protected set; }
+        public List<AuditFileInfo> ConfigurationFiles { get; protected set; }
+        public AuditFileInfo AppConfigurationFile { get; protected set; }
+        #endregion
+
+        #region Methods
+        protected virtual IConfiguration GetConfiguration()
+        {
+            if (this.AppConfigurationFile == null) throw new InvalidOperationException("The application configuration file was not specified.");
+            this.AuditEnvironment.Status("Scanning {0} configuration.", this.CodeProjectLabel);
+            Stopwatch sw = new Stopwatch();
+            sw.Start();
+            XMLConfig config = new XMLConfig(this.AppConfigurationFile);
+            if (config.ParseSucceded)
+            {
+                this.Configuration = config;
+                sw.Stop();
+                this.AuditEnvironment.Success("Read configuration from {0} in {1} ms.", this.Configuration.File.Name, sw.ElapsedMilliseconds);
+            }
+            else
+            {
+                sw.Stop();
+                this.Configuration = null;
+                this.AuditEnvironment.Error("Failed to read configuration from {0}. Error: {1}. Time elapsed: {2} ms.",
+                    this.AppConfigurationFile.FullName, config.LastException.Message, sw.ElapsedMilliseconds);
+            }
+            return this.Configuration;
+        }
+
+        protected virtual Application GetApplication(Project p)
+        {
+            Dictionary<string, object> application_options = new Dictionary<string, object>()
+                {
+                    {"AssemblyName", p.AssemblyName },
+                    { "RootDirectory", this.OutputDirectory.FullName }
+                };
+
+            return this.Application = new NetFx4Application(application_options, this.message_handler, this.PackageSource as NuGetPackageSource);
+        }
+
+
         #endregion
 
         #region Private fields
         bool IsDisposed = false;
-        EventHandler<EnvironmentEventArgs> message_handler;
+        protected EventHandler<EnvironmentEventArgs> message_handler;
         #endregion
     }
 

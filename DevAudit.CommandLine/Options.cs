@@ -62,6 +62,9 @@ namespace DevAudit.CommandLine
         [VerbOption("netfx", HelpText = "Audit a .NET Framework 4 code project. Use the --root option to specify the root directory of the solution, and the --code-project option to specify the name of the project.")]
         public Options NetFx { get; set; }
 
+        [VerbOption("mvc5", HelpText = "Audit an ASP.NET MVC5 code project. Use the --root option to specify the root directory of the solution, and the --code-project option to specify the name of the project.")]
+        public Options MVC5 { get; set; }
+
         [VerbOption("php", HelpText = "Audit a PHP code project. Use the --root option to specify the root directory of the code project.")]
         public Options Php { get; set; }
 

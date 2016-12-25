@@ -38,14 +38,14 @@ namespace DevAudit.AuditLibrary
         {
             if (ReferenceEquals(audit_options, null)) throw new ArgumentNullException("audit_options");
             this.AuditOptions = audit_options;
-            this.ControllerMessageHandler = controller_message_handler;
-            this.HostEnvironmentMessageHandler = AuditTarget_HostEnvironmentMessageHandler;
-            this.HostEnvironment = new LocalEnvironment(this.HostEnvironmentMessageHandler);
+            this.ControllerMessage = controller_message_handler;
+            this.HostEnvironmentMessage = AuditTarget_HostEnvironmentMessageHandler;
+            this.HostEnvironment = new LocalEnvironment(this.HostEnvironmentMessage);
             this.HostEnvironment.ScriptEnvironment.MessageHandler += this.AuditTarget_ScriptEnvironmentMessageHandler;
             this.HostEnvironmentInitialised = true;
             if (this.AuditOptions.Keys.Contains("DockerContainer"))
             {
-                DockerAuditEnvironment docker_environment = new DockerAuditEnvironment(this.HostEnvironmentMessageHandler, (string)this.AuditOptions["DockerContainer"], new OperatingSystem(PlatformID.Unix, new Version(0, 0)), this.HostEnvironment);
+                DockerAuditEnvironment docker_environment = new DockerAuditEnvironment(this.HostEnvironmentMessage, (string)this.AuditOptions["DockerContainer"], new OperatingSystem(PlatformID.Unix, new Version(0, 0)), this.HostEnvironment);
                 if (string.IsNullOrEmpty(docker_environment.Container))
                 {
                     this.AuditEnvironmentIntialised = false;
@@ -61,9 +61,9 @@ namespace DevAudit.AuditLibrary
                 {
                     this.AuditEnvironment = docker_environment;
                     this.AuditEnvironmentIntialised = true;
-                    this.AuditEnvironmentMessageHandler = AuditTarget_AuditEnvironmentMessageHandler;
-                    this.AuditEnvironment.MessageHandler -= HostEnvironmentMessageHandler;
-                    this.AuditEnvironment.MessageHandler += this.AuditEnvironmentMessageHandler;
+                    this.AuditEnvironmentMessage = AuditTarget_AuditEnvironmentMessageHandler;
+                    this.AuditEnvironment.MessageHandler -= HostEnvironmentMessage;
+                    this.AuditEnvironment.MessageHandler += this.AuditEnvironmentMessage;
                 }
 
             }
@@ -85,18 +85,18 @@ namespace DevAudit.AuditLibrary
                 {
                     if (this.AuditOptions.Keys.Contains("RemoteKeyPassPhrase"))
                     {
-                        ssh_environment = new SshAuditEnvironment(this.HostEnvironmentMessageHandler, client, (string)this.AuditOptions["RemoteHost"],
+                        ssh_environment = new SshAuditEnvironment(this.HostEnvironmentMessage, client, (string)this.AuditOptions["RemoteHost"],
                             (string)this.AuditOptions["RemoteUser"], this.AuditOptions["RemoteKeyPassPhrase"], (string)this.AuditOptions["RemoteKeyFile"], new OperatingSystem(PlatformID.Unix, new Version(0, 0)), this.HostEnvironment);
                     }
                     else
                     {
-                        ssh_environment = new SshAuditEnvironment(this.HostEnvironmentMessageHandler, client, (string)this.AuditOptions["RemoteHost"],
+                        ssh_environment = new SshAuditEnvironment(this.HostEnvironmentMessage, client, (string)this.AuditOptions["RemoteHost"],
                             (string)this.AuditOptions["RemoteUser"], null, (string)this.AuditOptions["RemoteKeyFile"], new OperatingSystem(PlatformID.Unix, new Version(0, 0)), this.HostEnvironment);
                     }
                 }
                 else if (this.AuditOptions.Keys.Contains("RemoteUser") && this.AuditOptions.Keys.Contains("RemotePass"))
                 {
-                    ssh_environment = new SshAuditEnvironment(this.HostEnvironmentMessageHandler, client, (string)this.AuditOptions["RemoteHost"],
+                    ssh_environment = new SshAuditEnvironment(this.HostEnvironmentMessage, client, (string)this.AuditOptions["RemoteHost"],
                         (string)this.AuditOptions["RemoteUser"], this.AuditOptions["RemotePass"], null, new OperatingSystem(PlatformID.Unix, new Version(0, 0)), this.HostEnvironment);
                 }
                 else throw new Exception("Unknown remote host authentication options.");
@@ -105,9 +105,9 @@ namespace DevAudit.AuditLibrary
                 {
                     this.AuditEnvironment = ssh_environment;
                     this.AuditEnvironmentIntialised = true;
-                    this.AuditEnvironmentMessageHandler = AuditTarget_AuditEnvironmentMessageHandler;
-                    this.AuditEnvironment.MessageHandler -= HostEnvironmentMessageHandler;
-                    this.AuditEnvironment.MessageHandler += this.AuditEnvironmentMessageHandler;
+                    this.AuditEnvironmentMessage = AuditTarget_AuditEnvironmentMessageHandler;
+                    this.AuditEnvironment.MessageHandler -= HostEnvironmentMessage;
+                    this.AuditEnvironment.MessageHandler += this.AuditEnvironmentMessage;
                 }
                 else
                 {
@@ -122,8 +122,8 @@ namespace DevAudit.AuditLibrary
             }
             else
             {
-                this.AuditEnvironmentMessageHandler = AuditTarget_AuditEnvironmentMessageHandler;
-                this.AuditEnvironment = new LocalEnvironment(this.AuditEnvironmentMessageHandler);
+                this.AuditEnvironmentMessage = AuditTarget_AuditEnvironmentMessageHandler;
+                this.AuditEnvironment = new LocalEnvironment(this.AuditEnvironmentMessage);
                 this.AuditEnvironmentIntialised = true;
             }
         }
@@ -131,39 +131,35 @@ namespace DevAudit.AuditLibrary
         private void AuditTarget_HostEnvironmentMessageHandler(object sender, EnvironmentEventArgs e)
         {
             e.EnvironmentLocation = "HOST";
-            this.ControllerMessageHandler.Invoke(sender, e);
+            this.ControllerMessage.Invoke(sender, e);
         }
 
         private void AuditTarget_AuditEnvironmentMessageHandler(object sender, EnvironmentEventArgs e)
         {
             e.EnvironmentLocation = "AUDIT";
-            this.ControllerMessageHandler.Invoke(sender, e);
+            this.ControllerMessage.Invoke(sender, e);
         }
 
         private void AuditTarget_ScriptEnvironmentMessageHandler(object sender, EnvironmentEventArgs e)
         {
             e.EnvironmentLocation = "SCRIPT";
-            this.ControllerMessageHandler.Invoke(sender, e);
+            this.ControllerMessage.Invoke(sender, e);
         }
         #endregion
 
         #region Events
-        protected event EventHandler<EnvironmentEventArgs> HostEnvironmentMessageHandler;
-        protected event EventHandler<EnvironmentEventArgs> AuditEnvironmentMessageHandler;
-        protected event EventHandler<EnvironmentEventArgs> ControllerMessageHandler;
+        protected event EventHandler<EnvironmentEventArgs> HostEnvironmentMessage;
+        protected event EventHandler<EnvironmentEventArgs> AuditEnvironmentMessage;
+        protected event EventHandler<EnvironmentEventArgs> ControllerMessage;
         #endregion
 
         #region Properties
-        public string Id { get; protected set; }
-        public string Label { get; protected set; }
         public Dictionary<string, object> AuditOptions { get; set; } = new Dictionary<string, object>();
         public LocalEnvironment HostEnvironment { get; protected set; }
         public AuditEnvironment AuditEnvironment { get; protected set; }
         public bool HostEnvironmentInitialised { get; private set; } = false;
         public bool AuditEnvironmentIntialised { get; private set; } = false;
-        public bool UseAsyncMethods { get; private set; } = false;
-        
-        internal Stopwatch Stopwatch { get; set; } = new Stopwatch();
+        public bool UseAsyncMethods { get; private set; } = false;                
         #endregion
 
         #region Disposer
@@ -211,9 +207,9 @@ namespace DevAudit.AuditLibrary
                         // Release all unmanaged resources here 
                         // (example) if (someComObject != null && Marshal.IsComObject(someComObject)) { Marshal.FinalReleaseComObject(someComObject); someComObject = null; 
 
-                        foreach (Delegate d in this.AuditEnvironmentMessageHandler.GetInvocationList())
+                        foreach (Delegate d in this.AuditEnvironmentMessage.GetInvocationList())
                         {
-                            this.AuditEnvironmentMessageHandler -= (EventHandler<EnvironmentEventArgs>)d;
+                            this.AuditEnvironmentMessage -= (EventHandler<EnvironmentEventArgs>)d;
                         }
 
                         if (this.AuditEnvironment != null)
@@ -221,9 +217,9 @@ namespace DevAudit.AuditLibrary
                             this.AuditEnvironment.Dispose();
                             this.AuditEnvironment = null;
                         }
-                        foreach (Delegate d in this.HostEnvironmentMessageHandler.GetInvocationList())
+                        foreach (Delegate d in this.HostEnvironmentMessage.GetInvocationList())
                         {
-                            this.HostEnvironmentMessageHandler -= (EventHandler<EnvironmentEventArgs>)d;
+                            this.HostEnvironmentMessage -= (EventHandler<EnvironmentEventArgs>)d;
                         }
 
                         if (this.HostEnvironment != null)

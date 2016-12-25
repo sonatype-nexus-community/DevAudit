@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -10,15 +11,18 @@ using System.Threading.Tasks;
 using CSScriptLibrary;
 using csscript;
 
+using Alpheus;
+
 namespace DevAudit.AuditLibrary
 {
     public abstract class CodeProject : AuditTarget, IDisposable
     {
         #region Constructors
-        public CodeProject(Dictionary<string, object> project_options, EventHandler<EnvironmentEventArgs> message_handler, string analyzer_type) : base(project_options, message_handler)
+        public CodeProject(Dictionary<string, object> project_options, EventHandler<EnvironmentEventArgs> message_handler, Dictionary<string, string[]> default_file_location_paths, string analyzer_type) : base(project_options, message_handler)
         {
             CallerInformation here = this.AuditEnvironment.Here();
             this.CodeProjectOptions = project_options;
+            this.DefaultFileLocationPaths = default_file_location_paths;
             if (this.CodeProjectOptions.ContainsKey("RootDirectory"))
             {
                 if (!this.AuditEnvironment.DirectoryExists((string)this.CodeProjectOptions["RootDirectory"]))
@@ -94,8 +98,7 @@ namespace DevAudit.AuditLibrary
                     this.Compilation = null;
                     this.AnalyzerScripts = null;
                     this.Analyzers = null;
-                    this.AnalyzerResults = null;
-                    this.Stopwatch = null;
+                    this.AnalyzerResults = null;                    
                     if (isDisposing)
                     {
                         // Release all managed resources here 
@@ -123,6 +126,8 @@ namespace DevAudit.AuditLibrary
 
         #region Properties
         public Dictionary<string, object> CodeProjectOptions { get; set; } = new Dictionary<string, object>();
+
+        public Dictionary<string, string[]> DefaultFileLocationPaths { get; protected set; }
         
         public Dictionary<string, AuditFileSystemInfo> CodeProjectFileSystemMap { get; protected set; } = new Dictionary<string, AuditFileSystemInfo>();
 
@@ -150,9 +155,13 @@ namespace DevAudit.AuditLibrary
 
         public PackageSource PackageSource { get; protected set; }
 
-        public bool ApplicationInitialised { get; protected set; }
+        public bool ApplicationInitialised { get; protected set; } = false;
          
         public Application Application { get; protected set; }
+
+        public IConfiguration Configuration { get; protected set; } = null;
+
+        public bool ConfigurationInitialised { get; protected set; } = false;
 
         public object WorkSpace { get; protected set; }
 
@@ -272,7 +281,8 @@ namespace DevAudit.AuditLibrary
 
         protected async Task GetAnalyzers()
         {
-            this.Stopwatch.Restart();
+            Stopwatch sw = new Stopwatch();
+            sw.Start();
             // Just in case clear AlternativeCompiler so it is not set to Roslyn or anything else by 
             // the CS-Script installed (if any) on the host OS
             CSScript.GlobalSettings.UseAlternativeCompiler = null;
@@ -322,7 +332,7 @@ namespace DevAudit.AuditLibrary
                     throw ce;
                 }
             }
-            this.Stopwatch.Stop();
+            sw.Stop();
             if (this.AnalyzerScripts.Count == 0)
             {
                 this.HostEnvironment.Info("No {0} analyzers found in {1}.", this.AnalyzerType, analyzers_dir.FullName);
@@ -334,7 +344,7 @@ namespace DevAudit.AuditLibrary
                 {
                     this.HostEnvironment.Warning("Failed to load {0} of {1} analyzer(s).", this.AnalyzerScripts.Count - this.Analyzers.Count, this.AnalyzerScripts.Count);
                 }
-                this.HostEnvironment.Success("Loaded {0} out of {1} analyzer(s) in {2} ms.", this.Analyzers.Count, this.AnalyzerScripts.Count, this.Stopwatch.ElapsedMilliseconds);
+                this.HostEnvironment.Success("Loaded {0} out of {1} analyzer(s) in {2} ms.", this.Analyzers.Count, this.AnalyzerScripts.Count, sw.ElapsedMilliseconds);
                 return;
             }
             else

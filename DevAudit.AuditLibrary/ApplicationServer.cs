@@ -10,6 +10,11 @@ namespace DevAudit.AuditLibrary
 {
     public abstract class ApplicationServer : Application
     {
+        #region Abstract properties
+        public abstract string ServerId { get; }
+        public abstract string ServerLabel { get; }
+        #endregion
+
         #region Constructors
         public ApplicationServer(Dictionary<string, object> server_options, Dictionary<PlatformID, string[]> default_configuration_file_path, Dictionary<string, string[]> RequiredFilePaths, Dictionary<string, string[]> RequiredDirectoryPaths, EventHandler<EnvironmentEventArgs> message_handler = null) : base(server_options, RequiredFilePaths, RequiredDirectoryPaths, message_handler)
         {
@@ -26,12 +31,7 @@ namespace DevAudit.AuditLibrary
         }
         #endregion
 
-        #region Public abstract properties
-        public abstract string ServerId { get; }
-        public abstract string ServerLabel { get; }
-        #endregion
-
-        #region Public properties
+        #region Properties
         public override string ApplicationId => this.ServerId;
 
         public override string ApplicationLabel => this.ServerLabel;
@@ -56,10 +56,7 @@ namespace DevAudit.AuditLibrary
         public Dictionary<string, object> ServerOptions { get; set; } = new Dictionary<string, object>();
         #endregion
 
-        #region Public methods
-        #endregion
-
-        #region Protected methods
+        #region Methods
         protected void InitialiseConfigurationFile(string[] default_configuration_file_path)
         {
             this.DefaultConfigurationFile = CombinePath(default_configuration_file_path);
@@ -96,9 +93,10 @@ namespace DevAudit.AuditLibrary
             }
             this.InitialiseConfigurationFile(default_configuration_file_path[this.AuditEnvironment.OS.Platform]);
         }
+
         #endregion
 
-        #region Private fields
+        #region Fields
         private Task<Dictionary<string, object>> _ConfigurationTask;
         #endregion
     }

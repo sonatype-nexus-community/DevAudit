@@ -21,7 +21,7 @@ namespace DevAudit.AuditLibrary
             Regex process_output_pattern = new Regex(@"^(\S+)\s(\S+)$", RegexOptions.Compiled);
             AuditEnvironment.ProcessExecuteStatus process_status;
                 string process_output, process_error;
-            this.Stopwatch.Restart();
+            Stopwatch sw = new Stopwatch();
             if (AuditEnvironment.Execute(command, arguments, out process_status, out process_output, out process_error))
             {
                 string[] p = process_output.Split("|".ToCharArray(), StringSplitOptions.RemoveEmptyEntries);
@@ -31,7 +31,7 @@ namespace DevAudit.AuditLibrary
                     Match m = process_output_pattern.Match(p[i].Trim());
                     if (!m.Success)
                     {
-                        Stopwatch.Stop();
+                        sw.Stop();
                         this.AuditEnvironment.Error(this.AuditEnvironment.Here(), "Could not parse dpkg command output at row {0}: {1}.", i, p[i]);
                         throw new Exception(string.Format("Could not parse dpkg command output at row {0}: {1}.", i, p[i]));
                     }
@@ -41,12 +41,12 @@ namespace DevAudit.AuditLibrary
                     }
 
                 }
-                this.Stopwatch.Stop();
-                this.AuditEnvironment.Success("Retrieved {0} packages from {1} package manager in {2} ms.", packages.Count, this.PackageManagerLabel, this.Stopwatch.ElapsedMilliseconds);
+                sw.Stop();
+                this.AuditEnvironment.Success("Retrieved {0} packages from {1} package manager in {2} ms.", packages.Count, this.PackageManagerLabel, sw.ElapsedMilliseconds);
             }
             else
             {
-                Stopwatch.Stop();
+                sw.Stop();
 				throw new Exception(string.Format("Error running {0} {1} command in audit environment: {2} {3}.", command,
                     arguments, process_error, process_output));
             }
