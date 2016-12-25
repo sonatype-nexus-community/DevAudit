@@ -66,7 +66,12 @@ namespace DevAudit.AuditLibrary
             }
         }
 
-       
+        protected override Application GetApplication()
+        {
+            throw new NotImplementedException();
+        }
+
+
 
         /*
         public override AuditResult Audit(CancellationToken ct)
@@ -120,7 +125,7 @@ namespace DevAudit.AuditLibrary
             return AuditResult.SUCCESS;
         }
         */
-       
+
         #endregion
 
         #region Public properties

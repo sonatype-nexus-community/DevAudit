@@ -13,13 +13,39 @@ namespace DevAudit.AuditLibrary
 {
     public class HttpdServer : ApplicationServer
     {
+        #region Constructors
+        public HttpdServer(Dictionary<string, object> server_options, EventHandler<EnvironmentEventArgs> message_handler = null) : base(server_options, new Dictionary<PlatformID, string[]>()
+            {
+                { PlatformID.Unix, new string[] { "@", "etc", "apache2", "apache2.conf" } },
+                { PlatformID.MacOSX, new string[] { "@", "etc", "apache2", "apache2.conf" } },
+                { PlatformID.Win32NT, new string[] { "@", "conf", "httpd.conf" } }
+            }, new Dictionary<string, string[]>(), new Dictionary<string, string[]>(), message_handler)
+        {
+            if (this.ApplicationBinary != null)
+            {
+                this.ApplicationFileSystemMap["httpd"] = this.ApplicationBinary;
+            }
+            else
+            {
+                string fn = Environment.OSVersion.Platform == PlatformID.Unix || Environment.OSVersion.Platform == PlatformID.MacOSX
+                ? CombinePath("@", "bin", "httpd") : CombinePath("@", "bin", "httpd.exe");
+                if (!File.Exists(fn))
+                {
+                    throw new ArgumentException(string.Format("The server binary for Apache Httpd was not specified and the default file path {0} does not exist.", fn));
+                }
+                else
+                {
+                    this.ApplicationBinary = this.AuditEnvironment.ConstructFile(fn);
+                    this.ApplicationFileSystemMap["httpd"] = this.ApplicationBinary;
+                }
+            }
+        }
+        #endregion
+
         #region Overriden properties
         public override string ServerId { get { return "httpd"; } }
 
         public override string ServerLabel { get { return "Apache httpd"; } }
-        #endregion
-
-        #region Public properties
         #endregion
 
         #region Overriden methods
@@ -88,34 +114,6 @@ namespace DevAudit.AuditLibrary
             return vulnerability_version == package_version;
         }
         #endregion
-
-        #region Constructors
-        public HttpdServer(Dictionary<string, object> server_options, EventHandler<EnvironmentEventArgs> message_handler = null) : base(server_options, new Dictionary<PlatformID, string[]>()
-            {
-                { PlatformID.Unix, new string[] { "@", "etc", "apache2", "apache2.conf" } },
-                { PlatformID.MacOSX, new string[] { "@", "etc", "apache2", "apache2.conf" } },
-                { PlatformID.Win32NT, new string[] { "@", "conf", "httpd.conf" } }
-            }, new Dictionary<string, string[]>(), new Dictionary<string, string[]>(), message_handler)
-        {
-            if (this.ApplicationBinary != null)
-            {
-                this.ApplicationFileSystemMap["httpd"] = this.ApplicationBinary;
-            }
-            else
-            {
-                string fn = Environment.OSVersion.Platform == PlatformID.Unix || Environment.OSVersion.Platform == PlatformID.MacOSX
-                ? CombinePath("@", "bin", "httpd") : CombinePath("@", "bin", "httpd.exe");
-                if (!File.Exists(fn))
-                {
-                    throw new ArgumentException(string.Format("The server binary for Apache Httpd was not specified and the default file path {0} does not exist.", fn));
-                }
-                else
-                {
-                    this.ApplicationBinary = this.AuditEnvironment.ConstructFile(fn);
-                    this.ApplicationFileSystemMap["httpd"] = this.ApplicationBinary;
-                }
-            }
-        }
-        #endregion
+        
     }
 }

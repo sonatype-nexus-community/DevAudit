@@ -8,6 +8,8 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
+using YamlDotNet.Serialization;
+using YamlDotNet.Serialization.NamingConventions;
 using CSScriptLibrary;
 using csscript;
 
@@ -75,6 +77,10 @@ namespace DevAudit.AuditLibrary
         public abstract string CodeProjectId { get; }
 
         public abstract string CodeProjectLabel { get; }
+        #endregion
+
+        #region Abstract methods
+        protected abstract Application GetApplication();
         #endregion
 
         #region Overriden methods       
@@ -177,30 +183,41 @@ namespace DevAudit.AuditLibrary
 
         public List<AnalyzerResult> AnalyzerResults { get; protected set; }
 
-        public bool ListCodeProjectAnalyzers { get; protected set; }
-
-        public Task GetWorkspaceTask { get; protected set; }
+        public Task AuditApplicationTask { get; protected set; }
 
         public Task AuditPackageSourceTask { get; protected set; }
+
+        public Task GetWorkspaceTask { get; protected set; }
 
         public Task GetAnalyzersTask { get; protected set; }
 
         public Task GetAnalyzerResultsTask { get; protected set; }
+
+        public bool ListCodeProjectAnalyzers { get; protected set; }
         #endregion
 
         #region Methods
         public virtual AuditResult Audit(CancellationToken ct)
         {
             CallerInformation caller = this.AuditEnvironment.Here();
-            if (PackageSourceInitialized)
+            if (ApplicationInitialised)
             {
-                this.AuditPackageSourceTask = Task.Run(() => this.PackageSource.Audit(ct));
+                this.AuditPackageSourceTask = Task.CompletedTask;
+                this.AuditApplicationTask = Task.Run(() => this.Application.Audit(ct));
             }
             else
             {
-                this.AuditPackageSourceTask = Task.CompletedTask;
-            }
+                this.AuditApplicationTask = Task.CompletedTask;
+                if (PackageSourceInitialized)
+                {
+                    this.AuditPackageSourceTask = Task.Run(() => this.PackageSource.Audit(ct));
+                }
+                else
+                {
+                    this.AuditPackageSourceTask = Task.CompletedTask;
+                }
 
+            }
             this.GetWorkspaceTask = this.GetWorkspaceAsync();
             try
             {
@@ -210,9 +227,8 @@ namespace DevAudit.AuditLibrary
             {
                 this.HostEnvironment.Error(caller, ae, "Exception throw during GetWorkspace task.");
                 return AuditResult.ERROR_SCANNING_WORKSPACE;
-            }
-            
-            this.GetAnalyzersTask = Task.Run(() => this.GetAnalyzers());
+            }            
+            this.GetAnalyzersTask = this.GetAnalyzers();
             try
             {
                 this.GetAnalyzersTask.Wait();
@@ -228,11 +244,11 @@ namespace DevAudit.AuditLibrary
             }
             else
             {
-                this.GetAnalyzerResultsTask = Task.Run(() => this.GetAnalyzers());
+                this.GetAnalyzerResultsTask = Task.Run(() => this.GetAnalyzerResults());
             }
             try
             {
-                Task.WaitAll(this.AuditPackageSourceTask, this.GetAnalyzerResultsTask);
+                Task.WaitAll(this.AuditPackageSourceTask, this.AuditApplicationTask, this.GetAnalyzerResultsTask);
             }
             catch (AggregateException ae)
             {
@@ -379,6 +395,8 @@ namespace DevAudit.AuditLibrary
             return;
         }
 
+   
+
         protected string CombinePath(params string[] paths)
         {
             if (paths == null || paths.Count() == 0)
@@ -413,6 +431,9 @@ namespace DevAudit.AuditLibrary
                 }
             }
         }
+
+       
+
 
         protected string LocatePathUnderRoot(params string[] paths)
         {

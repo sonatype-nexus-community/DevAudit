@@ -19,6 +19,7 @@ namespace DevAudit.AuditLibrary
                 this.NugetPackageSource = new NuGetPackageSource(application_options, message_handler);
                 this.PackageSourceInitialised = true;
             }
+            this.ConfigurationFile = (string)application_options["ConfigurationFile"];
         }
 
         public NetFx4Application(Dictionary<string, object> application_options, Dictionary<string, string[]> required_files,
@@ -63,7 +64,7 @@ namespace DevAudit.AuditLibrary
         {
             if (this.PackageSourceInitialised)
             {
-                return this.IsVulnerabilityVersionInPackageVersionRange(vulnerability_version, package_version);
+                return this.NugetPackageSource.IsVulnerabilityVersionInPackageVersionRange(vulnerability_version, package_version);
             }
             else throw new InvalidOperationException("The package source is not intialized.");
         }
@@ -85,18 +86,26 @@ namespace DevAudit.AuditLibrary
 
         protected override IConfiguration GetConfiguration()
         {
-            this.AuditEnvironment.Status("Scanning {0} configuration.", this.ApplicationLabel);
+            if (this.ConfigurationFile == null) throw new InvalidOperationException("The application configuration file was not specified.");
             Stopwatch sw = new Stopwatch();
             sw.Start();
-            XMLConfig xml = new XMLConfig(this.ConfigurationFile);
-            if (xml.ParseSucceded)
+            XMLConfig config = new XMLConfig(this.ConfigurationFile);
+            if (config.ParseSucceded)
             {
-                this.Configuration = xml;
-                sw.Stop();
+                this.Configuration = config;
+                sw.Stop();                
                 this.AuditEnvironment.Success("Read configuration from {0} in {1} ms.", this.Configuration.File.Name, sw.ElapsedMilliseconds);
+            }
+            else
+            {
+                sw.Stop();
+                this.Configuration = null;                
+                this.AuditEnvironment.Error("Failed to read configuration from {0}. Error: {1}. Time elapsed: {2} ms.",
+                    this.ConfigurationFile, config.LastException.Message, sw.ElapsedMilliseconds);
             }
             return this.Configuration;
         }
+
         #endregion
 
         #region Properties

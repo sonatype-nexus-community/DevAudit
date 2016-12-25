@@ -22,20 +22,8 @@ namespace DevAudit.AuditLibrary
         #region Public properties
         private LocalEnvironment HostEnvironment { get; set; }
         
-        public bool IsWindows
-        {
-            get
-            {
-                return this.HostEnvironment.IsWindows;
-            }
-        }
-        public bool IsUnix
-        {
-            get
-            {
-                return this.HostEnvironment.IsWindows;
-            }
-        }
+        public bool IsWindows => this.HostEnvironment.IsWindows;
+        public bool IsUnix => this.HostEnvironment.IsUnix;
         #endregion
 
         #region Public methods

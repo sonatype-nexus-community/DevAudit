@@ -99,6 +99,11 @@ namespace DevAudit.AuditLibrary
                     this.AuditEnvironment.Info("Using application configuration file {0}.", cf.FullName);
                 }
             }
+            if (this.AppConfigurationFile != null)
+            {
+                this.GetApplication();
+            }
+
         }
 
         public NetFxCodeProject(Dictionary<string, object> project_options, EventHandler<EnvironmentEventArgs> message_handler) : this(project_options,
@@ -140,8 +145,7 @@ namespace DevAudit.AuditLibrary
                 this.MSBuildWorkspace = MSBuildWorkspace.Create();
                 Project p = this.MSBuildWorkspace.OpenProjectAsync(wf.FullName).Result;
                 this.OutputFile = new FileInfo(p.OutputFilePath);
-                this.OutputDirectory = this.OutputFile.Directory;
-                this.GetApplication(p);              
+                this.OutputDirectory = this.OutputFile.Directory;                
                 Compilation c = await p.GetCompilationAsync();
                 this.Project = p;
                 this.Compilation = c;
@@ -162,7 +166,28 @@ namespace DevAudit.AuditLibrary
             }
             return;
         }
-       
+
+        protected override Application GetApplication()
+        {
+            Dictionary<string, object> application_options = new Dictionary<string, object>()
+            {
+                { "RootDirectory", this.ProjectDirectory.FullName },
+                { "ConfigurationFile", this.AppConfigurationFile.FullName }
+            };
+            try
+            {
+                this.Application = new NetFx4Application(application_options, message_handler, this.PackageSource as NuGetPackageSource);
+                this.ApplicationInitialised = true;
+            }
+            catch (Exception e)
+            {
+                this.AuditEnvironment.Error(e, "Error attempting to create application audit target");
+                this.ApplicationInitialised = false;
+                this.Application = null;                
+            }
+            return this.Application;
+        }
+
         protected override void Dispose(bool isDisposing)
         {
             base.Dispose(isDisposing);
@@ -212,42 +237,7 @@ namespace DevAudit.AuditLibrary
         public AuditFileInfo AppConfigurationFile { get; protected set; }
         #endregion
 
-        #region Methods
-        protected virtual IConfiguration GetConfiguration()
-        {
-            if (this.AppConfigurationFile == null) throw new InvalidOperationException("The application configuration file was not specified.");
-            this.AuditEnvironment.Status("Scanning {0} configuration.", this.CodeProjectLabel);
-            Stopwatch sw = new Stopwatch();
-            sw.Start();
-            XMLConfig config = new XMLConfig(this.AppConfigurationFile);
-            if (config.ParseSucceded)
-            {
-                this.Configuration = config;
-                sw.Stop();
-                this.AuditEnvironment.Success("Read configuration from {0} in {1} ms.", this.Configuration.File.Name, sw.ElapsedMilliseconds);
-            }
-            else
-            {
-                sw.Stop();
-                this.Configuration = null;
-                this.AuditEnvironment.Error("Failed to read configuration from {0}. Error: {1}. Time elapsed: {2} ms.",
-                    this.AppConfigurationFile.FullName, config.LastException.Message, sw.ElapsedMilliseconds);
-            }
-            return this.Configuration;
-        }
-
-        protected virtual Application GetApplication(Project p)
-        {
-            Dictionary<string, object> application_options = new Dictionary<string, object>()
-                {
-                    {"AssemblyName", p.AssemblyName },
-                    { "RootDirectory", this.OutputDirectory.FullName }
-                };
-
-            return this.Application = new NetFx4Application(application_options, this.message_handler, this.PackageSource as NuGetPackageSource);
-        }
-
-
+        #region Methods               
         #endregion
 
         #region Private fields

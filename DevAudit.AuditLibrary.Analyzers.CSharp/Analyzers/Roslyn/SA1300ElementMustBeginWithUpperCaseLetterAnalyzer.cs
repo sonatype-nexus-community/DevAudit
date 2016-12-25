@@ -27,6 +27,7 @@ namespace DevAudit.AuditLibrary.Analyzers
         {
             foreach (SyntaxTree tree in this.Compilation.SyntaxTrees)
             {
+                
                 CompilationUnitSyntax root = (CompilationUnitSyntax) await tree.GetRootAsync();
                 List<TypeDeclarationSyntax> declarations = root.DescendantNodesAndSelf().Where(
                     x => x.IsKind(SyntaxKind.InterfaceDeclaration) ||
@@ -47,6 +48,7 @@ namespace DevAudit.AuditLibrary.Analyzers
                     this.ScriptEnvironment.Debug(c.Identifier.ValueText);
                 }*/
             }
+            
             return this.AnalyzerResult;
         }
         #endregion
