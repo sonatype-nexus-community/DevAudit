@@ -73,12 +73,12 @@ namespace DevAudit.AuditLibrary
             }
             this.ProjectDirectory = this.AuditEnvironment.ConstructDirectory(this.CombinePath(this.RootDirectory.FullName, (string) this.CodeProjectOptions["CodeProjectName"]));        
             this.ConfigurationFiles = this.ProjectDirectory.GetFiles("*.config", SearchOption.TopDirectoryOnly).Select(f => f as AuditFileInfo).ToList();
-            if (this.CodeProjectOptions.ContainsKey("ConfigurationFile"))
+            if (this.CodeProjectOptions.ContainsKey("AppConfig"))
             {
-                AuditFileInfo cf = this.AuditEnvironment.ConstructFile(this.CombinePath(this.ProjectDirectory.FullName, (string)this.CodeProjectOptions["ConfigurationFile"]));
+                AuditFileInfo cf = this.AuditEnvironment.ConstructFile(this.CombinePath(this.ProjectDirectory.FullName, (string)this.CodeProjectOptions["AppConfig"]));
                 if (!cf.Exists)
                 {
-                    throw new ArgumentException("The configuration file {0} does not exist.", cf.FullName);
+                    throw new ArgumentException(string.Format("The configuration file {0} does not exist.", cf.FullName));
                 }
                 else
                 {                    

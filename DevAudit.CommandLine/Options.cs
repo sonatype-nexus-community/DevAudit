@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 using CommandLine;
@@ -65,6 +66,9 @@ namespace DevAudit.CommandLine
         [VerbOption("mvc5", HelpText = "Audit an ASP.NET MVC5 code project. Use the --root option to specify the root directory of the solution, and the --code-project option to specify the name of the project.")]
         public Options MVC5 { get; set; }
 
+        [VerbOption("mvc5-app", HelpText = "Audit an ASP.NET MVC5 application or code project deployed to a web server. Use the --root option to specify the root directory of the application")]
+        public Options MVC5App { get; set; }
+
         [VerbOption("php", HelpText = "Audit a PHP code project. Use the --root option to specify the root directory of the code project.")]
         public Options Php { get; set; }
 
@@ -76,7 +80,10 @@ namespace DevAudit.CommandLine
 
         [Option('n', "non-interact", Required = false, HelpText = "Disable any interctive console output (for redirecting console output to other devices.)")]
         public bool NonInteractive { get; set; }
-       
+
+        [Option('o', "options", Required = false, HelpText = "Specify a set of comma delimited, key=value options for an audit target. E.g for a mvc5-app audit target you can specify -o package_source=mypackages.config,config_file=myapp.config")]
+        public string AuditOptions { get; set; }
+
         [Option('f', "file", Required = false, HelpText = "For a package source, specifies the file containing packages to be audited. For a code project, specifies the code project file.")]
         public string File { get; set; }
 
@@ -127,6 +134,26 @@ namespace DevAudit.CommandLine
 
         [Option("only-local-rules", Required = false, HelpText = "Only use the configuration rules for the application or application server listed in YAML rules files.")]
         public bool OnlyLocalRules { get; set; }
+
+        public static Dictionary<string, object> Parse(string o)
+        {
+            Dictionary<string, object> audit_options = new Dictionary<string, object>();
+            Regex re = new Regex(@"(\w+)\=([A-Za-z0-9_\-\\\/\.\:\+]+)", RegexOptions.Compiled);
+            string [] pairs = o.Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
+            foreach (string s in pairs)
+            {
+                Match m = re.Match(s);
+                if (!m.Success)
+                {                    
+                    audit_options.Add("_ERROR_", s);
+                }
+                else
+                {
+                    audit_options.Add(m.Groups[1].Value, m.Groups[2].Value);
+                }
+            }
+            return audit_options;
+        }
 
  
         #region Cache stuff

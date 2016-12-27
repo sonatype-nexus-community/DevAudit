@@ -204,6 +204,34 @@ namespace DevAudit.CommandLine
             {
                 audit_options.Add("CodeProjectName", ProgramOptions.CodeProjectName);
             }
+            if(!string.IsNullOrEmpty(ProgramOptions.AuditOptions))
+            {
+                Dictionary<string, object> parsed_options = Options.Parse(ProgramOptions.AuditOptions);
+                if (parsed_options.Count == 0)
+                {
+                    PrintErrorMessage("There was an error parsing the options string {0}.", ProgramOptions.AuditOptions);
+                    return (int)Exit;
+                }                
+                else if (parsed_options.Where(o => o.Key == "_ERROR_").Count() > 0)
+                {
+
+                    string error_options = parsed_options.Where(o => o.Key == "_ERROR_").Select(kv => (string)kv.Value).Aggregate((s1, s2) => s1 + Environment.NewLine + s2);
+                    PrintErrorMessage("There was an error parsing the following options {0}.", error_options);
+                    parsed_options = parsed_options.Where(o => o.Key != "_ERROR_").ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
+
+                }
+                foreach (KeyValuePair<string, object> kvp in parsed_options)
+                {
+                    if (audit_options.ContainsKey(kvp.Key))
+                    {
+                        audit_options[kvp.Key] = kvp.Value;
+                    }
+                    else
+                    {
+                        audit_options.Add(kvp.Key, kvp.Value);
+                    }
+                }
+            }
             #endregion
 
             PrintBanner();
@@ -261,6 +289,12 @@ namespace DevAudit.CommandLine
                         Application = new Drupal7Application(audit_options, EnvironmentMessageHandler);
                         Source = Application as PackageSource;
                     }
+                    else if (verb == "mvc5-app")
+                    {                        
+                        Application = new MVC5Application(audit_options, EnvironmentMessageHandler);
+                        Source = Application.PackageSourceInitialised ? Application as PackageSource : null; 
+                        
+                    }
                     else if (verb == "mysql")
                     {
                         Server = new MySQLServer(audit_options, EnvironmentMessageHandler);
@@ -294,8 +328,8 @@ namespace DevAudit.CommandLine
                     else if (verb == "mvc5")
                     {
                         CodeProject = new MVC5CodeProject(audit_options, EnvironmentMessageHandler);
-                        Application = CodeProject.Application;
-                        Source = CodeProject.PackageSource;
+                        Application = CodeProject.ApplicationInitialised ? CodeProject.Application : null;
+                        Source = CodeProject.PackageSourceInitialized ? CodeProject.PackageSource : null;
                     }
 
                     else if (verb == "drupal8-module")
