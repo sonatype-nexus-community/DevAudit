@@ -225,7 +225,7 @@ namespace DevAudit.AuditLibrary
             }
             catch (AggregateException ae)
             {
-                this.HostEnvironment.Error(caller, ae, "Exception throw during GetWorkspace task.");
+                this.HostEnvironment.Error(caller, ae, "Exception thrown during GetWorkspace task.");
                 return AuditResult.ERROR_SCANNING_WORKSPACE;
             }            
             this.GetAnalyzersTask = this.GetAnalyzers();
@@ -235,7 +235,7 @@ namespace DevAudit.AuditLibrary
             }
             catch (AggregateException ae)
             {
-                this.HostEnvironment.Error(caller, ae, "Exception throw during GetAnalyzers task.");
+                this.HostEnvironment.Error(caller, ae, "Exception thrown during GetAnalyzers task.");
                 return AuditResult.ERROR_SCANNING_ANALYZERS;
             }
             if (this.ListCodeProjectAnalyzers || this.GetAnalyzersTask.Status != TaskStatus.RanToCompletion || this.Analyzers.Count == 0)
@@ -254,7 +254,7 @@ namespace DevAudit.AuditLibrary
             {
                 if (ae.TargetSite.Name == "GetAnalyzers")
                 {
-                    this.HostEnvironment.Error(caller, ae, "Exception throw during GetAnalyzerResults task.");
+                    this.HostEnvironment.Error(caller, ae, "Exception thrown during GetAnalyzerResults task.");
                     return AuditResult.ERROR_RUNNING_ANALYZERS;
                 }
                 else
@@ -408,6 +408,7 @@ namespace DevAudit.AuditLibrary
                 string p = paths[0].Substring(1);
                 paths = new string[] { "@", p };
             }
+
             if (this.AuditEnvironment.OS.Platform == PlatformID.Unix || this.AuditEnvironment.OS.Platform == PlatformID.MacOSX)
             {
                 List<string> paths_list = new List<string>(paths.Length + 1);
@@ -423,11 +424,11 @@ namespace DevAudit.AuditLibrary
                 if (paths.First() == "@")
                 {
                     paths[0] = this.RootDirectory.FullName;
-                    return System.IO.Path.Combine(paths);
+                    return Path.Combine(paths);
                 }
                 else
                 {
-                    return System.IO.Path.Combine(paths);
+                    return Path.Combine(paths);
                 }
             }
         }

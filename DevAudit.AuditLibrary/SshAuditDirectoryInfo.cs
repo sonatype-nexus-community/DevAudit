@@ -15,6 +15,8 @@ namespace DevAudit.AuditLibrary
         public SshAuditDirectoryInfo(SshAuditEnvironment env, string path) : base(env, path)
         {
             this.SshAuditEnvironment = env;
+            string[] components = this.GetPathComponents();
+            Name = components.Last();
         }
         #endregion
 

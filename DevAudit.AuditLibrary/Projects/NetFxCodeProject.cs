@@ -15,70 +15,107 @@ namespace DevAudit.AuditLibrary
     public class NetFxCodeProject : CodeProject
     {
         #region Constructors
-        public NetFxCodeProject(Dictionary<string, object> project_options, Dictionary<string, string[]> default_file_location_paths, EventHandler<EnvironmentEventArgs> message_handler) : base(project_options, message_handler,
-                 default_file_location_paths, "Roslyn")
+        public NetFxCodeProject(Dictionary<string, object> project_options, Dictionary<string, string[]> default_file_location_paths, EventHandler<EnvironmentEventArgs> message_handler) 
+            : base(project_options, message_handler, default_file_location_paths, "Roslyn")
         {
-
-            if (this.CodeProjectOptions.ContainsKey("CodeProjectName"))
+            if (this.CodeProjectOptions.ContainsKey("ProjectFile"))
             {
-                this.message_handler = message_handler;                
-                string fn_1 = this.CombinePath(this.RootDirectory.FullName, (string)this.CodeProjectOptions["CodeProjectName"], (string)this.CodeProjectOptions["CodeProjectName"]); //CodeProjectName/CodeProjectName.xxx
-                string fn_2 = this.CombinePath(this.RootDirectory.FullName, "src", (string)this.CodeProjectOptions["CodeProjectName"], (string)this.CodeProjectOptions["CodeProjectName"]); //CodeProjectName/src/CodeProjectName.xxx
-
-                AuditFileInfo wf_11 = this.AuditEnvironment.ConstructFile(fn_1 + ".csproj");
-                AuditFileInfo wf_12 = this.AuditEnvironment.ConstructFile(fn_1 + ".xproj");
-                AuditFileInfo wf_21 = this.AuditEnvironment.ConstructFile(fn_2 + ".csproj");
-                AuditFileInfo wf_22 = this.AuditEnvironment.ConstructFile(fn_2 + ".xproj");
-
-                if (wf_11.Exists)
+                string pf = (string)CodeProjectOptions["ProjectFile"];
+                if (!pf.StartsWith("@"))
                 {
-                    this.WorkspaceFilePath = Path.Combine((string)this.CodeProjectOptions["CodeProjectName"], (string)this.CodeProjectOptions["CodeProjectName"]) + ".csproj";
-                    
+                    throw new ArgumentException("ProjectFile option must be relative to root directory and start with the @ char.", "project_options");
                 }
-                else if (wf_12.Exists)
+                AuditFileInfo wf = this.AuditEnvironment.ConstructFile(this.CombinePath(pf));
+                if (wf.Exists)
                 {
-                    this.WorkspaceFilePath = Path.Combine((string)this.CodeProjectOptions["CodeProjectName"], (string)this.CodeProjectOptions["CodeProjectName"]) + ".xproj";
-                }
-                else if (wf_22.Exists)
-                {
-                    this.WorkspaceFilePath = Path.Combine("src", (string)this.CodeProjectOptions["CodeProjectName"], (string)this.CodeProjectOptions["CodeProjectName"]) + ".xproj";
+                    this.WorkspaceFilePath = pf;
+                    this.CodeProjectFileSystemMap["RootDirectory"] = this.AuditEnvironment.ConstructDirectory(wf.Directory.FullName);
                 }
                 else
                 {
-                    throw new ArgumentException(string.Format("Could not find the project file at {0} or {1} or {2}.", wf_11.FullName, wf_12.FullName, wf_21.FullName), "project_options");
+                    throw new ArgumentException(string.Format("Could not find the MSBuild project file at {0}.", wf.FullName), "project_options");
                 }
             }
 
-            if (!string.IsNullOrEmpty(this.WorkspaceFilePath))
+            else if (this.CodeProjectOptions.ContainsKey("ProjectName"))
             {
-                if (!(this.WorkspaceFilePath.EndsWith(".csproj") || this.WorkspaceFilePath.EndsWith(".xproj")))
+                this.message_handler = message_handler;                
+                string fn_1 = this.CombinePath("@", (string)this.CodeProjectOptions["ProjectName"]); //CodeProjectName/CodeProjectName.xxx
+                //string fn_2 = this.CombinePath("src", (string)this.CodeProjectOptions["CodeProjectName"], (string)this.CodeProjectOptions["CodeProjectName"]); //CodeProjectName/src/CodeProjectName.xxx
+                AuditFileInfo wf_11 = this.AuditEnvironment.ConstructFile(fn_1 + ".csproj");
+                AuditFileInfo wf_12 = this.AuditEnvironment.ConstructFile(fn_1 + ".xproj");
+                //AuditFileInfo wf_21 = this.AuditEnvironment.ConstructFile(fn_2 + ".csproj");
+                //AuditFileInfo wf_22 = this.AuditEnvironment.ConstructFile(fn_2 + ".xproj");
+
+                if (wf_11.Exists)
                 {
-                    throw new ArgumentException("Only .csproj ot .xproj projects are supported for this audit target.", "project_options");
+                    this.WorkspaceFilePath = "@" + (string)this.CodeProjectOptions["ProjectName"] + ".csproj"; 
+                    this.CodeProjectFileSystemMap["RootDirectory"] = this.AuditEnvironment.ConstructDirectory(wf_11.Directory.FullName);
+
+                }
+                else if (wf_12.Exists)
+                {
+                    this.WorkspaceFilePath = "@" + (string)this.CodeProjectOptions["ProjectName"] + ".xproj";
+                    this.CodeProjectFileSystemMap["RootDirectory"] = this.AuditEnvironment.ConstructDirectory(wf_12.Directory.FullName);
+                }
+                /*
+                else if (wf_22.Exists)
+                {
+                    this.WorkspaceFilePath = this.CombinePath("src", (string)this.CodeProjectOptions["CodeProjectName"], (string)this.CodeProjectOptions["CodeProjectName"]) + ".xproj";
+                    this.ProjectDirectory = wf_22.Directory as AuditDirectoryInfo;
+                    this.CodeProjectFileSystemMap["RootDirectory"] = wf_22.Directory as AuditDirectoryInfo;
+                }
+                */
+                else
+                {
+                    throw new ArgumentException(string.Format("No ProjectFile option was specified and could not find the default project file at {0} or {1}.", wf_11.FullName, wf_12.FullName), "project_options");
                 }
             }
+            this.ProjectDirectory = this.RootDirectory;
+            this.AuditEnvironment.Info("Using MSBuild project file {0}.", this.WorkspaceFilePath);
+
             //Ensure CSharp assembly gets pulled into build.
             var _ = typeof(Microsoft.CodeAnalysis.CSharp.Formatting.CSharpFormattingOptions);
-
-            AuditFileInfo packages_config = this.AuditEnvironment.ConstructFile(this.CombinePath(this.RootDirectory.FullName, this.CodeProjectName, "packages.config"));
-            if (packages_config.Exists)
+            if (this.CodeProjectOptions.ContainsKey("PackageSource"))
             {
-                this.AuditEnvironment.Debug("Found NuGet v2 package manager configuration file {0}", packages_config.FullName);                
-                this.PackageSource = new NuGetPackageSource(new Dictionary<string, object>(1) { { "File", packages_config.FullName } }, message_handler);
-                PackageSourceInitialized = true;
+                AuditFileInfo packages_config = this.AuditEnvironment.ConstructFile(this.CombinePath((string)CodeProjectOptions["PackageSource"]));
+                if (packages_config.Exists)
+                {
+                    this.AuditEnvironment.Debug("Using NuGet v2 package manager configuration file {0}", packages_config.FullName);
+                    this.PackageSource = new NuGetPackageSource(new Dictionary<string, object>(1) { { "File", packages_config.FullName } }, message_handler);
+                    PackageSourceInitialized = true;
+
+                }
+                else
+                {
+                    throw new ArgumentException(string.Format("Could not find the NuGet v2 package source file at {0}.", packages_config.FullName), "project_options");
+                }
+
             }
             else
             {
-                this.AuditEnvironment.Debug("NuGet v2 package manager configuration file {0} does not exist.", packages_config.FullName);
-                PackageSourceInitialized = false;
+                AuditFileInfo packages_config = this.AuditEnvironment.ConstructFile(this.CombinePath("@packages.config"));
+                if (packages_config.Exists)
+                {
+                    this.AuditEnvironment.Debug("Using NuGet v2 package manager configuration file {0}", packages_config.FullName);
+                    this.PackageSource = new NuGetPackageSource(new Dictionary<string, object>(1) { { "File", packages_config.FullName } }, message_handler);
+                    PackageSourceInitialized = true;
+                }
+
+                else
+                {
+                    this.AuditEnvironment.Warning("No PackageSource option was specified and the default NuGet v2 package manager configuration file {0} does not exist.", packages_config.FullName);
+                    PackageSourceInitialized = false;
+                }
             }
-            this.ProjectDirectory = this.AuditEnvironment.ConstructDirectory(this.CombinePath(this.RootDirectory.FullName, (string) this.CodeProjectOptions["CodeProjectName"]));        
-            this.ConfigurationFiles = this.ProjectDirectory.GetFiles("*.config", SearchOption.TopDirectoryOnly).Select(f => f as AuditFileInfo).ToList();
+                   
+            this.ConfigurationFiles = this.RootDirectory.GetFiles("*.config", SearchOption.TopDirectoryOnly).Select(f => f as AuditFileInfo).ToList();
             if (this.CodeProjectOptions.ContainsKey("AppConfig"))
             {
-                AuditFileInfo cf = this.AuditEnvironment.ConstructFile(this.CombinePath(this.ProjectDirectory.FullName, (string)this.CodeProjectOptions["AppConfig"]));
+                AuditFileInfo cf = this.AuditEnvironment.ConstructFile(this.CombinePath((string)this.CodeProjectOptions["AppConfig"]));
                 if (!cf.Exists)
                 {
-                    throw new ArgumentException(string.Format("The configuration file {0} does not exist.", cf.FullName));
+                    throw new ArgumentException(string.Format("The application configuration file {0} does not exist.", cf.FullName));
                 }
                 else
                 {                    
@@ -88,7 +125,7 @@ namespace DevAudit.AuditLibrary
             }
             else
             {
-                AuditFileInfo cf = this.AuditEnvironment.ConstructFile(this.CombinePath(this.ProjectDirectory.FullName, this.CombinePath(this.DefaultFileLocationPaths["AppConfig"])));
+                AuditFileInfo cf = this.AuditEnvironment.ConstructFile(this.CombinePath(this.DefaultFileLocationPaths["AppConfig"]));
                 if (!cf.Exists)
                 {
                     this.AuditEnvironment.Warning("No application configuration file found.");
@@ -96,7 +133,7 @@ namespace DevAudit.AuditLibrary
                 else
                 {
                     this.AppConfigurationFile = cf;
-                    this.AuditEnvironment.Info("Using application configuration file {0}.", cf.FullName);
+                    this.AuditEnvironment.Info("Using default application configuration file {0}.", cf.FullName);
                 }
             }
             if (this.AppConfigurationFile != null)
@@ -124,7 +161,7 @@ namespace DevAudit.AuditLibrary
             await base.GetWorkspaceAsync();
             this.HostEnvironment.Status("Compiling workspace projects.");
             DirectoryInfo d = this.WorkspaceDirectory.GetAsSysDirectoryInfo();
-            FileInfo wf = d.GetFiles(this.WorkspaceFilePath)?.First();
+            FileInfo wf = d.GetFiles(this.WorkspaceFilePath.Substring(1)).First(); 
             if (wf == null)
             {
                 this.AuditEnvironment.Error(here, "Could not find local workspace file {0} in local directory {1}.", wf.Name,
@@ -171,9 +208,17 @@ namespace DevAudit.AuditLibrary
         {
             Dictionary<string, object> application_options = new Dictionary<string, object>()
             {
-                { "RootDirectory", this.ProjectDirectory.FullName },
-                { "ConfigurationFile", this.AppConfigurationFile.FullName }
+                { "RootDirectory", this.ProjectDirectory.FullName }
             };
+            if (this.CodeProjectOptions.ContainsKey("PackageSource"))
+            {
+                application_options.Add("PackageSource", this.CodeProjectOptions["PackageSource"]);
+            }
+            if (this.CodeProjectOptions.ContainsKey("AppConfig"))
+            {
+                application_options.Add("AppConfig", this.CodeProjectOptions["AppConfig"]);
+            }
+
             try
             {
                 this.Application = new NetFx4Application(application_options, message_handler, this.PackageSource as NuGetPackageSource);

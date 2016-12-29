@@ -14,12 +14,68 @@ namespace DevAudit.AuditLibrary
         public NetFx4Application(Dictionary<string, object> application_options, EventHandler<EnvironmentEventArgs> message_handler) : base(application_options, new Dictionary<string, string[]>(),           
             new Dictionary<string, string[]>(), message_handler)
         {
-            if (application_options.ContainsKey("File"))
+            if (application_options.ContainsKey("PackageSource"))
             {
-                this.NugetPackageSource = new NuGetPackageSource(application_options, message_handler);
-                this.PackageSourceInitialised = true;
+                this.NugetPackageSource = new NuGetPackageSource(new Dictionary<string, object>(1) { { "File", this.CombinePath((string) application_options["PackageSource"]) } }, 
+                    message_handler);
+                this.PackageSourceInitialized = true;
+                this.AuditEnvironment.Debug("Using NuGet v2 package manager configuration file {0}", (string)application_options["PackageSource"]);
             }
-            this.ConfigurationFile = (string)application_options["ConfigurationFile"];
+            else
+            {
+                AuditFileInfo packages_config = this.AuditEnvironment.ConstructFile(this.CombinePath("packages.config"));
+                if (packages_config.Exists)
+                {                    
+                    this.NugetPackageSource = new NuGetPackageSource(new Dictionary<string, object>(1) { { "File", packages_config.FullName } }, message_handler);
+                    this.PackageSourceInitialized = true;
+                    this.AuditEnvironment.Debug("Using NuGet v2 package manager configuration file {0}", packages_config.FullName);
+                }
+
+                else
+                {
+                    this.AuditEnvironment.Warning("The default NuGet v2 package manager configuration file {0} does not exist and no PackageSource parameter was specified.", packages_config.FullName);
+                    PackageSourceInitialized = false;
+                }
+            }
+            AuditFileInfo cf;
+            if (application_options.ContainsKey("AppConfig"))
+            {
+                cf = this.AuditEnvironment.ConstructFile(this.CombinePath((string)application_options["AppConfig"]));
+                if (cf.Exists)
+                {
+                    this.AppConfigFilePath = cf.FullName;
+                    this.AuditEnvironment.Info("Using application configuration file {0}.");
+                }
+                else throw new ArgumentException("The configuration file {0} does not exist.", cf.FullName);
+            }
+            else if (application_options.ContainsKey("ConfigurationFile"))
+            {
+                cf = this.AuditEnvironment.ConstructFile(this.CombinePath((string)application_options["ConfigurationFile"]));
+                if (cf.Exists)
+                {
+                    this.AppConfigFilePath = cf.FullName;
+                    this.AuditEnvironment.Info("Using application configuration file {0}.");
+                }
+                else throw new ArgumentException("The configuration file {0} does not exist.", cf.FullName);
+
+            }
+            else if (this.ApplicationBinary != null)
+            {
+                cf = this.AuditEnvironment.ConstructFile(this.ApplicationBinary.FullName + ".config");
+                if (!cf.Exists)
+                {
+                    this.AuditEnvironment.Warning("The default .NET application configuration file {0} does not exist and no AppConfig parameter was specified.", cf.FullName);
+                }
+                else
+                {
+                    this.AppConfigFilePath = cf.FullName;
+                    this.AuditEnvironment.Info("Using application configuration file {0}.", cf.FullName);
+                }
+            }
+            else
+            {
+                this.AuditEnvironment.Warning("The default .NET application configuration file could nto be determined and no AppConfig parameter was specified.");
+            }
         }
 
         public NetFx4Application(Dictionary<string, object> application_options, Dictionary<string, string[]> required_files,
@@ -32,8 +88,9 @@ namespace DevAudit.AuditLibrary
             if (package_source != null)
             {
                 this.NugetPackageSource = package_source;
-                this.PackageSourceInitialised = true;
+                this.PackageSourceInitialized = true;
             }
+            else throw new ArgumentException("Package source is null.", "package_source");
         }
         #endregion
 
@@ -50,7 +107,7 @@ namespace DevAudit.AuditLibrary
         #region Overriden methods
         public override IEnumerable<OSSIndexQueryObject> GetPackages(params string[] o)
         {
-            if (this.PackageSourceInitialised)
+            if (this.PackageSourceInitialized)
             {
                 return this.NugetPackageSource.GetPackages(o);
             }
@@ -62,7 +119,7 @@ namespace DevAudit.AuditLibrary
 
         public override bool IsVulnerabilityVersionInPackageVersionRange(string vulnerability_version, string package_version)
         {
-            if (this.PackageSourceInitialised)
+            if (this.PackageSourceInitialized)
             {
                 return this.NugetPackageSource.IsVulnerabilityVersionInPackageVersionRange(vulnerability_version, package_version);
             }
@@ -86,10 +143,10 @@ namespace DevAudit.AuditLibrary
 
         protected override IConfiguration GetConfiguration()
         {
-            if (this.ConfigurationFile == null) throw new InvalidOperationException("The application configuration file was not specified.");
+            if (this.AppConfigFilePath == null) throw new InvalidOperationException("The application configuration file was not specified.");
             Stopwatch sw = new Stopwatch();
             sw.Start();
-            XMLConfig config = new XMLConfig(this.ConfigurationFile);
+            XMLConfig config = new XMLConfig(this.AppConfigFilePath);
             if (config.ParseSucceded)
             {
                 this.Configuration = config;
@@ -101,7 +158,7 @@ namespace DevAudit.AuditLibrary
                 sw.Stop();
                 this.Configuration = null;                
                 this.AuditEnvironment.Error("Failed to read configuration from {0}. Error: {1}. Time elapsed: {2} ms.",
-                    this.ConfigurationFile, config.LastException.Message, sw.ElapsedMilliseconds);
+                    this.AppConfigFilePath, config.LastException.Message, sw.ElapsedMilliseconds);
             }
             return this.Configuration;
         }
@@ -110,7 +167,7 @@ namespace DevAudit.AuditLibrary
 
         #region Properties
         public NuGetPackageSource NugetPackageSource { get; protected set; }
-        public string ConfigurationFile { get; protected set; }
+        public string AppConfigFilePath { get; protected set; }
         #endregion
     }
 }

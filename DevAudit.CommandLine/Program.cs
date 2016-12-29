@@ -235,6 +235,7 @@ namespace DevAudit.CommandLine
             #endregion
 
             PrintBanner();
+            if (!ProgramOptions.NonInteractive) Console.CursorVisible = false;
 
             #region Handle command line verbs
             Exit = AuditTarget.AuditResult.ERROR_CREATING_AUDIT_TARGET;
@@ -292,7 +293,7 @@ namespace DevAudit.CommandLine
                     else if (verb == "mvc5-app")
                     {                        
                         Application = new MVC5Application(audit_options, EnvironmentMessageHandler);
-                        Source = Application.PackageSourceInitialised ? Application as PackageSource : null; 
+                        Source = Application.PackageSourceInitialized ? Application as PackageSource : null; 
                         
                     }
                     else if (verb == "mysql")
@@ -324,6 +325,11 @@ namespace DevAudit.CommandLine
                         CodeProject = new NetFxCodeProject(audit_options, EnvironmentMessageHandler);
                         Application = CodeProject.Application;                        
                         Source = CodeProject.PackageSource;
+                    }
+                    else if (verb =="mvc5-app")
+                    {
+                        Application = new MVC5Application(audit_options, EnvironmentMessageHandler);
+                        Source = Application.PackageSourceInitialized ? Application as PackageSource : null;
                     }
                     else if (verb == "mvc5")
                     {
@@ -392,11 +398,12 @@ namespace DevAudit.CommandLine
             }
             #endregion
 
-            if (!ProgramOptions.NonInteractive) Console.CursorVisible = false;
+            #region Print audit results
             if (CodeProject == null && Application == null && Source != null) //Auditing a package source
             {
                 AuditTarget.AuditResult ar = Source.Audit(CTS.Token);
                 if (Stopwatch.IsRunning) Stopwatch.Stop();
+
                 if (ar != AuditTarget.AuditResult.SUCCESS)
                 {
                     Exit = ar;
@@ -420,11 +427,9 @@ namespace DevAudit.CommandLine
                 {
                     Exit = aar;
                 }
-                else
-                {
-                    PrintPackageSourceAuditResults(aar, out Exit);
-                    PrintApplicationAuditResults(aar, out Exit);
-                }
+
+                PrintApplicationAuditResults(aar, out Exit);
+
                 if (Application != null)
                 {
                     Application.Dispose();
@@ -438,17 +443,19 @@ namespace DevAudit.CommandLine
                 {
                     Exit = aar;
                 }
-                else
+                else if (Source != null)
                 {
                     PrintPackageSourceAuditResults(aar, out Exit);
-                    PrintApplicationAuditResults(aar, out Exit);
                 }
-                if (Application != null)
+
+                PrintApplicationAuditResults(aar, out Exit);
+                
+                if (Server != null)
                 {
                     //Server.Dispose();
                 }
             }
-            else if (CodeProject != null)
+            else if (CodeProject != null && Server == null)
             {
                 AuditTarget.AuditResult cpar = CodeProject.Audit(CTS.Token);
                 if (Stopwatch.IsRunning) Stopwatch.Stop();
@@ -456,21 +463,22 @@ namespace DevAudit.CommandLine
                 {
                     Exit = cpar;
                 }
-                else
+                else if (Source != null)
                 {
-                    if (CodeProject.PackageSourceInitialized)
-                    {
-                        PrintPackageSourceAuditResults(cpar, out Exit);
-                    }
-                    PrintCodeProjectAuditResults(cpar, out Exit);
+                    PrintPackageSourceAuditResults(cpar, out Exit);
                 }
+
+                PrintCodeProjectAuditResults(cpar, out Exit);
+                
                 if (CodeProject != null)
                 {
                     CodeProject.Dispose();
                 }
 
             }
-            return (int)ExitApplication(Exit);
+            #endregion
+
+            return (int) ExitApplication(Exit);
         }
 
         #region Private methods

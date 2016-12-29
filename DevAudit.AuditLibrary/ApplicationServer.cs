@@ -40,7 +40,7 @@ namespace DevAudit.AuditLibrary
 
         public override string PackageManagerLabel => this.ServerLabel;
 
-        public string DefaultConfigurationFile { get; protected set; }
+        public string DefaultConfigurationFilePath { get; protected set; }
       
         public AuditFileInfo ConfigurationFile
         {
@@ -59,16 +59,16 @@ namespace DevAudit.AuditLibrary
         #region Methods
         protected void InitialiseConfigurationFile(string[] default_configuration_file_path)
         {
-            this.DefaultConfigurationFile = CombinePath(default_configuration_file_path);
-            if (!this.ServerOptions.ContainsKey("ConfigurationFile") && !string.IsNullOrEmpty(this.DefaultConfigurationFile))
+            this.DefaultConfigurationFilePath = CombinePath(default_configuration_file_path);
+            if (!this.ServerOptions.ContainsKey("ConfigurationFile") && !string.IsNullOrEmpty(this.DefaultConfigurationFilePath))
             {
-                if (this.AuditEnvironment.FileExists(this.DefaultConfigurationFile))
+                if (this.AuditEnvironment.FileExists(this.DefaultConfigurationFilePath))
                 {
-                    this.ApplicationFileSystemMap.Add("ConfigurationFile", this.AuditEnvironment.ConstructFile(this.DefaultConfigurationFile));
+                    this.ApplicationFileSystemMap.Add("ConfigurationFile", this.AuditEnvironment.ConstructFile(this.DefaultConfigurationFilePath));
                 }
                 else
                 {
-                    throw new ArgumentException(string.Format("The server configuration file was not specified and the default configuration file {0} could not be found.", this.DefaultConfigurationFile), "server_options");
+                    throw new ArgumentException(string.Format("The server configuration file was not specified and the default configuration file {0} could not be found.", this.DefaultConfigurationFilePath), "server_options");
                 }
             }
             else

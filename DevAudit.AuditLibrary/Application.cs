@@ -121,7 +121,7 @@ namespace DevAudit.AuditLibrary
                 string fn = CombinePath((string)this.ApplicationOptions["ApplicationBinary"]);
                 if (!this.AuditEnvironment.FileExists(fn))
                 {
-                    throw new ArgumentException(string.Format("The specified application binary does not exist."), "application_options");
+                    throw new ArgumentException(string.Format("The specified application binary {0} does not exist.", fn), "application_options");
                 }
                 else
                 {
@@ -242,7 +242,7 @@ namespace DevAudit.AuditLibrary
         }
         public ConcurrentDictionary<OSSIndexArtifact, Exception> GetProjectConfigurationRulesExceptions { get; protected set; }
 
-        public bool PackageSourceInitialised { get; protected set; }
+        public bool PackageSourceInitialized { get; protected set; }
 
         public Dictionary<OSSIndexProjectConfigurationRule, Tuple<bool, List<string>, string>> ProjectConfigurationRulesEvaluations = new Dictionary<OSSIndexProjectConfigurationRule, Tuple<bool, List<string>, string>>();
 
@@ -268,11 +268,17 @@ namespace DevAudit.AuditLibrary
             {
                 if (e is NotImplementedException)
                 {
-                    this.AuditEnvironment.Debug("{0} application does not implement an individual GetVersion method.", this.ApplicationLabel);
+                    this.AuditEnvironment.Debug("{0} application does not implement standalone GetVersion method.", this.ApplicationLabel);
                 }
                 else throw;
             }
-            this.GetPackagesTask(ct);
+
+            if (this.PackageSourceInitialized)
+            {
+                this.GetPackagesTask(ct);
+            }
+            else this.PackagesTask = Task.CompletedTask;
+
             if (this.ListPackages || this.ListArtifacts)
             {
                 this.GetConfigurationTask = Task.CompletedTask;
@@ -284,7 +290,10 @@ namespace DevAudit.AuditLibrary
             try
             {
                 Task.WaitAll(this.PackagesTask, this.GetConfigurationTask);
-                if (!this.SkipPackagesAudit) AuditEnvironment.Success("Scanned {0} {1} packages.", this.Packages.Count(), this.PackageManagerLabel);
+                if (!this.SkipPackagesAudit && this.PackageSourceInitialized && this.PackagesTask.Status == TaskStatus.RanToCompletion)
+                {
+                    AuditEnvironment.Success("Scanned {0} {1} packages.", this.Packages.Count(), this.PackageManagerLabel);
+                }
             }
             catch (AggregateException ae)
             {
@@ -306,7 +315,7 @@ namespace DevAudit.AuditLibrary
                 }
             }
 
-            if (this.ListPackages || this.Packages.Count() == 0 || (this.SkipPackagesAudit && this.OnlyLocalRules))
+            if (!this.PackageSourceInitialized || this.ListPackages || this.Packages.Count() == 0 || (this.SkipPackagesAudit && this.OnlyLocalRules) )
             {
                 this.ArtifactsTask = this.VulnerabilitiesTask = this.EvaluateVulnerabilitiesTask = Task.CompletedTask;
             }
@@ -324,7 +333,7 @@ namespace DevAudit.AuditLibrary
                 this.AuditEnvironment.Error("Exception thrown in GetArtifacts task.", ae.InnerException);
                 return AuditResult.ERROR_SEARCHING_ARTIFACTS;
             }
-            if (this.ListPackages || this.Packages.Count() == 0 || this.ListArtifacts || this.ListConfigurationRules)
+            if (!this.PackageSourceInitialized || this.ListPackages || this.Packages.Count() == 0 || this.ListArtifacts || this.ListConfigurationRules)
             {
                 this.VulnerabilitiesTask = this.EvaluateVulnerabilitiesTask = Task.CompletedTask; ;
             }
@@ -333,7 +342,7 @@ namespace DevAudit.AuditLibrary
                 this.VulnerabilitiesTask = Task.Run(() => this.GetVulnerabiltiesApiv2(), ct);
             }
 
-            if (this.ListPackages || this.Packages.Count() == 0 || this.ListArtifacts || this.SkipPackagesAudit || this.OnlyLocalRules || this.ArtifactsWithProjects.Count() == 0)
+            if (!this.PackageSourceInitialized || this.ListPackages || this.Packages.Count() == 0 || this.ListArtifacts || this.SkipPackagesAudit || this.OnlyLocalRules || this.ArtifactsWithProjects.Count() == 0)
             {
                 this.GetConfigurationRulesTask = Task.CompletedTask;
             }
