@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
@@ -142,6 +142,8 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Analyzers\PHPAnalyzer.cs" />
+    <Compile Include="Applications\MVC5Application.cs" />
+    <Compile Include="Applications\NetFxApplication.cs" />
     <Compile Include="Projects\Drupal8ModuleCodeProject.cs" />
     <Compile Include="Projects\PHPAuditCodeSourceUnit.cs" />
     <Compile Include="Projects\PHPAuditErrorSink.cs" />
@@ -239,5 +241,6 @@
   <Target Name="AfterBuild">
     <Copy SourceFiles="@(Examples)" DestinationFiles="@(Examples-&gt;'$(SolutionDir)Examples\%(RecursiveDir)%(Filename)%(Extension)')" />
     <Copy SourceFiles="@(Rules)" DestinationFiles="@(Rules-&gt;'$(SolutionDir)Rules\%(RecursiveDir)%(Filename)%(Extension)')" />
+    <Copy SourceFiles="@(Rules)" DestinationFiles="@(Rules->'$(SolutionDir)DevAudit.CommandLine\bin\Debug\Rules\%(RecursiveDir)%(Filename)%(Extension)')" />
   </Target>
 </Project>

@@ -23,7 +23,7 @@ namespace DevAudit.AuditLibrary
             }
             else
             {
-                AuditFileInfo packages_config = this.AuditEnvironment.ConstructFile(this.CombinePath("packages.config"));
+                AuditFileInfo packages_config = this.AuditEnvironment.ConstructFile(this.CombinePath("@packages.config"));
                 if (packages_config.Exists)
                 {                    
                     this.NugetPackageSource = new NuGetPackageSource(new Dictionary<string, object>(1) { { "File", packages_config.FullName } }, message_handler);
@@ -74,7 +74,7 @@ namespace DevAudit.AuditLibrary
             }
             else
             {
-                this.AuditEnvironment.Warning("The default .NET application configuration file could nto be determined and no AppConfig parameter was specified.");
+                this.AuditEnvironment.Warning("The default .NET application configuration file could not be determined and no AppConfig parameter was specified.");
             }
         }
 
