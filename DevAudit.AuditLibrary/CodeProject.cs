@@ -42,9 +42,9 @@ namespace DevAudit.AuditLibrary
                 throw new ArgumentException(string.Format("The root application directory was not specified."), "application_options");
             }
 
-            if (this.CodeProjectOptions.ContainsKey("CodeProjectName"))
+            if (this.CodeProjectOptions.ContainsKey("ProjectName"))
             {
-                this.CodeProjectName = (string)CodeProjectOptions["CodeProjectName"];
+                this.ProjectName = (string)CodeProjectOptions["ProjectName"];
             }
 
             if (this.CodeProjectOptions.ContainsKey("File"))
@@ -145,7 +145,7 @@ namespace DevAudit.AuditLibrary
             }
         }
 
-        public string CodeProjectName { get; protected set; }
+        public string ProjectName { get; protected set; }
 
         public string WorkspaceFilePath { get; protected set; }
 

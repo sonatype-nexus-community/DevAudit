@@ -14,7 +14,7 @@ namespace DevAudit.AuditLibrary
     public class HttpdServer : ApplicationServer
     {
         #region Constructors
-        public HttpdServer(Dictionary<string, object> server_options, EventHandler<EnvironmentEventArgs> message_handler = null) : base(server_options, new Dictionary<PlatformID, string[]>()
+        public HttpdServer(Dictionary<string, object> server_options, EventHandler<EnvironmentEventArgs> message_handler) : base(server_options, new Dictionary<PlatformID, string[]>()
             {
                 { PlatformID.Unix, new string[] { "@", "etc", "apache2", "apache2.conf" } },
                 { PlatformID.MacOSX, new string[] { "@", "etc", "apache2", "apache2.conf" } },
@@ -38,6 +38,7 @@ namespace DevAudit.AuditLibrary
                     this.ApplicationBinary = this.AuditEnvironment.ConstructFile(fn);
                     this.ApplicationFileSystemMap["httpd"] = this.ApplicationBinary;
                 }
+                this.PackageSourceInitialized = true; //Only default module "httpd" detected presently.
             }
         }
         #endregion

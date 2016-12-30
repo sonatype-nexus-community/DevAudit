@@ -17,7 +17,7 @@ namespace DevAudit.AuditLibrary
     public class SSHDServer : ApplicationServer
     {
         #region Constructors
-        public SSHDServer(Dictionary<string, object> server_options, EventHandler<EnvironmentEventArgs> message_handler = null) : base(server_options, new Dictionary<PlatformID, string[]>()
+        public SSHDServer(Dictionary<string, object> server_options, EventHandler<EnvironmentEventArgs> message_handler) : base(server_options, new Dictionary<PlatformID, string[]>()
             {
                 { PlatformID.Unix, new string[] { "@", "etc", "ssh", "sshd_config" } },
                 { PlatformID.MacOSX, new string[] { "@", "etc", "ssh", "sshd_config" } },
@@ -42,6 +42,7 @@ namespace DevAudit.AuditLibrary
                     this.ApplicationFileSystemMap["sshd"] = this.ApplicationBinary;
                 }
             }
+            this.PackageSourceInitialized = true; //Only default module "sshd" detected presently.
         }
         #endregion
 

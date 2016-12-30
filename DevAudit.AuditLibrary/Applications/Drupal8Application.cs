@@ -27,7 +27,9 @@ namespace DevAudit.AuditLibrary
                 { "ContribModulesDirectory", new string[] { "@", "modules" } },
                 { "DefaultSiteDirectory", new string[] { "@", "sites", "default" } }
             }, message_handler)
-        { }
+        {
+            this.PackageSourceInitialized = true; //Packages are read from the modules directories.
+        }
         #endregion
 
         #region Overriden properties

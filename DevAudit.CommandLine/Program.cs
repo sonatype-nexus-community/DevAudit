@@ -200,9 +200,9 @@ namespace DevAudit.CommandLine
                 audit_options.Add("ApplicationBinary", ProgramOptions.ApplicationBinary);
             }
 
-            if (!string.IsNullOrEmpty(ProgramOptions.CodeProjectName))
+            if (!string.IsNullOrEmpty(ProgramOptions.ProjectName))
             {
-                audit_options.Add("CodeProjectName", ProgramOptions.CodeProjectName);
+                audit_options.Add("ProjectName", ProgramOptions.ProjectName);
             }
             if(!string.IsNullOrEmpty(ProgramOptions.AuditOptions))
             {

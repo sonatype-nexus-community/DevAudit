@@ -14,7 +14,7 @@ namespace DevAudit.AuditLibrary
     public class NginxServer : ApplicationServer
     {
         #region Constructors
-        public NginxServer(Dictionary<string, object> server_options, EventHandler<EnvironmentEventArgs> message_handler = null) : base(server_options, new Dictionary<PlatformID, string[]>()
+        public NginxServer(Dictionary<string, object> server_options, EventHandler<EnvironmentEventArgs> message_handler) : base(server_options, new Dictionary<PlatformID, string[]>()
             {
                 { PlatformID.Unix, new string[] { "@", "etc", "nginx", "nginx.conf" } },
                 { PlatformID.MacOSX, new string[] { "@", "etc", "nginx", "nginx.conf" } },
@@ -39,6 +39,7 @@ namespace DevAudit.AuditLibrary
                     this.ApplicationFileSystemMap["nginx"] = this.ApplicationBinary;
                 }
             }
+            this.PackageSourceInitialized = true; //Only default module "nginx" detected presently.
         }
         #endregion
 
@@ -46,9 +47,6 @@ namespace DevAudit.AuditLibrary
         public override string ServerId { get { return "nginx"; } }
 
         public override string ServerLabel { get { return "Nginx"; } }
-        #endregion
-
-        #region Public properties
         #endregion
 
         #region Overriden methods
@@ -117,6 +115,5 @@ namespace DevAudit.AuditLibrary
             return vulnerability_version == package_version;
         }
         #endregion
-
     }
 }

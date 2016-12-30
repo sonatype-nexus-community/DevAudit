@@ -60,7 +60,7 @@ namespace DevAudit.CommandLine
         [VerbOption("nginx", HelpText = "Audit an Nginx server instance. Use the -r option to specify the root directory of the httpd server. Use the -b option to specify the path to the httpd server binary and the -c option to specify the configuration file otherwise default values will be used for these 2 parameters.")]
         public Options Nginx { get; set; }
 
-        [VerbOption("netfx", HelpText = "Audit a .NET Framework 4 code project. Use the --root option to specify the root directory of the solution, and the --code-project option to specify the name of the project.")]
+        [VerbOption("netfx", HelpText = "Audit a .NET Framework 4 code project. Use the --root option to specify the root directory of the solution, and the --project-name option to specify the name of the project.")]
         public Options NetFx { get; set; }
 
         [VerbOption("mvc5", HelpText = "Audit an ASP.NET MVC5 code project. Use the --root option to specify the root directory of the solution, and the --project-name option to specify the name of the project.")]
@@ -114,8 +114,8 @@ namespace DevAudit.CommandLine
 		[Option('i', "docker", Required = false, HelpText = "Run the audit on a Docker container with this name or id.")]
 		public string Docker { get; set; }
 
-        [Option('m', "code-project", Required = false, HelpText = "The name of the code project to audit.")]
-        public string CodeProjectName { get; set; }
+        [Option('m', "project-name", Required = false, HelpText = "The name of the code project to audit.")]
+        public string ProjectName { get; set; }
 
         [Option("list-packages", Required = false, HelpText = "Only list the local packages that will be audited.")]
         public bool ListPackages { get; set; }

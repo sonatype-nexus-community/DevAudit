@@ -12,7 +12,7 @@ namespace DevAudit.AuditLibrary
     public class MySQLServer : ApplicationServer
     {
         #region Constructors
-        public MySQLServer(Dictionary<string, object> server_options, EventHandler<EnvironmentEventArgs> message_handler = null) : base(server_options, new Dictionary<PlatformID, string[]>()
+        public MySQLServer(Dictionary<string, object> server_options, EventHandler<EnvironmentEventArgs> message_handler) : base(server_options, new Dictionary<PlatformID, string[]>()
             {
                 { PlatformID.Unix, new string[] { "@", "etc", "mysql", "my.cnf" } },
                 { PlatformID.MacOSX, new string[] { "@", "etc", "mysql", "my.cnf" } },
@@ -37,7 +37,7 @@ namespace DevAudit.AuditLibrary
                     this.ApplicationFileSystemMap["mysql"] = this.ApplicationBinary;
                 }
             }
-
+            this.PackageSourceInitialized = true; //Only default module "mysqld" detected presently.
         }
         #endregion
 

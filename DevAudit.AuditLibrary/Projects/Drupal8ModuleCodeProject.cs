@@ -18,14 +18,14 @@ namespace DevAudit.AuditLibrary
         #region Constructors
         public Drupal8ModuleCodeProject(Dictionary<string, object> project_options, EventHandler<EnvironmentEventArgs> message_handler) : base(project_options, message_handler, "Drupal8Module")
         {
-            AuditFileInfo wf = this.AuditEnvironment.ConstructFile(this.CombinePath("@", this.CodeProjectName + ".info" + ".yml"));
+            AuditFileInfo wf = this.AuditEnvironment.ConstructFile(this.CombinePath("@", this.ProjectName + ".info" + ".yml"));
             if (!wf.Exists)
             {
                 throw new ArgumentException(string.Format("The Drupal 8 module file {0} does not exist.", wf.FullName), "project_options");
             }
             else
             {
-                this.WorkspaceFilePath = this.CodeProjectName + ".info" + ".yml";
+                this.WorkspaceFilePath = this.ProjectName + ".info" + ".yml";
             }
         }
         #endregion
