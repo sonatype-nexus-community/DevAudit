@@ -38,6 +38,8 @@ namespace DevAudit.AuditLibrary
         public override string PackageManagerId { get { return "drupal"; } }
 
         public override string PackageManagerLabel { get { return "Drupal"; } }
+
+        public override PackageSource PackageSource => this as PackageSource;
         #endregion
 
         #region Public properties

@@ -313,6 +313,9 @@
   <ItemGroup>
     <None Include="app.config" />
     <None Include="packages.config" />
+    <Rules Include="Rules\mvc5.yml">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Rules>
     <Rules Include="Rules\netfx4.yml">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Rules>

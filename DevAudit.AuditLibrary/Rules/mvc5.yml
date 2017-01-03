@@ -1,0 +1,12 @@
+﻿---
+mvc5:
+    -   id: 1
+        title: ASP.NET version headers are enabled
+        xpathtest: not(boolean(/configuration/system.web/httpRuntime[@enableVersionHeader='false']))
+        summary: |
+           By default the name and versions of the application frameworks an ASP.NET application uses are sent as response headers, like X-AspNetMvc-Version. 
+           For maximum safety it is recommended that these headers not be enabled.
+        resolution: |
+            Add the attribute enableVersionHeader=false to the httpRuntime element of the system.web section of the ASP.NET Web.config.
+        urls:
+            -   https://www.troyhunt.com/shhh-dont-let-your-response-headers/

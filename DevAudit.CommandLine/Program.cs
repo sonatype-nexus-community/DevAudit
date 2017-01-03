@@ -283,42 +283,42 @@ namespace DevAudit.CommandLine
                     else if (verb == "drupal8")
                     {
                         Application = new Drupal8Application(audit_options, EnvironmentMessageHandler);
-                        Source = Application as PackageSource;
+                        Source = Application.PackageSource;
                     }
                     else if (verb == "drupal7")
                     {
                         Application = new Drupal7Application(audit_options, EnvironmentMessageHandler);
-                        Source = Application as PackageSource;
+                        Source = Application.PackageSource;
                     }
                     else if (verb == "mvc5-app")
                     {                        
                         Application = new MVC5Application(audit_options, EnvironmentMessageHandler);
-                        Source = Application.PackageSourceInitialized ? Application as PackageSource : null; 
+                        Source = Application.PackageSource; 
                         
                     }
                     else if (verb == "mysql")
                     {
                         Server = new MySQLServer(audit_options, EnvironmentMessageHandler);
                         Application = Server as Application;
-                        Source = Server as PackageSource;
+                        Source = Server.PackageSource;
                     }
                     else if (verb == "sshd")
                     {
                         Server = new SSHDServer(audit_options, EnvironmentMessageHandler);
                         Application = Server as Application;
-                        Source = Server as PackageSource;
+                        Source = Server.PackageSource;
                     }
                     else if (verb == "httpd")
                     {
                         Server = new HttpdServer(audit_options, EnvironmentMessageHandler);
                         Application = Server as Application;
-                        Source = Server as PackageSource;
+                        Source = Server.PackageSource;
                     }
                     else if (verb == "nginx")
                     {
                         Server = new NginxServer(audit_options, EnvironmentMessageHandler);
                         Application = Server as Application;
-                        Source = Server as PackageSource;
+                        Source = Server.PackageSource;
                     }
                     else if (verb == "netfx")
                     {
@@ -329,13 +329,13 @@ namespace DevAudit.CommandLine
                     else if (verb =="mvc5-app")
                     {
                         Application = new MVC5Application(audit_options, EnvironmentMessageHandler);
-                        Source = Application.PackageSourceInitialized ? Application as PackageSource : null;
+                        Source = Application.PackageSource;
                     }
                     else if (verb == "mvc5")
                     {
                         CodeProject = new MVC5CodeProject(audit_options, EnvironmentMessageHandler);
                         Application = CodeProject.ApplicationInitialised ? CodeProject.Application : null;
-                        Source = CodeProject.PackageSourceInitialized ? CodeProject.PackageSource : null;
+                        Source = CodeProject.PackageSource;
                     }
 
                     else if (verb == "drupal8-module")
@@ -427,9 +427,14 @@ namespace DevAudit.CommandLine
                 {
                     Exit = aar;
                 }
-
-                PrintApplicationAuditResults(aar, out Exit);
-
+                else
+                {
+                    if (Source != null)
+                    {
+                        PrintPackageSourceAuditResults(aar, out Exit);
+                    }
+                    PrintApplicationAuditResults(aar, out Exit);
+                }
                 if (Application != null)
                 {
                     Application.Dispose();
@@ -443,13 +448,15 @@ namespace DevAudit.CommandLine
                 {
                     Exit = aar;
                 }
-                else if (Source != null)
+                else
                 {
-                    PrintPackageSourceAuditResults(aar, out Exit);
-                }
+                    if (Source != null)
+                    {
+                        PrintPackageSourceAuditResults(aar, out Exit);
+                    }
 
-                PrintApplicationAuditResults(aar, out Exit);
-                
+                    PrintApplicationAuditResults(aar, out Exit);
+                }
                 if (Server != null)
                 {
                     //Server.Dispose();
@@ -463,18 +470,25 @@ namespace DevAudit.CommandLine
                 {
                     Exit = cpar;
                 }
-                else if (Source != null)
+                else
                 {
-                    PrintPackageSourceAuditResults(cpar, out Exit);
-                }
+                    if (Source != null)
+                    {
+                        PrintPackageSourceAuditResults(cpar, out Exit);
+                    }
+                    if (Application != null)
+                    {
+                        PrintApplicationAuditResults(cpar, out Exit);
 
-                PrintCodeProjectAuditResults(cpar, out Exit);
+                    }
+
+                    PrintCodeProjectAuditResults(cpar, out Exit);
+                }
                 
                 if (CodeProject != null)
                 {
                     CodeProject.Dispose();
                 }
-
             }
             #endregion
 

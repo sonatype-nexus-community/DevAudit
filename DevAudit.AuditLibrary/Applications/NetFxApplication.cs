@@ -44,7 +44,7 @@ namespace DevAudit.AuditLibrary
                 if (cf.Exists)
                 {
                     this.AppConfigFilePath = cf.FullName;
-                    this.AuditEnvironment.Info("Using application configuration file {0}.");
+                    this.AuditEnvironment.Info("Using {0} configuration file {1}.", this.ApplicationLabel, this.AppConfigFilePath);
                 }
                 else throw new ArgumentException("The configuration file {0} does not exist.", cf.FullName);
             }
@@ -54,7 +54,7 @@ namespace DevAudit.AuditLibrary
                 if (cf.Exists)
                 {
                     this.AppConfigFilePath = cf.FullName;
-                    this.AuditEnvironment.Info("Using application configuration file {0}.");
+                    this.AuditEnvironment.Info("Using {0} configuration file {1}.", this.ApplicationLabel, this.AppConfigFilePath);
                 }
                 else throw new ArgumentException("The configuration file {0} does not exist.", cf.FullName);
 
@@ -102,6 +102,8 @@ namespace DevAudit.AuditLibrary
         public override string PackageManagerId => this.NugetPackageSource?.PackageManagerId;
 
         public override string PackageManagerLabel => this.NugetPackageSource?.PackageManagerLabel;
+
+        public override PackageSource PackageSource => this.NugetPackageSource;
         #endregion
 
         #region Overriden methods

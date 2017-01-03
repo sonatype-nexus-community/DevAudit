@@ -161,9 +161,13 @@ namespace DevAudit.AuditLibrary
 
         public PackageSource PackageSource { get; protected set; }
 
+        public AuditFileInfo PackageSourceFile { get; protected set; }
+
         public bool ApplicationInitialised { get; protected set; } = false;
          
         public Application Application { get; protected set; }
+
+        public AuditFileInfo AppConfigurationFile { get; protected set; }
 
         public IConfiguration Configuration { get; protected set; } = null;
 
@@ -200,6 +204,14 @@ namespace DevAudit.AuditLibrary
         public virtual AuditResult Audit(CancellationToken ct)
         {
             CallerInformation caller = this.AuditEnvironment.Here();
+            if (PackageSourceInitialized)
+            {
+                this.AuditPackageSourceTask = Task.Run(() => this.PackageSource.Audit(ct));
+            }
+            else
+            {
+                this.AuditPackageSourceTask = Task.CompletedTask;
+            }
             if (ApplicationInitialised)
             {
                 this.AuditPackageSourceTask = Task.CompletedTask;
@@ -208,17 +220,9 @@ namespace DevAudit.AuditLibrary
             else
             {
                 this.AuditApplicationTask = Task.CompletedTask;
-                if (PackageSourceInitialized)
-                {
-                    this.AuditPackageSourceTask = Task.Run(() => this.PackageSource.Audit(ct));
-                }
-                else
-                {
-                    this.AuditPackageSourceTask = Task.CompletedTask;
-                }
-
             }
             this.GetWorkspaceTask = this.GetWorkspaceAsync();
+
             try
             {
                 this.GetWorkspaceTask.Wait();
@@ -229,6 +233,7 @@ namespace DevAudit.AuditLibrary
                 return AuditResult.ERROR_SCANNING_WORKSPACE;
             }            
             this.GetAnalyzersTask = this.GetAnalyzers();
+
             try
             {
                 this.GetAnalyzersTask.Wait();

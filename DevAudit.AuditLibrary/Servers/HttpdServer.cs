@@ -47,6 +47,8 @@ namespace DevAudit.AuditLibrary
         public override string ServerId { get { return "httpd"; } }
 
         public override string ServerLabel { get { return "Apache httpd"; } }
+
+        public override PackageSource PackageSource => this as PackageSource;
         #endregion
 
         #region Overriden methods

@@ -83,6 +83,7 @@ namespace DevAudit.AuditLibrary
                 {
                     this.AuditEnvironment.Debug("Using NuGet v2 package manager configuration file {0}", packages_config.FullName);
                     this.PackageSource = new NuGetPackageSource(new Dictionary<string, object>(1) { { "File", packages_config.FullName } }, message_handler);
+                    this.PackageSourceFile = packages_config;
                     PackageSourceInitialized = true;
 
                 }
@@ -99,6 +100,7 @@ namespace DevAudit.AuditLibrary
                 {
                     this.AuditEnvironment.Debug("Using NuGet v2 package manager configuration file {0}", packages_config.FullName);
                     this.PackageSource = new NuGetPackageSource(new Dictionary<string, object>(1) { { "File", packages_config.FullName } }, message_handler);
+                    this.PackageSourceFile = packages_config;
                     PackageSourceInitialized = true;
                 }
 
@@ -115,12 +117,12 @@ namespace DevAudit.AuditLibrary
                 AuditFileInfo cf = this.AuditEnvironment.ConstructFile(this.CombinePath((string)this.CodeProjectOptions["AppConfig"]));
                 if (!cf.Exists)
                 {
-                    throw new ArgumentException(string.Format("The application configuration file {0} does not exist.", cf.FullName));
+                    throw new ArgumentException(string.Format("The .NET application configuration file {0} does not exist.", cf.FullName));
                 }
                 else
                 {                    
                     this.AppConfigurationFile = cf;
-                    this.AuditEnvironment.Info("Using application configuration file {0}.", cf.FullName);
+                    this.AuditEnvironment.Info("Using .NET application configuration file {0}.", cf.FullName);
                 }
             }
             else
@@ -128,12 +130,12 @@ namespace DevAudit.AuditLibrary
                 AuditFileInfo cf = this.AuditEnvironment.ConstructFile(this.CombinePath(this.DefaultFileLocationPaths["AppConfig"]));
                 if (!cf.Exists)
                 {
-                    this.AuditEnvironment.Warning("No application configuration file found.");
+                    this.AuditEnvironment.Warning("No .NET application configuration file found.");
                 }
                 else
                 {
                     this.AppConfigurationFile = cf;
-                    this.AuditEnvironment.Info("Using default application configuration file {0}.", cf.FullName);
+                    this.AuditEnvironment.Info("Using default .NET application configuration file {0}.", cf.FullName);
                 }
             }
             if (this.AppConfigurationFile != null)
@@ -208,16 +210,10 @@ namespace DevAudit.AuditLibrary
         {
             Dictionary<string, object> application_options = new Dictionary<string, object>()
             {
-                { "RootDirectory", this.ProjectDirectory.FullName }
+                { "RootDirectory", this.ProjectDirectory.FullName },
+                { "AppConfig", this.AppConfigurationFile.FullName }
+                
             };
-            if (this.CodeProjectOptions.ContainsKey("PackageSource"))
-            {
-                application_options.Add("PackageSource", this.CodeProjectOptions["PackageSource"]);
-            }
-            if (this.CodeProjectOptions.ContainsKey("AppConfig"))
-            {
-                application_options.Add("AppConfig", this.CodeProjectOptions["AppConfig"]);
-            }
 
             try
             {
@@ -279,7 +275,6 @@ namespace DevAudit.AuditLibrary
         public MSBuildWorkspace MSBuildWorkspace { get; protected set; }
         public AuditDirectoryInfo ProjectDirectory { get; protected set; }
         public List<AuditFileInfo> ConfigurationFiles { get; protected set; }
-        public AuditFileInfo AppConfigurationFile { get; protected set; }
         #endregion
 
         #region Methods               

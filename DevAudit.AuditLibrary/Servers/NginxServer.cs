@@ -47,6 +47,8 @@ namespace DevAudit.AuditLibrary
         public override string ServerId { get { return "nginx"; } }
 
         public override string ServerLabel { get { return "Nginx"; } }
+
+        public override PackageSource PackageSource => this as PackageSource;
         #endregion
 
         #region Overriden methods

@@ -50,6 +50,8 @@ namespace DevAudit.AuditLibrary
         public override string ServerId { get { return "sshd"; } }
 
         public override string ServerLabel { get { return "OpenSSH sshd server"; } }
+
+        public override PackageSource PackageSource => this as PackageSource;
         #endregion
 
         #region Overriden methods

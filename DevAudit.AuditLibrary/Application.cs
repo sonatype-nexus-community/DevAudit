@@ -146,6 +146,8 @@ namespace DevAudit.AuditLibrary
         public abstract string ApplicationId { get; }
 
         public abstract string ApplicationLabel { get; }
+
+        public abstract PackageSource PackageSource { get; }
         #endregion
 
         #region Abstract methods
@@ -253,6 +255,8 @@ namespace DevAudit.AuditLibrary
         public bool OnlyLocalRules { get; protected set; } = false;
 
         public bool DefaultConfigurationRulesOnly { get; protected set; } = false;
+
+        
 
         #endregion
 
@@ -636,6 +640,8 @@ namespace DevAudit.AuditLibrary
             }
         }
         #endregion
+
+        
 
         #region Fields
         private readonly object artifacts_lock = new object(), package_vulnerabilities_lock = new object(), project_vulnerabilities_lock = new object(), artifact_project_lock = new object();

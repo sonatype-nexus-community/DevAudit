@@ -44,7 +44,9 @@ namespace DevAudit.AuditLibrary
         #region Overriden properties
         public override string ServerId { get { return "mysql"; } }
 
-        public override string ServerLabel { get { return "MySQL"; } } 
+        public override string ServerLabel { get { return "MySQL"; } }
+
+        public override PackageSource PackageSource => this as PackageSource;
         #endregion
 
         #region Overriden methods
