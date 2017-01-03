@@ -641,8 +641,6 @@ namespace DevAudit.AuditLibrary
         }
         #endregion
 
-        
-
         #region Fields
         private readonly object artifacts_lock = new object(), package_vulnerabilities_lock = new object(), project_vulnerabilities_lock = new object(), artifact_project_lock = new object();
         private Dictionary<IEnumerable<OSSIndexQueryObject>, IEnumerable<OSSIndexArtifact>> _ArtifactsForQuery =

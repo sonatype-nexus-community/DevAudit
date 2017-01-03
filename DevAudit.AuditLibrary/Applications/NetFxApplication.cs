@@ -14,27 +14,30 @@ namespace DevAudit.AuditLibrary
         public NetFx4Application(Dictionary<string, object> application_options, EventHandler<EnvironmentEventArgs> message_handler) : base(application_options, new Dictionary<string, string[]>(),           
             new Dictionary<string, string[]>(), message_handler)
         {
-            if (application_options.ContainsKey("PackageSource"))
+            if (!this.SkipPackagesAudit)
             {
-                this.NugetPackageSource = new NuGetPackageSource(new Dictionary<string, object>(1) { { "File", this.CombinePath((string) application_options["PackageSource"]) } }, 
-                    message_handler);
-                this.PackageSourceInitialized = true;
-                this.AuditEnvironment.Debug("Using NuGet v2 package manager configuration file {0}", (string)application_options["PackageSource"]);
-            }
-            else
-            {
-                AuditFileInfo packages_config = this.AuditEnvironment.ConstructFile(this.CombinePath("@packages.config"));
-                if (packages_config.Exists)
-                {                    
-                    this.NugetPackageSource = new NuGetPackageSource(new Dictionary<string, object>(1) { { "File", packages_config.FullName } }, message_handler);
+                if (application_options.ContainsKey("PackageSource"))
+                {
+                    this.NugetPackageSource = new NuGetPackageSource(new Dictionary<string, object>(1) { { "File", this.CombinePath((string)application_options["PackageSource"]) } },
+                        message_handler);
                     this.PackageSourceInitialized = true;
-                    this.AuditEnvironment.Debug("Using NuGet v2 package manager configuration file {0}", packages_config.FullName);
+                    this.AuditEnvironment.Debug("Using NuGet v2 package manager configuration file {0}", (string)application_options["PackageSource"]);
                 }
-
                 else
                 {
-                    this.AuditEnvironment.Warning("The default NuGet v2 package manager configuration file {0} does not exist and no PackageSource parameter was specified.", packages_config.FullName);
-                    PackageSourceInitialized = false;
+                    AuditFileInfo packages_config = this.AuditEnvironment.ConstructFile(this.CombinePath("@packages.config"));
+                    if (packages_config.Exists)
+                    {
+                        this.NugetPackageSource = new NuGetPackageSource(new Dictionary<string, object>(1) { { "File", packages_config.FullName } }, message_handler);
+                        this.PackageSourceInitialized = true;
+                        this.AuditEnvironment.Debug("Using NuGet v2 package manager configuration file {0}", packages_config.FullName);
+                    }
+
+                    else
+                    {
+                        this.AuditEnvironment.Warning("The default NuGet v2 package manager configuration file {0} does not exist and no PackageSource parameter was specified.", packages_config.FullName);
+                        PackageSourceInitialized = false;
+                    }
                 }
             }
             AuditFileInfo cf;
@@ -69,7 +72,7 @@ namespace DevAudit.AuditLibrary
                 else
                 {
                     this.AppConfigFilePath = cf.FullName;
-                    this.AuditEnvironment.Info("Using application configuration file {0}.", cf.FullName);
+                    this.AuditEnvironment.Info("Using {0} configuration file {1}.", this.ApplicationLabel, cf.FullName);
                 }
             }
             else

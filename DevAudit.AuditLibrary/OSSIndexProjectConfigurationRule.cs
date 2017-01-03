@@ -13,6 +13,19 @@ namespace DevAudit.AuditLibrary
 {
     public class OSSIndexProjectConfigurationRule
     {
+
+        [YamlMember(Alias = "tags")]
+        [JsonProperty("tags")]
+        public List<string> Tags { get; set; }
+
+        [YamlMember(Alias = "category")]
+        [JsonProperty("category")]
+        public string Category { get; set; }
+
+        [YamlMember(Alias = "severity")]
+        [JsonProperty("severity")]
+        public int Severity { get; set; }
+
         [YamlMember(Alias = "urls")]
         [JsonProperty("urls")]
         public List<string> Urls { get; set; }

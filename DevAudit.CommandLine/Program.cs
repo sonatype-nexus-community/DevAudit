@@ -83,11 +83,11 @@ namespace DevAudit.CommandLine
             }
             #endregion
 
-			if (!string.IsNullOrEmpty(ProgramOptions.Docker))
-			{
-				audit_options.Add("DockerContainer", ProgramOptions.Docker);
-			}
-			else if (!string.IsNullOrEmpty(ProgramOptions.RemoteHost))
+            if (!string.IsNullOrEmpty(ProgramOptions.Docker))
+            {
+                audit_options.Add("DockerContainer", ProgramOptions.Docker);
+            }
+            else if (!string.IsNullOrEmpty(ProgramOptions.RemoteHost))
             {
                 if (Uri.CheckHostName(ProgramOptions.RemoteHost) == UriHostNameType.Unknown)
                 {
@@ -272,14 +272,14 @@ namespace DevAudit.CommandLine
                     {
                         Source = new DpkgPackageSource(audit_options, EnvironmentMessageHandler);
                     }
-					else if (verb == "rpm")
-					{
-						Source = new RpmPackageSource(audit_options, EnvironmentMessageHandler);
-					}
-					else if (verb == "yum")
-					{
-						Source = new YumPackageSource(audit_options, EnvironmentMessageHandler);
-					}
+                    else if (verb == "rpm")
+                    {
+                        Source = new RpmPackageSource(audit_options, EnvironmentMessageHandler);
+                    }
+                    else if (verb == "yum")
+                    {
+                        Source = new YumPackageSource(audit_options, EnvironmentMessageHandler);
+                    }
                     else if (verb == "drupal8")
                     {
                         Application = new Drupal8Application(audit_options, EnvironmentMessageHandler);
@@ -949,7 +949,9 @@ namespace DevAudit.CommandLine
             else if (Application.ProjectConfigurationRules.Count() > 0)
             {
                 PrintMessageLine(ConsoleColor.White, "\nApplication Configuration Audit Results\n=======================================");
-                PrintMessageLine(ConsoleColor.White, "{0} total vulnerabilities found in {1} application configuration audit. Total time for audit: {2} ms.\n", Application.ProjectConfigurationRulesEvaluations.Values.Where(v => v.Item1).Count(), Application.ApplicationLabel, Stopwatch.ElapsedMilliseconds);
+                PrintMessageLine(ConsoleColor.White, "{0} {3} found in {1} application configuration audit. Total time for audit: {2} ms.\n", 
+                    Application.ProjectConfigurationRulesEvaluations.Values.Where(v => v.Item1).Count(), Application.ApplicationLabel, Stopwatch.ElapsedMilliseconds,
+                    Application.ProjectConfigurationRulesEvaluations.Values.Where(v => v.Item1).Count() == 1 ? "vulnerability" : "total vulnerabilities");
                 int projects_count = Application.ProjectConfigurationRules.Count, projects_processed = 0;
                 foreach (KeyValuePair<OSSIndexProject, IEnumerable<OSSIndexProjectConfigurationRule>> rule in Application.ProjectConfigurationRules)
                 {

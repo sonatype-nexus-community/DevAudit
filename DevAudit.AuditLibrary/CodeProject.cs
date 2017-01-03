@@ -173,6 +173,8 @@ namespace DevAudit.AuditLibrary
 
         public bool ConfigurationInitialised { get; protected set; } = false;
 
+        public HashSet<int> IgnoreApplicationRules { get; protected set; } = new HashSet<int>();
+
         public object WorkSpace { get; protected set; }
 
         public object Project { get; protected set; }
