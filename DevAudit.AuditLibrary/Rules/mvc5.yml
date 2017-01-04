@@ -2,26 +2,49 @@
 mvc5:
     -   id: 1
         title: ASP.NET version headers are enabled
+        category: Information Disclosure 
+        tags: 
+            -    OWASP Top 10 Application Security Risks A6
+        severity: 2
         xpathtest: not(boolean(/configuration/system.web/httpRuntime[@enableVersionHeader='false']))
         summary: |
            By default the name and versions of the application frameworks an ASP.NET application uses are sent as response headers, like X-AspNetMvc-Version. 
-           For maximum safety it is recommended that these headers not be enabled.
+           To avoid disclosing information that can be used by attackers it is recommended that these headers not be enabled.
         resolution: |
             Add the attribute enableVersionHeader=false to the httpRuntime element of the system.web section of the ASP.NET Web.config file.
         urls:
             -   https://www.troyhunt.com/shhh-dont-let-your-response-headers/
+
     -   id: 2
-        title: ASP.NET custom errors mode is not enabled.
+        title: ASP.NET custom errors mode is not enabled
         category: Information Disclosure 
         tags: 
             -    OWASP Top 10 Application Security Risks A6
+        severity: 3
         xpathtest: not(boolean(/configuration/system.web/customErrors[@mode='On']))
         summary: |
-           By default much internal implementation information like control and data flow and variable handling and physical location of code files 
-           is disclosed by ASP.NET to visitors when a runtime error is encountered.
-           This information should bever be disclosed in an application that is deployed.
+           By default internal implementation information like control and data flow and variable handling and physical location of code files 
+           is disclosed by ASP.NET to visitors when a runtime error is encountered and the default error handling page is used.
+           This information should bever be disclosed in an application that is deployed as it will be exploited by attackers,
         resolution: |
             Add the customErrors element with the attribute Mode=On to the system.web section of the ASP.NET Web.config file.
         urls:
-
             -   https://www.troyhunt.com/owasp-top-10-for-net-developers-part-6/
+
+    -   id: 3
+        title: ASP.NET compilation is set to debug mode
+        enable-for-app-dev: false
+        category: Information Disclosure 
+        tags: 
+            -    OWASP Top 10 Application Security Risks A6
+        severity: 1
+        xpathtest: boolean(/configuration/system.web/compilation[@debug='true'])
+        summary: |
+           The ASP.NET application is compiled and run in debug mode. In a deployed application this can lead to information disclosure and vulnerabiliites due
+           to settings and code used by developers being enabled in production.
+           For maximum safety it is recommended that deployed ASP.NET applications not be run in debug mode
+        resolution: |
+            Set the debug attribute of the compilation element to false in the system.web section of the ASP.NET Web.config file. 
+        urls:
+            -   https://www.troyhunt.com/owasp-top-10-for-net-developers-part-6/
+            -   https://weblogs.asp.net/scottgu/442448

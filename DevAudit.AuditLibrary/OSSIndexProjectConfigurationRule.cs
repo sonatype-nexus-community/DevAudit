@@ -26,6 +26,10 @@ namespace DevAudit.AuditLibrary
         [JsonProperty("severity")]
         public int Severity { get; set; }
 
+        [YamlMember(Alias = "enable-for-app-dev")]
+        [JsonProperty("enable-for-app-dev")]
+        public bool EnableForAppDevelopment { get; set; } = true;
+
         [YamlMember(Alias = "urls")]
         [JsonProperty("urls")]
         public List<string> Urls { get; set; }

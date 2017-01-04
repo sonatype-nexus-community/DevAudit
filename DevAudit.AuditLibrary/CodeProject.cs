@@ -382,7 +382,7 @@ namespace DevAudit.AuditLibrary
             this.AnalyzerResults = new List<AnalyzerResult>(this.Analyzers.Count);
             foreach (Analyzer a in this.Analyzers)
             {
-                this.HostEnvironment.Status("{0} analyzing.", a.Name);
+                this.HostEnvironment.Info("{0} analyzing.", a.Name);
                 AnalyzerResult ar = new AnalyzerResult() { Analyzer = a };
                 try
                 {

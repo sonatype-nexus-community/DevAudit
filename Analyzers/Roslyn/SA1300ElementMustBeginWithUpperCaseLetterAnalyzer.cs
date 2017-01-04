@@ -22,7 +22,7 @@ namespace DevAudit.AuditLibrary.Analyzers
         }
         #endregion
 
-        #region Public overriden methods
+        #region Overriden methods
         public override async Task<AnalyzerResult> Analyze()
         {
             foreach (SyntaxTree tree in this.Compilation.SyntaxTrees)
@@ -39,7 +39,7 @@ namespace DevAudit.AuditLibrary.Analyzers
                 {
                     continue;
                 }
-                this.ScriptEnvironment.Info("Got {0} type declarations in compilation unit {1}: {2}", declarations.Count, tree.FilePath, declarations.Select(d => d.Identifier.ValueText).Where(i => !string.IsNullOrEmpty(i)).Aggregate((s1, s2) => s1 + " " + s2));
+                //this.ScriptEnvironment.Info("Got {0} type declarations in compilation unit {1}: {2}", declarations.Count, tree.FilePath, declarations.Select(d => d.Identifier.ValueText).Where(i => !string.IsNullOrEmpty(i)).Aggregate((s1, s2) => s1 + " " + s2));
                
                 /*
                 foreach (TypeDeclarationSyntax d in declarations)

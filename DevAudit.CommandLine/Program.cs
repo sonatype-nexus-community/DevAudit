@@ -41,6 +41,9 @@ namespace DevAudit.CommandLine
         static string SpinnerText { get; set; }
 
         static Stopwatch Stopwatch { get; } = new Stopwatch();
+
+        static object ConsoleLock = new object();
+
         static CC.StyleSheet MessageStyleSheet { get; set; }
 
         static ConsoleColor OriginalConsoleForeColor;
@@ -462,7 +465,7 @@ namespace DevAudit.CommandLine
                     //Server.Dispose();
                 }
             }
-            else if (CodeProject != null && Server == null)
+            else if (CodeProject != null && Server == null) //auditing code project
             {
                 AuditTarget.AuditResult cpar = CodeProject.Audit(CTS.Token);
                 if (Stopwatch.IsRunning) Stopwatch.Stop();
@@ -1013,76 +1016,80 @@ namespace DevAudit.CommandLine
 
         static void EnvironmentMessageHandler(object sender, EnvironmentEventArgs e)
         {
-            if (e.MessageType == EventMessageType.DEBUG && !ProgramOptions.EnableDebug)
+            lock (ConsoleLock)
             {
-                return;
-            }
-            if (ProgramOptions.NonInteractive)
-            {
-                PrintMessageLine("{0:HH:mm:ss}<{4,2:##}> [{1}] [{2}] {3}", e.DateTime, e.EnvironmentLocation, e.MessageType.ToString(), e.Message, e.CurrentThread.ManagedThreadId.ToString("D2"));
-            }   
-            else if (e.MessageType == EventMessageType.STATUS)
-            {
-                if (Spinner != null)
-                {
-                    PauseSpinner();
-                    
-                    SpinnerText = e.Message + "..";
-                }
-                else
-                {
-                    PrintMessageLine(ConsoleMessageColors[e.MessageType], "{0:HH:mm:ss}<{4,2:##}> [{1}] [{2}] {3}", e.DateTime, e.EnvironmentLocation, e.MessageType.ToString(), e.Message, e.CurrentThread.ManagedThreadId.ToString("D2"));
-                    SpinnerText = e.Message + "..";
-                    StartSpinner();
-                }
-            }
-            else if (e.MessageType == EventMessageType.PROGRESS)
-            {
-                if (Spinner != null)
-                {
-                    PauseSpinner(false);
-                    //PrintMessage(GetProgressOutput(e.Progress.Value));
-                }
-                else
-                {
-                    PrintMessageLine(ConsoleMessageColors[e.MessageType], "{0:HH:mm:ss}<{4,2:##}> [{1}] [{2}] {3}", e.DateTime, e.EnvironmentLocation, e.MessageType.ToString(), e.Message, e.CurrentThread.ManagedThreadId.ToString("D2"));
-                }
-            }
-            else
-            {
-                if (Spinner != null)
-                {
-                    PauseSpinner();
-                }
-                PrintMessageLine(ConsoleMessageColors[e.MessageType], "{0:HH:mm:ss}<{4,2:##}> [{1}] [{2}] {3}", e.DateTime, e.EnvironmentLocation, e.MessageType.ToString(), e.Message, e.CurrentThread.ManagedThreadId.ToString("D2"));
-                if (e.MessageType == EventMessageType.ERROR && e.Exception != null)
-                {
-                    PrintErrorMessage(e.Exception);
-                }
-            }
 
-            if (e.Caller.HasValue && ProgramOptions.EnableDebug)
-            {
+                if (e.MessageType == EventMessageType.DEBUG && !ProgramOptions.EnableDebug)
+                {
+                    return;
+                }
                 if (ProgramOptions.NonInteractive)
                 {
-                    PrintMessageLine("Caller: {0}\nLine: {1}\nFile: {2}", e.Caller.Value.Name, e.Caller.Value.LineNumber, e.Caller.Value.File);
+                    PrintMessageLine("{0:HH:mm:ss}<{4,2:##}> [{1}] [{2}] {3}", e.DateTime, e.EnvironmentLocation, e.MessageType.ToString(), e.Message, e.CurrentThread.ManagedThreadId.ToString("D2"));
+                }
+                else if (e.MessageType == EventMessageType.STATUS)
+                {
+                    if (Spinner != null)
+                    {
+                        PauseSpinner();
+
+                        SpinnerText = e.Message + "..";
+                    }
+                    else
+                    {
+                        PrintMessageLine(ConsoleMessageColors[e.MessageType], "{0:HH:mm:ss}<{4,2:##}> [{1}] [{2}] {3}", e.DateTime, e.EnvironmentLocation, e.MessageType.ToString(), e.Message, e.CurrentThread.ManagedThreadId.ToString("D2"));
+                        SpinnerText = e.Message + "..";
+                        StartSpinner();
+                    }
+                }
+                else if (e.MessageType == EventMessageType.PROGRESS)
+                {
+                    if (Spinner != null)
+                    {
+                        PauseSpinner(false);
+                        //PrintMessage(GetProgressOutput(e.Progress.Value));
+                    }
+                    else
+                    {
+                        PrintMessageLine(ConsoleMessageColors[e.MessageType], "{0:HH:mm:ss}<{4,2:##}> [{1}] [{2}] {3}", e.DateTime, e.EnvironmentLocation, e.MessageType.ToString(), e.Message, e.CurrentThread.ManagedThreadId.ToString("D2"));
+                    }
                 }
                 else
                 {
-                    PrintMessageLine(ConsoleMessageColors[e.MessageType], "Caller: {0}\nLine: {1}\nFile: {2}", e.Caller.Value.Name,
-                        e.Caller.Value.LineNumber, e.Caller.Value.File);
+                    if (Spinner != null)
+                    {
+                        PauseSpinner();
+                    }
+                    PrintMessageLine(ConsoleMessageColors[e.MessageType], "{0:HH:mm:ss}<{4,2:##}> [{1}] [{2}] {3}", e.DateTime, e.EnvironmentLocation, e.MessageType.ToString(), e.Message, e.CurrentThread.ManagedThreadId.ToString("D2"));
+                    if (e.MessageType == EventMessageType.ERROR && e.Exception != null)
+                    {
+                        PrintErrorMessage(e.Exception);
+                    }
                 }
-                
-            }
-            if (!ProgramOptions.NonInteractive && Spinner != null)
-            {
-                if (e.MessageType == EventMessageType.SUCCESS)
+
+                if (e.Caller.HasValue && ProgramOptions.EnableDebug)
                 {
-                    SpinnerText = string.Empty;
+                    if (ProgramOptions.NonInteractive)
+                    {
+                        PrintMessageLine("Caller: {0}\nLine: {1}\nFile: {2}", e.Caller.Value.Name, e.Caller.Value.LineNumber, e.Caller.Value.File);
+                    }
+                    else
+                    {
+                        PrintMessageLine(ConsoleMessageColors[e.MessageType], "Caller: {0}\nLine: {1}\nFile: {2}", e.Caller.Value.Name,
+                            e.Caller.Value.LineNumber, e.Caller.Value.File);
+                    }
+
                 }
-                else
+                if (!ProgramOptions.NonInteractive && Spinner != null)
                 {
-                    UnPauseSpinner();
+                    if (e.MessageType == EventMessageType.SUCCESS)
+                    {
+                        SpinnerText = string.Empty;
+                    }
+                    else
+                    {
+                        UnPauseSpinner();
+                    }
                 }
             }
         }

@@ -139,6 +139,11 @@ namespace DevAudit.AuditLibrary
                 this.OnlyLocalRules = true;
             }
 
+            if ((this.ApplicationOptions.ContainsKey("AppDevMode")))
+            {
+                this.AppDevMode = true;
+            }
+
         }
         #endregion
 
@@ -256,7 +261,7 @@ namespace DevAudit.AuditLibrary
 
         public bool DefaultConfigurationRulesOnly { get; protected set; } = false;
 
-        
+        public bool AppDevMode { get; protected set; }
 
         #endregion
 

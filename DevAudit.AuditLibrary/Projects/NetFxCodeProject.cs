@@ -277,10 +277,7 @@ namespace DevAudit.AuditLibrary
         public List<AuditFileInfo> ConfigurationFiles { get; protected set; }
         #endregion
 
-        #region Methods               
-        #endregion
-
-        #region Private fields
+        #region Fields
         bool IsDisposed = false;
         protected EventHandler<EnvironmentEventArgs> message_handler;
         #endregion

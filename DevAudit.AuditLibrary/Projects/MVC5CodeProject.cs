@@ -23,7 +23,8 @@ namespace DevAudit.AuditLibrary
             Dictionary<string, object> application_options = new Dictionary<string, object>()
             {
                 { "RootDirectory", this.ProjectDirectory.FullName },
-                { "AppConfig", this.AppConfigurationFile.FullName }
+                { "AppConfig", this.AppConfigurationFile.FullName },
+                { "AppDevMode", true }
 
             };
 
@@ -34,7 +35,7 @@ namespace DevAudit.AuditLibrary
             }
             catch (Exception e)
             {
-                this.AuditEnvironment.Error(e, "Error attempting to create application audit target");
+                this.AuditEnvironment.Error(e, "Error attempting to create ASP.NET MVC5 application audit target.");
                 this.ApplicationInitialised = false;
                 this.Application = null;
             }
