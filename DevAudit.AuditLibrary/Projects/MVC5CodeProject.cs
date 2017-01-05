@@ -13,9 +13,7 @@ namespace DevAudit.AuditLibrary
     {
         public MVC5CodeProject(Dictionary<string, object> project_options, EventHandler<EnvironmentEventArgs> message_handler) : 
             base(project_options, new Dictionary<string, string[]> { { "AppConfig", new string[] {"@", "Web.config" } } }, message_handler)
-        {
-           
-        }
+        {}
 
         #region Overriden methods
         protected override Application GetApplication()
@@ -27,6 +25,11 @@ namespace DevAudit.AuditLibrary
                 { "AppDevMode", true }
 
             };
+
+            foreach (KeyValuePair<string, object> kv in CodeProjectOptions.Where(o => o.Key == "SkipPackagesAudit" || o.Key == "ListPackages" || o.Key == "ListArtifacts"))
+            {
+                application_options.Add(kv.Key, kv.Value);
+            }
 
             try
             {

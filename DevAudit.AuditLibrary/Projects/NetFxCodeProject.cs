@@ -214,7 +214,11 @@ namespace DevAudit.AuditLibrary
                 { "AppConfig", this.AppConfigurationFile.FullName }
                 
             };
-
+            foreach (KeyValuePair<string, object> kv in CodeProjectOptions.Where(o => o.Key == "SkipPackagesAudit" || o.Key == "ListPackages" || o.Key == "ListArtifacts"))
+            {
+                application_options.Add(kv.Key, kv.Value);
+            }
+            
             try
             {
                 this.Application = new NetFx4Application(application_options, message_handler, this.PackageSource as NuGetPackageSource);

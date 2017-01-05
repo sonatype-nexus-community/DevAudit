@@ -247,6 +247,9 @@ namespace DevAudit.AuditLibrary
                 return _ConfigurationRulesForProject;
             }
         }
+        public List<OSSIndexProjectConfigurationRule> DisabledForAppDevModeRules { get; }
+            = new List<OSSIndexProjectConfigurationRule>();
+
         public ConcurrentDictionary<OSSIndexArtifact, Exception> GetProjectConfigurationRulesExceptions { get; protected set; }
 
         public bool PackageSourceInitialized { get; protected set; }
@@ -523,15 +526,20 @@ namespace DevAudit.AuditLibrary
             {
                 pr.AsParallel().ForAll(r =>
                 {
-                   if (!string.IsNullOrEmpty(r.XPathTest))
-                   {
+                    if (this.AppDevMode && !r.EnableForAppDevelopment)
+                    {
+                        this.AuditEnvironment.Info("Not evaluating rule {0} for application development mode.", r.Title);
+                        this.DisabledForAppDevModeRules.Add(r);
+                    }
+                    else if (!string.IsNullOrEmpty(r.XPathTest))
+                    {
                        List<string> result;
                        string message;
                        lock (evaluate_rules)
                        {
                            results.Add(r, new Tuple<bool, List<string>, string>(this.Configuration.XPathEvaluate(r.XPathTest, out result, out message), result, message));
                        }
-                   }
+                    }
                 });
             });
             this.ProjectConfigurationRulesEvaluations = results;

@@ -208,7 +208,7 @@ namespace DevAudit.AuditLibrary
             CallerInformation caller = this.AuditEnvironment.Here();
             if (PackageSourceInitialized)
             {
-                this.AuditPackageSourceTask = Task.Run(() => this.PackageSource.Audit(ct));
+                this.AuditPackageSourceTask = this.PackageSource.GetPackagesTask(ct);//Task.Run(() => this.PackageSource.Audit(ct));
             }
             else
             {

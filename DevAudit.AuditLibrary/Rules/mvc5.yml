@@ -17,6 +17,7 @@ mvc5:
 
     -   id: 2
         title: ASP.NET custom errors mode is not enabled
+        enable-for-app-dev: false
         category: Information Disclosure 
         tags: 
             -    OWASP Top 10 Application Security Risks A6

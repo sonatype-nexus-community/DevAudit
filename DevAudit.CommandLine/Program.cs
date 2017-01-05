@@ -952,6 +952,15 @@ namespace DevAudit.CommandLine
             else if (Application.ProjectConfigurationRules.Count() > 0)
             {
                 PrintMessageLine(ConsoleColor.White, "\nApplication Configuration Audit Results\n=======================================");
+                if (Application.AppDevMode && Application.DisabledForAppDevModeRules.Count > 0)
+                {
+                    PrintMessageLine("{0} rules disabled for application development mode.", Application.DisabledForAppDevModeRules.Count);
+                    int rdfadm = 0;
+                    foreach(OSSIndexProjectConfigurationRule rule in Application.DisabledForAppDevModeRules)
+                    {
+                        PrintMessageLine(ConsoleColor.DarkGray, "--[{0}/{1}] {2}", ++rdfadm, Application.DisabledForAppDevModeRules.Count, rule.Title);
+                    }
+                }
                 PrintMessageLine(ConsoleColor.White, "{0} {3} found in {1} application configuration audit. Total time for audit: {2} ms.\n", 
                     Application.ProjectConfigurationRulesEvaluations.Values.Where(v => v.Item1).Count(), Application.ApplicationLabel, Stopwatch.ElapsedMilliseconds,
                     Application.ProjectConfigurationRulesEvaluations.Values.Where(v => v.Item1).Count() == 1 ? "vulnerability" : "total vulnerabilities");
