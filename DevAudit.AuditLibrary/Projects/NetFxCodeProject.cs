@@ -18,6 +18,7 @@ namespace DevAudit.AuditLibrary
         public NetFxCodeProject(Dictionary<string, object> project_options, Dictionary<string, string[]> default_file_location_paths, EventHandler<EnvironmentEventArgs> message_handler) 
             : base(project_options, message_handler, default_file_location_paths, "Roslyn")
         {
+            this.message_handler = message_handler;
             if (this.CodeProjectOptions.ContainsKey("ProjectFile"))
             {
                 string pf = (string)CodeProjectOptions["ProjectFile"];
@@ -39,7 +40,6 @@ namespace DevAudit.AuditLibrary
 
             else if (this.CodeProjectOptions.ContainsKey("ProjectName"))
             {
-                this.message_handler = message_handler;                
                 string fn_1 = this.CombinePath("@", (string)this.CodeProjectOptions["ProjectName"]); //CodeProjectName/CodeProjectName.xxx
                 //string fn_2 = this.CombinePath("src", (string)this.CodeProjectOptions["CodeProjectName"], (string)this.CodeProjectOptions["CodeProjectName"]); //CodeProjectName/src/CodeProjectName.xxx
                 AuditFileInfo wf_11 = this.AuditEnvironment.ConstructFile(fn_1 + ".csproj");
@@ -49,7 +49,7 @@ namespace DevAudit.AuditLibrary
 
                 if (wf_11.Exists)
                 {
-                    this.WorkspaceFilePath = "@" + (string)this.CodeProjectOptions["ProjectName"] + ".csproj"; 
+                    this.WorkspaceFilePath = "@" + (string)this.CodeProjectOptions["ProjectName"] + ".csproj";
                     this.CodeProjectFileSystemMap["RootDirectory"] = this.AuditEnvironment.ConstructDirectory(wf_11.Directory.FullName);
 
                 }
@@ -71,6 +71,8 @@ namespace DevAudit.AuditLibrary
                     throw new ArgumentException(string.Format("No ProjectFile option was specified and could not find the default project file at {0} or {1}.", wf_11.FullName, wf_12.FullName), "project_options");
                 }
             }
+            else throw new ArgumentException("Either the ProjectFile or ProjectName option must be specified.", "project_options");
+
             this.ProjectDirectory = this.RootDirectory;
             this.AuditEnvironment.Info("Using MSBuild project file {0}.", this.WorkspaceFilePath);
 
@@ -130,7 +132,7 @@ namespace DevAudit.AuditLibrary
                 AuditFileInfo cf = this.AuditEnvironment.ConstructFile(this.CombinePath(this.DefaultFileLocationPaths["AppConfig"]));
                 if (!cf.Exists)
                 {
-                    this.AuditEnvironment.Warning("No .NET application configuration file found.");
+                    this.AuditEnvironment.Warning("The .NET application configuration file was not specified and the default file was not found.");
                 }
                 else
                 {

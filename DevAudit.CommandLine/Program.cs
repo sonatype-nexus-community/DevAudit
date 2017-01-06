@@ -954,7 +954,7 @@ namespace DevAudit.CommandLine
                 PrintMessageLine(ConsoleColor.White, "\nApplication Configuration Audit Results\n=======================================");
                 if (Application.AppDevMode && Application.DisabledForAppDevModeRules.Count > 0)
                 {
-                    PrintMessageLine("{0} rules disabled for application development mode.", Application.DisabledForAppDevModeRules.Count);
+                    PrintMessageLine("{0} rules disabled for application development mode:", Application.DisabledForAppDevModeRules.Count);
                     int rdfadm = 0;
                     foreach(OSSIndexProjectConfigurationRule rule in Application.DisabledForAppDevModeRules)
                     {

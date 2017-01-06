@@ -528,7 +528,7 @@ namespace DevAudit.AuditLibrary
                 {
                     if (this.AppDevMode && !r.EnableForAppDevelopment)
                     {
-                        this.AuditEnvironment.Info("Not evaluating rule {0} for application development mode.", r.Title);
+                        this.AuditEnvironment.Info("Not evaluating rule \"{0}\" for application development mode.", r.Title);
                         this.DisabledForAppDevModeRules.Add(r);
                     }
                     else if (!string.IsNullOrEmpty(r.XPathTest))
