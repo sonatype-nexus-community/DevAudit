@@ -181,7 +181,11 @@ namespace DevAudit.AuditLibrary
 
         public Dictionary<string, IEnumerable<OSSIndexQueryObject>> Modules { get; protected set; }
 
+        public bool ModulesInitialised { get; protected set; } = false;
+
         public string Version { get; protected set; }
+
+        public bool VersionInitialised { get; protected set; } = false;
 
         public IConfiguration Configuration { get; protected set; } = null;
 
@@ -215,6 +219,8 @@ namespace DevAudit.AuditLibrary
                 }
             }
         }
+
+        public bool ConfigurationInitialised { get; protected set; } = false;
 
         public XDocument XmlConfiguration
         {
@@ -274,11 +280,12 @@ namespace DevAudit.AuditLibrary
             CallerInformation caller = this.AuditEnvironment.Here();
             try
             {
+                this.GetModules();
                 this.GetVersion();
             }
             catch (Exception e)
             {
-                if (e is NotImplementedException)
+                if (e is NotImplementedException && e.TargetSite.Name == "GetVersion")
                 {
                     this.AuditEnvironment.Debug("{0} application does not implement standalone GetVersion method.", this.ApplicationLabel);
                 }

@@ -39,7 +39,6 @@ namespace DevAudit.AuditLibrary
                     this.ApplicationFileSystemMap["nginx"] = this.ApplicationBinary;
                 }
             }
-            this.PackageSourceInitialized = true; //Only default module "nginx" detected presently.
         }
         #endregion
 
@@ -52,26 +51,6 @@ namespace DevAudit.AuditLibrary
         #endregion
 
         #region Overriden methods
-        protected override Dictionary<string, IEnumerable<OSSIndexQueryObject>> GetModules()
-        {
-            Dictionary<string, IEnumerable<OSSIndexQueryObject>> m = new Dictionary<string, IEnumerable<OSSIndexQueryObject>>
-            {
-                {"nginx", new List<OSSIndexQueryObject> {new OSSIndexQueryObject(this.PackageManagerId, "nginx", this.Version) }}
-            };
-            this.Modules = m;
-            return this.Modules;
-        }
-
-        protected override IConfiguration GetConfiguration()
-        {
-            Nginx nginx = new Nginx(this.ConfigurationFile);
-            if (nginx.ParseSucceded)
-            {
-                this.Configuration = nginx;
-            }
-            return this.Configuration;
-        }
-
         protected override string GetVersion()
         {
             AuditEnvironment.ProcessExecuteStatus process_status;
@@ -85,6 +64,7 @@ namespace DevAudit.AuditLibrary
                     process_output = process_error;
                 }
                 this.Version = process_output.Substring("nginx version: ".Length);
+                this.VersionInitialised = true;
                 return this.Version;
             }
             else if (process_output.Contains("nginx version: ") || process_error.Contains("nginx version: "))
@@ -94,12 +74,35 @@ namespace DevAudit.AuditLibrary
                     process_output = process_error;
                 }
                 this.Version = process_output.Substring("nginx version: ".Length);
+                this.VersionInitialised = true;
                 return this.Version;
             }
             else
             {
                 throw new Exception(string.Format("Did not execute process {0} successfully or could not parse output. Process output: {1}.\nProcess error: {2}.", ApplicationBinary.Name, process_output, process_error));
             }
+        }
+
+        protected override Dictionary<string, IEnumerable<OSSIndexQueryObject>> GetModules()
+        {
+            Dictionary<string, IEnumerable<OSSIndexQueryObject>> m = new Dictionary<string, IEnumerable<OSSIndexQueryObject>>
+            {
+                {"nginx", new List<OSSIndexQueryObject> {new OSSIndexQueryObject(this.PackageManagerId, "nginx", this.Version) }}
+            };
+            this.Modules = m;
+            this.PackageSourceInitialized = this.ModulesInitialised = true;
+            return this.Modules;
+        }
+
+        protected override IConfiguration GetConfiguration()
+        {
+            Nginx nginx = new Nginx(this.ConfigurationFile);
+            if (nginx.ParseSucceded)
+            {
+                this.Configuration = nginx;
+                this.ConfigurationInitialised = true;
+            }
+            return this.Configuration;
         }
 
         public override bool IsConfigurationRuleVersionInServerVersionRange(string configuration_rule_version, string server_version)
@@ -109,6 +112,7 @@ namespace DevAudit.AuditLibrary
         
         public override IEnumerable<OSSIndexQueryObject> GetPackages(params string[] o)
         {
+            if (!this.ModulesInitialised) throw new InvalidOperationException("Modules must be initialised before GetPackages is called.");
             return this.GetModules()["nginx"];
         }
 

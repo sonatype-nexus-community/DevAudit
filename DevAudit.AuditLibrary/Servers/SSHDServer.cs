@@ -42,7 +42,6 @@ namespace DevAudit.AuditLibrary
                     this.ApplicationFileSystemMap["sshd"] = this.ApplicationBinary;
                 }
             }
-            this.PackageSourceInitialized = true; //Only default module "sshd" detected presently.
         }
         #endregion
 
@@ -73,6 +72,7 @@ namespace DevAudit.AuditLibrary
                 this.Version = process_output.Split("\n".ToCharArray(), StringSplitOptions.RemoveEmptyEntries)[1];
                 sw.Stop();
                 this.AuditEnvironment.Success("Got {0} version {1} in {2} ms.", this.ApplicationLabel, this.Version, sw.ElapsedMilliseconds);
+                this.VersionInitialised = true;
                 return this.Version;
             }
             else if (!string.IsNullOrEmpty(process_error) && string.IsNullOrEmpty(process_output) && process_error.Contains("unknown option"))
@@ -80,6 +80,7 @@ namespace DevAudit.AuditLibrary
                 this.Version = process_error.Split("\n".ToCharArray(), StringSplitOptions.RemoveEmptyEntries)[1];
                 sw.Stop();
                 this.AuditEnvironment.Success("Got {0} version {1} in {2} ms.", this.ApplicationLabel, this.Version, sw.ElapsedMilliseconds);
+                this.VersionInitialised = true;
                 return this.Version;
             }
             else
@@ -96,6 +97,7 @@ namespace DevAudit.AuditLibrary
                 {"sshd", new List<OSSIndexQueryObject> {new OSSIndexQueryObject(this.PackageManagerId, "sshd", this.Version) }}
             };
             this.Modules = m;
+            this.PackageSourceInitialized = this.ModulesInitialised = true;
             return this.Modules;
         }
 
@@ -109,6 +111,7 @@ namespace DevAudit.AuditLibrary
             {
                 this.Configuration = sshd;
                 sw.Stop();
+                this.ConfigurationInitialised = true;
                 this.AuditEnvironment.Success("Read configuration from {0} in {1} ms.", this.Configuration.File.Name, sw.ElapsedMilliseconds);
             }
             return this.Configuration;
@@ -122,10 +125,7 @@ namespace DevAudit.AuditLibrary
 
         public override IEnumerable<OSSIndexQueryObject> GetPackages(params string[] o)
         {
-            if (this.Modules == null)
-            {
-                this.GetModules();
-            }
+            if (!this.ModulesInitialised) throw new InvalidOperationException("Modules must be initialised before GetPackages is called.");
             return this.Modules["sshd"];
         }
         

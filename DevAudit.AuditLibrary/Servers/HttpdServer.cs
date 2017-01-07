@@ -38,7 +38,6 @@ namespace DevAudit.AuditLibrary
                     this.ApplicationBinary = this.AuditEnvironment.ConstructFile(fn);
                     this.ApplicationFileSystemMap["httpd"] = this.ApplicationBinary;
                 }
-                this.PackageSourceInitialized = true; //Only default module "httpd" detected presently.
             }
         }
         #endregion
@@ -59,6 +58,7 @@ namespace DevAudit.AuditLibrary
                 {"httpd", new List<OSSIndexQueryObject> {new OSSIndexQueryObject(this.PackageManagerId, "httpd", this.Version) }}
             };
             this.Modules = m;
+            this.PackageSourceInitialized =  this.ModulesInitialised = true;
             return this.Modules;
         }
 
@@ -70,6 +70,7 @@ namespace DevAudit.AuditLibrary
                 if (httpd.ParseSucceded)
                 {
                     this.Configuration = httpd;
+                    this.ConfigurationInitialised = true;
                 }
                 else
                 {
@@ -94,6 +95,7 @@ namespace DevAudit.AuditLibrary
                     process_output = process_error;
                 }
                 this.Version = process_output.Split(Environment.NewLine.ToCharArray())[0];
+                this.VersionInitialised = true;
                 return this.Version;
             }
             else
@@ -109,7 +111,7 @@ namespace DevAudit.AuditLibrary
         
         public override IEnumerable<OSSIndexQueryObject> GetPackages(params string[] o)
         {
-            return this.GetModules()["httpd"];
+            return this.Modules["httpd"];
         }
 
         public override bool IsVulnerabilityVersionInPackageVersionRange(string vulnerability_version, string package_version)

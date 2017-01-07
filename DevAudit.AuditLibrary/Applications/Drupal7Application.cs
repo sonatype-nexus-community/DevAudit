@@ -25,9 +25,7 @@ namespace DevAudit.AuditLibrary
                 { "ContribModulesDirectory", new string[] { "@", "sites", "all", "modules" } },
                 { "DefaultSiteDirectory", new string[] { "@", "sites", "default" } },
             }, message_handler)
-        {
-            this.PackageSourceInitialized = true; //Packages are read from the modules directories.
-        }
+        {}
         #endregion
 
         #region Overriden properties
@@ -42,41 +40,22 @@ namespace DevAudit.AuditLibrary
         public override PackageSource PackageSource => this as PackageSource;
         #endregion
 
-        #region Public properties
-        public AuditDirectoryInfo CoreModulesDirectory
-        {
-            get
-            {
-                return (AuditDirectoryInfo)this.ApplicationFileSystemMap["CoreModulesDirectory"];
-            }
-        }
-
-        public AuditDirectoryInfo ContribModulesDirectory
-        {
-            get
-            {
-                return (AuditDirectoryInfo)this.ApplicationFileSystemMap["ContribModulesDirectory"];
-            }
-        }
-
-        public AuditDirectoryInfo SitesAllModulesDirectory
-        {
-            get
-            {
-                IDirectoryInfo sites_all;
-                if ((sites_all = this.RootDirectory.GetDirectories(CombinePath("sites", "all")).FirstOrDefault()) != null)
-                {
-                    return sites_all.GetDirectories(CombinePath("modules")).FirstOrDefault() as AuditDirectoryInfo;
-                }
-                else return null;
-            }
-        }
-        #endregion
-
         #region Overriden methods
         protected override string GetVersion()
         {
-            throw new NotImplementedException();
+            if (!this.ModulesInitialised) throw new InvalidOperationException("Modules must be initialized before GetVersion is called.");
+            OSSIndexQueryObject core_module = this.Modules["core"].Where(m => m.Name == "drupal_core").First();
+            if (!string.IsNullOrEmpty(core_module.Version))
+            {
+                this.AuditEnvironment.Success("Got Drupal 7 version {0}.", core_module.Version);
+                this.VersionInitialised = true;
+                return this.Version;
+            }
+            else
+            {
+                return string.Empty;
+            }
+            
         }
 
         protected override Dictionary<string, IEnumerable<OSSIndexQueryObject>> GetModules()
@@ -192,13 +171,16 @@ namespace DevAudit.AuditLibrary
                 all_modules.AddRange(sites_all_contrib_modules);
             }
             modules.Add("all", all_modules);
-            return modules;
+            this.Modules = modules;
+            this.ModulesInitialised = true;
+            this.PackageSourceInitialized = true; //Packages are read from modules.
+            return this.Modules;
         }
 
         public override IEnumerable<OSSIndexQueryObject> GetPackages(params string[] o)
         {
-            this.AuditEnvironment.Status("Reading packages for audit.");
-            return this.GetModules()["all"];
+            if(!this.ModulesInitialised) throw new InvalidOperationException("Modules must be initialized before GetVersion is called.");
+            return this.Modules["all"];
         }
 
         protected override IConfiguration GetConfiguration()
@@ -220,6 +202,37 @@ namespace DevAudit.AuditLibrary
         public override bool IsConfigurationRuleVersionInServerVersionRange(string configuration_rule_version, string server_version)
         {
             return (configuration_rule_version == server_version) || configuration_rule_version == ">0";
+        }
+        #endregion
+
+        #region Properties
+        public AuditDirectoryInfo CoreModulesDirectory
+        {
+            get
+            {
+                return (AuditDirectoryInfo)this.ApplicationFileSystemMap["CoreModulesDirectory"];
+            }
+        }
+
+        public AuditDirectoryInfo ContribModulesDirectory
+        {
+            get
+            {
+                return (AuditDirectoryInfo)this.ApplicationFileSystemMap["ContribModulesDirectory"];
+            }
+        }
+
+        public AuditDirectoryInfo SitesAllModulesDirectory
+        {
+            get
+            {
+                IDirectoryInfo sites_all;
+                if ((sites_all = this.RootDirectory.GetDirectories(CombinePath("sites", "all")).FirstOrDefault()) != null)
+                {
+                    return sites_all.GetDirectories(CombinePath("modules")).FirstOrDefault() as AuditDirectoryInfo;
+                }
+                else return null;
+            }
         }
         #endregion
     }

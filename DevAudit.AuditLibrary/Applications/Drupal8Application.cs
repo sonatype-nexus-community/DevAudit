@@ -27,9 +27,7 @@ namespace DevAudit.AuditLibrary
                 { "ContribModulesDirectory", new string[] { "@", "modules" } },
                 { "DefaultSiteDirectory", new string[] { "@", "sites", "default" } }
             }, message_handler)
-        {
-            this.PackageSourceInitialized = true; //Packages are read from the modules directories.
-        }
+        {}
         #endregion
 
         #region Overriden properties
@@ -64,12 +62,13 @@ namespace DevAudit.AuditLibrary
             }
             this.Version = core_version;
             sw.Stop();
+            this.VersionInitialised = true;
+            this.AuditEnvironment.Success("Got Drupal 8 version {0} in {1} ms.", this.Version, sw.ElapsedMilliseconds);
             return this.Version;
         }
 
         protected override Dictionary<string, IEnumerable<OSSIndexQueryObject>> GetModules()
         {
-            if (this.Modules != null) return this.Modules;
             Stopwatch sw = new Stopwatch();
             sw.Start();
             var M = this.Modules = new Dictionary<string, IEnumerable<OSSIndexQueryObject>>();
@@ -154,14 +153,16 @@ namespace DevAudit.AuditLibrary
             }
             M.Add("all", all_modules);
             this.Modules = M;
+            this.ModulesInitialised = true;
+            this.PackageSourceInitialized = true; //Packages are read from modules
             sw.Stop();
             this.AuditEnvironment.Success("Got {0} total {1} modules in {2} ms.", Modules["all"].Count(), this.ApplicationLabel, sw.ElapsedMilliseconds);
-            return Modules;
+            return this.Modules;
         }
 
         public override IEnumerable<OSSIndexQueryObject> GetPackages(params string[] o)
         {
-            this.GetModules();
+            if(!this.ModulesInitialised) throw new InvalidOperationException("Modules must be initialized before GetVersion is called.");
             return this.Modules["all"];
         }
 

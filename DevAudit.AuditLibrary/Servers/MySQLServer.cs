@@ -37,7 +37,6 @@ namespace DevAudit.AuditLibrary
                     this.ApplicationFileSystemMap["mysql"] = this.ApplicationBinary;
                 }
             }
-            this.PackageSourceInitialized = true; //Only default module "mysqld" detected presently.
         }
         #endregion
 
@@ -57,18 +56,8 @@ namespace DevAudit.AuditLibrary
                 {"mysqld", new List<OSSIndexQueryObject> {new OSSIndexQueryObject(this.PackageManagerId, "mysqld", this.Version) }}
             };
             this.Modules = m;
+            this.PackageSourceInitialized =  this.ModulesInitialised = true;
             return this.Modules;
-        }
-
-        protected override IConfiguration GetConfiguration()
-        {
-            MySQL mysql = new MySQL(this.ConfigurationFile);
-            ;
-            if (mysql.ParseSucceded)
-            {
-                this.Configuration = mysql;
-            }
-            return this.Configuration;
         }
 
         protected override string GetVersion()
@@ -80,6 +69,7 @@ namespace DevAudit.AuditLibrary
             if (process_status == AuditEnvironment.ProcessExecuteStatus.Completed)
             {
                 this.Version = process_output.Substring(process_output.IndexOf("Ver"));
+                this.VersionInitialised = true;
                 return this.Version;
             }
             else
@@ -88,9 +78,23 @@ namespace DevAudit.AuditLibrary
             }
         }
 
+        protected override IConfiguration GetConfiguration()
+        {
+            MySQL mysql = new MySQL(this.ConfigurationFile);
+            ;
+            if (mysql.ParseSucceded)
+            {
+                this.Configuration = mysql;
+                this.ConfigurationInitialised = true;
+            }
+            return this.Configuration;
+        }
+
+
         public override IEnumerable<OSSIndexQueryObject> GetPackages(params string[] o)
         {
-            return this.GetModules()["mysqld"];
+            if (!this.ModulesInitialised) throw new InvalidOperationException("Modules must be initialised before GetPackages is called.");
+            return this.Modules["mysqld"];
         }
 
         public override bool IsConfigurationRuleVersionInServerVersionRange(string configuration_rule_version, string server_version)
