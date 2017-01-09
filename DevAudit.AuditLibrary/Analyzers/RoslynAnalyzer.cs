@@ -21,7 +21,7 @@ namespace DevAudit.AuditLibrary
         }
         #endregion
 
-        #region Protected properties
+        #region Properties
         protected Workspace Workspace { get; set; }
         protected Project Project { get; set; }
         protected Compilation Compilation { get; set; }

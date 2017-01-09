@@ -234,8 +234,10 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="BinaryAnalyzer.cs" />
+    <Compile Include="Analyzers\NetFxAnalyzer.cs" />
     <Compile Include="Analyzers\PHPAnalyzer.cs" />
-    <Compile Include="Applications\MVC5Application.cs" />
+    <Compile Include="Applications\AspNetApplication.cs" />
     <Compile Include="Applications\NetFxApplication.cs" />
     <Compile Include="DockerAuditDirectoryInfo.cs" />
     <Compile Include="DockerAuditEnvironment.cs" />
@@ -259,7 +261,7 @@
     <Compile Include="LocalAuditDirectoryInfo.cs" />
     <Compile Include="LocalAuditFileInfo.cs" />
     <Compile Include="CodeProject.cs" />
-    <Compile Include="Projects\MVC5CodeProject.cs" />
+    <Compile Include="Projects\AspNetCodeProject.cs" />
     <Compile Include="Projects\NetFxCodeProject.cs" />
     <Compile Include="ScriptEnvironment.cs" />
     <Compile Include="SshAuditFileInfo.cs" />
@@ -313,7 +315,7 @@
   <ItemGroup>
     <None Include="app.config" />
     <None Include="packages.config" />
-    <Rules Include="Rules\mvc5.yml">
+    <Rules Include="Rules\aspnet.yml">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Rules>
     <Rules Include="Rules\netfx4.yml">

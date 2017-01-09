@@ -44,7 +44,7 @@ namespace DevAudit.AuditLibrary
         protected override string GetVersion()
         {
             if (!this.ModulesInitialised) throw new InvalidOperationException("Modules must be initialized before GetVersion is called.");
-            OSSIndexQueryObject core_module = this.Modules["core"].Where(m => m.Name == "drupal_core").First();
+            OSSIndexQueryObject core_module = this.ModulePackages["core"].Where(m => m.Name == "drupal_core").First();
             if (!string.IsNullOrEmpty(core_module.Version))
             {
                 this.AuditEnvironment.Success("Got Drupal 7 version {0}.", core_module.Version);
@@ -171,16 +171,16 @@ namespace DevAudit.AuditLibrary
                 all_modules.AddRange(sites_all_contrib_modules);
             }
             modules.Add("all", all_modules);
-            this.Modules = modules;
+            this.ModulePackages = modules;
             this.ModulesInitialised = true;
             this.PackageSourceInitialized = true; //Packages are read from modules.
-            return this.Modules;
+            return this.ModulePackages;
         }
 
         public override IEnumerable<OSSIndexQueryObject> GetPackages(params string[] o)
         {
             if(!this.ModulesInitialised) throw new InvalidOperationException("Modules must be initialized before GetVersion is called.");
-            return this.Modules["all"];
+            return this.ModulePackages["all"];
         }
 
         protected override IConfiguration GetConfiguration()

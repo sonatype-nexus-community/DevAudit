@@ -293,9 +293,9 @@ namespace DevAudit.CommandLine
                         Application = new Drupal7Application(audit_options, EnvironmentMessageHandler);
                         Source = Application.PackageSource;
                     }
-                    else if (verb == "mvc5-app")
+                    else if (verb == "aspnet")
                     {                        
-                        Application = new MVC5Application(audit_options, EnvironmentMessageHandler);
+                        Application = new AspNetApplication(audit_options, EnvironmentMessageHandler);
                         Source = Application.PackageSource; 
                         
                     }
@@ -329,14 +329,9 @@ namespace DevAudit.CommandLine
                         Application = CodeProject.Application;                        
                         Source = CodeProject.PackageSource;
                     }
-                    else if (verb =="mvc5-app")
+                    else if (verb == "aspnet-code")
                     {
-                        Application = new MVC5Application(audit_options, EnvironmentMessageHandler);
-                        Source = Application.PackageSource;
-                    }
-                    else if (verb == "mvc5")
-                    {
-                        CodeProject = new MVC5CodeProject(audit_options, EnvironmentMessageHandler);
+                        CodeProject = new AspNetCodeProject(audit_options, EnvironmentMessageHandler);
                         Application = CodeProject.ApplicationInitialised ? CodeProject.Application : null;
                         Source = CodeProject.PackageSource;
                     }

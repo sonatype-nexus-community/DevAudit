@@ -9,10 +9,10 @@ using Microsoft.CodeAnalysis;
 
 namespace DevAudit.AuditLibrary
 {
-    public class MVC5CodeProject : NetFxCodeProject
+    public class AspNetCodeProject : NetFxCodeProject
     {
-        public MVC5CodeProject(Dictionary<string, object> project_options, EventHandler<EnvironmentEventArgs> message_handler) : 
-            base(project_options, new Dictionary<string, string[]> { { "AppConfig", new string[] {"@", "Web.config" } } }, message_handler)
+        public AspNetCodeProject(Dictionary<string, object> project_options, EventHandler<EnvironmentEventArgs> message_handler) : 
+            base(project_options, new Dictionary<string, string[]> { { "AppConfig", new string[] {"@", "Web.config" } } }, "AspNet", message_handler)
         {}
 
         #region Overriden methods
@@ -26,14 +26,14 @@ namespace DevAudit.AuditLibrary
 
             };
 
-            foreach (KeyValuePair<string, object> kv in CodeProjectOptions.Where(o => o.Key == "SkipPackagesAudit" || o.Key == "ListPackages" || o.Key == "ListArtifacts"))
+            foreach (KeyValuePair<string, object> kv in CodeProjectOptions.Where(o => o.Key == "SkipPackagesAudit" || o.Key == "ListPackages" || o.Key == "ListArtifacts" || o.Key == "ApplicationBinary"))
             {
                 application_options.Add(kv.Key, kv.Value);
             }
 
             try
             {
-                this.Application = new MVC5Application(application_options, message_handler, this.PackageSource as NuGetPackageSource);
+                this.Application = new AspNetApplication(application_options, message_handler, this.PackageSource as NuGetPackageSource);
                 this.ApplicationInitialised = true;
             }
             catch (Exception e)

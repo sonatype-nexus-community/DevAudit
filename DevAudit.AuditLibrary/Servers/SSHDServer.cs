@@ -96,9 +96,9 @@ namespace DevAudit.AuditLibrary
             {
                 {"sshd", new List<OSSIndexQueryObject> {new OSSIndexQueryObject(this.PackageManagerId, "sshd", this.Version) }}
             };
-            this.Modules = m;
+            this.ModulePackages = m;
             this.PackageSourceInitialized = this.ModulesInitialised = true;
-            return this.Modules;
+            return this.ModulePackages;
         }
 
         protected override IConfiguration GetConfiguration()
@@ -126,7 +126,7 @@ namespace DevAudit.AuditLibrary
         public override IEnumerable<OSSIndexQueryObject> GetPackages(params string[] o)
         {
             if (!this.ModulesInitialised) throw new InvalidOperationException("Modules must be initialised before GetPackages is called.");
-            return this.Modules["sshd"];
+            return this.ModulePackages["sshd"];
         }
         
         public override bool IsVulnerabilityVersionInPackageVersionRange(string vulnerability_version, string package_version)

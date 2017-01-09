@@ -55,9 +55,9 @@ namespace DevAudit.AuditLibrary
             {
                 {"mysqld", new List<OSSIndexQueryObject> {new OSSIndexQueryObject(this.PackageManagerId, "mysqld", this.Version) }}
             };
-            this.Modules = m;
+            this.ModulePackages = m;
             this.PackageSourceInitialized =  this.ModulesInitialised = true;
-            return this.Modules;
+            return this.ModulePackages;
         }
 
         protected override string GetVersion()
@@ -94,7 +94,7 @@ namespace DevAudit.AuditLibrary
         public override IEnumerable<OSSIndexQueryObject> GetPackages(params string[] o)
         {
             if (!this.ModulesInitialised) throw new InvalidOperationException("Modules must be initialised before GetPackages is called.");
-            return this.Modules["mysqld"];
+            return this.ModulePackages["mysqld"];
         }
 
         public override bool IsConfigurationRuleVersionInServerVersionRange(string configuration_rule_version, string server_version)

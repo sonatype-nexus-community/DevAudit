@@ -71,7 +71,7 @@ namespace DevAudit.AuditLibrary
         {
             Stopwatch sw = new Stopwatch();
             sw.Start();
-            var M = this.Modules = new Dictionary<string, IEnumerable<OSSIndexQueryObject>>();
+            var M = this.ModulePackages = new Dictionary<string, IEnumerable<OSSIndexQueryObject>>();
             object modules_lock = new object();
             string core_version = this.Version;
             List<AuditFileInfo> core_module_files = this.CoreModulesDirectory.GetFiles("*.info.yml")?.Where(f => !f.Name.Contains("_test") && !f.Name.Contains("test_")).Select(f => f as AuditFileInfo).ToList();
@@ -152,18 +152,18 @@ namespace DevAudit.AuditLibrary
                 }
             }
             M.Add("all", all_modules);
-            this.Modules = M;
+            this.ModulePackages = M;
             this.ModulesInitialised = true;
             this.PackageSourceInitialized = true; //Packages are read from modules
             sw.Stop();
-            this.AuditEnvironment.Success("Got {0} total {1} modules in {2} ms.", Modules["all"].Count(), this.ApplicationLabel, sw.ElapsedMilliseconds);
-            return this.Modules;
+            this.AuditEnvironment.Success("Got {0} total {1} modules in {2} ms.", ModulePackages["all"].Count(), this.ApplicationLabel, sw.ElapsedMilliseconds);
+            return this.ModulePackages;
         }
 
         public override IEnumerable<OSSIndexQueryObject> GetPackages(params string[] o)
         {
             if(!this.ModulesInitialised) throw new InvalidOperationException("Modules must be initialized before GetVersion is called.");
-            return this.Modules["all"];
+            return this.ModulePackages["all"];
         }
 
         protected override IConfiguration GetConfiguration()

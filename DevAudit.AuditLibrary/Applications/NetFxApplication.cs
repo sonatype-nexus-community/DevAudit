@@ -5,14 +5,17 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Alpheus;
+using Mono.Collections.Generic;
+using Mono.Cecil;
 
 namespace DevAudit.AuditLibrary
 {
     public class NetFx4Application : Application
     {
         #region Constructors
-        public NetFx4Application(Dictionary<string, object> application_options, EventHandler<EnvironmentEventArgs> message_handler) : base(application_options, new Dictionary<string, string[]>(),           
-            new Dictionary<string, string[]>(), message_handler)
+         public NetFx4Application(Dictionary<string, object> application_options, Dictionary<string, string[]> required_files,
+            Dictionary<string, string[]> required_directories, string analyzer_type, EventHandler<EnvironmentEventArgs> message_handler) : base(application_options,
+                required_files, required_directories, analyzer_type, message_handler)
         {
             if (!this.SkipPackagesAudit)
             {
@@ -41,7 +44,13 @@ namespace DevAudit.AuditLibrary
                 }
             }
             AuditFileInfo cf;
-            if (application_options.ContainsKey("AppConfig"))
+            if (this.ApplicationFileSystemMap.ContainsKey("AppConfig"))
+            {
+                cf = this.ApplicationFileSystemMap["AppConfig"] as AuditFileInfo;
+                this.AppConfigFilePath = cf.FullName;
+                this.AuditEnvironment.Info("Using {0} configuration file {1}.", this.ApplicationLabel, this.AppConfigFilePath);
+            }
+            else if (application_options.ContainsKey("AppConfig"))
             {
                 cf = this.AuditEnvironment.ConstructFile(this.CombinePath((string)application_options["AppConfig"]));
                 if (cf.Exists)
@@ -79,14 +88,12 @@ namespace DevAudit.AuditLibrary
             {
                 this.AuditEnvironment.Warning("The default .NET application configuration file could not be determined and no AppConfig parameter was specified.");
             }
+
         }
 
         public NetFx4Application(Dictionary<string, object> application_options, Dictionary<string, string[]> required_files,
-            Dictionary<string, string[]> required_directories, EventHandler<EnvironmentEventArgs> message_handler) : base(application_options,
-                required_files, required_directories, message_handler)
-        { }
-
-        public NetFx4Application(Dictionary<string, object> application_options, EventHandler<EnvironmentEventArgs> message_handler, NuGetPackageSource package_source) : this(application_options, message_handler)
+            Dictionary<string, string[]> required_directories, string analyzer_type, EventHandler<EnvironmentEventArgs> message_handler, NuGetPackageSource package_source) : 
+            this(application_options, required_files, required_directories, analyzer_type, message_handler)
         {
             if (package_source != null)
             {
@@ -138,12 +145,50 @@ namespace DevAudit.AuditLibrary
 
         protected override string GetVersion()
         {
-            throw new NotImplementedException();
+            if (this.ModulesInitialised)
+            {
+                this.Version = this.AppAssemblyDefinition.Name.Version.ToString();
+                this.VersionInitialised = true;
+                this.AuditEnvironment.Success("Got {0} application version {1}.", this.ApplicationLabel, this.Version);
+
+                return this.Version;
+            }
+            else return string.Empty;
         }
 
         protected override Dictionary<string, IEnumerable<OSSIndexQueryObject>> GetModules()
         {
-            throw new NotImplementedException();
+            Stopwatch sw = new Stopwatch();
+            if (this.ApplicationBinary == null)
+            {
+                this.AuditEnvironment.Warning("The .NET assembly application binary was not specified so application modules and version cannot be detected.");
+                this.ModulesInitialised = false;
+                return null;
+            }
+            sw.Start();
+            LocalAuditFileInfo ab = this.ApplicationBinary.GetAsLocalFile();
+            DefaultAssemblyResolver resolver = new DefaultAssemblyResolver();
+            resolver.AddSearchDirectory(ab.Directory.FullName);
+            ReaderParameters reader = new ReaderParameters()
+            {
+                AssemblyResolver = resolver
+
+            };
+            this.AppModuleDefinition = ModuleDefinition.ReadModule(ab.FullName, reader);
+            this.AppAssemblyDefinition = AssemblyDefinition.ReadAssembly(ab.FullName, reader);
+            this.Modules = this.AppModuleDefinition;
+            List<AssemblyNameReference> references = this.AppModuleDefinition.AssemblyReferences.ToList();
+            references.RemoveAll(r => r.Name =="mscorlib" || r.Name.StartsWith("System"));
+            sw.Stop();
+            this.AuditEnvironment.Info("Got {0} referenced assemblies in {1} ms", references.Count(), sw.ElapsedMilliseconds);
+            IEnumerable<OSSIndexQueryObject> modules = references.Select(r => new OSSIndexQueryObject("netfx", r.Name, r.Version.ToString()));
+            this.ModulePackages = new Dictionary<string, IEnumerable<OSSIndexQueryObject>>
+            {
+                {"references", modules }
+            };
+
+            this.ModulesInitialised = true;
+            return this.ModulePackages;
         }
 
         protected override IConfiguration GetConfiguration()
@@ -172,7 +217,12 @@ namespace DevAudit.AuditLibrary
 
         #region Properties
         public NuGetPackageSource NugetPackageSource { get; protected set; }
+
         public string AppConfigFilePath { get; protected set; }
+
+        public ModuleDefinition AppModuleDefinition { get; protected set; }
+
+        public AssemblyDefinition AppAssemblyDefinition { get; protected set; }
         #endregion
     }
 }

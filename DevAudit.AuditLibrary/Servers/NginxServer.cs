@@ -89,9 +89,9 @@ namespace DevAudit.AuditLibrary
             {
                 {"nginx", new List<OSSIndexQueryObject> {new OSSIndexQueryObject(this.PackageManagerId, "nginx", this.Version) }}
             };
-            this.Modules = m;
+            this.ModulePackages = m;
             this.PackageSourceInitialized = this.ModulesInitialised = true;
-            return this.Modules;
+            return this.ModulePackages;
         }
 
         protected override IConfiguration GetConfiguration()

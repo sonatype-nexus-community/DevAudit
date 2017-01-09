@@ -11,6 +11,21 @@ namespace DevAudit.AuditLibrary
 {
     public class LocalAuditFileInfo : AuditFileInfo
     {
+        #region Constructors
+        public LocalAuditFileInfo(LocalEnvironment env, string file_path) : base(env, file_path)
+        {
+            this.LocalAuditEnvironment = env;
+            this.file = new FileInfo(file_path);
+            this.Name = this.file.Name;
+            this.FullName = this.file.FullName;
+        }
+
+        public LocalAuditFileInfo(LocalEnvironment env, FileInfo f) : base(env, f.FullName)
+        {
+            this.LocalAuditEnvironment = env;
+        }
+        #endregion
+
         #region Overriden properties
         public override IDirectoryInfo Directory
         {
@@ -98,7 +113,7 @@ namespace DevAudit.AuditLibrary
 
         public override LocalAuditFileInfo GetAsLocalFile()
         {
-            throw new NotSupportedException();
+            return this;
         }
 
         public override Task<LocalAuditFileInfo> GetAsLocalFileAsync()
@@ -107,7 +122,7 @@ namespace DevAudit.AuditLibrary
         }
         #endregion
 
-        #region Public properties
+        #region Properties
         public FileInfo SysFile
         {
             get
@@ -117,22 +132,7 @@ namespace DevAudit.AuditLibrary
         }
         #endregion
 
-        #region Constructors
-        public LocalAuditFileInfo(LocalEnvironment env, string file_path) : base(env, file_path)
-        {
-            this.LocalAuditEnvironment = env;
-            this.file = new FileInfo(file_path);
-            this.Name = this.file.Name;
-            this.FullName = this.file.FullName;
-        }
-
-        public LocalAuditFileInfo(LocalEnvironment env, FileInfo f) : base(env, f.FullName)
-        {
-            this.LocalAuditEnvironment = env;
-        }
-        #endregion
-
-        #region Protected fields
+        #region Fields
         private FileInfo file;
         private LocalEnvironment LocalAuditEnvironment { get; set; }
         #endregion

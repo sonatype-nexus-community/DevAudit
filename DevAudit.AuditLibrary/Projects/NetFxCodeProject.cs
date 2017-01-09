@@ -15,8 +15,8 @@ namespace DevAudit.AuditLibrary
     public class NetFxCodeProject : CodeProject
     {
         #region Constructors
-        public NetFxCodeProject(Dictionary<string, object> project_options, Dictionary<string, string[]> default_file_location_paths, EventHandler<EnvironmentEventArgs> message_handler) 
-            : base(project_options, message_handler, default_file_location_paths, "Roslyn")
+        public NetFxCodeProject(Dictionary<string, object> project_options, Dictionary<string, string[]> default_file_location_paths, string analyzer_type, EventHandler<EnvironmentEventArgs> message_handler) 
+            : base(project_options, message_handler, default_file_location_paths, analyzer_type)
         {
             this.message_handler = message_handler;
             if (this.CodeProjectOptions.ContainsKey("ProjectFile"))
@@ -147,8 +147,13 @@ namespace DevAudit.AuditLibrary
 
         }
 
+        /*
+        public NetFxCodeProject(Dictionary<string, object> project_options, Dictionary<string, string[]> default_file_location_paths, EventHandler<EnvironmentEventArgs> message_handler) :
+            this(project_options, default_file_location_paths, "Roslyn", message_handler)
+        {}*/
+
         public NetFxCodeProject(Dictionary<string, object> project_options, EventHandler<EnvironmentEventArgs> message_handler) : this(project_options,
-            new Dictionary<string, string[]> { { "AppConfig", new string[] { "app.config" } } }, message_handler)
+            new Dictionary<string, string[]> { { "AppConfig", new string[] { "app.config" } } }, "Roslyn", message_handler)
         { }
         #endregion
 
@@ -223,7 +228,7 @@ namespace DevAudit.AuditLibrary
             
             try
             {
-                this.Application = new NetFx4Application(application_options, message_handler, this.PackageSource as NuGetPackageSource);
+                this.Application = new NetFx4Application(application_options, new Dictionary<string, string[]> { { "AppConfig", new string[] { "@", "web.config" } } }, new Dictionary<string, string[]>(), "NetFx", message_handler, this.PackageSource as NuGetPackageSource);
                 this.ApplicationInitialised = true;
             }
             catch (Exception e)

@@ -161,7 +161,7 @@ namespace DevAudit.AuditLibrary
         #endregion
 
         public OSSIndexHttpClient HttpClient { get; protected set; } = new OSSIndexHttpClient("2.0");
-		        
+                
         public Dictionary<string, object> PackageSourceOptions { get; set; } = new Dictionary<string, object>();
 
         public bool ListPackages { get; protected set; } = false;

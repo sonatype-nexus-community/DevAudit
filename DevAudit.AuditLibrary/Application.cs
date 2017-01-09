@@ -1,7 +1,9 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Security;
@@ -13,13 +15,15 @@ using System.Xml.Linq;
 using Alpheus;
 using YamlDotNet.Serialization;
 using YamlDotNet.Serialization.NamingConventions;
+using CSScriptLibrary;
+
 
 namespace DevAudit.AuditLibrary
 {
     public abstract class Application : PackageSource
     {
         #region Constructors
-        public Application(Dictionary<string, object> application_options, Dictionary<string, string[]> RequiredFileLocationPaths, Dictionary<string, string[]> RequiredDirectoryLocationPaths, EventHandler<EnvironmentEventArgs> message_handler = null) : base(application_options, message_handler)
+        public Application(Dictionary<string, object> application_options, Dictionary<string, string[]> RequiredFileLocationPaths, Dictionary<string, string[]> RequiredDirectoryLocationPaths, EventHandler<EnvironmentEventArgs> message_handler) : base(application_options, message_handler)
         {
             this.ApplicationOptions = application_options;
             if (this.ApplicationOptions.ContainsKey("RootDirectory"))
@@ -145,6 +149,13 @@ namespace DevAudit.AuditLibrary
             }
 
         }
+
+        public Application(Dictionary<string, object> application_options, Dictionary<string, string[]> RequiredFileLocationPaths, Dictionary<string, string[]> RequiredDirectoryLocationPaths, string analyzer_type, EventHandler<EnvironmentEventArgs> message_handler) : 
+            this(application_options, RequiredFileLocationPaths, RequiredDirectoryLocationPaths, message_handler)
+        {
+            this.AnalyzerType = analyzer_type;
+        }
+
         #endregion
 
         #region Abstract properties
@@ -179,7 +190,19 @@ namespace DevAudit.AuditLibrary
 
         public AuditFileInfo ApplicationBinary { get; protected set; }
 
-        public Dictionary<string, IEnumerable<OSSIndexQueryObject>> Modules { get; protected set; }
+        public object Modules { get; protected set; }
+
+        public Dictionary<string, IEnumerable<OSSIndexQueryObject>> ModulePackages { get; protected set; }
+
+        public string AnalyzerType { get; protected set; }
+
+        public List<FileInfo> AnalyzerScripts { get; protected set; } = new List<FileInfo>();
+
+        public List<BinaryAnalyzer> Analyzers { get; protected set; } = new List<BinaryAnalyzer>();
+
+        public bool AnalyzersInitialized { get; protected set; } = false;
+
+        public List<BinaryAnalyzerResult> AnalyzerResults { get; protected set; }
 
         public bool ModulesInitialised { get; protected set; } = false;
 
@@ -253,6 +276,11 @@ namespace DevAudit.AuditLibrary
                 return _ConfigurationRulesForProject;
             }
         }
+
+        public Task GetAnalyzersTask { get; protected set; }
+
+        public Task GetAnalyzersResultsTask { get; protected set; }
+
         public List<OSSIndexProjectConfigurationRule> DisabledForAppDevModeRules { get; }
             = new List<OSSIndexProjectConfigurationRule>();
 
@@ -334,14 +362,15 @@ namespace DevAudit.AuditLibrary
                 }
             }
 
-            if (!this.PackageSourceInitialized || this.ListPackages || this.Packages.Count() == 0 || (this.SkipPackagesAudit && this.OnlyLocalRules) )
+            if (!this.PackageSourceInitialized || this.ListPackages || this.Packages.Count() == 0 || (this.SkipPackagesAudit && this.OnlyLocalRules))
             {
                 this.ArtifactsTask = this.VulnerabilitiesTask = this.EvaluateVulnerabilitiesTask = Task.CompletedTask;
             }
-            else 
+            else if (this.ListArtifacts)
             {
                 this.ArtifactsTask = Task.Run(() => this.GetArtifacts(), ct);
             }
+            else this.ArtifactsTask = Task.CompletedTask;
 
             try
             {
@@ -352,6 +381,7 @@ namespace DevAudit.AuditLibrary
                 this.AuditEnvironment.Error("Exception thrown in GetArtifacts task.", ae.InnerException);
                 return AuditResult.ERROR_SEARCHING_ARTIFACTS;
             }
+
             if (!this.PackageSourceInitialized || this.ListPackages || this.Packages.Count() == 0 || this.ListArtifacts || this.ListConfigurationRules)
             {
                 this.VulnerabilitiesTask = this.EvaluateVulnerabilitiesTask = Task.CompletedTask; ;
@@ -369,6 +399,7 @@ namespace DevAudit.AuditLibrary
             {
                 this.GetConfigurationRulesTask = Task.Run(() => this.GetConfigurationRules(), ct);
             }
+
             if (this.ListPackages || this.ListArtifacts)
             {
                 this.GetDefaultConfigurationRulesTask = Task.CompletedTask;
@@ -377,9 +408,19 @@ namespace DevAudit.AuditLibrary
             {
                 this.GetDefaultConfigurationRulesTask = Task.Run(() => this.GetDefaultConfigurationRules());
             }
+
+            if (this.ModulesInitialised && this.AnalyzerType != string.Empty)
+            {
+                this.GetAnalyzersTask = Task.Run(() => this.GetAnalyzers());
+            }
+            else
+            {
+                this.GetAnalyzersTask = Task.CompletedTask;
+            }
+
             try
             {
-                Task.WaitAll(this.VulnerabilitiesTask, this.GetConfigurationRulesTask, this.GetDefaultConfigurationRulesTask);
+                Task.WaitAll(this.VulnerabilitiesTask, this.GetConfigurationRulesTask, this.GetDefaultConfigurationRulesTask, this.GetAnalyzersTask);
             }
             catch (AggregateException ae)
             {
@@ -393,10 +434,20 @@ namespace DevAudit.AuditLibrary
                     this.AuditEnvironment.Error(caller, ae.InnerException, "Exception thrown in GetConfigurationRules task.");
                     return AuditResult.ERROR_SEARCHING_CONFIGURATION_RULES;
                 }
-                else
+                else if (ae.InnerException.TargetSite.Name == "GetConfigurationRules")
                 {  
                     this.AuditEnvironment.Error(caller, ae.InnerException, "Exception thrown in GetDefaultConfigurationRules task.");
                     return AuditResult.ERROR_SCANNING_DEFAULT_CONFIGURATION_RULES;
+                }
+                else if (ae.InnerException.TargetSite.Name == "GetAnalyzers")
+                {  
+                    this.AuditEnvironment.Error(caller, ae.InnerException, "Exception thrown in GetAnalyzers task.");
+                    return AuditResult.ERROR_SCANNING_ANALYZERS;                    
+                }
+                else
+                {
+                    this.AuditEnvironment.Error(caller, ae.InnerException);
+                    return AuditResult.ERROR_SEARCHING_VULNERABILITIES;
                 }
             }
 
@@ -408,6 +459,7 @@ namespace DevAudit.AuditLibrary
             {
                 this.EvaluateVulnerabilitiesTask = Task.WhenAll(Task.Run(() => this.EvaluateProjectVulnerabilities(), ct), Task.Run(() => this.EvaluatePackageVulnerabilities(), ct));
             }
+
             if (this.ListConfigurationRules)
             {
                 this.EvaluateConfigurationRulesTask = Task.CompletedTask;
@@ -417,9 +469,18 @@ namespace DevAudit.AuditLibrary
                 this.EvaluateConfigurationRulesTask = Task.Run(() => this.EvaluateProjectConfigurationRules(), ct);
             }
 
+            if (this.AnalyzersInitialized)
+            {
+                this.GetAnalyzersResultsTask = Task.Run(() => this.GetAnalyzerResults());
+            }
+            else
+            {
+                this.GetAnalyzersResultsTask = Task.CompletedTask;
+            }
+
             try
             {
-                Task.WaitAll(this.EvaluateVulnerabilitiesTask, this.EvaluateConfigurationRulesTask);
+                Task.WaitAll(this.EvaluateVulnerabilitiesTask, this.EvaluateConfigurationRulesTask, this.GetAnalyzersResultsTask);
             }
             catch (AggregateException ae)
             {
@@ -553,6 +614,107 @@ namespace DevAudit.AuditLibrary
             sw.Stop();
             this.AuditEnvironment.Success("Evaluated {0} configuration rule(s) in {1} ms.", this.ProjectConfigurationRulesEvaluations.Keys.Count, sw.ElapsedMilliseconds);
             return this.ProjectConfigurationRulesEvaluations;
+        }
+
+        protected virtual async Task GetAnalyzers()
+        {
+            Stopwatch sw = new Stopwatch();
+            sw.Start();
+            // Just in case clear AlternativeCompiler so it is not set to Roslyn or anything else by 
+            // the CS-Script installed (if any) on the host OS
+            CSScript.GlobalSettings.UseAlternativeCompiler = null;
+            CSScript.EvaluatorConfig.Engine = EvaluatorEngine.Mono;
+            CSScript.CacheEnabled = false; //Script caching is broken on Mono: https://github.com/oleg-shilo/cs-script/issues/10
+            CSScript.KeepCompilingHistory = true;
+            DirectoryInfo analyzers_dir = new DirectoryInfo(Path.Combine("Analyzers", this.AnalyzerType));
+            this.AnalyzerScripts = analyzers_dir.GetFiles("*.cs", SearchOption.AllDirectories).ToList();
+            foreach (FileInfo f in this.AnalyzerScripts)
+            {
+                string script = string.Empty;
+                using (FileStream fs = f.OpenRead())
+                using (StreamReader r = new StreamReader(fs))
+                {
+                    script = await r.ReadToEndAsync();
+                }
+                try
+                {
+                    BinaryAnalyzer ba = (BinaryAnalyzer)await CSScript.Evaluator.LoadCodeAsync(script, this.HostEnvironment.ScriptEnvironment,
+                        this.Modules, this.Configuration, this.ApplicationOptions);
+                    this.Analyzers.Add(ba);
+                    this.HostEnvironment.Info("Loaded {0} analyzer from {1}.", ba.Name, f.FullName);
+                }
+                catch (csscript.CompilerException ce)
+                {
+                    HostEnvironment.Error("Compiler error(s) compiling analyzer {0}.", f.FullName);
+                    IDictionaryEnumerator en = ce.Data.GetEnumerator();
+                    while (en.MoveNext())
+                    {
+                        List<string> v = (List<string>)en.Value;
+                        if (v.Count > 0)
+                        {
+                            if ((string)en.Key == "Errors")
+                            {
+                                HostEnvironment.ScriptEnvironment.Error(v.Aggregate((s1, s2) => s1 + Environment.NewLine + s2));
+                            }
+                            else if ((string)en.Key == "Warnings")
+                            {
+                                HostEnvironment.ScriptEnvironment.Warning(v.Aggregate((s1, s2) => s1 + Environment.NewLine + s2));
+                            }
+                            else
+                            {
+                                HostEnvironment.ScriptEnvironment.Error("{0} : {1}", en.Key, v.Aggregate((s1, s2) => s1 + Environment.NewLine + s2));
+                            }
+                        }
+                    }
+                    throw ce;
+                }
+            }
+            sw.Stop();
+            if (this.AnalyzerScripts.Count == 0)
+            {
+                this.HostEnvironment.Info("No {0} analyzers found in {1}.", this.AnalyzerType, analyzers_dir.FullName);
+                return;
+            }
+            else if (this.AnalyzerScripts.Count > 0 && this.Analyzers.Count > 0)
+            {
+                if (this.Analyzers.Count < this.AnalyzerScripts.Count)
+                {
+                    this.HostEnvironment.Warning("Failed to load {0} of {1} analyzer(s).", this.AnalyzerScripts.Count - this.Analyzers.Count, this.AnalyzerScripts.Count);
+                }
+                this.HostEnvironment.Success("Loaded {0} out of {1} analyzer(s) in {2} ms.", this.Analyzers.Count, this.AnalyzerScripts.Count, sw.ElapsedMilliseconds);
+                this.AnalyzersInitialized = true;
+                return;
+            }
+            else
+            {
+                this.HostEnvironment.Error("Failed to load {0} analyzer(s).", this.AnalyzerScripts.Count);
+                return;
+            }
+        }
+
+        protected async Task GetAnalyzerResults()
+        {
+            this.AnalyzerResults = new List<BinaryAnalyzerResult>(this.Analyzers.Count);
+            foreach (BinaryAnalyzer a in this.Analyzers)
+            {
+                this.HostEnvironment.Status("{0} analyzing.", a.Name);
+                BinaryAnalyzerResult ar = new BinaryAnalyzerResult() { Analyzer = a };
+                try
+                {
+                    ar = await a.Analyze();
+                }
+                catch (AggregateException ae)
+                {
+                    ar.Exceptions = ae.InnerExceptions.ToList();
+                    ar.Succeded = false;
+                }
+                finally
+                {
+                    this.AnalyzerResults.Add(ar);
+                }
+
+            }
+            return;
         }
 
         protected string CombinePath(params string[] paths)

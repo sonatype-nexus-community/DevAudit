@@ -31,14 +31,38 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="Alpheus.Core, Version=0.1.9.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Alpheus.0.1.9.0\lib\net45\Alpheus.Core.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="Mono.Cecil, Version=0.9.6.0, Culture=neutral, PublicKeyToken=0738eb9f132ed756, processorArchitecture=MSIL">
+      <HintPath>..\packages\Mono.Cecil.0.9.6.4\lib\net45\Mono.Cecil.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="Mono.Cecil.Mdb, Version=0.9.6.0, Culture=neutral, PublicKeyToken=0738eb9f132ed756, processorArchitecture=MSIL">
+      <HintPath>..\packages\Mono.Cecil.0.9.6.4\lib\net45\Mono.Cecil.Mdb.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="Mono.Cecil.Pdb, Version=0.9.6.0, Culture=neutral, PublicKeyToken=0738eb9f132ed756, processorArchitecture=MSIL">
+      <HintPath>..\packages\Mono.Cecil.0.9.6.4\lib\net45\Mono.Cecil.Pdb.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="Mono.Cecil.Rocks, Version=0.9.6.0, Culture=neutral, PublicKeyToken=0738eb9f132ed756, processorArchitecture=MSIL">
+      <HintPath>..\packages\Mono.Cecil.0.9.6.4\lib\net45\Mono.Cecil.Rocks.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="Sprache, Version=2.0.0.51, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Sprache.2.0.0.51\lib\portable-net4+netcore45+win8+wp8+sl5+MonoAndroid+Xamarin.iOS10+MonoTouch\Sprache.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
-	<Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="System.Data" />
     <Reference Include="System.Net.Http" />
     <Reference Include="System.Xml" />
-	<Reference Include="Microsoft.CSharp" />
+    <Reference Include="Microsoft.CSharp" />
     <Reference Include="Devsense.PHP.Parser.NET46, Version=1.0.0.0, Culture=neutral, PublicKeyToken=840d8b321fee7061, processorArchitecture=MSIL">
       <HintPath>..\packages\Devsense.PHP.Parser.NET46.1.0.0.0\lib\net461\Devsense.PHP.Parser.NET46.dll</HintPath>
       <Private>True</Private>
@@ -167,6 +191,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Analyzers\AspNet\WeakCrypto.cs" />
     <Compile Include="Analyzers\Drupal8Module\BasicModuleChecks.cs" />
     <Compile Include="Analyzers\Roslyn\SA1300ElementMustBeginWithUpperCaseLetterAnalyzer.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -186,21 +211,28 @@
     <Analyzer Include="..\packages\Microsoft.CodeAnalysis.Analyzers.1.1.0\analyzers\dotnet\cs\Microsoft.CodeAnalysis.CSharp.Analyzers.dll" />
   </ItemGroup>
   <ItemGroup>
+    <Folder Include="Analyzers\Drupal7\" />
+    <Folder Include="Analyzers\Drupal8\" />
+    <Folder Include="Analyzers\Httpd\" />
+    <Folder Include="Analyzers\MySQL\" />
+    <Folder Include="Analyzers\Nginx\" />
     <Folder Include="Analyzers\PHP\" />
+    <Folder Include="Analyzers\SSHD\" />
   </ItemGroup>
   <ItemGroup>
-	<AnalyzerSourceFiles Include="Analyzers\**\*.*"/>
+    <AnalyzerSourceFiles Include="Analyzers\**\*.*" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
-    <PostBuildEvent></PostBuildEvent>
+    <PostBuildEvent>
+    </PostBuildEvent>
   </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
 	<Target Name="BeforeBuild">
   	</Target> -->
   <Target Name="AfterBuild">
-	<Copy SourceFiles="@(AnalyzerSourceFiles)" DestinationFiles="@(AnalyzerSourceFiles->'$(SolutionDir)DevAudit.CommandLine\bin\Debug\Analyzers\%(RecursiveDir)%(Filename)%(Extension)')" />
-<Copy SourceFiles="@(AnalyzerSourceFiles)" DestinationFiles="@(AnalyzerSourceFiles->'$(SolutionDir)Analyzers\%(RecursiveDir)%(Filename)%(Extension)')" />	
+    <Copy SourceFiles="@(AnalyzerSourceFiles)" DestinationFiles="@(AnalyzerSourceFiles->'$(SolutionDir)DevAudit.CommandLine\bin\Debug\Analyzers\%(RecursiveDir)%(Filename)%(Extension)')" />
+    <Copy SourceFiles="@(AnalyzerSourceFiles)" DestinationFiles="@(AnalyzerSourceFiles->'$(SolutionDir)Analyzers\%(RecursiveDir)%(Filename)%(Extension)')" />
   </Target>
 </Project>

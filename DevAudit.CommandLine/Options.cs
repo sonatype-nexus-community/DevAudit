@@ -30,19 +30,19 @@ namespace DevAudit.CommandLine
         [VerbOption("oneget", HelpText = "Audit OneGet packages on Windows. Packages are scanned from the system OneGet repository.")]
         public Options AuditOneGet { get; set; }
 
-		[VerbOption("composer", HelpText = "Audit PHP Composer packages. Use the --file option to specify a particular composer.json file otherwise the one in the current directory will be used.")]
+        [VerbOption("composer", HelpText = "Audit PHP Composer packages. Use the --file option to specify a particular composer.json file otherwise the one in the current directory will be used.")]
         public Options AuditComposer { get; set; }
 
-		[VerbOption("dpkg", HelpText = "Audit dpkg packages on Linux. The packages are scanned from the system dpkg repository.")]
-		public Options AuditDpkg { get; set; }
+        [VerbOption("dpkg", HelpText = "Audit dpkg packages on Linux. The packages are scanned from the system dpkg repository.")]
+        public Options AuditDpkg { get; set; }
 
-		[VerbOption("rpm", HelpText = "Audit rpm packages on Linux. The packages are scanned from the system rpm repository.")]
-		public Options AuditRpm { get; set; }
+        [VerbOption("rpm", HelpText = "Audit rpm packages on Linux. The packages are scanned from the system rpm repository.")]
+        public Options AuditRpm { get; set; }
 
-		[VerbOption("yum", HelpText = "Audit yum packages on Linux. The packages are scanned from the system rpm repository.")]
-		public Options AuditYum { get; set; }
+        [VerbOption("yum", HelpText = "Audit yum packages on Linux. The packages are scanned from the system rpm repository.")]
+        public Options AuditYum { get; set; }
 
-		[VerbOption("drupal8", HelpText = "Audit a Drupal 8 application instance. Use the -r option to specify the root directory of the Drupal 8 instance, otherwise the current directory will be used.")]
+        [VerbOption("drupal8", HelpText = "Audit a Drupal 8 application instance. Use the -r option to specify the root directory of the Drupal 8 instance, otherwise the current directory will be used.")]
         public Options AuditDrupal8 { get; set; }
 
         [VerbOption("drupal7", HelpText = "Audit a Drupal 7 application instance. Use the -r option to specify the root directory of the Drupal 7 instance, otherwise the current directory will be used.")]
@@ -63,11 +63,11 @@ namespace DevAudit.CommandLine
         [VerbOption("netfx", HelpText = "Audit a .NET Framework 4 code project. Use the --root option to specify the root directory of the solution, and the --project-name option to specify the name of the project.")]
         public Options NetFx { get; set; }
 
-        [VerbOption("mvc5", HelpText = "Audit an ASP.NET MVC5 code project. Use the --root option to specify the root directory of the solution, and the --project-name option to specify the name of the project.")]
-        public Options MVC5 { get; set; }
+        [VerbOption("aspnet-code", HelpText = "Audit an ASP.NET code project. Use the --root option to specify the root directory of the solution, and the --project-name option to specify the name of the project.")]
+        public Options AspNetCode { get; set; }
 
-        [VerbOption("mvc5-app", HelpText = "Audit an ASP.NET MVC5 application or code project deployed to a web server. Use the --root option to specify the root directory of the application")]
-        public Options MVC5App { get; set; }
+        [VerbOption("aspnet", HelpText = "Audit an ASP.NET application or code project deployed to a web server. Use the --root option to specify the root directory of the application and the -b option to specify the application .NET assembly.")]
+        public Options AspNet { get; set; }
 
         [VerbOption("php", HelpText = "Audit a PHP code project. Use the --root option to specify the root directory of the code project.")]
         public Options Php { get; set; }
@@ -111,8 +111,8 @@ namespace DevAudit.CommandLine
         [Option('b', "application-binary", Required = false, HelpText = "The path to the application or server binary.")]
         public string ApplicationBinary { get; set; }
 
-		[Option('i', "docker", Required = false, HelpText = "Run the audit on a Docker container with this name or id.")]
-		public string Docker { get; set; }
+        [Option('i', "docker", Required = false, HelpText = "Run the audit on a Docker container with this name or id.")]
+        public string Docker { get; set; }
 
         [Option('m', "project-name", Required = false, HelpText = "The name of the code project to audit.")]
         public string ProjectName { get; set; }
