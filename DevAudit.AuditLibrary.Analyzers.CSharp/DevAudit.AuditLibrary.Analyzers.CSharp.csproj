@@ -191,8 +191,9 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Analyzers\AspNet\WeakCrypto.cs" />
+    <Compile Include="Analyzers\AspNet\WeakCrypto2.cs" />
     <Compile Include="Analyzers\Drupal8Module\BasicModuleChecks.cs" />
+    <Compile Include="Analyzers\NetFx\WeakCrypto.cs" />
     <Compile Include="Analyzers\Roslyn\SA1300ElementMustBeginWithUpperCaseLetterAnalyzer.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

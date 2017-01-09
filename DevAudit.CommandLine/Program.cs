@@ -293,6 +293,12 @@ namespace DevAudit.CommandLine
                         Application = new Drupal7Application(audit_options, EnvironmentMessageHandler);
                         Source = Application.PackageSource;
                     }
+                    else if (verb == "netfx")
+                    {
+                        Application = new NetFx4Application(audit_options, EnvironmentMessageHandler);
+                        Source = Application.PackageSource;
+
+                    }
                     else if (verb == "aspnet")
                     {                        
                         Application = new AspNetApplication(audit_options, EnvironmentMessageHandler);
@@ -323,7 +329,7 @@ namespace DevAudit.CommandLine
                         Application = Server as Application;
                         Source = Server.PackageSource;
                     }
-                    else if (verb == "netfx")
+                    else if (verb == "netfx-code")
                     {
                         CodeProject = new NetFxCodeProject(audit_options, EnvironmentMessageHandler);
                         Application = CodeProject.Application;                        

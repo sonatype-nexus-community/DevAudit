@@ -13,11 +13,11 @@ namespace DevAudit.AuditLibrary.Analyzers
         public NetFxAnalyzer(ScriptEnvironment script_env, string name, object modules, IConfiguration configuration, Dictionary<string, object> application_options) : 
             base(script_env, name, modules, configuration, application_options)
         {
-            this.Modules = (ModuleDefinition) this._Modules;
+            this.Module = (ModuleDefinition) this._Modules;
         }
 
         #region Properties
-        protected ModuleDefinition Modules { get; set; }
+        protected ModuleDefinition Module { get; set; }
         #endregion
     }
 }

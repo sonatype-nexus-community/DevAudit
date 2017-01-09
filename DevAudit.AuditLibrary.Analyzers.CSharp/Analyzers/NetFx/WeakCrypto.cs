@@ -23,11 +23,16 @@ namespace DevAudit.AuditLibrary.Analyzers
         #endregion
 
         #region Overriden methods
-        public override async Task<BinaryAnalyzerResult> Analyze()
+        public override Task<BinaryAnalyzerResult> Analyze()
         {
-            List<AssemblyNameReference> references = this.Modules.AssemblyReferences.Where(ar => ar.Name != "mscorlib" && !ar.Name.StartsWith("System")).ToList();
-            this.ScriptEnvironment.Info("Got {0} assembly references", references.Count);
-            return this.AnalyzerResult;
+
+            IEnumerable<TypeReference> type_references = this.Module.GetTypeReferences().Where(tr => tr.Name == "SHA1CryptoServiceProvider");
+
+            foreach (TypeReference tr in type_references)
+            {
+                this.ScriptEnvironment.Info("Type reference to SHA1CryptoServiceProvider found in module {0}", this.Module.Name);
+            }
+            return Task.FromResult(this.AnalyzerResult);
         }
         #endregion
     }

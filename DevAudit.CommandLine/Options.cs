@@ -60,8 +60,11 @@ namespace DevAudit.CommandLine
         [VerbOption("nginx", HelpText = "Audit an Nginx server instance. Use the -r option to specify the root directory of the httpd server. Use the -b option to specify the path to the httpd server binary and the -c option to specify the configuration file otherwise default values will be used for these 2 parameters.")]
         public Options Nginx { get; set; }
 
-        [VerbOption("netfx", HelpText = "Audit a .NET Framework 4 code project. Use the --root option to specify the root directory of the solution, and the --project-name option to specify the name of the project.")]
+        [VerbOption("netfx", HelpText = "Audit a .NET Framework application. Use the --root option to specify the root directory of the application and the -b option to specify the application .NET assembly.")]
         public Options NetFx { get; set; }
+
+        [VerbOption("netfx-code", HelpText = "Audit a .NET Framework 4 code project. Use the --root option to specify the root directory of the solution, and the --project-name option to specify the name of the project.")]
+        public Options NetFxCode { get; set; }
 
         [VerbOption("aspnet-code", HelpText = "Audit an ASP.NET code project. Use the --root option to specify the root directory of the solution, and the --project-name option to specify the name of the project.")]
         public Options AspNetCode { get; set; }

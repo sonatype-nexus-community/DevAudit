@@ -102,6 +102,10 @@ namespace DevAudit.AuditLibrary
             }
             else throw new ArgumentException("Package source is null.", "package_source");
         }
+        
+        public NetFx4Application(Dictionary<string, object> application_options, EventHandler<EnvironmentEventArgs> message_handler) : 
+            this(application_options, new Dictionary<string, string[]> { { "AppConfig", new string[] { "@", "App.config" } } }, new Dictionary<string, string[]>(), "NetFx", message_handler)
+        { }
         #endregion
 
         #region Overriden properties
