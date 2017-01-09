@@ -23,7 +23,7 @@ namespace DevAudit.AuditLibrary.Analyzers
         #endregion
 
         #region Overriden methods
-        public override Task<BinaryAnalyzerResult> Analyze()
+        public override Task<ByteCodeAnalyzerResult> Analyze()
         {
 
             IEnumerable<TypeReference> type_references = this.Module.GetTypeReferences().Where(tr => tr.Name == "SHA1CryptoServiceProvider");

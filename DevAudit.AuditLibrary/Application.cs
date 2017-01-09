@@ -198,11 +198,11 @@ namespace DevAudit.AuditLibrary
 
         public List<FileInfo> AnalyzerScripts { get; protected set; } = new List<FileInfo>();
 
-        public List<BinaryAnalyzer> Analyzers { get; protected set; } = new List<BinaryAnalyzer>();
+        public List<ByteCodeAnalyzer> Analyzers { get; protected set; } = new List<ByteCodeAnalyzer>();
 
         public bool AnalyzersInitialized { get; protected set; } = false;
 
-        public List<BinaryAnalyzerResult> AnalyzerResults { get; protected set; }
+        public List<ByteCodeAnalyzerResult> AnalyzerResults { get; protected set; }
 
         public bool ModulesInitialised { get; protected set; } = false;
 
@@ -638,7 +638,7 @@ namespace DevAudit.AuditLibrary
                 }
                 try
                 {
-                    BinaryAnalyzer ba = (BinaryAnalyzer)await CSScript.Evaluator.LoadCodeAsync(script, this.HostEnvironment.ScriptEnvironment,
+                    ByteCodeAnalyzer ba = (ByteCodeAnalyzer)await CSScript.Evaluator.LoadCodeAsync(script, this.HostEnvironment.ScriptEnvironment,
                         this.Modules, this.Configuration, this.ApplicationOptions);
                     this.Analyzers.Add(ba);
                     this.HostEnvironment.Info("Loaded {0} analyzer from {1}.", ba.Name, f.FullName);
@@ -694,11 +694,11 @@ namespace DevAudit.AuditLibrary
 
         protected async Task GetAnalyzerResults()
         {
-            this.AnalyzerResults = new List<BinaryAnalyzerResult>(this.Analyzers.Count);
-            foreach (BinaryAnalyzer a in this.Analyzers)
+            this.AnalyzerResults = new List<ByteCodeAnalyzerResult>(this.Analyzers.Count);
+            foreach (ByteCodeAnalyzer a in this.Analyzers)
             {
                 this.HostEnvironment.Status("{0} analyzing.", a.Name);
-                BinaryAnalyzerResult ar = new BinaryAnalyzerResult() { Analyzer = a };
+                ByteCodeAnalyzerResult ar = new ByteCodeAnalyzerResult() { Analyzer = a };
                 try
                 {
                     ar = await a.Analyze();

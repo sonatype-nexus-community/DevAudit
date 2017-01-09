@@ -234,7 +234,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="BinaryAnalyzer.cs" />
+    <Compile Include="ByteCodeAnalyzer.cs" />
     <Compile Include="Analyzers\NetFxAnalyzer.cs" />
     <Compile Include="Analyzers\PHPAnalyzer.cs" />
     <Compile Include="Applications\AspNetApplication.cs" />

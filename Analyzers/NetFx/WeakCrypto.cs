@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 
 using Mono.Cecil;
+using Mono.Cecil.Cil;
 
 using DevAudit.AuditLibrary;
 using Alpheus;
@@ -23,15 +24,41 @@ namespace DevAudit.AuditLibrary.Analyzers
         #endregion
 
         #region Overriden methods
-        public override Task<BinaryAnalyzerResult> Analyze()
+        public override Task<ByteCodeAnalyzerResult> Analyze()
         {
+            IEnumerable<MethodDefinition> methods = 
+            from type in this.Module.Types.Cast<TypeDefinition>()
+            from method in type.Methods.Cast<MethodDefinition>()
+            select method;
 
             IEnumerable<TypeReference> type_references = this.Module.GetTypeReferences().Where(tr => tr.Name == "SHA1CryptoServiceProvider");
 
             foreach (TypeReference tr in type_references)
             {
                 this.ScriptEnvironment.Info("Type reference to SHA1CryptoServiceProvider found in module {0}", this.Module.Name);
+                
             }
+            
+            foreach (MethodDefinition md in methods)
+            {
+                this.ScriptEnvironment.Info("Method {0} returns {1}.", md.Name, md.MethodReturnType.ReturnType.Name);
+                foreach (Instruction i in md.Body.Instructions.Where(i => i.OpCode == OpCodes.Call || i.OpCode == OpCodes.Callvirt))
+                {
+                    MethodReference mr = (MethodReference)i.Operand;
+                    if (mr.FullName.Contains("System.Security.Cryptography.HashAlgorithm::ComputeHash"))
+                    {
+                        this.ScriptEnvironment.Info("Detected a call to System.Security.Cryptography.HashAlgorithm::ComputeHash in method {0}", md.FullName);
+                        this.AnalyzerResult = new ByteCodeAnalyzerResult()
+                        {
+                            Analyzer = this,
+                            Succeded = true,
+                            IsVulnerable = true
+                        };
+                        return Task.FromResult(this.AnalyzerResult);
+                    }
+                }
+            }
+
             return Task.FromResult(this.AnalyzerResult);
         }
         #endregion

@@ -9,9 +9,9 @@ using Alpheus;
 namespace DevAudit.AuditLibrary
 {
     #region Public types
-    public struct BinaryAnalyzerResult
+    public struct ByteCodeAnalyzerResult
     {
-        public BinaryAnalyzer Analyzer;
+        public ByteCodeAnalyzer Analyzer;
         public bool Succeded;
         public bool IsVulnerable;
         public List<Exception> Exceptions;
@@ -19,14 +19,14 @@ namespace DevAudit.AuditLibrary
     }
     #endregion
 
-    public abstract class BinaryAnalyzer
+    public abstract class ByteCodeAnalyzer
     {
         #region Constructors
-        public BinaryAnalyzer(ScriptEnvironment script_env, string name, object modules, IConfiguration configuration, Dictionary<string, object> application_options)
+        public ByteCodeAnalyzer(ScriptEnvironment script_env, string name, object modules, IConfiguration configuration, Dictionary<string, object> application_options)
         {
             this.ScriptEnvironment = script_env;
             this.Name = name;
-            this.AnalyzerResult = new BinaryAnalyzerResult() { Analyzer = this };
+            this.AnalyzerResult = new ByteCodeAnalyzerResult() { Analyzer = this };
             this._Modules = modules;
             this.Configuration = configuration;
             this.ApplicationOptions = application_options;
@@ -38,7 +38,7 @@ namespace DevAudit.AuditLibrary
         public string Summary { get; protected set; }
         public string Description { get; protected set; }
         public List<string> Tags { get; protected set; } = new List<string>(3);
-        public BinaryAnalyzerResult AnalyzerResult { get; protected set; }
+        public ByteCodeAnalyzerResult AnalyzerResult { get; protected set; }
         protected ScriptEnvironment ScriptEnvironment { get; set; }
         protected object _Modules { get; set; }
         protected IConfiguration Configuration { get; set; }
@@ -46,7 +46,7 @@ namespace DevAudit.AuditLibrary
         #endregion
 
         #region Public abstract methods
-        public abstract Task<BinaryAnalyzerResult> Analyze();
+        public abstract Task<ByteCodeAnalyzerResult> Analyze();
         #endregion
     }
 }
