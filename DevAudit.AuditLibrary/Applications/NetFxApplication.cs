@@ -182,6 +182,7 @@ namespace DevAudit.AuditLibrary
             this.AppAssemblyDefinition = AssemblyDefinition.ReadAssembly(ab.FullName, reader);
             this.Modules = this.AppModuleDefinition;
             List<AssemblyNameReference> references = this.AppModuleDefinition.AssemblyReferences.ToList();
+            
             references.RemoveAll(r => r.Name =="mscorlib" || r.Name.StartsWith("System"));
             sw.Stop();
             this.AuditEnvironment.Info("Got {0} referenced assemblies in {1} ms", references.Count(), sw.ElapsedMilliseconds);
@@ -215,6 +216,25 @@ namespace DevAudit.AuditLibrary
                     this.AppConfigFilePath, config.LastException.Message, sw.ElapsedMilliseconds);
             }
             return this.Configuration;
+        }
+
+        private void GetAssemblyReferences(ref List<AssemblyNameReference> references, ReaderParameters reader)
+        {
+            List<string> names = references.Select(r => r.FullName).ToList();
+            foreach (AssemblyNameReference r in references)
+            {
+                try
+                {
+                    AssemblyDefinition ad = AssemblyDefinition.ReadAssembly(r.Name, reader);
+                }
+                catch (Exception e)
+                {
+                    this.AuditEnvironment.Warning("Error attempting to load assembly reference {0}:{1}.", r.Name, e.Message);
+                    continue;
+                }
+                
+
+            }
         }
 
         #endregion

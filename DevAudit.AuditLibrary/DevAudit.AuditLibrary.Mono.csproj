@@ -141,8 +141,10 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ByteCodeAnalyzer.cs" />
+    <Compile Include="Analyzers\NetFxAnalyzer.cs" />
     <Compile Include="Analyzers\PHPAnalyzer.cs" />
-    <Compile Include="Applications\MVC5Application.cs" />
+    <Compile Include="Applications\AspNetApplication.cs" />
     <Compile Include="Applications\NetFxApplication.cs" />
     <Compile Include="Projects\Drupal8ModuleCodeProject.cs" />
     <Compile Include="Projects\PHPAuditCodeSourceUnit.cs" />
@@ -161,7 +163,7 @@
     <Compile Include="LocalAuditDirectoryInfo.cs" />
     <Compile Include="LocalAuditFileInfo.cs" />
     <Compile Include="CodeProject.cs" />
-    <Compile Include="Projects\MVC5CodeProject.cs" />
+    <Compile Include="Projects\AspNetCodeProject.cs" />
     <Compile Include="Projects\NetFxCodeProject.cs" />
     <Compile Include="ScriptEnvironment.cs" />
     <Compile Include="SshAuditFileInfo.cs" />
