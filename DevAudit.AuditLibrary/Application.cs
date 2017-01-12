@@ -409,7 +409,7 @@ namespace DevAudit.AuditLibrary
                 this.GetDefaultConfigurationRulesTask = Task.Run(() => this.GetDefaultConfigurationRules());
             }
 
-            if (this.ModulesInitialised && this.AnalyzerType != string.Empty)
+            if (this.ModulesInitialised && !string.IsNullOrEmpty(this.AnalyzerType))
             {
                 this.GetAnalyzersTask = Task.Run(() => this.GetAnalyzers());
             }
