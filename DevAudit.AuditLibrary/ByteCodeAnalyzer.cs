@@ -14,6 +14,8 @@ namespace DevAudit.AuditLibrary
         public ByteCodeAnalyzer Analyzer;
         public bool Succeded;
         public bool IsVulnerable;
+        public string ModuleName;
+        public string LocationDescription;
         public List<Exception> Exceptions;
         public List<string> DiagnosticMessages;
     }
@@ -26,7 +28,7 @@ namespace DevAudit.AuditLibrary
         {
             this.ScriptEnvironment = script_env;
             this.Name = name;
-            this.AnalyzerResult = new ByteCodeAnalyzerResult() { Analyzer = this };
+            this.AnalyzerResult = new ByteCodeAnalyzerResult() { Analyzer = this, Succeded = false };
             this._Modules = modules;
             this.Configuration = configuration;
             this.ApplicationOptions = application_options;

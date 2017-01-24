@@ -1,5 +1,5 @@
 ﻿---
-mvc5:
+aspnet:
     -   id: 1
         title: ASP.NET version headers are enabled
         category: Information Disclosure 
@@ -69,7 +69,7 @@ mvc5:
             -   https://weblogs.asp.net/scottgu/442448
 
     -   id: 5
-        title: ASP.NET Request validation is disabled
+        title: ASP.NET request validation is disabled globally
         category: XSS
         tags: 
             -    OWASP Top 10 Application Security Risks A2
@@ -86,18 +86,35 @@ mvc5:
             -   https://www.troyhunt.com/owasp-top-10-for-net-developers-part-6/
 
     -   id: 6
-        title: ASP.NET default hashing algorithm is SHA1
-        category: Information Disclosure
+        title: ASP.NET hashing algorithm is insecure
+        category: Insecure Cryptographic Storage
         tags: 
-            -    OWASP Top 10 Application Security Risks A6
+            -    OWASP Top 10 Application Security Risks A7
         severity: 1
-        xpathtest: boolean(/configuration/system.web/httpRuntime[@requestValidationMode='2.0']) and boolean(/configuration/system.web/pages[@validateRequest='false']))
+        xpathtest: boolean(/configuration/system.web/machineKey[@validation='MD5']) | boolean(/configuration/system.web/machineKey[@validation='SHA1'])
         summary: |
-           Request validation is disabled sitewide for the ASP.NET application. Request validation detects potentially malicous strings submitted by users to the server
-           and aborts the request to mitigate potential XSS vulnerabilties. You should only disable request validation on specific pages and forms which do not need it,
-           like forms that are designed to accept and submit HTML markup.  
-        resolution: |
-            Remove the requestValidationMode attribute from the httpRuntime element and the validateRequest element from the pages element of the Web.config file to revert to
-            the default ASP.NEt 4 behaviour.
+            ASP.NET uses encryption and hashing algorithms to help secure and make tamper-proof data such as form authentication cookies and view state. 
+            By default, ASP.NET after version 4 uses the HMACSHA256 algorithm for hash operations. 
+            Older hashing and encryption algorithms like MD5 and SHA1 are today considered cryptographically. 
+            Compliance with standards like FIPS requires more secure hash algorithms like HMACSHA256 to be used.        
+            resolution: |
+            Set the validation attribute on the machineKey element of system.web in the Web.config file to HMACSHA256 or another secure hash algorithm. 
         urls:
-            -   https://www.troyhunt.com/owasp-top-10-for-net-developers-part-6/
+            -   https://msdn.microsoft.com/library/w8h3skw9(v=vs.100).aspx
+
+   -   id: 7
+        title: ASP.NET forms authentication does not use SSL
+        category: Insecure Cryptographic Storage
+        tags: 
+            -    OWASP Top 10 Application Security Risks A7
+        severity: 1
+        xpathtest: boolean(/configuration/system.web/machineKey[@validation='MD5']) | boolean(/configuration/system.web/machineKey[@validation='SHA1'])
+        summary: |
+            ASP.NET uses encryption and hashing algorithms to help secure and make tamper-proof data such as form authentication cookies and view state. 
+            By default, ASP.NET after version 4 uses the HMACSHA256 algorithm for hash operations. 
+            Older hashing and encryption algorithms like MD5 and SHA1 are today considered cryptographically. 
+            Compliance with standards like FIPS requires more secure hash algorithms like HMACSHA256 to be used.        
+            resolution: |
+            Set the validation attribute on the machineKey element of system.web in the Web.config file to HMACSHA256 or another secure hash algorithm. 
+        urls:
+            -   https://msdn.microsoft.com/library/w8h3skw9(v=vs.100).aspx

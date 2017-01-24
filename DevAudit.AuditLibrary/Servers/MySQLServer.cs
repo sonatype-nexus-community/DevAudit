@@ -29,7 +29,7 @@ namespace DevAudit.AuditLibrary
                 ? CombinePath("@", "usr", "bin", "mysql") : CombinePath("@", "bin", "mysql.exe");
                 if (!this.AuditEnvironment.FileExists(fn))
                 {
-                    throw new ArgumentException(string.Format("The server binary for SSHD was not specified and the default file path {0} does not exist.", fn));
+                    throw new ArgumentException(string.Format("The server binary for MySQL was not specified and the default file path {0} does not exist.", fn));
                 }
                 else
                 {

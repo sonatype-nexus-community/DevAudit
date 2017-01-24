@@ -58,7 +58,7 @@ namespace DevAudit.AuditLibrary
                     this.AppConfigFilePath = cf.FullName;
                     this.AuditEnvironment.Info("Using {0} configuration file {1}.", this.ApplicationLabel, this.AppConfigFilePath);
                 }
-                else throw new ArgumentException("The configuration file {0} does not exist.", cf.FullName);
+                else throw new ArgumentException(string.Format("The configuration file {0} does not exist.", cf.FullName), "application_options");
             }
             else if (application_options.ContainsKey("ConfigurationFile"))
             {
@@ -68,7 +68,7 @@ namespace DevAudit.AuditLibrary
                     this.AppConfigFilePath = cf.FullName;
                     this.AuditEnvironment.Info("Using {0} configuration file {1}.", this.ApplicationLabel, this.AppConfigFilePath);
                 }
-                else throw new ArgumentException("The configuration file {0} does not exist.", cf.FullName);
+                else throw new ArgumentException(string.Format("The configuration file {0} does not exist.", cf.FullName), "application_options");
 
             }
             else if (this.ApplicationBinary != null)
@@ -104,7 +104,7 @@ namespace DevAudit.AuditLibrary
         }
         
         public NetFx4Application(Dictionary<string, object> application_options, EventHandler<EnvironmentEventArgs> message_handler) : 
-            this(application_options, new Dictionary<string, string[]> { { "AppConfig", new string[] { "@", "App.config" } } }, new Dictionary<string, string[]>(), "NetFx", message_handler)
+            this(application_options, new Dictionary<string, string[]> ()/*{ { "AppConfig", new string[] { "@", "App.config" } } }*/, new Dictionary<string, string[]>(), "NetFx", message_handler)
         { }
         #endregion
 
@@ -198,20 +198,22 @@ namespace DevAudit.AuditLibrary
 
         protected override IConfiguration GetConfiguration()
         {
-            if (this.AppConfigFilePath == null) throw new InvalidOperationException("The application configuration file was not specified.");
+            if (this.AppConfigFilePath == null) return null;//throw new InvalidOperationException("The application configuration file was not specified.");
             Stopwatch sw = new Stopwatch();
             sw.Start();
             XMLConfig config = new XMLConfig(this.AppConfigFilePath);
             if (config.ParseSucceded)
             {
                 this.Configuration = config;
+                this.ConfigurationInitialised = true;
                 sw.Stop();                
                 this.AuditEnvironment.Success("Read configuration from {0} in {1} ms.", this.Configuration.File.Name, sw.ElapsedMilliseconds);
             }
             else
             {
                 sw.Stop();
-                this.Configuration = null;                
+                this.Configuration = null;
+                this.ConfigurationInitialised = false;                
                 this.AuditEnvironment.Error("Failed to read configuration from {0}. Error: {1}. Time elapsed: {2} ms.",
                     this.AppConfigFilePath, config.LastException.Message, sw.ElapsedMilliseconds);
             }

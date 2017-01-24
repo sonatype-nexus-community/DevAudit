@@ -969,7 +969,7 @@ namespace DevAudit.CommandLine
                 foreach (KeyValuePair<OSSIndexProject, IEnumerable<OSSIndexProjectConfigurationRule>> rule in Application.ProjectConfigurationRules)
                 {
                     IEnumerable<KeyValuePair<OSSIndexProjectConfigurationRule, Tuple<bool, List<string>, string>>> evals = Application.ProjectConfigurationRulesEvaluations.Where(pcre => pcre.Key.Project != null && pcre.Key.Project.Name == rule.Key.Name);
-                    PrintMessage("[{0}/{1}] Project: ", ++projects_processed, projects_count);
+                    PrintMessage("[{0}/{1}] Module: ", ++projects_processed, projects_count);
                     PrintMessage(ConsoleColor.Blue, "{0}. ", rule.Key.Name);
                     int total_project_rules = rule.Value.Count();
                     int succeded_project_rules = evals.Count() > 0 ? evals.Count(ev => ev.Value.Item1) : 0;
@@ -1013,6 +1013,43 @@ namespace DevAudit.CommandLine
             {
                 PrintMessageLine(ConsoleColor.White, "\nApplication Configuration Audit Results\n=======================================");
                 PrintMessageLine(ConsoleColor.White, "{0} total vulnerabilities found in {1} application configuration audit. Total time for audit: {2} ms.\n", Application.ProjectConfigurationRulesEvaluations.Values.Where(v => v.Item1).Count(), Application.ApplicationLabel, Stopwatch.ElapsedMilliseconds);
+            }
+            if (Application.AnalyzerResults != null && Application.AnalyzerResults.Count > 0)
+            {
+                IEnumerable<ByteCodeAnalyzerResult> code_analysis_results = Application.AnalyzerResults;
+                if (code_analysis_results != null && code_analysis_results.Count() > 0)
+                {
+                    int bcar_count = code_analysis_results.Count();
+                    PrintMessageLine(ConsoleColor.White, "\nApplication Code Analysis Results\n=======================================");
+                    PrintMessageLine(ConsoleColor.White, "{0} {1} found in {2} application code analysis audit. Total time for audit: {3} ms.\n",
+                        bcar_count, bcar_count > 1 ? "vulnerabilities" : "vulnerability", Application.ApplicationLabel, Stopwatch.ElapsedMilliseconds);
+                    int processed_code_analysis_results = 0;
+                    foreach (ByteCodeAnalyzerResult bcar in code_analysis_results)
+                    {
+                        ++processed_code_analysis_results;
+                        if (bcar.Succeded)
+                        {
+                            PrintMessage("--[{0}/{1}] Analyzer: {2}. Result: ", processed_code_analysis_results, bcar_count, bcar.Analyzer.Summary);
+                            PrintMessageLine(bcar.IsVulnerable ? ConsoleColor.Red : ConsoleColor.DarkGreen, "{0}.", bcar.IsVulnerable);
+                            PrintMessageLine("  --Description: {0}", bcar.Analyzer.Description);
+                            PrintMessageLine("  --Module: {0}", bcar.ModuleName);
+                            PrintMessageLine("  --Location: {0}", bcar.LocationDescription);
+                        }
+                        else
+                        {
+                            if (bcar.DiagnosticMessages != null && bcar.DiagnosticMessages.Count > 0)
+                            {
+                                PrintMessage("--[{0}/{1}] Rule: {2}. Result: Failed", processed_code_analysis_results, bcar_count, bcar.Analyzer.Summary);
+                                foreach (string d in bcar.DiagnosticMessages)
+                                {
+                                    PrintMessageLine(ConsoleColor.DarkGray, "  --{0}", d);
+                                }
+                            }
+                        }
+                        
+
+                    }
+                }
             }
         }
 

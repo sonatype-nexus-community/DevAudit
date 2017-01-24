@@ -391,7 +391,8 @@ namespace DevAudit.AuditLibrary
                 this.VulnerabilitiesTask = Task.Run(() => this.GetVulnerabiltiesApiv2(), ct);
             }
 
-            if (!this.PackageSourceInitialized || this.ListPackages || this.Packages.Count() == 0 || this.ListArtifacts || this.SkipPackagesAudit || this.OnlyLocalRules || this.ArtifactsWithProjects.Count() == 0)
+            if (!this.PackageSourceInitialized || this.ListPackages || this.Packages.Count() == 0 || this.ListArtifacts || this.SkipPackagesAudit 
+                || this.OnlyLocalRules || this.ArtifactsWithProjects.Count() == 0 || !this.ConfigurationInitialised)
             {
                 this.GetConfigurationRulesTask = Task.CompletedTask;
             }
@@ -400,7 +401,7 @@ namespace DevAudit.AuditLibrary
                 this.GetConfigurationRulesTask = Task.Run(() => this.GetConfigurationRules(), ct);
             }
 
-            if (this.ListPackages || this.ListArtifacts)
+            if (this.ListPackages || this.ListArtifacts || !this.ConfigurationInitialised)
             {
                 this.GetDefaultConfigurationRulesTask = Task.CompletedTask;
             }
