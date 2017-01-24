@@ -134,6 +134,22 @@ aspnet:
             Set the cookieless attribute to false in the sessionState element of the system.web element in the Web.config file.            
         urls:
             -   https://www.codeproject.com/Articles/18625/Top-Application-Security-Vulnerabilities-in-Web
+
+    -   id: 9
+        title: ASP.NET cookieless forms authentication is enabled
+        category: Broken authentication and session management
+        tags: 
+            -    OWASP Top 10 Application Security Risks A3
+        severity: 1
+        xpathtest: boolean(/configuration/system.web/authentication[@mode='Forms']) and boolean(/configuration/system.web/forms[@cookieless='UseUri'])
+        summary: |
+            Similar to cookieless sessions, if ASP.NET cookieless forms authentication is enabled then sensitive information is transmitted in an easily visible plaintext string 
+            that can be exploited by attackers to hijack user authentication and identity. 
+            Unless absolutely necessary you shoud never enable cookieless forms authentication for your deployed or production applications.
+        resolution: |
+            Set the cookieless attribute to false in the forms element of the system.web element in the Web.config file.            
+        urls:
+            -   https://www.codeproject.com/Articles/18625/Top-Application-Security-Vulnerabilities-in-Web
    
     -  id: 10
        title: ASP.NET cookies are accessible through client-side script in Internet Explorer
