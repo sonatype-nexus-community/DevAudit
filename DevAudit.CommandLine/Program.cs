@@ -1020,9 +1020,10 @@ namespace DevAudit.CommandLine
                 if (code_analysis_results != null && code_analysis_results.Count() > 0)
                 {
                     int bcar_count = code_analysis_results.Count();
+                    int bcar_succeded_count = code_analysis_results.Count(car => car.Succeded);
                     PrintMessageLine(ConsoleColor.White, "\nApplication Code Analysis Results\n=======================================");
                     PrintMessageLine(ConsoleColor.White, "{0} {1} found in {2} application code analysis audit. Total time for audit: {3} ms.\n",
-                        bcar_count, bcar_count > 1 ? "vulnerabilities" : "vulnerability", Application.ApplicationLabel, Stopwatch.ElapsedMilliseconds);
+                        bcar_succeded_count, bcar_succeded_count == 0 || bcar_succeded_count > 1 ? "vulnerabilities" : "vulnerability", Application.ApplicationLabel, Stopwatch.ElapsedMilliseconds);
                     int processed_code_analysis_results = 0;
                     foreach (ByteCodeAnalyzerResult bcar in code_analysis_results)
                     {
@@ -1037,9 +1038,9 @@ namespace DevAudit.CommandLine
                         }
                         else
                         {
+                            PrintMessageLine("--[{0}/{1}] Rule: {2}. Result: Failed", processed_code_analysis_results, bcar_count, bcar.Analyzer.Summary);
                             if (bcar.DiagnosticMessages != null && bcar.DiagnosticMessages.Count > 0)
                             {
-                                PrintMessage("--[{0}/{1}] Rule: {2}. Result: Failed", processed_code_analysis_results, bcar_count, bcar.Analyzer.Summary);
                                 foreach (string d in bcar.DiagnosticMessages)
                                 {
                                     PrintMessageLine(ConsoleColor.DarkGray, "  --{0}", d);
