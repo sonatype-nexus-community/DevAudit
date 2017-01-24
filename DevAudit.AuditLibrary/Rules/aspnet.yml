@@ -104,17 +104,50 @@ aspnet:
 
     -   id: 7
         title: ASP.NET does not require SSL for authentication cookies
-        category: Insecure Cryptographic Storage
+        category: Insufficient Transport Layer Protection
         tags: 
-            -    OWASP Top 10 Application Security Risks A7
+            -    OWASP Top 10 Application Security Risks A9
         severity: 1
         xpathtest: boolean(/configuration/system.web/authentication[@mode='Forms']) and not(boolean(/configuration/system.web/forms[@requireSSL='true']))
         summary: |
             ASP.NET uses the SSL protocol to encrypt sensitive data like form authentication cookies that must be transmitted on a public network.
             SSL should always be required for form authentication otherwise user sessions and identities in appliction are vulnerable to hijacking by attackers.
-            resolution: |
+        resolution: |
             Set the requireSSL attribute to true in the forms element of the system.web element in the Web.config file.
             Note that additional steps are required to configure the IIS web server to use SSL, e.g 
             https://www.iis.net/learn/manage/configuring-security/how-to-set-up-ssl-on-iis
         urls:
             -   http://www.developerfusion.com/article/6745/top-10-application-security-vulnerabilities-in-webconfig-files-part-two/3/
+
+    -   id: 8
+        title: ASP.NET cookieless sessions are enabled
+        category: Broken authentication and session management
+        tags: 
+            -    OWASP Top 10 Application Security Risks A3
+        severity: 1
+        xpathtest: boolean(/configuration/system.web/sessionState[@cookieless='true']) | boolean(/configuration/system.web/sessionState[@cookieless='UseUri'])
+        summary: |
+            ASP.NET uses cookies by default to store tokens and other related data that identifies user sessions that is not transmitted in plaintext and not normally visible to ordinary users. 
+            If cookieless sessions are enabled this information is transmitted in an easily visible plaintext string that can be exploited by attackers.
+            Unless absolutely necessary you shoud never enable cookieless sessions for your deployed or production applications.
+        resolution: |
+            Set the cookieless attribute to false in the sessionState element of the system.web element in the Web.config file.            
+        urls:
+            -   https://www.codeproject.com/Articles/18625/Top-Application-Security-Vulnerabilities-in-Web
+   
+    -  id: 10
+       title: ASP.NET cookies are accessible through client-side script in Internet Explorer
+       category: Information Disclosure
+       tags: 
+            -    OWASP Top 10 Application Security Risks A6
+       severity: 1
+       xpathtest: not(boolean(/configuration/system.web/httpCookies[@httpOnlyCookies='true']))
+       summary: |
+           Internet Explorer 6 and above contain a feature where ASP.NET and web applications can mark cookies as not accessible from client-side script.
+           Protecting cookies used by ASP.NET applications for form view state and authentication from modification by client-side code 
+           helps mitigate XSS attacks and attacks that attempt to impersonate users' identity using modified cookies used for authentication.            
+           This property should always be used if available in the users' browser.
+       resolution: |
+           Set the httpOnlyCookies attribute to true in the httpCookies element of the system.web element in the Web.config file.            
+       urls:
+           -   http://www.developerfusion.com/article/6678/top-10-application-security-vulnerabilities-in-webconfig-files-part-one/5/

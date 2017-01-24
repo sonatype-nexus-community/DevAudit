@@ -16,7 +16,7 @@ namespace DevAudit.AuditLibrary.Analyzers
     {
         #region Constructors
         public WeakCryptoAnalyzer(ScriptEnvironment script_env, object modules, IConfiguration configuration, Dictionary<string, object> application_options) : 
-            base(script_env, "WeakCrypto", modules, configuration, application_options)
+            base(script_env, "SA0001", modules, configuration, application_options)
         {
             this.Summary = "Weak Cryptography Used";
             this.Description = "Detects when calls are made to built-in .NET cryptography that use ciphers and algorithms considered cryptographically weak and insecure today.";
