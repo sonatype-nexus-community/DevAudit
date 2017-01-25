@@ -318,7 +318,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Analyzers\DevAuditGendarmeRunner.cs" />
+    <Compile Include="DevAuditGendarmeRunner.cs" />
     <Compile Include="ByteCodeAnalyzer.cs" />
     <Compile Include="Analyzers\NetFxAnalyzer.cs" />
     <Compile Include="Analyzers\PHPAnalyzer.cs" />
@@ -394,7 +394,6 @@
     </Examples>
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="Analyzers\GendarmeAnalyzer\" />
     <Folder Include="Configurations\" />
     <Folder Include="Examples\Drupal\core\modules\" />
   </ItemGroup>
