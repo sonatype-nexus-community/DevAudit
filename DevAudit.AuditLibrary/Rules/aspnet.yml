@@ -166,4 +166,4 @@ aspnet:
        resolution: |
            Set the httpOnlyCookies attribute to true in the httpCookies element of the system.web element in the Web.config file.            
        urls:
-           -   http://www.developerfusion.com/article/6678/top-10-application-security-vulnerabilities-in-webconfig-files-part-one/5/
+           -   http://www.developerfusion.com/article/6745/top-10-application-security-vulnerabilities-in-webconfig-files-part-two/2/
