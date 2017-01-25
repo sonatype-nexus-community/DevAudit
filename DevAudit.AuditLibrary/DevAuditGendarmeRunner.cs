@@ -23,7 +23,7 @@ namespace DevAudit.AuditLibrary
             if (assembly.Modules.Count > 0)
                 Assemblies.Add(assembly);
             IgnoreList = new BasicIgnoreList(this);
-            LoadRulesFromAssembly(Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Locati‌​on), rules_library_name + ".dll"));
+            LoadRulesFromAssembly(Path.Combine(AppDomain.CurrentDomain.BaseDirectory /*Path.GetDirectoryName(Assembly.GetExecutingAssembly().Locati‌​on)*/, rules_library_name + ".dll"));
         }
 
         private ScriptEnvironment Environment { get; set; }
