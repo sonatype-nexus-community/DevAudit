@@ -35,6 +35,10 @@
       <HintPath>..\packages\Alpheus.0.1.9.0\lib\net45\Alpheus.Core.dll</HintPath>
       <Private>True</Private>
     </Reference>
+    <Reference Include="Gendarme.Framework, Version=2.11.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Gendarme.Framework.2.11.0.20121120\lib\net40\Gendarme.Framework.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
     <Reference Include="Mono.Cecil, Version=0.9.6.0, Culture=neutral, PublicKeyToken=0738eb9f132ed756, processorArchitecture=MSIL">
       <HintPath>..\packages\Mono.Cecil.0.9.6.4\lib\net45\Mono.Cecil.dll</HintPath>
       <Private>True</Private>
@@ -193,6 +197,7 @@
   <ItemGroup>
     <Compile Include="Analyzers\AspNet\WeakCrypto2.cs" />
     <Compile Include="Analyzers\Drupal8Module\BasicModuleChecks.cs" />
+    <Compile Include="Analyzers\NetFx\GendarmeRules.cs" />
     <Compile Include="Analyzers\NetFx\WeakCrypto.cs" />
     <Compile Include="Analyzers\Roslyn\SA1300ElementMustBeginWithUpperCaseLetterAnalyzer.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

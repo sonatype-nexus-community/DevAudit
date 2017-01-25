@@ -12,6 +12,7 @@ namespace DevAudit.AuditLibrary
     public struct ByteCodeAnalyzerResult
     {
         public ByteCodeAnalyzer Analyzer;
+        public bool Executed;
         public bool Succeded;
         public bool IsVulnerable;
         public string ModuleName;
@@ -28,7 +29,7 @@ namespace DevAudit.AuditLibrary
         {
             this.ScriptEnvironment = script_env;
             this.Name = name;
-            this.AnalyzerResult = new ByteCodeAnalyzerResult() { Analyzer = this, Succeded = false };
+            this.AnalyzerResult = new ByteCodeAnalyzerResult() { Analyzer = this, Executed = false };
             this._Modules = modules;
             this.Configuration = configuration;
             this.ApplicationOptions = application_options;

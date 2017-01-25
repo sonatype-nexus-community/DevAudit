@@ -16,7 +16,7 @@ namespace DevAudit.AuditLibrary.Analyzers
     {
         #region Constructors
         public WeakCryptoAnalyzer(ScriptEnvironment script_env, object modules, IConfiguration configuration, Dictionary<string, object> application_options) : 
-            base(script_env, "SA0001", modules, configuration, application_options)
+            base(script_env, "SA-NETFX-0002-WeakCrypto", modules, configuration, application_options)
         {
             this.Summary = "Weak Cryptography Used";
             this.Description = "Detects when calls are made to built-in .NET cryptography that use ciphers and algorithms considered cryptographically weak and insecure today.";
@@ -51,6 +51,7 @@ namespace DevAudit.AuditLibrary.Analyzers
                         this.AnalyzerResult = new ByteCodeAnalyzerResult()
                         {
                             Analyzer = this,
+                            Executed = true,
                             Succeded = true,
                             IsVulnerable = true,
                             ModuleName = this.Module.Name,
@@ -60,8 +61,15 @@ namespace DevAudit.AuditLibrary.Analyzers
                     }
                 }
             }
+            return Task.FromResult(new ByteCodeAnalyzerResult()
+            {
+                Analyzer = this,
+                ModuleName = this.Module.Name,
+                Executed = true,
+                Succeded = true,
+                IsVulnerable = false,
 
-            return Task.FromResult(this.AnalyzerResult);
+            });
         }
         #endregion
     }

@@ -170,11 +170,7 @@ namespace DevAudit.AuditLibrary
                 return null;
             }
             sw.Start();
-            
             LocalAuditFileInfo ab = this.ApplicationBinary.GetAsLocalFile();
-            //DevAuditGendarmeRunner runner = new DevAuditGendarmeRunner(ab.FullName, this.HostEnvironment);
-            //runner.Initialize();
-            //runner.Run();
             DefaultAssemblyResolver resolver = new DefaultAssemblyResolver();
             resolver.AddSearchDirectory(ab.Directory.FullName);
             ReaderParameters reader = new ReaderParameters()

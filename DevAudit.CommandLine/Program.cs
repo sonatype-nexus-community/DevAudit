@@ -1021,34 +1021,70 @@ namespace DevAudit.CommandLine
                 {
                     int bcar_count = code_analysis_results.Count();
                     int bcar_succeded_count = code_analysis_results.Count(car => car.Succeded);
+                    int bcar_vulnerable_count = code_analysis_results.Count(car => car.IsVulnerable);
                     PrintMessageLine(ConsoleColor.White, "\nApplication Code Analysis Results\n=======================================");
                     PrintMessageLine(ConsoleColor.White, "{0} {1} found in {2} application code analysis audit. Total time for audit: {3} ms.\n",
-                        bcar_succeded_count, bcar_succeded_count == 0 || bcar_succeded_count > 1 ? "vulnerabilities" : "vulnerability", Application.ApplicationLabel, Stopwatch.ElapsedMilliseconds);
+                        bcar_vulnerable_count, bcar_vulnerable_count == 0 || bcar_vulnerable_count > 1 ? "vulnerabilities" : "vulnerability", Application.ApplicationLabel, Stopwatch.ElapsedMilliseconds);
                     int processed_code_analysis_results = 0;
                     foreach (ByteCodeAnalyzerResult bcar in code_analysis_results)
                     {
                         ++processed_code_analysis_results;
-                        if (bcar.Succeded)
+                        if (!bcar.Executed)
+                        {
+                            PrintMessage("--[{0}/{1}] Analyzer: {2}. Result: ", processed_code_analysis_results, bcar_count, bcar.Analyzer.Summary);
+                            PrintMessageLine(ConsoleColor.DarkGray, "Not executed");
+                            if (bcar.Exceptions != null && bcar.Exceptions.Any())
+                            {
+                                foreach (Exception e in bcar.Exceptions)
+                                {
+                                    PrintMessageLine("  --Exception {0} {1}.", e.Message, e.StackTrace);
+                                }
+                            }
+                            if (bcar.DiagnosticMessages != null && bcar.DiagnosticMessages.Any())
+                            {
+                                foreach (string s in bcar.DiagnosticMessages)
+                                {
+                                    PrintMessageLine("  --Diagnostic {0}.", s);
+                                }
+                            }
+
+                        }
+                        else if (!bcar.Succeded)
+                        {
+                            PrintMessage("--[{0}/{1}] Analyzer: {2}. Result: ", processed_code_analysis_results, bcar_count, bcar.Analyzer.Summary);
+                            PrintMessageLine(ConsoleColor.Yellow, "Failed");
+                            if (bcar.Exceptions != null && bcar.Exceptions.Any())
+                            {
+                                foreach (Exception e in bcar.Exceptions)
+                                {
+                                    PrintMessageLine("  --Exception {0} {1}.", e.Message, e.StackTrace);
+                                }
+                            }
+                            if (bcar.DiagnosticMessages != null && bcar.DiagnosticMessages.Any())
+                            {
+                                foreach (string s in bcar.DiagnosticMessages)
+                                {
+                                    PrintMessageLine("  --Diagnostic {0}.", s);
+                                }
+                            }
+                        }
+                        else
                         {
                             PrintMessage("--[{0}/{1}] Analyzer: {2}. Result: ", processed_code_analysis_results, bcar_count, bcar.Analyzer.Summary);
                             PrintMessageLine(bcar.IsVulnerable ? ConsoleColor.Red : ConsoleColor.DarkGreen, "{0}.", bcar.IsVulnerable);
                             PrintMessageLine("  --Description: {0}", bcar.Analyzer.Description);
                             PrintMessageLine("  --Module: {0}", bcar.ModuleName);
                             PrintMessageLine("  --Location: {0}", bcar.LocationDescription);
-                        }
-                        else
-                        {
-                            PrintMessageLine("--[{0}/{1}] Rule: {2}. Result: Failed", processed_code_analysis_results, bcar_count, bcar.Analyzer.Summary);
-                            if (bcar.DiagnosticMessages != null && bcar.DiagnosticMessages.Count > 0)
+                            if (bcar.DiagnosticMessages != null && bcar.DiagnosticMessages.Any())
                             {
-                                foreach (string d in bcar.DiagnosticMessages)
+                                PrintMessageLine("  --Diagnostics");
+                                foreach (string s in bcar.DiagnosticMessages)
                                 {
-                                    PrintMessageLine(ConsoleColor.DarkGray, "  --{0}", d);
+                                    PrintMessageLine("    --{0}", s);
                                 }
                             }
                         }
                         
-
                     }
                 }
             }
