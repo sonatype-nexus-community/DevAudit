@@ -218,3 +218,5 @@ ModelManifest.xml
 /DevAudit.Mono.sln.bak
 *.bak
 /Analyzers
+/Examples
+/Rules

@@ -71,11 +71,8 @@
       <Private>True</Private>
     </Reference>
   </ItemGroup>
-    <ItemGroup>
-    <Folder Include="Analyzers\PHP\" />
-  </ItemGroup>
   <ItemGroup>
-    <Compile Include="Analyzers\Drupal8Module\BasicModuleChecks.cs" />
+    <Compile Include="Analyzers\**\*.*" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -87,9 +84,6 @@
   <ItemGroup>
     <None Include="packages.config" />
   </ItemGroup>
-	<ItemGroup>
-        <AnalyzerSourceFiles Include="Analyzers\**\*.*"/>
-    </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
     <PostBuildEvent></PostBuildEvent>
@@ -99,7 +93,11 @@
   <Target Name="BeforeBuild">
   </Target>-->
   <Target Name="AfterBuild">
-  	<Copy SourceFiles="@(AnalyzerSourceFiles)" DestinationFiles="@(AnalyzerSourceFiles->'$(SolutionDir)DevAudit.CommandLine\bin\Debug\Analyzers\%(RecursiveDir)%(Filename)%(Extension)')" />
+    <Delete Files="$(SolutionDir)Analyzers\**\*.*"/>
+    <Delete Files="$(SolutionDir)DevAudit.CommandLine\bin\Debug\Analyzers\**\*.*"/>  
+    <RemoveDir Directories="$([System.IO.Directory]::GetDirectories(&quot;$(SolutionDir)Analyzers&quot;))" />
+    <RemoveDir Directories="$([System.IO.Directory]::GetDirectories(&quot;$(SolutionDir)DevAudit.CommandLine\bin\Debug\Analyzers&quot;))" />
+    <Copy SourceFiles="@(AnalyzerSourceFiles)" DestinationFiles="@(AnalyzerSourceFiles->'$(SolutionDir)DevAudit.CommandLine\bin\Debug\Analyzers\%(RecursiveDir)%(Filename)%(Extension)')" />
     <Copy SourceFiles="@(AnalyzerSourceFiles)" DestinationFiles="@(AnalyzerSourceFiles->'$(SolutionDir)Analyzers\%(RecursiveDir)%(Filename)%(Extension)')"/>	
   </Target>
 </Project>

@@ -195,10 +195,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Analyzers\Drupal8Module\BasicModuleChecks.cs" />
-    <Compile Include="Analyzers\NetFx\GendarmeRules.cs" />
-    <Compile Include="Analyzers\NetFx\WeakCrypto.cs" />
-    <Compile Include="Analyzers\Roslyn\SA1300ElementMustBeginWithUpperCaseLetterAnalyzer.cs" />
+    <Compile Include="Analyzers\**\*.*" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -214,15 +211,6 @@
   <ItemGroup>
     <Analyzer Include="..\packages\Microsoft.CodeAnalysis.Analyzers.1.1.0\analyzers\dotnet\cs\Microsoft.CodeAnalysis.Analyzers.dll" />
     <Analyzer Include="..\packages\Microsoft.CodeAnalysis.Analyzers.1.1.0\analyzers\dotnet\cs\Microsoft.CodeAnalysis.CSharp.Analyzers.dll" />
-  </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Analyzers\Drupal7\" />
-    <Folder Include="Analyzers\Drupal8\" />
-    <Folder Include="Analyzers\Httpd\" />
-    <Folder Include="Analyzers\MySQL\" />
-    <Folder Include="Analyzers\Nginx\" />
-    <Folder Include="Analyzers\PHP\" />
-    <Folder Include="Analyzers\SSHD\" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
