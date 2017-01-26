@@ -224,14 +224,6 @@
     <Folder Include="Analyzers\PHP\" />
     <Folder Include="Analyzers\SSHD\" />
   </ItemGroup>
-  <ItemGroup>
-    <AnalyzerSourceFiles Include="Analyzers\**\*.*" />
-    <FilesToClean Include="$(SolutionDir)Analyzers\**\*.*" />
-    <FilesToClean Include="$(SolutionDir)DevAudit.CommandLine\bin\Debug\Analyzers\**\*.*" />
-    <!-- Bit of .Net to get all folders and subfolders -->
-    <FoldersToClean Include="$([System.IO.Directory]::GetDirectories(&quot;$(SolutionDir)Analyzers&quot;))" />
-    <FoldersToClean Include="$([System.IO.Directory]::GetDirectories(&quot;$(SolutionDir)DevAudit.CommandLine\bin\Debug\Analyzers&quot;))" />
-  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
     <PostBuildEvent>
@@ -242,8 +234,10 @@
     <Target Name="BeforeBuild">
     </Target> -->
   <Target Name="AfterBuild">
-    <Delete Files="@(FilesToClean)"/>
-    <RemoveDir Directories="@(FoldersToClean)" />
+    <Delete Files="$(SolutionDir)Analyzers\**\*.*"/>
+    <Delete Files="$(SolutionDir)DevAudit.CommandLine\bin\Debug\Analyzers\**\*.*"/>  
+    <RemoveDir Directories="$([System.IO.Directory]::GetDirectories(&quot;$(SolutionDir)Analyzers&quot;))" />
+    <RemoveDir Directories="$([System.IO.Directory]::GetDirectories(&quot;$(SolutionDir)DevAudit.CommandLine\bin\Debug\Analyzers&quot;))" />
     <Copy SourceFiles="@(AnalyzerSourceFiles)" DestinationFiles="@(AnalyzerSourceFiles->'$(SolutionDir)DevAudit.CommandLine\bin\Debug\Analyzers\%(RecursiveDir)%(Filename)%(Extension)')" />
     <Copy SourceFiles="@(AnalyzerSourceFiles)" DestinationFiles="@(AnalyzerSourceFiles->'$(SolutionDir)Analyzers\%(RecursiveDir)%(Filename)%(Extension)')" />
   </Target>
