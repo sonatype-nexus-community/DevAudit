@@ -100,7 +100,9 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Analyzers\**\*.*" />
+    <Compile Include="Analyzers\AspNet\**\*.*" />
+    <Compile Include="Analyzers\NetFx\**\*.*" />
+    <Compile Include="Analyzers\Drupal8Module\**\*.*" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
