@@ -195,7 +195,6 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Analyzers\AspNet\WeakCrypto2.cs" />
     <Compile Include="Analyzers\Drupal8Module\BasicModuleChecks.cs" />
     <Compile Include="Analyzers\NetFx\GendarmeRules.cs" />
     <Compile Include="Analyzers\NetFx\WeakCrypto.cs" />
@@ -227,6 +226,11 @@
   </ItemGroup>
   <ItemGroup>
     <AnalyzerSourceFiles Include="Analyzers\**\*.*" />
+    <FilesToClean Include="$(SolutionDir)Analyzers\**\*.*" />
+    <FilesToClean Include="$(SolutionDir)DevAudit.CommandLine\bin\Debug\Analyzers\**\*.*" />
+    <!-- Bit of .Net to get all folders and subfolders -->
+    <FoldersToClean Include="$([System.IO.Directory]::GetDirectories(&quot;$(SolutionDir)Analyzers&quot;))" />
+    <FoldersToClean Include="$([System.IO.Directory]::GetDirectories(&quot;$(SolutionDir)DevAudit.CommandLine\bin\Debug\Analyzers&quot;))" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
@@ -235,9 +239,11 @@
   </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
-	<Target Name="BeforeBuild">
-  	</Target> -->
+    <Target Name="BeforeBuild">
+    </Target> -->
   <Target Name="AfterBuild">
+    <Delete Files="@(FilesToClean)"/>
+    <RemoveDir Directories="@(FoldersToClean)" />
     <Copy SourceFiles="@(AnalyzerSourceFiles)" DestinationFiles="@(AnalyzerSourceFiles->'$(SolutionDir)DevAudit.CommandLine\bin\Debug\Analyzers\%(RecursiveDir)%(Filename)%(Extension)')" />
     <Copy SourceFiles="@(AnalyzerSourceFiles)" DestinationFiles="@(AnalyzerSourceFiles->'$(SolutionDir)Analyzers\%(RecursiveDir)%(Filename)%(Extension)')" />
   </Target>
