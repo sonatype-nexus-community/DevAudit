@@ -31,34 +31,6 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-   <Reference Include="Alpheus.Core, Version=0.1.9.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Alpheus.0.1.9.0\lib\net45\Alpheus.Core.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="Gendarme.Framework, Version=2.11.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Gendarme.Framework.2.11.0.20121120\lib\net40\Gendarme.Framework.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="Mono.Cecil, Version=0.9.6.0, Culture=neutral, PublicKeyToken=0738eb9f132ed756, processorArchitecture=MSIL">
-      <HintPath>..\packages\Mono.Cecil.0.9.6.4\lib\net45\Mono.Cecil.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="Mono.Cecil.Mdb, Version=0.9.6.0, Culture=neutral, PublicKeyToken=0738eb9f132ed756, processorArchitecture=MSIL">
-      <HintPath>..\packages\Mono.Cecil.0.9.6.4\lib\net45\Mono.Cecil.Mdb.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="Mono.Cecil.Pdb, Version=0.9.6.0, Culture=neutral, PublicKeyToken=0738eb9f132ed756, processorArchitecture=MSIL">
-      <HintPath>..\packages\Mono.Cecil.0.9.6.4\lib\net45\Mono.Cecil.Pdb.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="Mono.Cecil.Rocks, Version=0.9.6.0, Culture=neutral, PublicKeyToken=0738eb9f132ed756, processorArchitecture=MSIL">
-      <HintPath>..\packages\Mono.Cecil.0.9.6.4\lib\net45\Mono.Cecil.Rocks.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="Sprache, Version=2.0.0.51, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Sprache.2.0.0.51\lib\portable-net4+netcore45+win8+wp8+sl5+MonoAndroid+Xamarin.iOS10+MonoTouch\Sprache.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="System.Data" />
@@ -100,12 +72,6 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Analyzers\AspNet\**\*.*" />
-    <Compile Include="Analyzers\NetFx\**\*.*" />
-    <Compile Include="Analyzers\Drupal8Module\**\*.*" />
-    <Compile Include="Properties\AssemblyInfo.cs" />
-  </ItemGroup>
-  <ItemGroup>
     <ProjectReference Include="..\DevAudit.AuditLibrary\DevAudit.AuditLibrary.Mono.csproj">
       <Project>{36f663f6-4b5c-441f-b11a-9cc556d1c1fe}</Project>
       <Name>DevAudit.AuditLibrary</Name>
@@ -118,6 +84,9 @@
   <PropertyGroup>
     <PostBuildEvent></PostBuildEvent>
   </PropertyGroup>
+  <ItemGroup>
+    <AnalyzerSourceFiles Include="Analyzers\**\*.*" />
+  </ItemGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
   <Target Name="BeforeBuild">
