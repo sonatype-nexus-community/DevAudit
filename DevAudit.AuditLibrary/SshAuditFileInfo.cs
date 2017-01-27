@@ -177,7 +177,7 @@ namespace DevAudit.AuditLibrary
                     }
                 }
             }
-            FileInfo lf = this.SshAuditEnvironment.GetFileAsLocal(this.FullName, this.CombinePaths(parent.FullName, this.FullName));
+            FileInfo lf = this.SshAuditEnvironment.GetFileAsLocal(this.FullName, this.CombinePaths(parent.FullName, this.Name));
             if (lf != null)
             {
                 return new LocalAuditFileInfo(this.AuditEnvironment.HostEnvironment, lf);

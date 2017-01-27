@@ -198,6 +198,9 @@
     <Compile Include="Analyzers\**\*.*" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
+    <ItemGroup>
+        <AnalyzerSourceFiles Include="Analyzers\**\*.*" />
+    </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\DevAudit.AuditLibrary\DevAudit.AuditLibrary.csproj">
       <Project>{36f663f6-4b5c-441f-b11a-9cc556d1c1fe}</Project>
