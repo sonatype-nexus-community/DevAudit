@@ -544,17 +544,17 @@ namespace DevAudit.AuditLibrary
                                 this.AddVulnerability(r.Package, r.Vulnerabilities);
                             }
                         }
-                    }
-                    catch (AggregateException ae)
+                    }            
+                    catch (Exception e)
                     {
-                        if (ae.InnerException != null && ae.InnerException is OSSIndexHttpException)
+                        if (e is OSSIndexHttpException)
                         {
-                            this.AuditEnvironment.Error(caller, ae, "An HTTP exception was thrown attempting to query the OSS Index API for the following {1} packages: {0}.",
+                            this.AuditEnvironment.Error(caller, e, "An HTTP error occured attempting to query the OSS Index API for the following {1} packages: {0}.",
                                 q.Select(query => query.Name).Aggregate((q1, q2) => q1 + "," + q2), this.PackageManagerLabel);
                         }
                         else
                         {
-                            this.AuditEnvironment.Error(caller, ae, "An exception was thrown attempting to query the OSS Index API for the following {1} packages: {0}.",
+                            this.AuditEnvironment.Error(caller, e, "An unknown exception was thrown attempting to query the OSS Index API for the following {1} packages: {0}.",
                                 q.Select(query => query.Name).Aggregate((q1, q2) => q1 + "," + q2), this.PackageManagerLabel);
 
                         }

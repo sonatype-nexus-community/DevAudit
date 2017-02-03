@@ -1230,12 +1230,18 @@ namespace DevAudit.CommandLine
 
         static void PrintErrorMessage(Exception e)
         {
-            PrintMessageLine(ConsoleColor.DarkRed, "Exception: {0}", e.Message);
-            PrintMessageLine(ConsoleColor.DarkRed, "Stack trace: {0}", e.StackTrace);
-
-            if (e.InnerException != null)
+            if (e is OSSIndexHttpException)
             {
-                PrintErrorMessage(e.InnerException);
+                HandleOSSIndexHttpException(e as OSSIndexHttpException);
+            }
+            else
+            {
+                PrintMessageLine(ConsoleColor.DarkRed, "Exception: {0}", e.Message);
+                PrintMessageLine(ConsoleColor.DarkRed, "Stack trace: {0}", e.StackTrace);
+                if (e.InnerException != null)
+                {
+                    PrintErrorMessage(e.InnerException);
+                }
             }
         }
 
@@ -1310,7 +1316,7 @@ namespace DevAudit.CommandLine
 
         static void HandleOSSIndexHttpException(Exception e)
         {
-            if (e.GetType() == typeof(OSSIndexHttpException))
+            if (e is OSSIndexHttpException)
             {
                 OSSIndexHttpException oe = (OSSIndexHttpException) e;
                 PrintErrorMessage("HTTP status: {0} {1} \nReason: {2}\nRequest:\n{3}", (int) oe.StatusCode, oe.StatusCode, oe.ReasonPhrase, oe.Request);
