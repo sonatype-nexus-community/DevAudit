@@ -17,8 +17,12 @@ namespace DevAudit.AuditLibrary
         public bool IsVulnerable;
         public string ModuleName;
         public string LocationDescription;
+        public int Severity;
+        public int Confidence;
         public List<Exception> Exceptions;
         public List<string> DiagnosticMessages;
+        public string Problem;
+        public string Resolution;
     }
     #endregion
 

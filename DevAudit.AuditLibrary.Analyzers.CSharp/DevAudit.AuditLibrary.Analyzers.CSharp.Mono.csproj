@@ -95,6 +95,7 @@
   <Target Name="BeforeBuild">
   </Target>-->
   <Target Name="AfterBuild">
+    <MakeDir Directories="$(SolutionDir)Analyzers" Condition="!Exists('$(SolutionDir)Analyzers')"/>
     <Delete Files="$(SolutionDir)Analyzers\**\*.*"/>
     <Delete Files="$(SolutionDir)DevAudit.CommandLine\bin\Debug\Analyzers\**\*.*"/>  
     <RemoveDir Directories="$([System.IO.Directory]::GetDirectories(&quot;$(SolutionDir)Analyzers&quot;))" />

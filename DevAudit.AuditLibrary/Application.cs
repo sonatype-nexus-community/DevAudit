@@ -410,7 +410,11 @@ namespace DevAudit.AuditLibrary
                 this.GetDefaultConfigurationRulesTask = Task.Run(() => this.GetDefaultConfigurationRules());
             }
 
-            if (this.ModulesInitialised && !string.IsNullOrEmpty(this.AnalyzerType))
+            if (this.ListPackages || this.ListArtifacts)
+            {
+                this.GetAnalyzersTask = Task.CompletedTask;
+            }
+            else if (this.ModulesInitialised && !string.IsNullOrEmpty(this.AnalyzerType))
             {
                 this.GetAnalyzersTask = Task.Run(() => this.GetAnalyzers());
             }
@@ -470,7 +474,11 @@ namespace DevAudit.AuditLibrary
                 this.EvaluateConfigurationRulesTask = Task.Run(() => this.EvaluateProjectConfigurationRules(), ct);
             }
 
-            if (this.AnalyzersInitialized)
+            if (this.ListPackages || this.ListArtifacts)
+            {
+                this.GetAnalyzersResultsTask = Task.CompletedTask;
+            }
+            else if (this.AnalyzersInitialized)
             {
                 this.GetAnalyzersResultsTask = Task.Run(() => this.GetAnalyzerResults());
             }

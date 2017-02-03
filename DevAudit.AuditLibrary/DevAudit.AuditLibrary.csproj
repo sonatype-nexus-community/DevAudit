@@ -448,6 +448,8 @@
   <Target Name="BeforeBuild">
   </Target> -->
   <Target Name="AfterBuild">
+    <MakeDir Directories="$(SolutionDir)Examples" Condition="!Exists('$(SolutionDir)Examples')"/>
+    <MakeDir Directories="$(SolutionDir)Rules" Condition="!Exists('$(SolutionDir)Rules')"/>
     <Delete Files="$(SolutionDir)Examples\**\*.*"/>
     <Delete Files="$(SolutionDir)Rules\**\*.*"/>
     <Delete Files="$(SolutionDir)DevAudit.CommandLine\bin\Debug\Rules\**\*.*"/>

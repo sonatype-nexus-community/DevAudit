@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using Alpheus;
 using Mono.Collections.Generic;
 using Mono.Cecil;
+using System.Threading;
 
 namespace DevAudit.AuditLibrary
 {
@@ -24,7 +25,7 @@ namespace DevAudit.AuditLibrary
                     this.NugetPackageSource = new NuGetPackageSource(new Dictionary<string, object>(1) { { "File", this.CombinePath((string)application_options["PackageSource"]) } },
                         message_handler);
                     this.PackageSourceInitialized = true;
-                    this.AuditEnvironment.Debug("Using NuGet v2 package manager configuration file {0}", (string)application_options["PackageSource"]);
+                    this.AuditEnvironment.Info("Using NuGet v2 package manager configuration file {0}", (string)application_options["PackageSource"]);
                 }
                 else
                 {
@@ -33,7 +34,7 @@ namespace DevAudit.AuditLibrary
                     {
                         this.NugetPackageSource = new NuGetPackageSource(new Dictionary<string, object>(1) { { "File", packages_config.FullName } }, message_handler);
                         this.PackageSourceInitialized = true;
-                        this.AuditEnvironment.Debug("Using NuGet v2 package manager configuration file {0}", packages_config.FullName);
+                        this.AuditEnvironment.Info("Using NuGet v2 package manager configuration file {0}", packages_config.FullName);
                     }
 
                     else
@@ -46,17 +47,16 @@ namespace DevAudit.AuditLibrary
             AuditFileInfo cf;
             if (this.ApplicationFileSystemMap.ContainsKey("AppConfig"))
             {
-                cf = this.ApplicationFileSystemMap["AppConfig"] as AuditFileInfo;
-                this.AppConfigFilePath = cf.FullName;
-                this.AuditEnvironment.Info("Using {0} configuration file {1}.", this.ApplicationLabel, this.AppConfigFilePath);
+                this.AppConfig = this.ApplicationFileSystemMap["AppConfig"] as AuditFileInfo;
+                this.AuditEnvironment.Info("Using {0} configuration file {1}.", this.ApplicationLabel, this.AppConfig.FullName);
             }
             else if (application_options.ContainsKey("AppConfig"))
             {
                 cf = this.AuditEnvironment.ConstructFile(this.CombinePath((string)application_options["AppConfig"]));
                 if (cf.Exists)
                 {
-                    this.AppConfigFilePath = cf.FullName;
-                    this.AuditEnvironment.Info("Using {0} configuration file {1}.", this.ApplicationLabel, this.AppConfigFilePath);
+                    this.AppConfig = cf;
+                    this.AuditEnvironment.Info("Using {0} configuration file {1}.", this.ApplicationLabel, this.AppConfig.FullName);
                 }
                 else throw new ArgumentException(string.Format("The configuration file {0} does not exist.", cf.FullName), "application_options");
             }
@@ -65,11 +65,17 @@ namespace DevAudit.AuditLibrary
                 cf = this.AuditEnvironment.ConstructFile(this.CombinePath((string)application_options["ConfigurationFile"]));
                 if (cf.Exists)
                 {
-                    this.AppConfigFilePath = cf.FullName;
-                    this.AuditEnvironment.Info("Using {0} configuration file {1}.", this.ApplicationLabel, this.AppConfigFilePath);
+                    this.AppConfig = cf;
+                    this.AuditEnvironment.Info("Using {0} configuration file {1}.", this.ApplicationLabel, this.AppConfig.FullName);
                 }
                 else throw new ArgumentException(string.Format("The configuration file {0} does not exist.", cf.FullName), "application_options");
 
+            }
+            else if(this.AuditEnvironment.FileExists(this.CombinePath("@App.config")))
+            {
+                cf = this.AuditEnvironment.ConstructFile(this.CombinePath(("@App.config")));
+                this.AppConfig = cf;
+                this.AuditEnvironment.Info("Using {0} configuration file {1}.", this.ApplicationLabel, this.AppConfig.FullName);
             }
             else if (this.ApplicationBinary != null)
             {
@@ -80,8 +86,8 @@ namespace DevAudit.AuditLibrary
                 }
                 else
                 {
-                    this.AppConfigFilePath = cf.FullName;
-                    this.AuditEnvironment.Info("Using {0} configuration file {1}.", this.ApplicationLabel, cf.FullName);
+                    this.AppConfig = cf;
+                    this.AuditEnvironment.Info("Using {0} configuration file {1}.", this.ApplicationLabel, this.AppConfig.FullName);
                 }
             }
             else
@@ -121,11 +127,28 @@ namespace DevAudit.AuditLibrary
         #endregion
 
         #region Overriden methods
+        public override Task GetPackagesTask(CancellationToken ct)
+        {
+            CallerInformation caller = this.AuditEnvironment.Here();
+            if (!this.PackageSourceInitialized)
+            {
+                this.PackagesTask = this.ArtifactsTask = this.VulnerabilitiesTask = this.EvaluateVulnerabilitiesTask = Task.CompletedTask;
+                this.Packages = new List<OSSIndexQueryObject>();
+            }
+            else
+            {
+                this.AuditEnvironment.Status("Scanning {0} packages.", this.PackageManagerLabel);
+                this.NugetPackageSource.GetPackagesTask(ct);
+                this.PackagesTask = this.NugetPackageSource.GetPackagesTask(ct).ContinueWith((t) => this.Packages = this.NugetPackageSource.Packages, TaskContinuationOptions.OnlyOnRanToCompletion);
+            }
+            return this.PackagesTask;
+        }
+
         public override IEnumerable<OSSIndexQueryObject> GetPackages(params string[] o)
         {
             if (this.PackageSourceInitialized)
             {
-                return this.NugetPackageSource.GetPackages(o);
+                return this.Packages = this.NugetPackageSource.GetPackages(o);
             }
             else
             {
@@ -198,10 +221,10 @@ namespace DevAudit.AuditLibrary
 
         protected override IConfiguration GetConfiguration()
         {
-            if (this.AppConfigFilePath == null) return null;//throw new InvalidOperationException("The application configuration file was not specified.");
+            if (this.AppConfig == null) return null;//throw new InvalidOperationException("The application configuration file was not specified.");
             Stopwatch sw = new Stopwatch();
             sw.Start();
-            XMLConfig config = new XMLConfig(this.AppConfigFilePath);
+            XMLConfig config = new XMLConfig(this.AppConfig);
             if (config.ParseSucceded)
             {
                 this.Configuration = config;
@@ -215,7 +238,7 @@ namespace DevAudit.AuditLibrary
                 this.Configuration = null;
                 this.ConfigurationInitialised = false;                
                 this.AuditEnvironment.Error("Failed to read configuration from {0}. Error: {1}. Time elapsed: {2} ms.",
-                    this.AppConfigFilePath, config.LastException.Message, sw.ElapsedMilliseconds);
+                    this.AppConfig, config.LastException.Message, sw.ElapsedMilliseconds);
             }
             return this.Configuration;
         }
@@ -244,7 +267,7 @@ namespace DevAudit.AuditLibrary
         #region Properties
         public NuGetPackageSource NugetPackageSource { get; protected set; }
 
-        public string AppConfigFilePath { get; protected set; }
+        public AuditFileInfo AppConfig { get; protected set; }
 
         public ModuleDefinition AppModuleDefinition { get; protected set; }
 
