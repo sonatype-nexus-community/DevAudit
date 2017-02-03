@@ -534,9 +534,9 @@ namespace DevAudit.AuditLibrary
             {
                 Task t = Task.Factory.StartNew(async (o) =>
                 {
-                    List<OSSIndexApiv2Result> results = await this.HttpClient.SearchVulnerabilitiesAsync(q, this.VulnerabilitiesResultsTransform);
                     try
-                    {
+                    { 
+                        List<OSSIndexApiv2Result> results = await this.HttpClient.SearchVulnerabilitiesAsync(q, this.VulnerabilitiesResultsTransform);
                         foreach (OSSIndexApiv2Result r in results)
                         {
                             if (r.Vulnerabilities != null && r.Vulnerabilities.Count > 0)
