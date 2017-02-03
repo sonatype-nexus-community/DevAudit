@@ -123,7 +123,7 @@ namespace DevAudit.AuditLibrary
 
         public override string PackageManagerLabel => this.NugetPackageSource?.PackageManagerLabel;
 
-        public override PackageSource PackageSource => this.NugetPackageSource;
+        public override PackageSource PackageSource => this as PackageSource;
         #endregion
 
         #region Overriden methods
@@ -132,8 +132,10 @@ namespace DevAudit.AuditLibrary
             CallerInformation caller = this.AuditEnvironment.Here();
             if (!this.PackageSourceInitialized)
             {
-                this.PackagesTask = this.ArtifactsTask = this.VulnerabilitiesTask = this.EvaluateVulnerabilitiesTask = Task.CompletedTask;
-                this.Packages = new List<OSSIndexQueryObject>();
+                //this.PackagesTask = Task.Run(() => this.Packages = this.ModulePackages["references"]);
+                //this.AuditEnvironment.Warning("No NuGet v2 package manager configuration file specified, using assembly references as packages.");
+                //this.PackageSourceInitialized = true;
+
             }
             else
             {

@@ -23,7 +23,7 @@ namespace DevAudit.AuditLibrary
 
         public override string ApplicationLabel { get; } = "ASP.NET";
 
-        public override PackageSource PackageSource => this.NugetPackageSource;
+        public override PackageSource PackageSource => this as PackageSource;
         #endregion
     }
 }

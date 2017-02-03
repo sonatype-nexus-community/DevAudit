@@ -535,12 +535,20 @@ namespace DevAudit.AuditLibrary
                 Task t = Task.Factory.StartNew(async (o) =>
                 {
                     List<OSSIndexApiv2Result> results = await this.HttpClient.SearchVulnerabilitiesAsync(q, this.VulnerabilitiesResultsTransform);
-                    foreach(OSSIndexApiv2Result r in results)
+                    try
                     {
-                        if (r.Vulnerabilities != null && r.Vulnerabilities.Count > 0)
+                        foreach (OSSIndexApiv2Result r in results)
                         {
-                            this.AddVulnerability(r.Package, r.Vulnerabilities);
+                            if (r.Vulnerabilities != null && r.Vulnerabilities.Count > 0)
+                            {
+                                this.AddVulnerability(r.Package, r.Vulnerabilities);
+                            }
                         }
+                    }
+                    catch (OSSIndexHttpException he)
+                    {
+                        this.AuditEnvironment.Error(caller, he, "An HTTP exception was thrown attempting to query the OSS Index API for the following {1} packages: {0}.", 
+                            q.Select(query => query.Name).Aggregate((q1, q2) => q1 + "," + q2), this.PackageManagerLabel);
                     }
                 }, i, CancellationToken.None, TaskCreationOptions.DenyChildAttach, TaskScheduler.Default).Unwrap();
                 tasks.Add(t);

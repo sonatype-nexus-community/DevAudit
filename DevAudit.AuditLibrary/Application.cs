@@ -320,12 +320,8 @@ namespace DevAudit.AuditLibrary
                 else throw;
             }
 
-            if (this.PackageSourceInitialized)
-            {
-                this.GetPackagesTask(ct);
-            }
-            else this.PackagesTask = Task.CompletedTask;
-
+            this.GetPackagesTask(ct);
+            
             if (this.ListPackages || this.ListArtifacts)
             {
                 this.GetConfigurationTask = Task.CompletedTask;
@@ -456,13 +452,13 @@ namespace DevAudit.AuditLibrary
                 }
             }
 
-            if (this.ListPackages || this.ListArtifacts || this.ListConfigurationRules || (this.PackageVulnerabilities.Count == 0 && this.ProjectVulnerabilities.Count == 0))
+            if (this.ListPackages || this.ListArtifacts || this.ListConfigurationRules || this.Vulnerabilities.Count == 0)
             { 
                 this.EvaluateVulnerabilitiesTask = Task.CompletedTask;
             }
             else
             {
-                this.EvaluateVulnerabilitiesTask = Task.WhenAll(Task.Run(() => this.EvaluateProjectVulnerabilities(), ct), Task.Run(() => this.EvaluatePackageVulnerabilities(), ct));
+                this.EvaluateVulnerabilitiesTask = Task.Run(() => this.EvaluateVulnerabilities(), ct);
             }
 
             if (this.ListConfigurationRules)
@@ -636,6 +632,11 @@ namespace DevAudit.AuditLibrary
             CSScript.CacheEnabled = false; //Script caching is broken on Mono: https://github.com/oleg-shilo/cs-script/issues/10
             CSScript.KeepCompilingHistory = true;
             DirectoryInfo analyzers_dir = new DirectoryInfo(Path.Combine("Analyzers", this.AnalyzerType));
+            if (!analyzers_dir.Exists)
+            {
+                this.AnalyzersInitialized = false;
+                return;
+            }
             this.AnalyzerScripts = analyzers_dir.GetFiles("*.cs", SearchOption.AllDirectories).ToList();
             foreach (FileInfo f in this.AnalyzerScripts)
             {
