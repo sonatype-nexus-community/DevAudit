@@ -554,7 +554,7 @@ namespace DevAudit.AuditLibrary
                         }
                         else
                         {
-                            this.AuditEnvironment.Error(caller, e, "An unknown exception was thrown attempting to query the OSS Index API for the following {1} packages: {0}.",
+                            this.AuditEnvironment.Error(caller, e, "An error occurred attempting to query the OSS Index API for the following {1} packages: {0}.",
                                 q.Select(query => query.Name).Aggregate((q1, q2) => q1 + "," + q2), this.PackageManagerLabel);
 
                         }
@@ -568,7 +568,7 @@ namespace DevAudit.AuditLibrary
             }
             catch (AggregateException ae)
             {
-                this.AuditEnvironment.Error(caller, ae, "Exception thrown waiting for http task to complete in {0}.", ae.InnerException.TargetSite.Name);
+                this.AuditEnvironment.Error(caller, ae, "Exception thrown waiting for SearchVulnerabilitiesAsync task to complete in {0}.", ae.InnerException.TargetSite.Name);
             }
             finally
             {

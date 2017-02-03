@@ -48,6 +48,15 @@ namespace DevAudit.AuditLibrary
             this.Message = string.Format("Exception occurred.");
             this.Exception = e;
         }
+
+        public EnvironmentEventArgs(Exception e)
+        {
+            this.CurrentThread = Thread.CurrentThread;
+            this.MessageType = EventMessageType.ERROR;
+            this.Message = string.Format("Exception occurred.");
+            this.Exception = e;
+        }
+
         public EnvironmentEventArgs(OperationProgress p)
         {
             this.CurrentThread = Thread.CurrentThread;

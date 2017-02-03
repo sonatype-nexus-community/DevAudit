@@ -227,14 +227,12 @@ namespace DevAudit.AuditLibrary
 
         internal void Error(Exception e)
         {
-            OnMessage(new EnvironmentEventArgs(EventMessageType.ERROR, "Exception: {0} at {1}.", 
-                new object[2] { e.Message, e.StackTrace }));
+            OnMessage(new EnvironmentEventArgs(e));
         }
 
         internal void Error(CallerInformation caller, Exception e)
         {
-            OnMessage(new EnvironmentEventArgs(caller, EventMessageType.ERROR, "Exception: {0} at {1}.",
-                new object[2] { e.Message, e.StackTrace }));
+            OnMessage(new EnvironmentEventArgs(caller, e));
         }
 
         internal void Error(Exception e, string message_format, params object[] message)
