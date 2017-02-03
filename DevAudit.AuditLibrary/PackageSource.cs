@@ -545,10 +545,19 @@ namespace DevAudit.AuditLibrary
                             }
                         }
                     }
-                    catch (OSSIndexHttpException he)
+                    catch (AggregateException ae)
                     {
-                        this.AuditEnvironment.Error(caller, he, "An HTTP exception was thrown attempting to query the OSS Index API for the following {1} packages: {0}.", 
-                            q.Select(query => query.Name).Aggregate((q1, q2) => q1 + "," + q2), this.PackageManagerLabel);
+                        if (ae.InnerException != null && ae.InnerException is OSSIndexHttpException)
+                        {
+                            this.AuditEnvironment.Error(caller, ae, "An HTTP exception was thrown attempting to query the OSS Index API for the following {1} packages: {0}.",
+                                q.Select(query => query.Name).Aggregate((q1, q2) => q1 + "," + q2), this.PackageManagerLabel);
+                        }
+                        else
+                        {
+                            this.AuditEnvironment.Error(caller, ae, "An exception was thrown attempting to query the OSS Index API for the following {1} packages: {0}.",
+                                q.Select(query => query.Name).Aggregate((q1, q2) => q1 + "," + q2), this.PackageManagerLabel);
+
+                        }
                     }
                 }, i, CancellationToken.None, TaskCreationOptions.DenyChildAttach, TaskScheduler.Default).Unwrap();
                 tasks.Add(t);
