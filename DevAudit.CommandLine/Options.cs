@@ -33,15 +33,21 @@ namespace DevAudit.CommandLine
         [VerbOption("composer", HelpText = "Audit PHP Composer packages. Use the --file option to specify a particular composer.json file otherwise the one in the current directory will be used.")]
         public Options AuditComposer { get; set; }
 
-        [VerbOption("dpkg", HelpText = "Audit dpkg packages on Linux. The packages are scanned from the system dpkg repository.")]
-        public Options AuditDpkg { get; set; }
+        /* Disabled -- insufficient server support
+         * [VerbOption("dpkg", HelpText = "Audit dpkg packages on Linux. The packages are scanned from the system dpkg repository.")]
+         * public Options AuditDpkg { get; set; }
+         */
 
-        [VerbOption("rpm", HelpText = "Audit rpm packages on Linux. The packages are scanned from the system rpm repository.")]
-        public Options AuditRpm { get; set; }
+        /* Disabled -- insufficient server support
+         * [VerbOption("rpm", HelpText = "Audit rpm packages on Linux. The packages are scanned from the system rpm repository.")]
+         * public Options AuditRpm { get; set; }
+         */
 
-        [VerbOption("yum", HelpText = "Audit yum packages on Linux. The packages are scanned from the system rpm repository.")]
-        public Options AuditYum { get; set; }
-
+        /* Disabled -- insufficient server support
+         * [VerbOption("yum", HelpText = "Audit yum packages on Linux. The packages are scanned from the system rpm repository.")]
+         * public Options AuditYum { get; set; }
+         */
+        
         [VerbOption("drupal8", HelpText = "Audit a Drupal 8 application instance. Use the -r option to specify the root directory of the Drupal 8 instance, otherwise the current directory will be used.")]
         public Options AuditDrupal8 { get; set; }
 
@@ -170,7 +176,7 @@ namespace DevAudit.CommandLine
         [Option("cache-dump", Required = false, HelpText = "Cache Dump - projects and vulnearabilities will be cached for the number of minutes specified here.")]
         public bool CacheDump { get; set; }
         */
-        #endregion
+#endregion
 
         [ParserState]
         public IParserState LastParserState { get; set; }
