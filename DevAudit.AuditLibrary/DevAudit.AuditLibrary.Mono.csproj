@@ -250,7 +250,7 @@
     <Compile Include="LocalAuditDirectoryInfo.cs" />
     <Compile Include="LocalAuditFileInfo.cs" />
     <Compile Include="CodeProject.cs" />
-    <Compile Include="Projects\AspNetCodeProject.cs" />
+    <Compile Include="Projects\ASPNETCodeProject.cs" />
     <Compile Include="Projects\NetFxCodeProject.cs" />
     <Compile Include="ScriptEnvironment.cs" />
     <Compile Include="SshAuditFileInfo.cs" />
@@ -296,8 +296,6 @@
     <Compile Include="DockerAuditEnvironment.cs" />
     <Compile Include="DockerAuditFileInfo.cs" />
     <Compile Include="DockerAuditDirectoryInfo.cs" />
-    <Compile Include="PackageSource\RpmPackageSource.cs" />
-    <Compile Include="PackageSource\YumPackageSource.cs" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Configurations\" />
