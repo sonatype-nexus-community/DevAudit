@@ -250,7 +250,7 @@
     <Compile Include="LocalAuditDirectoryInfo.cs" />
     <Compile Include="LocalAuditFileInfo.cs" />
     <Compile Include="CodeProject.cs" />
-    <Compile Include="Projects\ASPNETCodeProject.cs" />
+    <Compile Include="Projects\AspNetCodeProject.cs" />
     <Compile Include="Projects\NetFxCodeProject.cs" />
     <Compile Include="ScriptEnvironment.cs" />
     <Compile Include="SshAuditFileInfo.cs" />
@@ -278,6 +278,8 @@
     <Compile Include="PackageSource\ChocolateyPackageSource.cs" />
     <Compile Include="PackageSource\ComposerPackageSource.cs" />
     <Compile Include="PackageSource\DpkgPackageSource.cs" />
+    <Compile Include="PackageSource\RpmPackageSource.cs" />
+    <Compile Include="PackageSource\YumPackageSource.cs" />
     <Compile Include="PackageSource\MSIPackageSource.cs" />
     <Compile Include="PackageSource\NuGetPackageSource.cs" />
     <Compile Include="PackageSource\OneGetPackageSource.cs" />
