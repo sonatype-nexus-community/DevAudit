@@ -56,8 +56,8 @@
     <Reference Include="Microsoft.Build.Engine" />
     <Reference Include="Microsoft.Build.Framework" />
     <Reference Include="System.ComponentModel.Composition" />
-    <Reference Include="Alpheus.Core, Version=0.1.8.5, Culture=neutral, PublicKeyToken=null">
-      <HintPath>..\packages\Alpheus.0.1.8.5\lib\net45\Alpheus.Core.dll</HintPath>
+    <Reference Include="Alpheus.Core, Version=0.1.9.0, Culture=neutral, PublicKeyToken=null">
+      <HintPath>..\packages\Alpheus.0.1.9.0\lib\net45\Alpheus.Core.dll</HintPath>
     </Reference>
     <Reference Include="CSharpTest.Net.BPlusTree, Version=2.14.126.467, Culture=neutral, PublicKeyToken=06aee00cce822474">
       <HintPath>..\packages\CSharpTest.Net.BPlusTree.2.14.126.467\lib\net45\CSharpTest.Net.BPlusTree.dll</HintPath>
@@ -195,8 +195,8 @@
     <Reference Include="Newtonsoft.Json, Version=9.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed">
       <HintPath>..\packages\Newtonsoft.Json.9.0.1\lib\net45\Newtonsoft.Json.dll</HintPath>
     </Reference>
-    <Reference Include="SharpCompress, Version=0.13.1.0, Culture=neutral, PublicKeyToken=null">
-      <HintPath>..\packages\sharpcompress.0.13.1\lib\net45\SharpCompress.dll</HintPath>
+    <Reference Include="SharpCompress, Version=0.14.1.0, Culture=neutral, PublicKeyToken=null">
+      <HintPath>..\packages\sharpcompress.0.14.1\lib\net45\SharpCompress.dll</HintPath>
     </Reference>
     <Reference Include="Sprache, Version=2.0.0.51, Culture=neutral, PublicKeyToken=null">
       <HintPath>..\packages\Sprache.2.0.0.51\lib\portable-net4+netcore45+win8+wp8+sl5+MonoAndroid+Xamarin.iOS10+MonoTouch\Sprache.dll</HintPath>
@@ -278,6 +278,8 @@
     <Compile Include="PackageSource\ChocolateyPackageSource.cs" />
     <Compile Include="PackageSource\ComposerPackageSource.cs" />
     <Compile Include="PackageSource\DpkgPackageSource.cs" />
+    <Compile Include="PackageSource\RpmPackageSource.cs" />
+    <Compile Include="PackageSource\YumPackageSource.cs" />
     <Compile Include="PackageSource\MSIPackageSource.cs" />
     <Compile Include="PackageSource\NuGetPackageSource.cs" />
     <Compile Include="PackageSource\OneGetPackageSource.cs" />
@@ -294,8 +296,6 @@
     <Compile Include="DockerAuditEnvironment.cs" />
     <Compile Include="DockerAuditFileInfo.cs" />
     <Compile Include="DockerAuditDirectoryInfo.cs" />
-    <Compile Include="PackageSource\RpmPackageSource.cs" />
-    <Compile Include="PackageSource\YumPackageSource.cs" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Configurations\" />
@@ -333,9 +333,6 @@
     <Delete Files="$(SolutionDir)Examples\**\*.*"/>
     <Delete Files="$(SolutionDir)Rules\**\*.*"/>
     <Delete Files="$(SolutionDir)DevAudit.CommandLine\bin\Debug\Rules\**\*.*"/>
-    <RemoveDir Directories="$([System.IO.Directory]::GetDirectories(&quot;$(SolutionDir)Examples&quot;))" />
-    <RemoveDir Directories="$([System.IO.Directory]::GetDirectories(&quot;$(SolutionDir)Rules&quot;))" />
-    <RemoveDir Directories="$([System.IO.Directory]::GetDirectories(&quot;$(SolutionDir)DevAudit.CommandLine\bin\Debug\Rules&quot;))" />
     <Copy SourceFiles="@(Examples)" DestinationFiles="@(Examples-&gt;'$(SolutionDir)Examples\%(RecursiveDir)%(Filename)%(Extension)')" />
     <Copy SourceFiles="@(Rules)" DestinationFiles="@(Rules-&gt;'$(SolutionDir)Rules\%(RecursiveDir)%(Filename)%(Extension)')" />
     <Copy SourceFiles="@(Rules)" DestinationFiles="@(Rules->'$(SolutionDir)DevAudit.CommandLine\bin\Debug\Rules\%(RecursiveDir)%(Filename)%(Extension)')" />
