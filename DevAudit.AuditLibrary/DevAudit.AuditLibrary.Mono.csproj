@@ -57,7 +57,7 @@
     <Reference Include="Microsoft.Build.Framework" />
     <Reference Include="System.ComponentModel.Composition" />
     <Reference Include="Alpheus.Core, Version=0.1.8.5, Culture=neutral, PublicKeyToken=null">
-      <HintPath>..\packages\Alpheus.0.1.8.5\lib\net45\Alpheus.Core.dll</HintPath>
+      <HintPath>..\packages\Alpheus.0.1.9.0\lib\net45\Alpheus.Core.dll</HintPath>
     </Reference>
     <Reference Include="CSharpTest.Net.BPlusTree, Version=2.14.126.467, Culture=neutral, PublicKeyToken=06aee00cce822474">
       <HintPath>..\packages\CSharpTest.Net.BPlusTree.2.14.126.467\lib\net45\CSharpTest.Net.BPlusTree.dll</HintPath>
