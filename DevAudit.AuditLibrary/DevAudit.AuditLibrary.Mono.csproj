@@ -333,9 +333,6 @@
     <Delete Files="$(SolutionDir)Examples\**\*.*"/>
     <Delete Files="$(SolutionDir)Rules\**\*.*"/>
     <Delete Files="$(SolutionDir)DevAudit.CommandLine\bin\Debug\Rules\**\*.*"/>
-    <RemoveDir Directories="$([System.IO.Directory]::GetDirectories(&quot;$(SolutionDir)Examples&quot;))" />
-    <RemoveDir Directories="$([System.IO.Directory]::GetDirectories(&quot;$(SolutionDir)Rules&quot;))" />
-    <RemoveDir Directories="$([System.IO.Directory]::GetDirectories(&quot;$(SolutionDir)DevAudit.CommandLine\bin\Debug\Rules&quot;))" />
     <Copy SourceFiles="@(Examples)" DestinationFiles="@(Examples-&gt;'$(SolutionDir)Examples\%(RecursiveDir)%(Filename)%(Extension)')" />
     <Copy SourceFiles="@(Rules)" DestinationFiles="@(Rules-&gt;'$(SolutionDir)Rules\%(RecursiveDir)%(Filename)%(Extension)')" />
     <Copy SourceFiles="@(Rules)" DestinationFiles="@(Rules->'$(SolutionDir)DevAudit.CommandLine\bin\Debug\Rules\%(RecursiveDir)%(Filename)%(Extension)')" />
