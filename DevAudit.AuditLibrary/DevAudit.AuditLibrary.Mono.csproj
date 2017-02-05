@@ -51,7 +51,7 @@
     <Reference Include="System.Data" />
     <Reference Include="System.Net.Http" />
     <Reference Include="System.Xml" />
-    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="Mono.CSharp" />
     <Reference Include="Microsoft.Build" />
     <Reference Include="Microsoft.Build.Engine" />
     <Reference Include="Microsoft.Build.Framework" />
@@ -226,6 +226,10 @@
       <HintPath>..\packages\YamlDotNet.3.9.0\lib\net35\YamlDotNet.dll</HintPath>
     </Reference>
   </ItemGroup>
+<ItemGroup>
+    <None Include="app.config" />
+    <None Include="packages.config" />
+</ItemGroup>
   <ItemGroup>
     <Compile Include="DevAuditGendarmeRunner.cs" />
     <Compile Include="ByteCodeAnalyzer.cs" />
