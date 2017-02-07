@@ -138,12 +138,12 @@ namespace DevAudit.AuditLibrary
         public override Task GetPackagesTask(CancellationToken ct)
         {
             CallerInformation caller = this.AuditEnvironment.Here();
-            if (!this.PackageSourceInitialized)
+            if (this.SkipPackagesAudit)
             {
                 //this.PackagesTask = Task.Run(() => this.Packages = this.ModulePackages["references"]);
                 //this.AuditEnvironment.Warning("No NuGet v2 package manager configuration file specified, using assembly references as packages.");
                 //this.PackageSourceInitialized = true;
-
+                this.PackagesTask = Task.CompletedTask;
             }
             else
             {
@@ -283,5 +283,59 @@ namespace DevAudit.AuditLibrary
 
         public AssemblyDefinition AppAssemblyDefinition { get; protected set; }
         #endregion
+
+        #region Fields
+        private bool IsDisposed = false;
+        #endregion
+
+        #region Disposer and Finalizer
+        protected override void Dispose(bool isDisposing)
+        {
+            try
+            {
+                if (!this.IsDisposed)
+                {
+                    // Explicitly set root references to null to expressly tell the GarbageCollector 
+                    // that the resources have been disposed of and its ok to release the memory 
+                    // allocated for them.
+
+                    if (isDisposing)
+                    {
+                        // Release all managed resources here 
+                        // Need to unregister/detach yourself from the events. Always make sure 
+                        // the object is not null first before trying to unregister/detach them! 
+                        // Failure to unregister can be a BIG source of memory leaks 
+                        //if (someDisposableObjectWithAnEventHandler != null)
+                        //{ someDisposableObjectWithAnEventHandler.SomeEvent -= someDelegate; 
+                        //someDisposableObjectWithAnEventHandler.Dispose(); 
+                        //someDisposableObjectWithAnEventHandler = null; } 
+                        // If this is a WinForm/UI control, uncomment this code 
+                        //if (components != null) //{ // components.Dispose(); //} } 
+                        if (this.NugetPackageSource != null)
+                        {
+                            this.NugetPackageSource.Dispose();
+                            this.NugetPackageSource = null;
+                        }
+                    }
+                    
+                }
+            }
+            catch (Exception)
+            {
+                
+            }
+            finally
+            {
+                this.IsDisposed = true;
+            }
+            base.Dispose(isDisposing);
+        }
+
+        ~NetFx4Application()
+        {
+            this.Dispose(false);
+        }
+        #endregion
+
     }
 }

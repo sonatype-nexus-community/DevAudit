@@ -88,58 +88,6 @@ namespace DevAudit.AuditLibrary
         #endregion
 
         #region Overriden methods
-        protected override void Dispose(bool isDisposing)
-        {
-            try
-            {
-                if (!this.IsDisposed)
-                {
-                    // Explicitly set root references to null to expressly tell the GarbageCollector 
-                    // that the resources have been disposed of and its ok to release the memory 
-                    // allocated for them.
-
-                    if (isDisposing)
-                    {
-                        // Release all managed resources here 
-                        // Need to unregister/detach yourself from the events. Always make sure 
-                        // the object is not null first before trying to unregister/detach them! 
-                        // Failure to unregister can be a BIG source of memory leaks 
-                        //if (someDisposableObjectWithAnEventHandler != null)
-                        //{ someDisposableObjectWithAnEventHandler.SomeEvent -= someDelegate; 
-                        //someDisposableObjectWithAnEventHandler.Dispose(); 
-                        //someDisposableObjectWithAnEventHandler = null; } 
-                        // If this is a WinForm/UI control, uncomment this code 
-                        //if (components != null) //{ // components.Dispose(); //} } 
-                        // Release all unmanaged resources here 
-                        // (example) if (someComObject != null && Marshal.IsComObject(someComObject)) { Marshal.FinalReleaseComObject(someComObject); someComObject = null; 
-                        if (!ReferenceEquals(this.SshClient, null))
-                        {
-                            this.SshClient.HostKeyReceived -= SshClient_HostKeyReceived;
-                            this.SshClient.ErrorOccurred -= SshClient_ErrorOccurred;
-                            this.SshClient.Dispose();
-                            this.SshClient = null;
-                        }
-                        if (this.WorkDirectory != null)
-                        {
-                            if (this.WorkDirectory.Exists)
-                            {
-                                this.WorkDirectory.Delete(true);
-                            }
-                        }
-                    }
-                }
-            }
-            catch (Exception e)
-            {
-                Error("Exception thrown during disposal of Ssh audit environment.", e);
-            }
-            finally
-            {
-                this.IsDisposed = true;
-            }
-
-        }
-
         public override AuditFileInfo ConstructFile(string file_path)
         {
             return new SshAuditFileInfo(this, file_path);
@@ -252,7 +200,7 @@ namespace DevAudit.AuditLibrary
 
         #endregion
 
-        #region Public properties
+        #region Properties
         public string HostName { get; private set; }
         public string User { get; private set; }
         public bool UsePageant { get; private set; }
@@ -263,7 +211,7 @@ namespace DevAudit.AuditLibrary
         public int NetworkConnectTimeout { get; private set; } = 3000;
         #endregion
 
-        #region Public methods
+        #region Methods
         public FileInfo GetFileAsLocal(string remote_path, string local_path)
         {
             CallerInformation here = this.Here();
@@ -387,9 +335,7 @@ namespace DevAudit.AuditLibrary
             }
             return r;
         }
-        #endregion
-
-        #region Internal methods
+       
         internal ScpClient CreateScpClient([CallerMemberName] string memberName = "", [CallerFilePath] string fileName = "", [CallerLineNumber] int lineNumber = 0)
         {
             CallerInformation caller = new CallerInformation(memberName, fileName, lineNumber);
@@ -439,10 +385,6 @@ namespace DevAudit.AuditLibrary
             Debug(caller, "Destroyed SCP connection to {0}.", this.HostName);
         }
 
-        
-        #endregion
-
-        #region Private methods
         public void InitialisePlinkSesion(string host_name, string user, object pass, OperatingSystem os)
         {
             this.HostName = host_name;
@@ -698,7 +640,7 @@ namespace DevAudit.AuditLibrary
         }
         #endregion
 
-        #region Private fields
+        #region Fields
         ExpectNet.Session SshSession { get; set; }
         SshClient SshClient;
         object pass;
@@ -707,7 +649,66 @@ namespace DevAudit.AuditLibrary
         Action<IResult> FileNotFound;
         Action<IResult> DirectoryFound;
         Action<IResult> DirectoryNotFound;
-        private bool IsDisposed;
+        private bool IsDisposed = false;
+        #endregion
+
+        #region Disposer and Finalizer
+        protected override void Dispose(bool isDisposing)
+        {
+            try
+            {
+                if (!this.IsDisposed)
+                {
+                    // Explicitly set root references to null to expressly tell the GarbageCollector 
+                    // that the resources have been disposed of and its ok to release the memory 
+                    // allocated for them.
+
+                    if (isDisposing)
+                    {
+                        // Release all managed resources here 
+                        // Need to unregister/detach yourself from the events. Always make sure 
+                        // the object is not null first before trying to unregister/detach them! 
+                        // Failure to unregister can be a BIG source of memory leaks 
+                        //if (someDisposableObjectWithAnEventHandler != null)
+                        //{ someDisposableObjectWithAnEventHandler.SomeEvent -= someDelegate; 
+                        //someDisposableObjectWithAnEventHandler.Dispose(); 
+                        //someDisposableObjectWithAnEventHandler = null; } 
+                        // If this is a WinForm/UI control, uncomment this code 
+                        //if (components != null) //{ // components.Dispose(); //} } 
+                        if (!ReferenceEquals(this.SshClient, null))
+                        {
+                            this.SshClient.HostKeyReceived -= SshClient_HostKeyReceived;
+                            this.SshClient.ErrorOccurred -= SshClient_ErrorOccurred;
+                            this.SshClient.Dispose();
+                            this.SshClient = null;
+                        }
+                    }
+                    // Release all unmanaged resources here 
+                    // (example) if (someComObject != null && Marshal.IsComObject(someComObject)) { Marshal.FinalReleaseComObject(someComObject); someComObject = null; 
+                    if (this.WorkDirectory != null)
+                    {
+                        if (this.WorkDirectory.Exists)
+                        {
+                            this.WorkDirectory.Delete(true);
+                        }
+                    }
+                }
+            }
+            catch (Exception e)
+            {
+                Error("Exception thrown during disposal of Ssh audit environment.", e);
+            }
+            finally
+            {
+                this.IsDisposed = true;
+            }
+            base.Dispose(isDisposing);
+        }
+
+        ~SshAuditEnvironment()
+        {
+            this.Dispose(false);
+        }
         #endregion
     }
 }

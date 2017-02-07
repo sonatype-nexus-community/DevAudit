@@ -162,7 +162,7 @@ namespace DevAudit.AuditLibrary
         public bool UseAsyncMethods { get; private set; } = false;                
         #endregion
 
-        #region Disposer
+        #region Disposer and Finalizer
         private bool IsDisposed { get; set; }
         /// <summary> 
         /// /// Implementation of Dispose according to .NET Framework Design Guidelines. 
@@ -204,8 +204,6 @@ namespace DevAudit.AuditLibrary
                         //someDisposableObjectWithAnEventHandler = null; } 
                         // If this is a WinForm/UI control, uncomment this code 
                         //if (components != null) //{ // components.Dispose(); //} } 
-                        // Release all unmanaged resources here 
-                        // (example) if (someComObject != null && Marshal.IsComObject(someComObject)) { Marshal.FinalReleaseComObject(someComObject); someComObject = null; 
 
                         foreach (Delegate d in this.AuditEnvironmentMessage.GetInvocationList())
                         {
@@ -228,12 +226,19 @@ namespace DevAudit.AuditLibrary
                             this.HostEnvironment = null;
                         }
                     }
+                    // Release all unmanaged resources here 
+                    // (example) if (someComObject != null && Marshal.IsComObject(someComObject)) { Marshal.FinalReleaseComObject(someComObject); someComObject = null; 
                 }
             }
             finally
             {
                 this.IsDisposed = true;
             }
+        }
+
+        ~AuditTarget()
+        {
+            Dispose(false);
         }
         #endregion
 

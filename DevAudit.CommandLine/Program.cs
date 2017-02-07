@@ -416,11 +416,7 @@ namespace DevAudit.CommandLine
                 {
                     PrintPackageSourceAuditResults(ar, out Exit);
                 }
-
-                if (Source != null)
-                {
-                    Source.Dispose();
-                }
+                Source.Dispose();
             }
 
             else if (CodeProject == null && Server == null && Application != null) //Auditing an application
@@ -439,10 +435,11 @@ namespace DevAudit.CommandLine
                     }
                     PrintApplicationAuditResults(aar, out Exit);
                 }
-                if (Application != null)
+                if (Source != null)
                 {
-                    Application.Dispose();
+                    Source.Dispose();
                 }
+                Application.Dispose();
             }
             else if (CodeProject == null && Server != null) //Auditing server
             {
@@ -461,10 +458,11 @@ namespace DevAudit.CommandLine
 
                     PrintApplicationAuditResults(aar, out Exit);
                 }
-                if (Server != null)
+                if (Source != null)
                 {
-                    Server.Dispose();
+                    Source.Dispose();
                 }
+                Server.Dispose();
             }
             else if (CodeProject != null && Server == null) //auditing code project
             {
@@ -488,11 +486,15 @@ namespace DevAudit.CommandLine
 
                     PrintCodeProjectAuditResults(cpar, out Exit);
                 }
-                
-                if (CodeProject != null)
+                if (Source != null)
                 {
-                    CodeProject.Dispose();
+                    Source.Dispose();
                 }
+                if (Application != null)
+                {
+                    Application.Dispose();
+                }
+                CodeProject.Dispose();
             }
             #endregion
 
