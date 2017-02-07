@@ -463,7 +463,7 @@ namespace DevAudit.CommandLine
                 }
                 if (Server != null)
                 {
-                    //Server.Dispose();
+                    Server.Dispose();
                 }
             }
             else if (CodeProject != null && Server == null) //auditing code project

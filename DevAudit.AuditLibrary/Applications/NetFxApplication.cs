@@ -22,17 +22,25 @@ namespace DevAudit.AuditLibrary
             {
                 if (application_options.ContainsKey("PackageSource"))
                 {
-                    this.NugetPackageSource = new NuGetPackageSource(new Dictionary<string, object>(1) { { "File", this.CombinePath((string)application_options["PackageSource"]) } },
-                        message_handler);
+                    application_options.Add("File", this.CombinePath((string)application_options["PackageSource"]));
+                    this.NugetPackageSource = new NuGetPackageSource(application_options, message_handler);
                     this.PackageSourceInitialized = true;
                     this.AuditEnvironment.Info("Using NuGet v2 package manager configuration file {0}", (string)application_options["PackageSource"]);
+                }
+                else if (application_options.ContainsKey("File"))
+                {
+                    application_options.Add("File", this.CombinePath((string)application_options["File"]));
+                    this.NugetPackageSource = new NuGetPackageSource(application_options, message_handler);
+                    this.PackageSourceInitialized = true;
+                    this.AuditEnvironment.Info("Using NuGet v2 package manager configuration file {0}", (string)application_options["File"]);
                 }
                 else
                 {
                     AuditFileInfo packages_config = this.AuditEnvironment.ConstructFile(this.CombinePath("@packages.config"));
                     if (packages_config.Exists)
                     {
-                        this.NugetPackageSource = new NuGetPackageSource(new Dictionary<string, object>(1) { { "File", packages_config.FullName } }, message_handler);
+                        application_options.Add("File", packages_config.FullName);
+                        this.NugetPackageSource = new NuGetPackageSource(application_options, message_handler);
                         this.PackageSourceInitialized = true;
                         this.AuditEnvironment.Info("Using NuGet v2 package manager configuration file {0}", packages_config.FullName);
                     }

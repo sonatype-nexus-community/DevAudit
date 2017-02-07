@@ -75,6 +75,7 @@ namespace DevAudit.AuditLibrary
             if (!this.WorkDirectory.Exists)
             {
                 this.WorkDirectory.Create();
+                this.WorkDirectory.Refresh();
                 Debug("Created work directory {0}.", this.WorkDirectory.FullName);
             }
             Info("Using work directory: {0}.", this.WorkDirectory.FullName);
