@@ -145,6 +145,10 @@ namespace DevAudit.AuditLibrary
                 //this.PackageSourceInitialized = true;
                 this.PackagesTask = Task.CompletedTask;
             }
+            else if (!this.PackageSourceInitialized)
+            {
+                return Task.CompletedTask;
+            }
             else
             {
                 this.AuditEnvironment.Status("Scanning {0} packages.", this.PackageManagerLabel);

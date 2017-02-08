@@ -19,27 +19,36 @@ namespace DevAudit.AuditLibrary
         #region Constructors
         public DockerizedLocalEnvironment(EventHandler<EnvironmentEventArgs> message_handler) : base(message_handler)
         {
-            if (!Directory.Exists("/hostroot"))
+            if (Directory.Exists("/hostroot"))
             {
-                throw new Exception(string.Format("The host root directory is not mounted on the DevAudit Docker image at {0}.", "/hostroot"));
-            }           
+                this.HostRootIsMounted = true;
+                //throw new Exception(string.Format("The host root directory is not mounted on the DevAudit Docker image at {0}.", "/hostroot"));
+            }  
+            else
+            {
+                this.Warning("The Docker host root directory is not mounted on the DevAudit Docker image at /hostroot so no chroot for executables is possible.");
+            }         
         }
         #endregion
 
         #region Overriden methods
         public override AuditDirectoryInfo ConstructDirectory(string dir_path)
         {
-            return base.ConstructDirectory("/hostroot" + dir_path);
+            return this.HostRootIsMounted ? base.ConstructDirectory("/hostroot" + dir_path) : base.ConstructDirectory(dir_path);
         }
 
         public override AuditFileInfo ConstructFile(string file_path)
         {
-            return base.ConstructFile("/hostroot" + file_path);
+            return this.HostRootIsMounted ? base.ConstructFile("/hostroot" + file_path) : base.ConstructFile(file_path);
         }
 
         public override bool Execute(string command, string arguments,
             out ProcessExecuteStatus process_status, out string process_output, out string process_error, Action<string> OutputDataReceived = null, Action<string> OutputErrorReceived = null, [CallerMemberName] string memberName = "", [CallerFilePath] string fileName = "", [CallerLineNumber] int lineNumber = 0)
         {
+            if (!HostRootIsMounted)
+            {
+                throw new InvalidOperationException("The Docker host root directory is not mounted at /hostroot so chroot for executables is not possible.\n Mount the host root using the the -v /:/hostroot:ro docker run  option.");
+            }
 
             if (command.Contains("/hostroot"))
             {
@@ -47,11 +56,15 @@ namespace DevAudit.AuditLibrary
             }
             if (arguments.Contains("/hostroot"))
             {
-                arguments = arguments.Replace("/hostroor", string.Empty);
+                arguments = arguments.Replace("/hostroot", string.Empty);
             }
 
             return base.Execute("chroot /hostroot" + command, arguments, out process_status, out process_output, out process_error);
         }
+        #endregion
+
+        #region Properties
+        public bool HostRootIsMounted { get; private set; }
         #endregion
     }
 }
