@@ -303,6 +303,9 @@
     <Compile Include="DockerAuditEnvironment.cs" />
     <Compile Include="DockerAuditFileInfo.cs" />
     <Compile Include="DockerAuditDirectoryInfo.cs" />
+    <Compile Include="DockerizedLocalEnvironment.cs" />
+    <Compile Include="DockerizedLocalAuditFileInfo.cs" />
+    <Compile Include="DockerizedLocalAuditDirectoryInfo.cs" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Configurations\" />
