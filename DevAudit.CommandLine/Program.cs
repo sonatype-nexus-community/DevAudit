@@ -165,9 +165,9 @@ namespace DevAudit.CommandLine
             {
                 audit_options.Add("OnlyLocalRules", ProgramOptions.OnlyLocalRules);
             }
-            if (ProgramOptions.ListCodeProjectAnalyzers)
+            if (ProgramOptions.ListAnalyzers)
             {
-                audit_options.Add("ListCodeProjectAnalyzers", ProgramOptions.ListCodeProjectAnalyzers);
+                audit_options.Add("ListCodeProjectAnalyzers", ProgramOptions.ListAnalyzers);
             }
             if (!string.IsNullOrEmpty(ProgramOptions.File))
             {
@@ -565,7 +565,7 @@ namespace DevAudit.CommandLine
                     return;
                 }
             }
-            if (ProgramOptions.SkipPackagesAudit || ProgramOptions.ListConfigurationRules || ProgramOptions.ListCodeProjectAnalyzers)
+            if (ProgramOptions.SkipPackagesAudit || ProgramOptions.ListConfigurationRules || ProgramOptions.ListAnalyzers)
             {
                 return;
             }
