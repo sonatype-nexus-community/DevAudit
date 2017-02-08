@@ -147,7 +147,7 @@ namespace DevAudit.AuditLibrary
             }
             else if (!this.PackageSourceInitialized)
             {
-                return Task.CompletedTask;
+                return this.PackagesTask = Task.CompletedTask;
             }
             else
             {
