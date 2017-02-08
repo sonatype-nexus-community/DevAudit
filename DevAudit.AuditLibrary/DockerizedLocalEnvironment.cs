@@ -29,22 +29,22 @@ namespace DevAudit.AuditLibrary
         #region Overriden methods
         public override AuditDirectoryInfo ConstructDirectory(string dir_path)
         {
-            return base.ConstructDirectory(Path.Combine("/hostroot/", dir_path));
+            return base.ConstructDirectory("/hostroot" + dir_path);
         }
 
         public override AuditFileInfo ConstructFile(string file_path)
         {
-            return base.ConstructFile(Path.Combine("/hostroot/", file_path));
+            return base.ConstructFile("/hostroot" + file_path);
         }
 
         public override bool FileExists(string file_path)
         {
-            return base.FileExists(Path.Combine("/hostroot/", file_path));
+            return base.FileExists("/hostroot" + file_path);
         }
 
         public override bool DirectoryExists(string dir_path)
         {
-            return base.DirectoryExists(Path.Combine("/hostroot/", dir_path));
+            return base.DirectoryExists("/hostroot" + dir_path);
         }
         public override bool Execute(string command, string arguments,
             out ProcessExecuteStatus process_status, out string process_output, out string process_error, Action<string> OutputDataReceived = null, Action<string> OutputErrorReceived = null, [CallerMemberName] string memberName = "", [CallerFilePath] string fileName = "", [CallerLineNumber] int lineNumber = 0)
@@ -54,7 +54,7 @@ namespace DevAudit.AuditLibrary
 
         public override Dictionary<AuditFileInfo, string> ReadFilesAsText (List<AuditFileInfo> files)
         {
-            List<AuditFileInfo> f2 = files.Select(f => this.ConstructFile(Path.Combine("/hostroot", f.FullName))).ToList();
+            List<AuditFileInfo> f2 = files.Select(f => this.ConstructFile("/hostroot" + f.FullName)).ToList();
             return base.ReadFilesAsText(f2);
         }
 

@@ -13,7 +13,7 @@ namespace DevAudit.AuditLibrary
     public class DockerizedLocalAuditFileInfo : LocalAuditFileInfo
     {
         #region Constructors
-        public DockerizedLocalAuditFileInfo(DockerizedLocalEnvironment env, string file_path) : base(env, Path.Combine("/hostroot", file_path)){}
+        public DockerizedLocalAuditFileInfo(DockerizedLocalEnvironment env, string file_path) : base(env, "/hostroot" + file_path){}
         #endregion
 
 
