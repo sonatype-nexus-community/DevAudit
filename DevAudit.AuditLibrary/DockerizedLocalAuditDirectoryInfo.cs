@@ -12,7 +12,7 @@ namespace DevAudit.AuditLibrary
     public class DockerizedLocalAuditDirectoryInfo : LocalAuditDirectoryInfo
     {
         #region Constructors
-        public DockerizedLocalAuditDirectoryInfo(DockerizedLocalEnvironment env, string path) : base(env, "/hostroot" + path) {}
+        public DockerizedLocalAuditDirectoryInfo(DockerizedLocalEnvironment env, string path) : base(env, path) {}
         #endregion
         
     }

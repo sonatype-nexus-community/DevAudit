@@ -27,6 +27,26 @@ namespace DevAudit.AuditLibrary
         #endregion
 
         #region Overriden methods
+        public override AuditDirectoryInfo ConstructDirectory(string dir_path)
+        {
+            return base.ConstructDirectory("/hostroot" + dir_path);
+        }
+
+        public override AuditFileInfo ConstructFile(string file_path)
+        {
+            return base.ConstructFile("/hostroot" + file_path);
+        }
+
+        public override bool FileExists(string file_path)
+        {
+            return base.FileExists("/hostroot" + file_path);
+        }
+
+        public override bool DirectoryExists(string dir_path)
+        {
+            return base.DirectoryExists("/hostroot" + dir_path);
+        }
+
         public override bool Execute(string command, string arguments,
             out ProcessExecuteStatus process_status, out string process_output, out string process_error, Action<string> OutputDataReceived = null, Action<string> OutputErrorReceived = null, [CallerMemberName] string memberName = "", [CallerFilePath] string fileName = "", [CallerLineNumber] int lineNumber = 0)
         {
