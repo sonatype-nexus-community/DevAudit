@@ -19,18 +19,10 @@ namespace DevAudit.AuditLibrary
         #region Constructors
         public DockerizedLocalEnvironment(EventHandler<EnvironmentEventArgs> message_handler) : base(message_handler)
         {
-            if (this.IsDockerized)
+            if (!Directory.Exists("/hostroot"))
             {
-                if (!Directory.Exists("/hostroot"))
-                {
-                    throw new Exception(string.Format("The host root directory is not mounted on the DevAudit Docker image at {0}.", "/hostroot"));
-                }
-            }
-            else
-            {
-                throw new InvalidOperationException("This environment can only be used when DevAudit is running as a Docker image.");
-            }
-
+                throw new Exception(string.Format("The host root directory is not mounted on the DevAudit Docker image at {0}.", "/hostroot"));
+            }           
         }
         #endregion
 
