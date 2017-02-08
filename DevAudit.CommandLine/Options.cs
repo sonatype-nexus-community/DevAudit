@@ -129,10 +129,10 @@ namespace DevAudit.CommandLine
         [Option("list-rules", Required = false, HelpText = "Only list the configuration rules found for the application or application server.")]
         public bool ListConfigurationRules { get; set; }
 
-        [Option("list-analyzers", Required = false, HelpText = "Only list the analyzers found for the code project.")]
-        public bool ListCodeProjectAnalyzers { get; set; }
-
-        [Option("skip-packages-audit", Required = false, HelpText = "Skip the package audit for applications or application servers.")]
+        [Option("list-analyzers", Required = false, HelpText = "Only list the analyzers found for the application or code project.")]
+        public bool ListAnalyzers { get; set; }
+        
+        [Option("skip-packages-audit", Required = false, HelpText = "Skip the package audit for the application or application server.")]
         public bool SkipPackagesAudit { get; set; }
 
         [Option("only-local-rules", Required = false, HelpText = "Only use the configuration rules for the application or application server listed in YAML rules files.")]

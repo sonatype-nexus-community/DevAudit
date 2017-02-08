@@ -565,7 +565,7 @@ namespace DevAudit.CommandLine
                     return;
                 }
             }
-            if (ProgramOptions.SkipPackagesAudit || ProgramOptions.ListConfigurationRules)
+            if (ProgramOptions.SkipPackagesAudit || ProgramOptions.ListConfigurationRules || ProgramOptions.ListCodeProjectAnalyzers)
             {
                 return;
             }
