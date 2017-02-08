@@ -34,12 +34,22 @@ namespace DevAudit.AuditLibrary
         #region Overriden methods
         public override AuditDirectoryInfo ConstructDirectory(string dir_path)
         {
-            return this.HostRootIsMounted ? base.ConstructDirectory("/hostroot" + dir_path) : base.ConstructDirectory(dir_path);
+            return this.HostRootIsMounted ? base.ConstructDirectory(Path.Combine("/hostroot", dir_path)) : base.ConstructDirectory(dir_path);
         }
 
         public override AuditFileInfo ConstructFile(string file_path)
         {
-            return this.HostRootIsMounted ? base.ConstructFile("/hostroot" + file_path) : base.ConstructFile(file_path);
+            return this.HostRootIsMounted ? base.ConstructFile(Path.Combine("/hostroot", file_path)) : base.ConstructFile(file_path);
+        }
+
+        public override bool FileExists(string file_path)
+        {
+            return this.HostRootIsMounted ? File.Exists(Path.Combine("/hostroot", file_path)) : File.Exists(file_path);
+        }
+
+        public override bool DirectoryExists(string dir_path)
+        {
+            return this.HostRootIsMounted ? Directory.Exists(Path.Combine("/hostroot", dir_path)) : Directory.Exists(dir_path);
         }
 
         public override bool Execute(string command, string arguments,
@@ -59,7 +69,7 @@ namespace DevAudit.AuditLibrary
                 arguments = arguments.Replace("/hostroot", string.Empty);
             }
 
-            return base.Execute("chroot /hostroot" + command, arguments, out process_status, out process_output, out process_error);
+            return base.Execute("chroot", " /hostroot "+ command + " " + arguments, out process_status, out process_output, out process_error);
         }
         #endregion
 
