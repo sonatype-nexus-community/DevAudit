@@ -46,12 +46,14 @@ namespace DevAudit.AuditLibrary
 
         public override bool FileExists(string file_path)
         {
+            file_path = file_path.Replace("/hostroot", string.Empty);
             return this.HostRootIsMounted ? File.Exists("/hostroot" + (file_path.StartsWith(this.PathSeparator) ? file_path : this.PathSeparator + file_path)) : 
                 File.Exists(file_path);
         }
 
         public override bool DirectoryExists(string dir_path)
         {
+            dir_path = dir_path.Replace("/hostroot", string.Empty);
             return this.HostRootIsMounted ? Directory.Exists("/hostroot" + (dir_path.StartsWith(this.PathSeparator) ? dir_path : this.PathSeparator + dir_path)) : 
                 Directory.Exists(dir_path);
         }
