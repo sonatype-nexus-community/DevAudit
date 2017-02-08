@@ -40,15 +40,18 @@ namespace DevAudit.AuditLibrary
         public override bool Execute(string command, string arguments,
             out ProcessExecuteStatus process_status, out string process_output, out string process_error, Action<string> OutputDataReceived = null, Action<string> OutputErrorReceived = null, [CallerMemberName] string memberName = "", [CallerFilePath] string fileName = "", [CallerLineNumber] int lineNumber = 0)
         {
-            return base.Execute("chroot", "/hostroot " + command + " " + arguments, out process_status, out process_output, out process_error);
-        }
 
-        public override Dictionary<AuditFileInfo, string> ReadFilesAsText (List<AuditFileInfo> files)
-        {
-            List<AuditFileInfo> f2 = files.Select(f => this.ConstructFile("/hostroot" + f.FullName)).ToList();
-            return base.ReadFilesAsText(f2);
-        }
+            if (command.Contains("/hostroot"))
+            {
+                command = command.Replace("/hostroot", string.Empty);
+            }
+            if (arguments.Contains("/hostroot"))
+            {
+                arguments = arguments.Replace("/hostroor", string.Empty);
+            }
 
+            return base.Execute("chroot /hostroot" + command, arguments, out process_status, out process_output, out process_error);
+        }
         #endregion
     }
 }
