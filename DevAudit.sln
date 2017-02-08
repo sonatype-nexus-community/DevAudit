@@ -21,6 +21,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		devaudit-docker.sh = devaudit-docker.sh
 		devaudit.cmd = devaudit.cmd
 		devaudit.mono.cmd = devaudit.mono.cmd
+		Dockerfile = Dockerfile
 		NuGet.config = NuGet.config
 	EndProjectSection
 EndProject

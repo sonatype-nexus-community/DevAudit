@@ -86,6 +86,10 @@ namespace DevAudit.CommandLine
             }
             #endregion
 
+            if (!string.IsNullOrEmpty(Environment.GetEnvironmentVariable("DOCKER")))
+            {
+                audit_options.Add("Dockerized", true);
+            }
             if (!string.IsNullOrEmpty(ProgramOptions.Docker))
             {
                 audit_options.Add("DockerContainer", ProgramOptions.Docker);
@@ -167,7 +171,7 @@ namespace DevAudit.CommandLine
             }
             if (ProgramOptions.ListAnalyzers)
             {
-                audit_options.Add("ListCodeProjectAnalyzers", ProgramOptions.ListAnalyzers);
+                audit_options.Add("ListAnalyzers", ProgramOptions.ListAnalyzers);
             }
             if (!string.IsNullOrEmpty(ProgramOptions.File))
             {
@@ -201,6 +205,11 @@ namespace DevAudit.CommandLine
             if (!string.IsNullOrEmpty(ProgramOptions.ApplicationBinary))
             {
                 audit_options.Add("ApplicationBinary", ProgramOptions.ApplicationBinary);
+            }
+
+            if (!string.IsNullOrEmpty(ProgramOptions.ApplicationVersion))
+            {
+                audit_options.Add("ApplicationVersion", ProgramOptions.ApplicationVersion);
             }
 
             if (!string.IsNullOrEmpty(ProgramOptions.ProjectName))

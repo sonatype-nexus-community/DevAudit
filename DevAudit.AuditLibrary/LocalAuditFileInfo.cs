@@ -116,7 +116,7 @@ namespace DevAudit.AuditLibrary
 
         public override LocalAuditFileInfo GetAsLocalFile()
         {
-            return this;
+            throw new NotImplementedException();
         }
 
         public override Task<LocalAuditFileInfo> GetAsLocalFileAsync()

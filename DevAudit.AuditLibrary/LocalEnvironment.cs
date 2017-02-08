@@ -152,6 +152,7 @@ namespace DevAudit.AuditLibrary
 
         #region Public properties
         public ScriptEnvironment ScriptEnvironment { get; protected set; }
+        public bool IsDockerized { get; internal set; }
         #endregion
 
     }

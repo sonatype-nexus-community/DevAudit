@@ -325,6 +325,7 @@
     <Compile Include="Applications\AspNetApplication.cs" />
     <Compile Include="Applications\NetFxApplication.cs" />
     <Compile Include="DockerAuditDirectoryInfo.cs" />
+    <Compile Include="DockerizedLocalEnvironment.cs" />
     <Compile Include="DockerAuditEnvironment.cs" />
     <Compile Include="DockerAuditFileInfo.cs" />
     <Compile Include="OSSIndexApiv2Result.cs" />
@@ -349,6 +350,8 @@
     <Compile Include="Projects\AspNetCodeProject.cs" />
     <Compile Include="Projects\NetFxCodeProject.cs" />
     <Compile Include="ScriptEnvironment.cs" />
+    <Compile Include="DockerizedLocalAuditFileInfo.cs" />
+    <Compile Include="DockerizedLocalAuditDirectoryInfo.cs" />
     <Compile Include="SshAuditFileInfo.cs" />
     <Compile Include="SshAuditDirectoryInfo.cs" />
     <Compile Include="AuditEnvironment.cs" />
@@ -448,11 +451,11 @@
   <Target Name="BeforeBuild">
   </Target> -->
   <Target Name="AfterBuild">
-    <MakeDir Directories="$(SolutionDir)Examples" Condition="!Exists('$(SolutionDir)Examples')"/>
-    <MakeDir Directories="$(SolutionDir)Rules" Condition="!Exists('$(SolutionDir)Rules')"/>
-    <Delete Files="$(SolutionDir)Examples\**\*.*"/>
-    <Delete Files="$(SolutionDir)Rules\**\*.*"/>
-    <Delete Files="$(SolutionDir)DevAudit.CommandLine\bin\Debug\Rules\**\*.*"/>
+    <MakeDir Directories="$(SolutionDir)Examples" Condition="!Exists('$(SolutionDir)Examples')" />
+    <MakeDir Directories="$(SolutionDir)Rules" Condition="!Exists('$(SolutionDir)Rules')" />
+    <Delete Files="$(SolutionDir)Examples\**\*.*" />
+    <Delete Files="$(SolutionDir)Rules\**\*.*" />
+    <Delete Files="$(SolutionDir)DevAudit.CommandLine\bin\Debug\Rules\**\*.*" />
     <RemoveDir Directories="$([System.IO.Directory]::GetDirectories(&quot;$(SolutionDir)Examples&quot;))" />
     <RemoveDir Directories="$([System.IO.Directory]::GetDirectories(&quot;$(SolutionDir)Rules&quot;))" />
     <RemoveDir Directories="$([System.IO.Directory]::GetDirectories(&quot;$(SolutionDir)DevAudit.CommandLine\bin\Debug\Rules&quot;))" />

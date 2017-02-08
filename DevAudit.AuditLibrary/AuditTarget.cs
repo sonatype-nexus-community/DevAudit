@@ -120,6 +120,13 @@ namespace DevAudit.AuditLibrary
             {
                 throw new Exception("A remote host name must be specified.");
             }
+            else if (this.AuditOptions.ContainsKey("Dockerized"))
+            {
+                this.AuditEnvironmentMessage = AuditTarget_AuditEnvironmentMessageHandler;
+                this.AuditEnvironment = new DockerizedLocalEnvironment(this.AuditEnvironmentMessage);
+                this.AuditEnvironmentIntialised = true;
+            }
+            
             else
             {
                 this.AuditEnvironmentMessage = AuditTarget_AuditEnvironmentMessageHandler;
@@ -155,6 +162,7 @@ namespace DevAudit.AuditLibrary
 
         #region Properties
         public Dictionary<string, object> AuditOptions { get; set; } = new Dictionary<string, object>();
+        public bool IsDockerized { get; protected set; }
         public LocalEnvironment HostEnvironment { get; protected set; }
         public AuditEnvironment AuditEnvironment { get; protected set; }
         public bool HostEnvironmentInitialised { get; private set; } = false;
