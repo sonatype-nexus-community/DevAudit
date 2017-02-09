@@ -39,12 +39,12 @@ mysql:
 
     -   id: 4
         title:  The SHOW DATABASES command is enabled
-        xpathtest: not(boolean(/MySQL/mysqld/skip-show-database='0'))
+        xpathtest: not(boolean(/MySQL/mysqld/skip-show-database='1'))
         summary: |
            The “SHOW DATABASES” MySQL command can be used by potential attackers to gather information about all your databases. 
            Unless it is needed by your application this command should be disabled. 
         resolution: |
-            Add the following directive to the [mysqld] section of your MySQL configuration file: skip-show-database=0
+            Add the following directive to the [mysqld] section of your MySQL configuration file: skip-show-database=1
         urls:
             -   http://www.hexatier.com/mysql-database-security-best-practices-2/
 
