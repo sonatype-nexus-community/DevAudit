@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -26,7 +27,7 @@ namespace DevAudit.AuditLibrary
             else
             {
                 string fn = this.AuditEnvironment.OS.Platform == PlatformID.Unix || this.AuditEnvironment.OS.Platform == PlatformID.MacOSX
-                ? CombinePath("@", "usr", "bin", "mysql") : CombinePath("@", "bin", "mysql.exe");
+                ? CombinePath("@", "usr", "bin", "mysqld") : CombinePath("@", "bin", "mysqld.exe");
                 if (!this.AuditEnvironment.FileExists(fn))
                 {
                     throw new ArgumentException(string.Format("The server binary for MySQL was not specified and the default file path {0} does not exist.", fn));
@@ -62,14 +63,18 @@ namespace DevAudit.AuditLibrary
 
         protected override string GetVersion()
         {
+            Stopwatch sw = new Stopwatch();
+            sw.Start();
             AuditEnvironment.ProcessExecuteStatus process_status;
             string process_output;
             string process_error;
             AuditEnvironment.Execute(this.ApplicationBinary.FullName, "-V", out process_status, out process_output, out process_error);
+            sw.Stop();
             if (process_status == AuditEnvironment.ProcessExecuteStatus.Completed)
             {
                 this.Version = process_output.Substring(process_output.IndexOf("Ver"));
                 this.VersionInitialised = true;
+                this.AuditEnvironment.Success("Got {0} version {1} in {2} ms.", this.ApplicationLabel, this.Version, sw.ElapsedMilliseconds);
                 return this.Version;
             }
             else
