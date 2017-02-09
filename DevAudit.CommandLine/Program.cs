@@ -207,11 +207,6 @@ namespace DevAudit.CommandLine
                 audit_options.Add("ApplicationBinary", ProgramOptions.ApplicationBinary);
             }
 
-            if (!string.IsNullOrEmpty(ProgramOptions.ApplicationVersion))
-            {
-                audit_options.Add("ApplicationVersion", ProgramOptions.ApplicationVersion);
-            }
-
             if (!string.IsNullOrEmpty(ProgramOptions.ProjectName))
             {
                 audit_options.Add("ProjectName", ProgramOptions.ProjectName);
