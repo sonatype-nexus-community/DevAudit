@@ -22,12 +22,12 @@ namespace DevAudit.AuditLibrary
         {
             if (this.ApplicationBinary != null)
             {
-                this.ApplicationFileSystemMap["mysql"] = this.ApplicationBinary;
+                this.ApplicationFileSystemMap["mysqld"] = this.ApplicationBinary;
             }
             else
             {
                 string fn = this.AuditEnvironment.OS.Platform == PlatformID.Unix || this.AuditEnvironment.OS.Platform == PlatformID.MacOSX
-                ? CombinePath("@", "usr", "bin", "mysqld") : CombinePath("@", "bin", "mysqld.exe");
+                ? CombinePath("@", "usr", "sbin", "mysqld") : CombinePath("@", "bin", "mysqld.exe");
                 if (!this.AuditEnvironment.FileExists(fn))
                 {
                     throw new ArgumentException(string.Format("The server binary for MySQL was not specified and the default file path {0} does not exist.", fn));
@@ -35,7 +35,7 @@ namespace DevAudit.AuditLibrary
                 else
                 {
                     this.ApplicationBinary = this.AuditEnvironment.ConstructFile(fn);
-                    this.ApplicationFileSystemMap["mysql"] = this.ApplicationBinary;
+                    this.ApplicationFileSystemMap["mysqld"] = this.ApplicationBinary;
                 }
             }
         }
@@ -72,7 +72,7 @@ namespace DevAudit.AuditLibrary
             sw.Stop();
             if (process_status == AuditEnvironment.ProcessExecuteStatus.Completed)
             {
-                this.Version = process_output.Substring(process_output.IndexOf("Ver"));
+                this.Version = process_output.Substring(process_output.IndexOf("Ver") + 4);
                 this.VersionInitialised = true;
                 this.AuditEnvironment.Success("Got {0} version {1} in {2} ms.", this.ApplicationLabel, this.Version, sw.ElapsedMilliseconds);
                 return this.Version;
@@ -113,6 +113,5 @@ namespace DevAudit.AuditLibrary
             return vulnerability_version == package_version;
         }
         #endregion
-
     }
 }
