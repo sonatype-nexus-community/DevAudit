@@ -121,7 +121,7 @@ namespace DevAudit.AuditLibrary
 
         public override Task<LocalAuditFileInfo> GetAsLocalFileAsync()
         {
-            throw new NotImplementedException();
+            return Task.FromResult<LocalAuditFileInfo>(this);
         }
         #endregion
 

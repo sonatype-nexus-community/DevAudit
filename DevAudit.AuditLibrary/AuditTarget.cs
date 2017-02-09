@@ -120,6 +120,13 @@ namespace DevAudit.AuditLibrary
             {
                 throw new Exception("A remote host name must be specified.");
             }
+            else if (this.AuditOptions.ContainsKey("Dockerized"))
+            {
+                this.AuditEnvironmentMessage = AuditTarget_AuditEnvironmentMessageHandler;
+                this.AuditEnvironment = new DockerizedLocalEnvironment(this.AuditEnvironmentMessage);
+                this.AuditEnvironmentIntialised = true;
+            }
+            
             else
             {
                 this.AuditEnvironmentMessage = AuditTarget_AuditEnvironmentMessageHandler;
@@ -155,6 +162,7 @@ namespace DevAudit.AuditLibrary
 
         #region Properties
         public Dictionary<string, object> AuditOptions { get; set; } = new Dictionary<string, object>();
+        public bool IsDockerized { get; protected set; }
         public LocalEnvironment HostEnvironment { get; protected set; }
         public AuditEnvironment AuditEnvironment { get; protected set; }
         public bool HostEnvironmentInitialised { get; private set; } = false;
@@ -162,7 +170,7 @@ namespace DevAudit.AuditLibrary
         public bool UseAsyncMethods { get; private set; } = false;                
         #endregion
 
-        #region Disposer
+        #region Disposer and Finalizer
         private bool IsDisposed { get; set; }
         /// <summary> 
         /// /// Implementation of Dispose according to .NET Framework Design Guidelines. 
@@ -204,8 +212,6 @@ namespace DevAudit.AuditLibrary
                         //someDisposableObjectWithAnEventHandler = null; } 
                         // If this is a WinForm/UI control, uncomment this code 
                         //if (components != null) //{ // components.Dispose(); //} } 
-                        // Release all unmanaged resources here 
-                        // (example) if (someComObject != null && Marshal.IsComObject(someComObject)) { Marshal.FinalReleaseComObject(someComObject); someComObject = null; 
 
                         foreach (Delegate d in this.AuditEnvironmentMessage.GetInvocationList())
                         {
@@ -228,12 +234,19 @@ namespace DevAudit.AuditLibrary
                             this.HostEnvironment = null;
                         }
                     }
+                    // Release all unmanaged resources here 
+                    // (example) if (someComObject != null && Marshal.IsComObject(someComObject)) { Marshal.FinalReleaseComObject(someComObject); someComObject = null; 
                 }
             }
             finally
             {
                 this.IsDisposed = true;
             }
+        }
+
+        ~AuditTarget()
+        {
+            Dispose(false);
         }
         #endregion
 

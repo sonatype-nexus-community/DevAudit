@@ -22,17 +22,25 @@ namespace DevAudit.AuditLibrary
             {
                 if (application_options.ContainsKey("PackageSource"))
                 {
-                    this.NugetPackageSource = new NuGetPackageSource(new Dictionary<string, object>(1) { { "File", this.CombinePath((string)application_options["PackageSource"]) } },
-                        message_handler);
+                    application_options.Add("File", this.CombinePath((string)application_options["PackageSource"]));
+                    this.NugetPackageSource = new NuGetPackageSource(application_options, message_handler);
                     this.PackageSourceInitialized = true;
                     this.AuditEnvironment.Info("Using NuGet v2 package manager configuration file {0}", (string)application_options["PackageSource"]);
+                }
+                else if (application_options.ContainsKey("File"))
+                {
+                    application_options.Add("File", this.CombinePath((string)application_options["File"]));
+                    this.NugetPackageSource = new NuGetPackageSource(application_options, message_handler);
+                    this.PackageSourceInitialized = true;
+                    this.AuditEnvironment.Info("Using NuGet v2 package manager configuration file {0}", (string)application_options["File"]);
                 }
                 else
                 {
                     AuditFileInfo packages_config = this.AuditEnvironment.ConstructFile(this.CombinePath("@packages.config"));
                     if (packages_config.Exists)
                     {
-                        this.NugetPackageSource = new NuGetPackageSource(new Dictionary<string, object>(1) { { "File", packages_config.FullName } }, message_handler);
+                        application_options.Add("File", packages_config.FullName);
+                        this.NugetPackageSource = new NuGetPackageSource(application_options, message_handler);
                         this.PackageSourceInitialized = true;
                         this.AuditEnvironment.Info("Using NuGet v2 package manager configuration file {0}", packages_config.FullName);
                     }
@@ -130,12 +138,16 @@ namespace DevAudit.AuditLibrary
         public override Task GetPackagesTask(CancellationToken ct)
         {
             CallerInformation caller = this.AuditEnvironment.Here();
-            if (!this.PackageSourceInitialized)
+            if (this.SkipPackagesAudit)
             {
                 //this.PackagesTask = Task.Run(() => this.Packages = this.ModulePackages["references"]);
                 //this.AuditEnvironment.Warning("No NuGet v2 package manager configuration file specified, using assembly references as packages.");
                 //this.PackageSourceInitialized = true;
-
+                this.PackagesTask = Task.CompletedTask;
+            }
+            else if (!this.PackageSourceInitialized)
+            {
+                return this.PackagesTask = Task.CompletedTask;
             }
             else
             {
@@ -275,5 +287,59 @@ namespace DevAudit.AuditLibrary
 
         public AssemblyDefinition AppAssemblyDefinition { get; protected set; }
         #endregion
+
+        #region Fields
+        private bool IsDisposed = false;
+        #endregion
+
+        #region Disposer and Finalizer
+        protected override void Dispose(bool isDisposing)
+        {
+            try
+            {
+                if (!this.IsDisposed)
+                {
+                    // Explicitly set root references to null to expressly tell the GarbageCollector 
+                    // that the resources have been disposed of and its ok to release the memory 
+                    // allocated for them.
+
+                    if (isDisposing)
+                    {
+                        // Release all managed resources here 
+                        // Need to unregister/detach yourself from the events. Always make sure 
+                        // the object is not null first before trying to unregister/detach them! 
+                        // Failure to unregister can be a BIG source of memory leaks 
+                        //if (someDisposableObjectWithAnEventHandler != null)
+                        //{ someDisposableObjectWithAnEventHandler.SomeEvent -= someDelegate; 
+                        //someDisposableObjectWithAnEventHandler.Dispose(); 
+                        //someDisposableObjectWithAnEventHandler = null; } 
+                        // If this is a WinForm/UI control, uncomment this code 
+                        //if (components != null) //{ // components.Dispose(); //} } 
+                        if (this.NugetPackageSource != null)
+                        {
+                            this.NugetPackageSource.Dispose();
+                            this.NugetPackageSource = null;
+                        }
+                    }
+                    
+                }
+            }
+            catch (Exception)
+            {
+                
+            }
+            finally
+            {
+                this.IsDisposed = true;
+            }
+            base.Dispose(isDisposing);
+        }
+
+        ~NetFx4Application()
+        {
+            this.Dispose(false);
+        }
+        #endregion
+
     }
 }

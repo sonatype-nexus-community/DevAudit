@@ -14,7 +14,7 @@ using Sprache;
 
 namespace DevAudit.AuditLibrary
 {
-    public abstract class PackageSource : AuditTarget, IDisposable
+    public abstract class PackageSource : AuditTarget
     {
         #region Constructors
         public PackageSource(Dictionary<string, object> package_source_options, EventHandler<EnvironmentEventArgs> message_handler) : base(package_source_options, message_handler)

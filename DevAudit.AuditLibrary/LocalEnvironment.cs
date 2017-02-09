@@ -50,7 +50,6 @@ namespace DevAudit.AuditLibrary
             out ProcessExecuteStatus process_status, out string process_output, out string process_error, Action<string> OutputDataReceived = null, Action<string> OutputErrorReceived = null, [CallerMemberName] string memberName = "", [CallerFilePath] string fileName = "", [CallerLineNumber] int lineNumber = 0)
         {
             FileInfo cf = new FileInfo(command);
-            DirectoryInfo wd = cf.Directory;
             int? process_exit_code = null;
             StringBuilder process_out_sb = new StringBuilder();
             StringBuilder process_err_sb = new StringBuilder();
@@ -60,7 +59,10 @@ namespace DevAudit.AuditLibrary
             psi.RedirectStandardError = true;
             psi.RedirectStandardOutput = true;
             psi.UseShellExecute = false;
-            psi.WorkingDirectory = wd.FullName;
+            if (cf.Exists)
+            {
+                psi.WorkingDirectory = cf.Directory.FullName;
+            }
             Process p = new Process();
             p.EnableRaisingEvents = true;
             p.StartInfo = psi;

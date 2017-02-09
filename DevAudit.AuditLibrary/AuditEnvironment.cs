@@ -321,7 +321,7 @@ namespace DevAudit.AuditLibrary
         internal string LineTerminator { get; set; }
         #endregion
 
-        #region Disposer
+        #region Disposer and Finalizer
         private bool IsDisposed { get; set; }
         /// <summary> 
         /// /// Implementation of Dispose according to .NET Framework Design Guidelines. 
@@ -357,15 +357,20 @@ namespace DevAudit.AuditLibrary
                         //someDisposableObjectWithAnEventHandler = null; } 
                         // If this is a WinForm/UI control, uncomment this code 
                         //if (components != null) //{ // components.Dispose(); //} } 
-                        // Release all unmanaged resources here 
-                        // (example) if (someComObject != null && Marshal.IsComObject(someComObject)) { Marshal.FinalReleaseComObject(someComObject); someComObject = null; 
                     }
+                    // Release all unmanaged resources here 
+                    // (example) if (someComObject != null && Marshal.IsComObject(someComObject)) { Marshal.FinalReleaseComObject(someComObject); someComObject = null; 
                 }
             }
             finally
             {
                 this.IsDisposed = true;
             }
+        }
+
+        ~AuditEnvironment()
+        {
+            this.Dispose(false);
         }
         #endregion
     }
