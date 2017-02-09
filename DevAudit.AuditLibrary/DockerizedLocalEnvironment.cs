@@ -34,12 +34,14 @@ namespace DevAudit.AuditLibrary
         #region Overriden methods
         public override AuditDirectoryInfo ConstructDirectory(string dir_path)
         {
+            dir_path = dir_path.Replace("/hostroot", string.Empty);
             return this.HostRootIsMounted ? base.ConstructDirectory("/hostroot" + (dir_path.StartsWith(this.PathSeparator) ? dir_path : this.PathSeparator + dir_path)) 
                 : base.ConstructDirectory(dir_path);
         }
 
         public override AuditFileInfo ConstructFile(string file_path)
         {
+            file_path = file_path.Replace("/hostroot", string.Empty);
             return this.HostRootIsMounted ? base.ConstructFile("/hostroot" + (file_path.StartsWith(this.PathSeparator) ? file_path : this.PathSeparator + file_path)) 
                 : base.ConstructFile(file_path);
         }

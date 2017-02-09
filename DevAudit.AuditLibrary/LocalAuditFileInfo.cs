@@ -116,12 +116,12 @@ namespace DevAudit.AuditLibrary
 
         public override LocalAuditFileInfo GetAsLocalFile()
         {
-            throw new NotImplementedException();
+            return this;
         }
 
         public override Task<LocalAuditFileInfo> GetAsLocalFileAsync()
         {
-            throw new NotImplementedException();
+            return Task.FromResult<LocalAuditFileInfo>(this);
         }
         #endregion
 
