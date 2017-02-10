@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -21,12 +22,12 @@ namespace DevAudit.AuditLibrary
         {
             if (this.ApplicationBinary != null)
             {
-                this.ApplicationFileSystemMap["mysql"] = this.ApplicationBinary;
+                this.ApplicationFileSystemMap["mysqld"] = this.ApplicationBinary;
             }
             else
             {
                 string fn = this.AuditEnvironment.OS.Platform == PlatformID.Unix || this.AuditEnvironment.OS.Platform == PlatformID.MacOSX
-                ? CombinePath("@", "usr", "bin", "mysql") : CombinePath("@", "bin", "mysql.exe");
+                ? CombinePath("@", "usr", "sbin", "mysqld") : CombinePath("@", "bin", "mysqld.exe");
                 if (!this.AuditEnvironment.FileExists(fn))
                 {
                     throw new ArgumentException(string.Format("The server binary for MySQL was not specified and the default file path {0} does not exist.", fn));
@@ -34,7 +35,7 @@ namespace DevAudit.AuditLibrary
                 else
                 {
                     this.ApplicationBinary = this.AuditEnvironment.ConstructFile(fn);
-                    this.ApplicationFileSystemMap["mysql"] = this.ApplicationBinary;
+                    this.ApplicationFileSystemMap["mysqld"] = this.ApplicationBinary;
                 }
             }
         }
@@ -62,14 +63,18 @@ namespace DevAudit.AuditLibrary
 
         protected override string GetVersion()
         {
+            Stopwatch sw = new Stopwatch();
+            sw.Start();
             AuditEnvironment.ProcessExecuteStatus process_status;
             string process_output;
             string process_error;
             AuditEnvironment.Execute(this.ApplicationBinary.FullName, "-V", out process_status, out process_output, out process_error);
+            sw.Stop();
             if (process_status == AuditEnvironment.ProcessExecuteStatus.Completed)
             {
-                this.Version = process_output.Substring(process_output.IndexOf("Ver"));
+                this.Version = process_output.Substring(process_output.IndexOf("Ver") + 4);
                 this.VersionInitialised = true;
+                this.AuditEnvironment.Success("Got {0} version {1} in {2} ms.", this.ApplicationLabel, this.Version, sw.ElapsedMilliseconds);
                 return this.Version;
             }
             else
@@ -108,6 +113,5 @@ namespace DevAudit.AuditLibrary
             return vulnerability_version == package_version;
         }
         #endregion
-
     }
 }

@@ -5,16 +5,16 @@
 ##About
 DevAudit is an open-source, cross-platform, multi-purpose security auditing tool targeted at developers and DevOps practitioners that detects security vulnerabilities at multiple levels of the solution stack. DevAudit provides a wide array of auditing capabilities that automate security practices and implementation of security auditing in the software development life-cycle. DevAudit can scan your operating system and application package dependencies, application server configurations, and application source code for potential vulnerabilities based on data aggregated by OSS Index from a wide array of sources and data feeds such as the NVD CVE data feed, Debian Security Tracker feed, Drupal Security Advisories, and several others. Support for other vulnerability databases like vulners.com is also planned.
 
-DevAudit helps developers address at least 2 of the [OWASP Top 10](https://www.owasp.org/index.php/Top_10_2013) risks to web application development: [A9 Using Components with Known Vulnerabilities](https://www.owasp.org/index.php/Top_10_2013-A9-Using_Components_with_Known_Vulnerabilities) and [A5 Security Misconfiguration](https://www.owasp.org/index.php/Top_10_2013-A5-Security_Misconfiguration) as well as risks classified by MITRE in the CWE dictionary such as [CWE-2 Environment](http://cwe.mitre.org/data/definitions/2.html). As development progress and its capabilities mature, DevAudit will be able to address the other risks on the OWASP Top 10 and CWE lists like Injection, XSS, and Sensitive Data Disclosure. With the focus on web and cloud and distributed multi-user applications, software development today is increasingly a complex affair with security issues and potential vulnerabilities arising at all levels of the stack developers rely on to deliver applications. The goal of DevAudit is to provide a platform for automating implementation of development security reviews and best practices at all levels of the solution stack from library package dependencies to application and server configuration to source code.  
+DevAudit helps developers address at least 2 of the [OWASP Top 10](https://www.owasp.org/index.php/Top_10_2013) risks to web application development: [A9 Using Components with Known Vulnerabilities](https://www.owasp.org/index.php/Top_10_2013-A9-Using_Components_with_Known_Vulnerabilities), [A5 Security Misconfiguration](https://www.owasp.org/index.php/Top_10_2013-A5-Security_Misconfiguration) as well as risks classified by MITRE in the CWE dictionary such as [CWE-2 Environment](http://cwe.mitre.org/data/definitions/2.html). As development progress and its capabilities mature, DevAudit will be able to address the other risks on the OWASP Top 10 and CWE lists like Injection, XSS, and Sensitive Data Disclosure. With the focus on web and cloud and distributed multi-user applications, software development today is increasingly a complex affair with security issues and potential vulnerabilities arising at all levels of the stack developers rely on to deliver applications. The goal of DevAudit is to provide a platform for automating implementation of development security reviews and best practices at all levels of the solution stack from library package dependencies to application and server configuration to source code.
 
 ## Features
 * **Cross-platform with a Docker image also available.** DevAudit runs on Windows and Linux with *BSD and Mac support coming and ARM Linux a possibility. Only an up-to-date version of .NET or Mono is required to run DevAudit. A [DevAudit Docker image](https://hub.docker.com/r/ossindex/devaudit/) can also be pulled from Docker Hub and run on Linux without the need to install Mono.
 
 * **CLI interface.** DevAudit has a CLI interface with an option for non-interactive output and can be easily integrated into CI build pipelines or as post-build command-line tasks in developer IDEs. Work on integration of the core audit library into IDE GUIs has already begun with the [Audit.Net](https://visualstudiogallery.msdn.microsoft.com/73493090-b219-452a-989e-e3d228023927?SRC=Home) Visual Studio extension.
 
-*  **Continuously updated vulnerabilties data**. DevAudit uses the [OSS Index API](https://ossindex.net/) which provides continuously updated vulnerabilities data compiled from a wide range of secuirty data feeds and sources such as NVD CVE feeds. Support for more backend data providers such as vulnersdb is coming.
+*  **Continuously updated vulnerabilties data**. DevAudit uses the [OSS Index API](https://ossindex.net/) which provides continuously updated vulnerabilities data compiled from a wide range of secuirty data feeds and sources such as the NVD CVE feeds, Drupal Security Advisories, and so on. Support for more backend data providers such as [vulners.com](https://vulners.com/#stats) is coming.
 
-* **Audit operating system and development package dependencies.** On Linux DevAudit audits packages installed with the dpkg and yum/rpm Linux package managers against known vulnerabilities reported for specific versions via NVD CVE. On Windows DevAudit audits applications and pacakges installed via Chocolatey, Windows MSI and OneGets. For development package dependencies and libraries DevAudit audits NuGet v2 dependencies for .NET, Bower dependencies for nodejs and Composer package dependencies for PHP development. Support for many more is coming.
+* **Audit operating system and development package dependencies.** On Windows DevAudit audits applications and pacakges installed via Chocolatey, Windows MSI and OneGets. For development package dependencies and libraries DevAudit audits NuGet v2 dependencies for .NET, Bower dependencies for nodejs and Composer package dependencies for PHP development. Support for many more is coming.
 
 * **Audit application server configurations.** DevAudit audits the server configuration for OpenSSH sshd, Apache httpd, MySQL and Nginx with many more coming. Configuration auditing is based on the [Alpheus](https://github.com/allisterb/Alpheus) library and is done using full syntactic (and eventually semantic) analysis of the server configuration files. Server configuration rules are stored in YAML text files and can be customized to the needs of developers. Support for many more servers and applications is coming.
 
@@ -43,8 +43,7 @@ DevAudit can be installed by the following methods:
 4. On Windows using the Chocolatey package manager.
 5. On Linux by pulling the DevAudit image from Docker Hub.
 
-Building from source on Linux
----
+### Building from source on Linux
 1. Pre-requisites: Mono 4.4+ and the mono-devel package which provides the compiler and other tools needed for building Mono apps. Check that the existing Mono packages provided by your distro are at least Mono version 4.4 and above, otherwise you may have to install Mono packages manually.  Installation instructions for the most recent packages provided by the Mono project for several major Linux distros are [here](http://www.mono-project.com/docs/getting-started/install/linux/)
 
 2. Clone the DevAudit repository from https://github.com/OSSIndex/DevAudit.git
@@ -53,8 +52,7 @@ Building from source on Linux
 
 4. Run ./devaudit --help and you should see the DevAudit version and help screen printed.
 
-Building from source on Windows
----
+### Building from source on Windows
 1. Pre-requisites: You must have one of:
     * A [.NET Framework 4.6](http://getdotnet.azurewebsites.net/target-dotnet-platforms.html) SDK or developer pack.
     * Visual Studio 2015.
@@ -64,16 +62,14 @@ Building from source on Windows
 
 4. Run ./devaudit --help and you should see the DevAudit version and help screen printed.
 
-Installing from the release archive files on Windows on Linux
----
+### Installing from the release archive files on Windows on Linux
 2. Download the latest release archive file for Windows e.g DevAudit-0.2.0-Windows.zip or for Linux e.g DevAudit-0.2.0-Linux.tgz from the project [releases](https://github.com/OSSIndex/DevAudit/releases) page. Unpack this file to a directory.
 
 2. From the directory where you unpacked the release archive run devaudit --help on Windows or ./devaudit --help on Linux. You should see the version and help screen printed.
 
 3. Add the DevAudit installation directory to your PATH environment variable
 
-Installing using the MSI Installer on Windows
----
+### Installing using the MSI Installer on Windows
 The MSI installer for a release can be found on the releases page.
 
 1. Click on the [releases](https://github.com/OSSIndex/DevAudit/releases) link near the top of the page.
@@ -83,8 +79,7 @@ The MSI installer for a release can be found on the releases page.
 6. Open a *new* command prompt or PowerShell window in order to have DevAudit in path.
 7. Run DevAudit.
 
-Installing on Windows using Chocolatey
----
+### Installing on Windows using Chocolatey
 DevAudit is also available on [Chocolatey](https://chocolatey.org/packages/devaudit/1.0.1)
 
 1. Install [Chocolatey](https://chocolatey.org).
@@ -92,8 +87,6 @@ DevAudit is also available on [Chocolatey](https://chocolatey.org/packages/devau
 3. Type `choco install devaudit`
 4. Run DevAudit.
 
-##Usage
-The CLI is the primary interface to the DevAudit program and is suitable both for interactive use and for non-interactive use in scheduled tasks, shell scripts, CI build pipelines and post-build tasks in developer IDEs.
 Concepts
 ---
 ####Audit Target
@@ -115,7 +108,7 @@ These are different options that can be enabled for the audit. You can specify o
 
 Basic Usage
 ---
-The basic DevAudit syntax is:
+The CLI is the primary interface to the DevAudit program and is suitable both for interactive use and for non-interactive use in scheduled tasks, shell scripts, CI build pipelines and post-build tasks in developer IDEs. The basic DevAudit CLI syntax is:
 
 	devaudit TARGET [ENVIRONMENT] | [OPTIONS]
 where `TARGET` specifies the audit target `ENVIRONMENT` specifies the audit environment and `OPTIONS` specifies the options for the audit target and environment. There are 2 ways to specify options: program options and general audit options that apply to more than one target can be specified directly on the command-line as parameters . Target-specific options can be specified with the `-o` options using the format:

@@ -21,7 +21,42 @@ mysql:
            Note that this socket is bound to a single address, but it is possible for an address to map onto multiple network interfaces. 
            
         resolution: |
-            Create an ordinary, unnprivileged user account called mysql (or a name of your choice.)
-            Add a user=mysql key value to the [mysqld] section of your configuration file.
+            Add a directive like the following to the [mysqld] section of your MySQL configuration file: bind-address=127.0.0.1
+            which binds MySQL to listen only on the local loopback address.
         urls:
-            -   https://dev.mysql.com/doc/refman/5.7/en/security-against-attack.html
+            -   https://www.digitalocean.com/community/tutorials/how-to-secure-mysql-and-mariadb-databases-in-a-linux-vps
+
+    -   id: 3
+        title:  Loading files from the filesystem for users without file level privileges to the database is enabled
+        xpathtest: not(boolean(/MySQL/mysqld/local-infile='0'))
+        summary: |
+           In certain cases, the “LOCAL INFILE” MySQL command can be used by database users to gain access to other files on the operating system, for instance “/etc/passwd”. 
+           This a known MySQL security hole and should always be plugged by disableing loading files from the filesystem for users without file level privileges to the database.
+        resolution: |
+            Add the following directive to the [mysqld] section of your MySQL configuration file: local-infile=0
+        urls:
+            -   https://www.digitalocean.com/community/tutorials/how-to-secure-mysql-and-mariadb-databases-in-a-linux-vps
+
+    -   id: 4
+        title:  The SHOW DATABASES command is enabled
+        xpathtest: not(boolean(/MySQL/mysqld/skip-show-database='1'))
+        summary: |
+           The “SHOW DATABASES” MySQL command can be used by potential attackers to gather information about all your databases. 
+           Unless it is needed by your application this command should be disabled. 
+        resolution: |
+            Add the following directive to the [mysqld] section of your MySQL configuration file: skip-show-database=1
+        urls:
+            -   http://www.hexatier.com/mysql-database-security-best-practices-2/
+
+    -  id: 5
+       title:  MySQL does not limit the directories where table data can be exported.
+       xpathtest: not(boolean(/MySQL/mysqld/secure_file_priv)) | boolean(/MySQL/mysqld/secure_file_priv='')
+       summary: |
+           MySQL can export data using the OUTFILE keyword e.g SELECT * FROM  mysql.db INTO OUTFILE("foo")
+           You should always restrict the directories where these export files can be created to avoid sensitive information disclosure
+           to potential hackers. 
+       resolution: |
+            Add a directive like the following to the [mysqld] section of your MySQL configuration file: secure_file_priv=/tmp
+            And ensure that this directory has the appropriate security permissions set.
+       urls:
+            -   http://stackoverflow.com/questions/33691094/mysql-exporting-into-outfile-secure-file-priv-error-when-using-set-directory
