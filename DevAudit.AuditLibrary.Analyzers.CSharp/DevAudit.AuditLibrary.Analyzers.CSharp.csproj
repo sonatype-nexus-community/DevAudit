@@ -229,7 +229,7 @@
     <Delete Files="$(SolutionDir)Analyzers\**\*.*" />
     <Delete Files="$(SolutionDir)DevAudit.CommandLine\bin\Debug\Analyzers\**\*.*" />
     <RemoveDir Directories="$([System.IO.Directory]::GetDirectories(&quot;$(SolutionDir)Analyzers&quot;))" />
-    <RemoveDir Directories="$([System.IO.Directory]::GetDirectories(&quot;$(SolutionDir)DevAudit.CommandLine\bin\Debug\Analyzers&quot;))" />
+    <RemoveDir Directories="$([System.IO.Directory]::GetDirectories(&quot;$(SolutionDir)DevAudit.CommandLine\bin\Debug\Analyzers&quot;))" Condition="Exists('$(SolutionDir)DevAudit.CommandLine\bin\Debug\Analyzers')" />
     <Copy SourceFiles="@(AnalyzerSourceFiles)" DestinationFiles="@(AnalyzerSourceFiles->'$(SolutionDir)DevAudit.CommandLine\bin\Debug\Analyzers\%(RecursiveDir)%(Filename)%(Extension)')" />
     <Copy SourceFiles="@(AnalyzerSourceFiles)" DestinationFiles="@(AnalyzerSourceFiles->'$(SolutionDir)Analyzers\%(RecursiveDir)%(Filename)%(Extension)')" />
   </Target>
