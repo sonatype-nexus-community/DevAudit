@@ -44,7 +44,11 @@ namespace DevAudit.AuditLibrary
         }
         #endregion
 
-        #region Protected methods
+        #region Methods
+        public IDirectoryInfo Create(string dir_path)
+        {
+            return this.AuditEnvironment.ConstructDirectory(dir_path);
+        }
         #endregion
     }
 }

@@ -62,8 +62,9 @@ namespace DevAudit.AuditLibrary
             this.DefaultConfigurationFilePath = CombinePath(default_configuration_file_path);
             if (!this.ServerOptions.ContainsKey("ConfigurationFile") && !string.IsNullOrEmpty(this.DefaultConfigurationFilePath))
             {
-                if (this.AuditEnvironment.FileExists(this.DefaultConfigurationFilePath))
+                if (this.AuditEnvironment.FileExists(this.CombinePath(this.DefaultConfigurationFilePath)))
                 {
+                    this.AuditEnvironment.Info("Using {0} configuration file {1}.", this.ApplicationLabel, this.CombinePath(this.DefaultConfigurationFilePath));
                     this.ApplicationFileSystemMap.Add("ConfigurationFile", this.AuditEnvironment.ConstructFile(this.DefaultConfigurationFilePath));
                 }
                 else
@@ -73,10 +74,11 @@ namespace DevAudit.AuditLibrary
             }
             else
             {
-                string cf = CombinePath((string)this.ServerOptions["ConfigurationFile"]);
+                string cf = this.CombinePath((string)this.ServerOptions["ConfigurationFile"]);
                 if (this.AuditEnvironment.FileExists(cf))
                 {
                     this.ApplicationFileSystemMap.Add("ConfigurationFile", this.AuditEnvironment.ConstructFile(cf));
+                    this.AuditEnvironment.Info("Using {0} configuration file {1}.", this.ApplicationLabel, cf);
                 }
                 else
                 {

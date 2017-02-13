@@ -109,11 +109,6 @@ namespace DevAudit.AuditLibrary
             }
         }
 
-        public override IFileInfo Create(string file_path)
-        {
-            return new LocalAuditFileInfo(this.LocalAuditEnvironment, file_path);
-        }
-
         public override LocalAuditFileInfo GetAsLocalFile()
         {
             return this;

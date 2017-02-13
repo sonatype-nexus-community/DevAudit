@@ -2,11 +2,59 @@
 nginx:
     -   id: 1
         title: Nginx version and OS identity are not hidden (server_tokens)
+        category: Information Disclosure 
+        severity: 2
+        tags: 
+            -    OWASP Top 10 Application Security Risks A6
         xpathtest: not(/Nginx/http/server_tokens='off')
         summary: |
-            The version of Nginx and the name of the operating system can be seen on every server response.       
+            The version of Nginx and the name of the operating system can be seen on every server response.
+            This information can be used by potential attackers to craft attacks tailored for the particular Nginx version and OS that is running.
+            You should always try to avoid disclosing information like this that will be exploited by attackers.     
         resolution: |
             Add server_tokens=off to the http context of your configuration.
         urls:
+            -   https://www.digitalocean.com/community/tutorials/how-to-secure-nginx-on-ubuntu-14-04
+
+    -   id: 2
+        title: Nginx custom error pages are not enabled (error_page)
+        severity: 2
+        category: Information Disclosure 
+        tags: 
+            -    OWASP Top 10 Application Security Risks A6
+        xpathtest: boolean(/Nginx/http/server[not(error_page)])
+        summary: |
+            The default Nginx error pages for HTTP 4xx and other errors expose the version of Nginx running.
+            This information can be used by potential attackers to craft attacks tailored for the particular Nginx version and/or OS that is running.
+            You should always try to avoid disclosing information like this that will be exploited by attackers.         
+        resolution: |
+            Add a directive like: 
+            error_page 401 403 404 /404.html;
+            to every server context of the http context of your configuration file. Create the 404.html page that displays the minimal information
+            to alert users of the error. 
+        urls:
+            -   https://www.digitalocean.com/community/tutorials/how-to-secure-nginx-on-ubuntu-14-04
+
+    -   id: 3
+        title: SSL is not enabled (ssl)
+        category: Insufficient Transport Layer Protection
+        tags: 
+            -    OWASP Top 10 Application Security Risks A9
+        severity: 1
+        xpathtest: boolean(/Nginx/http/server[not(ssl)])
+        summary: |
+            Information sent over unencrypted connections can be snooped on by potential attackers at any network location between your web server and users. 
+            SSL provides encryption between your websites and a user's browser that makes it difficult for attackers to eavesdrop on your users.
+            You should alwys try to enable SSL on all your servers to protect your user data. 
+        resolution: |
+            Configuring SSL requires multiple steps. An example SSL configuration would be like the following added to a server context in your configuration file:
+            listen 443;
+            ssl on;
+            ssl_certificate /usr/local/nginx/conf/server.crt;
+            ssl_certificate_key /usr/local/nginx/conf/server.key;
+            access_log /usr/local/nginx/logs/ssl.access.log;
+            error_log /usr/local/nginx/logs/ssl.error.log;
+        urls:
+            -   https://www.cyberciti.biz/tips/linux-unix-bsd-nginx-webserver-security.html
             -   https://www.digitalocean.com/community/tutorials/how-to-secure-nginx-on-ubuntu-14-04
        
