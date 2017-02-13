@@ -10,7 +10,7 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyConfiguration("Debug")]
 [assembly: AssemblyCompany("Vör Security")]
 [assembly: AssemblyProduct("DevAudit")]
-[assembly: AssemblyCopyright("Copyright © 2016 Vör Security")]
+[assembly: AssemblyCopyright("Copyright © 2017 Vör Security")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
@@ -32,5 +32,5 @@ using System.Runtime.InteropServices;
 // You can specify all the values or you can default the Build and Revision Numbers 
 // by using the '*' as shown below:
 // [assembly: AssemblyVersion("1.0.*")]
-[assembly: AssemblyVersion("0.1.20.13")]
-[assembly: AssemblyFileVersion("0.1.20.13")]
+[assembly: AssemblyVersion("0.1.21.0")]
+[assembly: AssemblyFileVersion("0.1.21.0")]

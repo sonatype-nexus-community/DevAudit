@@ -31,8 +31,8 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Alpheus.Core, Version=0.1.9.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Alpheus.0.1.9.0\lib\net45\Alpheus.Core.dll</HintPath>
+    <Reference Include="Alpheus.Core, Version=0.1.9.3, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Alpheus.0.1.9.3\lib\net45\Alpheus.Core.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="Gendarme.Framework, Version=2.11.0.0, Culture=neutral, processorArchitecture=MSIL">
@@ -198,9 +198,9 @@
     <Compile Include="Analyzers\**\*.*" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
-    <ItemGroup>
-        <AnalyzerSourceFiles Include="Analyzers\**\*.*" />
-    </ItemGroup>
+  <ItemGroup>
+    <AnalyzerSourceFiles Include="Analyzers\**\*.*" />
+  </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\DevAudit.AuditLibrary\DevAudit.AuditLibrary.csproj">
       <Project>{36f663f6-4b5c-441f-b11a-9cc556d1c1fe}</Project>
@@ -225,9 +225,9 @@
     <Target Name="BeforeBuild">
     </Target> -->
   <Target Name="AfterBuild">
-    <MakeDir Directories="$(SolutionDir)Analyzers" Condition="!Exists('$(SolutionDir)Analyzers')"/>
-    <Delete Files="$(SolutionDir)Analyzers\**\*.*"/>
-    <Delete Files="$(SolutionDir)DevAudit.CommandLine\bin\Debug\Analyzers\**\*.*"/>  
+    <MakeDir Directories="$(SolutionDir)Analyzers" Condition="!Exists('$(SolutionDir)Analyzers')" />
+    <Delete Files="$(SolutionDir)Analyzers\**\*.*" />
+    <Delete Files="$(SolutionDir)DevAudit.CommandLine\bin\Debug\Analyzers\**\*.*" />
     <RemoveDir Directories="$([System.IO.Directory]::GetDirectories(&quot;$(SolutionDir)Analyzers&quot;))" />
     <RemoveDir Directories="$([System.IO.Directory]::GetDirectories(&quot;$(SolutionDir)DevAudit.CommandLine\bin\Debug\Analyzers&quot;))" />
     <Copy SourceFiles="@(AnalyzerSourceFiles)" DestinationFiles="@(AnalyzerSourceFiles->'$(SolutionDir)DevAudit.CommandLine\bin\Debug\Analyzers\%(RecursiveDir)%(Filename)%(Extension)')" />

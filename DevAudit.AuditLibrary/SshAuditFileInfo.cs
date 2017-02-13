@@ -110,11 +110,6 @@ namespace DevAudit.AuditLibrary
         #endregion
 
         #region Overriden methods
-        public override IFileInfo Create(string file_path)
-        {
-            return this.SshAuditEnvironment.ConstructFile(this.CombinePaths(this.Directory.FullName, file_path));
-        }
-
         public override bool PathExists(string file_path)
         {
             string result = this.EnvironmentExecute("test", "-f " + this.CombinePaths(this.Directory.FullName, file_path) + " && echo \"Yes\" || echo \"No\"");

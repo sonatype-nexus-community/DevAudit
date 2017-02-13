@@ -24,7 +24,6 @@ namespace DevAudit.AuditLibrary
         public abstract string ReadAsText();
         public abstract byte[] ReadAsBinary();
         public abstract bool PathExists(string file_path);
-        public abstract IFileInfo Create(string file_path);
         public abstract LocalAuditFileInfo GetAsLocalFile();
         public abstract Task<LocalAuditFileInfo> GetAsLocalFileAsync();
         #endregion
@@ -39,7 +38,11 @@ namespace DevAudit.AuditLibrary
         }
         #endregion
 
-        #region Protected methods
+        #region Methods
+        public IFileInfo Create(string file_path)
+        {
+            return this.AuditEnvironment.ConstructFile(this.CombinePaths(this.Directory.FullName, file_path));
+        }
         #endregion
     }
 }

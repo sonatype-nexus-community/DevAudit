@@ -2,7 +2,7 @@
 mysql:
     -   id: 1
         title: mysqld runs as the root user
-        xpathtest: not(boolean(/MySQL/mysqld/user)) or /MySQL/mysqld/user='root'
+        xpathtest: not(boolean(/MySQL/mysqld/user)) or boolean(/MySQL/mysqld/user='root')
         summary: |
            mysqld can (and should) be run as an ordinary, unprivileged user instead. 
            You can create a separate Unix account named mysql to make everything even more secure. Use this account only for administering MySQL.           
@@ -14,7 +14,7 @@ mysql:
 
     -   id: 2
         title:  mysqld accepts TCP/IP connections on all IPv6 and IPv4 interfaces
-        xpathtest: not(boolean(/MySQL/mysqld/bind_address))
+        xpathtest: not(boolean(/MySQL/mysqld/bind-address))
         summary: |
            By default the MySQL server listens on all available addresses and network interfaces. 
            It is more secure to bind the mysql network socket to a single address.		    
@@ -28,10 +28,10 @@ mysql:
 
     -   id: 3
         title:  Loading files from the filesystem for users without file level privileges to the database is enabled
-        xpathtest: not(boolean(/MySQL/mysqld/local-infile='0'))
+        xpathtest: not(boolean(/MySQL/mysqld/local-infile)) or boolean(/MySQL/mysqld/local-infile=1) 
         summary: |
            In certain cases, the “LOCAL INFILE” MySQL command can be used by database users to gain access to other files on the operating system, for instance “/etc/passwd”. 
-           This a known MySQL security hole and should always be plugged by disableing loading files from the filesystem for users without file level privileges to the database.
+           This a known MySQL security hole and should always be plugged by disabling loading files from the filesystem for users without file level privileges to the database.
         resolution: |
             Add the following directive to the [mysqld] section of your MySQL configuration file: local-infile=0
         urls:
@@ -50,7 +50,7 @@ mysql:
 
     -  id: 5
        title:  MySQL does not limit the directories where table data can be exported.
-       xpathtest: not(boolean(/MySQL/mysqld/secure_file_priv)) | boolean(/MySQL/mysqld/secure_file_priv='')
+       xpathtest: not(boolean(/MySQL/mysqld/secure_file_priv)) or boolean(/MySQL/mysqld/secure_file_priv='')
        summary: |
            MySQL can export data using the OUTFILE keyword e.g SELECT * FROM  mysql.db INTO OUTFILE("foo")
            You should always restrict the directories where these export files can be created to avoid sensitive information disclosure
@@ -60,3 +60,16 @@ mysql:
             And ensure that this directory has the appropriate security permissions set.
        urls:
             -   http://stackoverflow.com/questions/33691094/mysql-exporting-into-outfile-secure-file-priv-error-when-using-set-directory
+
+    -  id: 6
+       title:  MySQL error logging is not enabled
+       xpathtest: not(boolean(/MySQL/mysqld/log_error))
+       summary: |
+           MySQL can log information about startup and shutdown and critical errors that occur during runtime. These logs can alert you to potential attacks or malicious behaviour by users or apps.
+           You should always enable error logging so that this information can be stored for generating alerts and later analysis.
+       resolution: |
+            Add a directive like the following to the [mysqld] section of your MySQL configuration file: 
+            log_error = localhost_error.log`
+       urls:
+            -   http://www.fromdual.com/mysql-configuration-file-sample
+            -   https://dev.mysql.com/doc/refman/5.7/en/error-log.html
