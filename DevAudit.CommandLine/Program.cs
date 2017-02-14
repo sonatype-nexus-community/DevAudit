@@ -73,7 +73,13 @@ namespace DevAudit.CommandLine
 
             #region Handle command line options
             Exit = AuditTarget.AuditResult.INVALID_AUDIT_TARGET_OPTIONS;
-            if (!CL.Parser.Default.ParseArguments(args, ProgramOptions))
+            CL.Parser parser = new CL.Parser((s) =>
+            {
+                s.CaseSensitive = true;
+                s.MutuallyExclusive = true;
+                s.HelpWriter = Console.Error;
+            });
+            if (!parser.ParseArguments(args, ProgramOptions))
             {
                 return (int) Exit;
             }
@@ -148,7 +154,11 @@ namespace DevAudit.CommandLine
                 }
             }
             #endregion
-            
+            if (ProgramOptions.SkipPackagesAudit && ProgramOptions.ListPackages)
+            {
+                PrintErrorMessage("You can't specify both --skip-packages-audit and --list-packages.");
+                return (int)Exit;
+            }
             if (ProgramOptions.SkipPackagesAudit)
             {
                 audit_options.Add("SkipPackagesAudit", ProgramOptions.SkipPackagesAudit);
@@ -165,14 +175,19 @@ namespace DevAudit.CommandLine
             {
                 audit_options.Add("ListConfigurationRules", ProgramOptions.ListConfigurationRules);
             }
-            if (ProgramOptions.OnlyLocalRules)
+            if (ProgramOptions.PrintConfiguration)
             {
-                audit_options.Add("OnlyLocalRules", ProgramOptions.OnlyLocalRules);
+                audit_options.Add("PrintConfiguration", ProgramOptions.PrintConfiguration);
             }
             if (ProgramOptions.ListAnalyzers)
             {
                 audit_options.Add("ListAnalyzers", ProgramOptions.ListAnalyzers);
             }
+            if (ProgramOptions.OnlyLocalRules)
+            {
+                audit_options.Add("OnlyLocalRules", ProgramOptions.OnlyLocalRules);
+            }
+            
             if (!string.IsNullOrEmpty(ProgramOptions.File))
             {
                 audit_options.Add("File", ProgramOptions.File);
@@ -569,7 +584,7 @@ namespace DevAudit.CommandLine
                     return;
                 }
             }
-            if (ProgramOptions.SkipPackagesAudit || ProgramOptions.ListConfigurationRules || ProgramOptions.ListAnalyzers)
+            else if (ProgramOptions.SkipPackagesAudit || ProgramOptions.ListConfigurationRules || ProgramOptions.PrintConfiguration || ProgramOptions.ListAnalyzers)
             {
                 return;
             }
@@ -932,7 +947,12 @@ namespace DevAudit.CommandLine
             {
                 return;
             }
-            if (ProgramOptions.ListConfigurationRules)
+            if (ar == AuditTarget.AuditResult.SUCCESS && ProgramOptions.PrintConfiguration && Application.ConfigurationInitialised)
+            {
+                PrintMessageLine(Application.XmlConfiguration.ToString());
+                return;
+            }
+                if (ProgramOptions.ListConfigurationRules)
             {
                 if (ar == AuditTarget.AuditResult.SUCCESS && Application.ProjectConfigurationRules.Count() > 0)
                 {

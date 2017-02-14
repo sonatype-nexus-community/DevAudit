@@ -138,7 +138,7 @@ namespace DevAudit.AuditLibrary
         public override Task GetPackagesTask(CancellationToken ct)
         {
             CallerInformation caller = this.AuditEnvironment.Here();
-            if (this.SkipPackagesAudit)
+            if (this.SkipPackagesAudit || this.PrintConfiguration || this.ListConfigurationRules)
             {
                 //this.PackagesTask = Task.Run(() => this.Packages = this.ModulePackages["references"]);
                 //this.AuditEnvironment.Warning("No NuGet v2 package manager configuration file specified, using assembly references as packages.");
