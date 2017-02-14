@@ -947,9 +947,16 @@ namespace DevAudit.CommandLine
             {
                 return;
             }
-            if (ar == AuditTarget.AuditResult.SUCCESS && ProgramOptions.PrintConfiguration && Application.ConfigurationInitialised)
+            if (ar == AuditTarget.AuditResult.SUCCESS && ProgramOptions.PrintConfiguration)
             {
-                PrintMessageLine(Application.XmlConfiguration.ToString());
+                if (Application.ConfigurationInitialised)
+                {
+                    PrintMessageLine(Application.XmlConfiguration.ToString());
+                }
+                else
+                {
+                    PrintErrorMessage("Configuration was not initialised.");
+                }
                 return;
             }
                 if (ProgramOptions.ListConfigurationRules)
