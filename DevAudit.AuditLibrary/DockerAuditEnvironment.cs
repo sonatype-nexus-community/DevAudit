@@ -28,7 +28,7 @@ namespace DevAudit.AuditLibrary
 				for (int i = 1; i < p.Count (); i++) {
 					if (string.IsNullOrEmpty (p [i]) || string.IsNullOrWhiteSpace (p [i]))
 						continue;	
-					if (p [i].Contains (container)) {
+					if (p[i].Trim().StartsWith(container) || p[i].Trim().EndsWith(container)) {
 						container_exists = true;					
 						if (p [i].Contains ("Up ")) {
 							container_running = true;

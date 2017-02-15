@@ -133,6 +133,11 @@ namespace DevAudit.AuditLibrary
                 }
             }
 
+            if (this.ApplicationOptions.ContainsKey("PrintConfiguration"))
+            {
+                this.PrintConfiguration = true;
+            }
+
             if (this.ApplicationOptions.ContainsKey("ListConfigurationRules"))
             {
                 this.ListConfigurationRules = true;
@@ -171,6 +176,24 @@ namespace DevAudit.AuditLibrary
         protected abstract Dictionary<string, IEnumerable<OSSIndexQueryObject>> GetModules();
         protected abstract IConfiguration GetConfiguration();
         public abstract bool IsConfigurationRuleVersionInServerVersionRange(string configuration_rule_version, string server_version);
+        #endregion
+
+        #region Overriden methods
+        public override Task GetPackagesTask(CancellationToken ct)
+        {
+            CallerInformation caller = this.AuditEnvironment.Here();
+            if (this.SkipPackagesAudit || this.PrintConfiguration || this.ListConfigurationRules)
+            {
+                this.PackagesTask = this.ArtifactsTask = this.VulnerabilitiesTask = this.EvaluateVulnerabilitiesTask = Task.CompletedTask;
+                this.Packages = new List<OSSIndexQueryObject>();
+            }
+            else
+            {
+                this.AuditEnvironment.Status("Scanning {0} packages.", this.PackageManagerLabel);
+                this.PackagesTask = Task.Run(() => this.Packages = this.GetPackages(), ct);
+            }
+            return this.PackagesTask;
+        }
         #endregion
 
         #region Properties
@@ -292,11 +315,11 @@ namespace DevAudit.AuditLibrary
 
         public Dictionary<string, object> ApplicationOptions { get; set; } = new Dictionary<string, object>();
 
+        public bool PrintConfiguration { get; protected set; } = false;
+
         public bool ListConfigurationRules { get; protected set; } = false;
 
         public bool OnlyLocalRules { get; protected set; } = false;
-
-        public bool DefaultConfigurationRulesOnly { get; protected set; } = false;
 
         public bool AppDevMode { get; protected set; }
 
@@ -333,7 +356,7 @@ namespace DevAudit.AuditLibrary
             try
             {
                 Task.WaitAll(this.PackagesTask, this.GetConfigurationTask);
-                if (!this.SkipPackagesAudit && this.PackageSourceInitialized && this.PackagesTask.Status == TaskStatus.RanToCompletion)
+                if (!this.SkipPackagesAudit && !this.PrintConfiguration && this.PackageSourceInitialized && this.PackagesTask.Status == TaskStatus.RanToCompletion)
                 {
                     AuditEnvironment.Success("Scanned {0} {1} packages.", this.Packages.Count(), this.PackageManagerLabel);
                 }
@@ -358,7 +381,7 @@ namespace DevAudit.AuditLibrary
                 }
             }
 
-            if (!this.PackageSourceInitialized || this.ListPackages || this.Packages.Count() == 0 || (this.SkipPackagesAudit && this.OnlyLocalRules))
+            if (!this.PackageSourceInitialized || this.ListPackages || this.PrintConfiguration || this.Packages.Count() == 0 || (this.SkipPackagesAudit && this.OnlyLocalRules))
             {
                 this.ArtifactsTask = this.VulnerabilitiesTask = this.EvaluateVulnerabilitiesTask = Task.CompletedTask;
             }
@@ -378,7 +401,7 @@ namespace DevAudit.AuditLibrary
                 return AuditResult.ERROR_SEARCHING_ARTIFACTS;
             }
 
-            if (!this.PackageSourceInitialized || this.ListPackages || this.Packages.Count() == 0 || this.ListArtifacts || this.ListConfigurationRules)
+            if (!this.PackageSourceInitialized || this.ListPackages || this.PrintConfiguration || this.Packages.Count() == 0 || this.ListArtifacts || this.ListConfigurationRules)
             {
                 this.VulnerabilitiesTask = this.EvaluateVulnerabilitiesTask = Task.CompletedTask; ;
             }
@@ -387,8 +410,8 @@ namespace DevAudit.AuditLibrary
                 this.VulnerabilitiesTask = Task.Run(() => this.GetVulnerabiltiesApiv2(), ct);
             }
 
-            if (!this.PackageSourceInitialized || this.ListPackages || this.Packages.Count() == 0 || this.ListArtifacts || this.SkipPackagesAudit 
-                || this.OnlyLocalRules || this.ArtifactsWithProjects.Count() == 0 || !this.ConfigurationInitialised)
+            if (!this.PackageSourceInitialized || this.PrintConfiguration || this.ListPackages || this.Packages.Count() == 0 || this.ListArtifacts || this.SkipPackagesAudit
+                || this.OnlyLocalRules || this.ArtifactsWithProjects == null || this.ArtifactsWithProjects.Count() == 0 || !this.ConfigurationInitialised)
             {
                 this.GetConfigurationRulesTask = Task.CompletedTask;
             }
@@ -397,7 +420,7 @@ namespace DevAudit.AuditLibrary
                 this.GetConfigurationRulesTask = Task.Run(() => this.GetConfigurationRules(), ct);
             }
 
-            if (this.ListPackages || this.ListArtifacts || !this.ConfigurationInitialised)
+            if (this.ListPackages || this.ListArtifacts || !this.ConfigurationInitialised || this.PrintConfiguration)
             {
                 this.GetDefaultConfigurationRulesTask = Task.CompletedTask;
             }
@@ -406,7 +429,7 @@ namespace DevAudit.AuditLibrary
                 this.GetDefaultConfigurationRulesTask = Task.Run(() => this.GetDefaultConfigurationRules());
             }
 
-            if (this.ListPackages || this.ListArtifacts)
+            if (this.ListPackages || this.ListArtifacts || this.PrintConfiguration)
             {
                 this.GetAnalyzersTask = Task.CompletedTask;
             }
@@ -452,7 +475,7 @@ namespace DevAudit.AuditLibrary
                 }
             }
 
-            if (this.ListPackages || this.ListArtifacts || this.ListConfigurationRules || this.Vulnerabilities.Count == 0)
+            if (this.ListPackages || this.ListArtifacts || this.ListConfigurationRules || this.Vulnerabilities.Count == 0 || this.PrintConfiguration)
             { 
                 this.EvaluateVulnerabilitiesTask = Task.CompletedTask;
             }
@@ -461,7 +484,7 @@ namespace DevAudit.AuditLibrary
                 this.EvaluateVulnerabilitiesTask = Task.Run(() => this.EvaluateVulnerabilities(), ct);
             }
 
-            if (this.ListConfigurationRules)
+            if (this.ListPackages || this.ListArtifacts || this.ListConfigurationRules || this.PrintConfiguration)
             {
                 this.EvaluateConfigurationRulesTask = Task.CompletedTask;
             }
@@ -470,7 +493,7 @@ namespace DevAudit.AuditLibrary
                 this.EvaluateConfigurationRulesTask = Task.Run(() => this.EvaluateProjectConfigurationRules(), ct);
             }
 
-            if (this.ListPackages || this.ListArtifacts)
+            if (this.ListPackages || this.ListArtifacts || this.ListConfigurationRules || this.PrintConfiguration)
             {
                 this.GetAnalyzersResultsTask = Task.CompletedTask;
             }
@@ -516,7 +539,7 @@ namespace DevAudit.AuditLibrary
                 this.AddConfigurationRules(kv.Key, kv.Value);
             }
             sw.Stop();
-            this.AuditEnvironment.Info("Got {0} default configuration rule(s) for {1} project(s) from {2}.yml in {3} ms.", rules.Sum(kv => kv.Value.Count()), rules.Keys.Count, this.ApplicationId, sw.ElapsedMilliseconds);
+            this.AuditEnvironment.Info("Got {0} default configuration rule(s) for {1} module(s) from {2}.yml in {3} ms.", rules.Sum(kv => kv.Value.Count()), rules.Keys.Count, this.ApplicationId, sw.ElapsedMilliseconds);
             return rules.Count;
         }
 

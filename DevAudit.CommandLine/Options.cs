@@ -134,18 +134,21 @@ namespace DevAudit.CommandLine
         [Option('m', "project-name", Required = false, HelpText = "The name of the code project to audit.")]
         public string ProjectName { get; set; }
 
-        [Option("list-packages", Required = false, HelpText = "Only list the local packages that will be audited.")]
+        [Option("list-packages", Required = false, HelpText = "Only list the local packages that will be audited.", MutuallyExclusiveSet ="audit-action")]
         public bool ListPackages { get; set; }
 
-        [Option("list-artifacts", Required = false, HelpText = "Only list the artifacts corresponding to local packages found on OSS Index.")]
+        [Option("list-artifacts", Required = false, HelpText = "Only list the artifacts corresponding to local packages found on OSS Index.", MutuallyExclusiveSet = "audit-action")]
         public bool ListArtifacts { get; set; }
 
-        [Option("list-rules", Required = false, HelpText = "Only list the configuration rules found for the application or application server.")]
+        [Option("list-rules", Required = false, HelpText = "Only list the configuration rules found for the application or application server.", MutuallyExclusiveSet = "audit-action")]
         public bool ListConfigurationRules { get; set; }
 
-        [Option("list-analyzers", Required = false, HelpText = "Only list the analyzers found for the application or code project.")]
+        [Option("list-analyzers", Required = false, HelpText = "Only list the analyzers found for the application or code project.", MutuallyExclusiveSet = "audit-action")]
         public bool ListAnalyzers { get; set; }
-        
+
+        [Option("print-configuration", Required = false, HelpText = "Only print the application or application server configuration.", MutuallyExclusiveSet = "audit-action")]
+        public bool PrintConfiguration { get; set; }
+
         [Option("skip-packages-audit", Required = false, HelpText = "Skip the package audit for the application or application server.")]
         public bool SkipPackagesAudit { get; set; }
 
