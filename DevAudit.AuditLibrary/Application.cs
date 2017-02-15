@@ -539,7 +539,7 @@ namespace DevAudit.AuditLibrary
                 this.AddConfigurationRules(kv.Key, kv.Value);
             }
             sw.Stop();
-            this.AuditEnvironment.Info("Got {0} default configuration rule(s) for {1} project(s) from {2}.yml in {3} ms.", rules.Sum(kv => kv.Value.Count()), rules.Keys.Count, this.ApplicationId, sw.ElapsedMilliseconds);
+            this.AuditEnvironment.Info("Got {0} default configuration rule(s) for {1} module(s) from {2}.yml in {3} ms.", rules.Sum(kv => kv.Value.Count()), rules.Keys.Count, this.ApplicationId, sw.ElapsedMilliseconds);
             return rules.Count;
         }
 
