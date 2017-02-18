@@ -4,8 +4,8 @@ mysql:
         title: mysqld runs as the root user
         category: Execution with Unnecessary Privileges
         tags: 
-            -   CWE-250: Execution with Unnecessary Privileges   
-            -   OWASP-Top-10-A5: Security Misconfiguration
+            -   CWE/250/Execution with Unnecessary Privileges   
+            -   OWASP-Top10-2013/A5/Security Misconfiguration
         severity: 2
         xpathtest: not(boolean(/MySQL/mysqld/user)) or boolean(/MySQL/mysqld/user='root')
         summary: |
@@ -21,8 +21,8 @@ mysql:
         title:  mysqld accepts TCP/IP connections on all IPv6 and IPv4 interfaces
         category: Execution with Unnecessary Privileges
         tags: 
-            -   CWE-250: Execution with Unnecessary Privileges   
-            -   OWASP-Top-10-A5: Security Misconfiguration
+            -   CWE/250/Execution with Unnecessary Privileges   
+            -   OWASP-Top10-2013/A5/Security Misconfiguration
         severity: 2
         xpathtest: not(boolean(/MySQL/mysqld/bind-address))
         summary: |
@@ -40,8 +40,8 @@ mysql:
         title:  Loading files from the filesystem for users without file level privileges to the database is enabled
         category: Execution with Unnecessary Privileges
         tags: 
-            -   CWE-250: Execution with Unnecessary Privileges   
-            -   OWASP-Top-10-A5: Security Misconfiguration
+            -   CWE/250/Execution with Unnecessary Privileges   
+            -   OWASP-Top-10-2013/A5/Security Misconfiguration
         severity: 2
         xpathtest: not(boolean(/MySQL/mysqld/local-infile)) or boolean(/MySQL/mysqld/local-infile=1) 
         summary: |
@@ -56,8 +56,8 @@ mysql:
         title:  The SHOW DATABASES command is enabled
         category: Security Misconfiguration
         tags: 
-            -   CWE-250: Execution with Unnecessary Privileges   
-            -   OWASP-Top-10-A5: Security Misconfiguration
+            -   CWE/250/Execution with Unnecessary Privileges   
+            -   OWASP-Top10-2013/A5/Security Misconfiguration
         severity: 2
         xpathtest: not(boolean(/MySQL/mysqld/skip-show-database='1'))
         summary: |
@@ -106,5 +106,3 @@ mysql:
        urls:
             -   http://www.fromdual.com/mysql-configuration-file-sample
             -   https://dev.mysql.com/doc/refman/5.7/en/error-log.html
-
-            default-storage-engine
