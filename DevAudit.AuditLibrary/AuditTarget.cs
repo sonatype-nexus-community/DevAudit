@@ -42,6 +42,10 @@ namespace DevAudit.AuditLibrary
             this.HostEnvironmentMessage = AuditTarget_HostEnvironmentMessageHandler;
             this.HostEnvironment = new LocalEnvironment(this.HostEnvironmentMessage);
             this.HostEnvironment.ScriptEnvironment.MessageHandler += this.AuditTarget_ScriptEnvironmentMessageHandler;
+            if (this.AuditOptions.ContainsKey("Dockerized"))
+            {
+                this.HostEnvironment.IsDockerContainer = true;
+            }
             this.HostEnvironmentInitialised = true;
             if (this.AuditOptions.Keys.Contains("DockerContainer"))
             {

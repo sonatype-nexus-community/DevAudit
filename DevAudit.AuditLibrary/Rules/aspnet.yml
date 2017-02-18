@@ -4,8 +4,8 @@ aspnet:
         title: ASP.NET version headers are enabled
         category: Information Disclosure 
         tags: 
-            -    OWASP Top 10 Application Security Risks A6
-        severity: 2
+            -   OWASP-Top10-2013/A5/Security Misconfiguration
+        severity: 1
         xpathtest: not(boolean(/configuration/system.web/httpRuntime[@enableVersionHeader='false']))
         summary: |
            By default the name and versions of the application frameworks an ASP.NET application uses are sent as response headers, like X-AspNetMvc-Version. 
@@ -19,8 +19,9 @@ aspnet:
         title: ASP.NET custom errors mode is not enabled
         category: Information Disclosure 
         tags: 
-            -    OWASP Top 10 Application Security Risks A6
-        severity: 3
+            -   OWASP-Top-10-2013/A5/Security Misconfiguration
+            -   CWE/12/ASP.NET Misconfiguration/Missing Custom Error Page
+        severity: 2
         xpathtest: not(boolean(/configuration/system.web/customErrors)) | boolean(/configuration/system.web/customErrors[@mode='Off'])
         summary: |
            By default internal implementation information like control and data flow and variable handling and physical location of code files 
@@ -36,8 +37,9 @@ aspnet:
         title: ASP.NET compilation is set to debug mode
         category: Information Disclosure 
         tags: 
-            -    OWASP Top 10 Application Security Risks A6
-        severity: 1
+            -   OWASP-Top-10-2013/A5/Security Misconfiguration
+            -   CWE/11/ASP.NET Misconfiguration/Creating Debug Binary
+        severity: 3
         enable-for-app-dev: false
         xpathtest: boolean(/configuration/system.web/compilation[@debug='true'])
         summary: |
@@ -49,13 +51,14 @@ aspnet:
         urls:
             -   https://www.troyhunt.com/owasp-top-10-for-net-developers-part-6/
             -   https://weblogs.asp.net/scottgu/442448
+            -   https://cwe.mitre.org/data/definitions/11.html
 
     -   id: 4
         title: ASP.NET tracing is enabled
         enable-for-app-dev: false
-        category: Information Disclosure 
         tags: 
-            -    OWASP Top 10 Application Security Risks A6
+            -   OWASP-Top-10-2013/A5/Security Misconfiguration
+            -   CWE/200/Information Exposure
         severity: 1
         xpathtest: boolean(/configuration/system.web/trace[@enabled='true']) and not(boolean(/configuration/system.web/trace[@localOnly='true']))
         summary: |
@@ -91,22 +94,25 @@ aspnet:
         tags: 
             -    OWASP Top 10 Application Security Risks A7
         severity: 1
-        xpathtest: boolean(/configuration/system.web/machineKey[@validation='MD5']) | boolean(/configuration/system.web/machineKey[@validation='SHA1'])
+        xpathtest: boolean(/configuration/system.web/machineKey[@validation='MD5']) or boolean(/configuration/system.web/machineKey[@validation='SHA1'])
         summary: |
             ASP.NET uses encryption and hashing algorithms to help secure and make tamper-proof data such as form authentication cookies and view state. 
             By default, ASP.NET after version 4 uses the HMACSHA256 algorithm for hash operations. 
             Older hashing and encryption algorithms like MD5 and SHA1 are today considered cryptographically. 
             Compliance with standards like FIPS requires more secure hash algorithms like HMACSHA256 to be used.        
-            resolution: |
+        resolution: |
             Set the validation attribute on the machineKey element of system.web in the Web.config file to HMACSHA256 or another secure hash algorithm. 
         urls:
             -   https://msdn.microsoft.com/library/w8h3skw9(v=vs.100).aspx
 
     -   id: 7
         title: ASP.NET does not require SSL for authentication cookies
-        category: Insufficient Transport Layer Protection
-        tags: 
-            -    OWASP Top 10 Application Security Risks A9
+        tags:
+             
+            -   CWE/614/Sensitive Cookie in HTTPS Session Without 'Secure' Attribute
+            -   CWE/311/Missing Encryption of Sensitive Data
+            -   OWASP-Top10-2013/A6/Sensitive Data Disclosure
+
         severity: 1
         xpathtest: boolean(/configuration/system.web/authentication[@mode='Forms']) and not(boolean(/configuration/system.web/forms[@requireSSL='true']))
         summary: |

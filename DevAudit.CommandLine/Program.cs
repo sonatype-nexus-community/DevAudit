@@ -947,7 +947,7 @@ namespace DevAudit.CommandLine
             {
                 return;
             }
-            if (ar == AuditTarget.AuditResult.SUCCESS && ProgramOptions.PrintConfiguration)
+            else if (ar == AuditTarget.AuditResult.SUCCESS && ProgramOptions.PrintConfiguration)
             {
                 if (Application.ConfigurationInitialised)
                 {
@@ -959,7 +959,7 @@ namespace DevAudit.CommandLine
                 }
                 return;
             }
-                if (ProgramOptions.ListConfigurationRules)
+            else if (ProgramOptions.ListConfigurationRules)
             {
                 if (ar == AuditTarget.AuditResult.SUCCESS && Application.ProjectConfigurationRules.Count() > 0)
                 {
@@ -999,12 +999,12 @@ namespace DevAudit.CommandLine
                     Application.ProjectConfigurationRulesEvaluations.Values.Where(v => v.Item1).Count(), Application.ApplicationLabel, Stopwatch.ElapsedMilliseconds,
                     Application.ProjectConfigurationRulesEvaluations.Values.Where(v => v.Item1).Count() == 1 ? "vulnerability" : "total vulnerabilities");
                 int projects_count = Application.ProjectConfigurationRules.Count, projects_processed = 0;
-                foreach (KeyValuePair<OSSIndexProject, IEnumerable<OSSIndexProjectConfigurationRule>> rule in Application.ProjectConfigurationRules)
+                foreach (KeyValuePair<OSSIndexProject, IEnumerable<OSSIndexProjectConfigurationRule>> project_rule in Application.ProjectConfigurationRules)
                 {
-                    IEnumerable<KeyValuePair<OSSIndexProjectConfigurationRule, Tuple<bool, List<string>, string>>> evals = Application.ProjectConfigurationRulesEvaluations.Where(pcre => pcre.Key.Project != null && pcre.Key.Project.Name == rule.Key.Name);
+                    IEnumerable<KeyValuePair<OSSIndexProjectConfigurationRule, Tuple<bool, List<string>, string>>> evals = Application.ProjectConfigurationRulesEvaluations.Where(pcre => pcre.Key.Project != null && pcre.Key.Project.Name == project_rule.Key.Name);
                     PrintMessage("[{0}/{1}] Module: ", ++projects_processed, projects_count);
-                    PrintMessage(ConsoleColor.Blue, "{0}. ", rule.Key.Name);
-                    int total_project_rules = rule.Value.Count();
+                    PrintMessage(ConsoleColor.Blue, "{0}. ", project_rule.Key.Name);
+                    int total_project_rules = project_rule.Value.Count();
                     int succeded_project_rules = evals.Count() > 0 ? evals.Count(ev => ev.Value.Item1) : 0;
                     int processed_project_rules = 0;
                     PrintMessage("{0} rule(s). ", total_project_rules);
@@ -1020,24 +1020,37 @@ namespace DevAudit.CommandLine
                     foreach (KeyValuePair<OSSIndexProjectConfigurationRule, Tuple<bool, List<string>, string>> e in evals)
                     {
                         ++processed_project_rules;
-                        if (!e.Value.Item1)
+                        bool vulnerable = e.Value.Item1;
+                        OSSIndexProjectConfigurationRule rule = e.Key;
+                        if (!vulnerable)
                         {
-                            PrintMessage("--[{0}/{1}] Rule: {2}. Result: ", processed_project_rules, total_project_rules, e.Key.Title);
+                            PrintMessage("--[{0}/{1}] Rule: {2}. Result: ", processed_project_rules, total_project_rules, rule.Title);
                         }
                         else
                         {
-                            PrintMessage(ConsoleColor.White, "--[{0}/{1}] Rule: {2}. Result: ", processed_project_rules, total_project_rules, e.Key.Title);
+                            PrintMessage(ConsoleColor.White, "--[{0}/{1}] Rule: {2}. Result: ", processed_project_rules, total_project_rules, rule.Title);
                         }
-                        PrintMessageLine(e.Value.Item1 ? ConsoleColor.Red : ConsoleColor.DarkGreen, "{0}.", e.Value.Item1);
-                        if (e.Value.Item1)
+                        PrintMessageLine(vulnerable ? ConsoleColor.Red : ConsoleColor.DarkGreen, "{0}.", vulnerable);
+                        if (vulnerable)
                         {
-                            PrintProjectConfigurationRuleMultiLineField(ConsoleColor.White, 2, "Summary", e.Key.Summary);
+                            PrintProjectConfigurationRuleMultiLineField(ConsoleColor.White, 2, "Summary", rule.Summary);
                             if (e.Value.Item2 != null && e.Value.Item2.Count > 0)
                             {
                                 PrintProjectConfigurationRuleMultiLineField(ConsoleColor.White, 2, "Results", e.Value.Item2);
                             }
-                            PrintProjectConfigurationRuleMultiLineField(ConsoleColor.Magenta, 2, "Resolution", e.Key.Resolution);
-                            PrintProjectConfigurationRuleMultiLineField(ConsoleColor.White, 2, "Urls", e.Key.Urls);
+                            if (rule.Tags != null && rule.Tags.Count > 0)
+                            {
+                                PrintProjectConfigurationRuleMultiLineField(ConsoleColor.White, 2, "Tags", rule.Tags);
+                            }
+                            if (rule.Severity > 0)
+                            {
+                                PrintMessage(ConsoleColor.White, "  --Severity: ");
+                                ConsoleColor severity_color = rule.Severity == 1 ? ConsoleColor.DarkYellow : rule.Severity == 2 ? ConsoleColor.DarkRed : ConsoleColor.Red;
+                                PrintMessageLine(severity_color, "{0}", rule.Severity);
+                            }
+                            PrintProjectConfigurationRuleMultiLineField(ConsoleColor.Magenta, 2, "Resolution", rule.Resolution);
+                            PrintProjectConfigurationRuleMultiLineField(ConsoleColor.White, 2, "Urls", rule.Urls);
+                            PrintMessageLine(string.Empty);
                         }
                     }
                 }

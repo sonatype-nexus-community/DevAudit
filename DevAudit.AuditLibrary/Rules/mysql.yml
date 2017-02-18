@@ -2,6 +2,11 @@
 mysql:
     -   id: 1
         title: mysqld runs as the root user
+        category: Execution with Unnecessary Privileges
+        tags: 
+            -   CWE-250: Execution with Unnecessary Privileges   
+            -   OWASP-Top-10-A5: Security Misconfiguration
+        severity: 2
         xpathtest: not(boolean(/MySQL/mysqld/user)) or boolean(/MySQL/mysqld/user='root')
         summary: |
            mysqld can (and should) be run as an ordinary, unprivileged user instead. 
@@ -14,6 +19,11 @@ mysql:
 
     -   id: 2
         title:  mysqld accepts TCP/IP connections on all IPv6 and IPv4 interfaces
+        category: Execution with Unnecessary Privileges
+        tags: 
+            -   CWE-250: Execution with Unnecessary Privileges   
+            -   OWASP-Top-10-A5: Security Misconfiguration
+        severity: 2
         xpathtest: not(boolean(/MySQL/mysqld/bind-address))
         summary: |
            By default the MySQL server listens on all available addresses and network interfaces. 
@@ -28,6 +38,11 @@ mysql:
 
     -   id: 3
         title:  Loading files from the filesystem for users without file level privileges to the database is enabled
+        category: Execution with Unnecessary Privileges
+        tags: 
+            -   CWE-250: Execution with Unnecessary Privileges   
+            -   OWASP-Top-10-A5: Security Misconfiguration
+        severity: 2
         xpathtest: not(boolean(/MySQL/mysqld/local-infile)) or boolean(/MySQL/mysqld/local-infile=1) 
         summary: |
            In certain cases, the “LOCAL INFILE” MySQL command can be used by database users to gain access to other files on the operating system, for instance “/etc/passwd”. 
@@ -39,6 +54,11 @@ mysql:
 
     -   id: 4
         title:  The SHOW DATABASES command is enabled
+        category: Security Misconfiguration
+        tags: 
+            -   CWE-250: Execution with Unnecessary Privileges   
+            -   OWASP-Top-10-A5: Security Misconfiguration
+        severity: 2
         xpathtest: not(boolean(/MySQL/mysqld/skip-show-database='1'))
         summary: |
            The “SHOW DATABASES” MySQL command can be used by potential attackers to gather information about all your databases. 
@@ -73,3 +93,18 @@ mysql:
        urls:
             -   http://www.fromdual.com/mysql-configuration-file-sample
             -   https://dev.mysql.com/doc/refman/5.7/en/error-log.html
+
+    -  id: 7
+       title:  InnoDB is not the default storage engine
+       xpathtest: not(boolean(/MySQL/mysqld/default-storage-engone))
+       summary: |
+           MySQL can log information about startup and shutdown and critical errors that occur during runtime. These logs can alert you to potential attacks or malicious behaviour by users or apps.
+           You should always enable error logging so that this information can be stored for generating alerts and later analysis.
+       resolution: |
+            Add a directive like the following to the [mysqld] section of your MySQL configuration file: 
+            log_error = localhost_error.log`
+       urls:
+            -   http://www.fromdual.com/mysql-configuration-file-sample
+            -   https://dev.mysql.com/doc/refman/5.7/en/error-log.html
+
+            default-storage-engine
