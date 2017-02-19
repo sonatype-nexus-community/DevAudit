@@ -23,7 +23,18 @@ namespace DevAudit.AuditLibrary
 			string process_output, process_error;
 			bool container_exists = false;
 			bool container_running = false;
-			if (this.HostEnvironment.Execute ("docker", "ps -a", out process_status, out process_output, out process_error)) {
+            string command = "docker", arguments = "ps -a";
+            bool r;
+            if (this.HostEnvironment.IsDockerContainer)
+            {
+                r = this.HostEnvironment.Execute("chroot", " /hostroot " + command + " " + arguments, out process_status, out process_output, out process_error);
+            }
+            else
+            {
+                r = this.HostEnvironment.Execute("docker", "ps -a", out process_status, out process_output, out process_error);
+            }
+			if (r)
+            {
 				string[] p = process_output.Split (this.HostEnvironment.LineTerminator.ToCharArray (), StringSplitOptions.RemoveEmptyEntries);
 				for (int i = 1; i < p.Count (); i++) {
 					if (string.IsNullOrEmpty (p [i]) || string.IsNullOrWhiteSpace (p [i]))
@@ -66,8 +77,16 @@ namespace DevAudit.AuditLibrary
 
 		public override bool Execute (string command, string arguments, out ProcessExecuteStatus process_status, out string process_output, out string process_error, Action<string> OutputDataReceived = null, Action<string> OutputErrorReceived = null, [CallerMemberName] string memberName = "", [CallerFilePath] string fileName = "", [CallerLineNumber] int lineNumber = 0)
 		{
-			string docker_exec_command = string.Format ("exec {0} {1} {2}", this.Container, command, arguments);
-			return this.HostEnvironment.Execute("docker", docker_exec_command, out process_status, out process_output, out process_error);
+            if (this.HostEnvironment.IsDockerContainer)
+            {
+                string docker_exec_command = string.Format("/hostroot docker exec {0} {1} {2}", this.Container, command, arguments);
+                return this.HostEnvironment.Execute("chroot", docker_exec_command, out process_status, out process_output, out process_error);
+            }
+            else
+            {
+                string docker_exec_command = string.Format("exec {0} {1} {2}", this.Container, command, arguments);
+                return this.HostEnvironment.Execute("docker", docker_exec_command, out process_status, out process_output, out process_error);
+            }
 		}
 
 		public override bool DirectoryExists (string dir_path)

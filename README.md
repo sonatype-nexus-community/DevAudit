@@ -5,22 +5,28 @@
 ##About
 DevAudit is an open-source, cross-platform, multi-purpose security auditing tool targeted at developers and DevOps practitioners that detects security vulnerabilities at multiple levels of the solution stack. DevAudit provides a wide array of auditing capabilities that automate security practices and implementation of security auditing in the software development life-cycle. DevAudit can scan your operating system and application package dependencies, application server configurations, and application source code for potential vulnerabilities based on data aggregated by OSS Index from a wide array of sources and data feeds such as the NVD CVE data feed, Debian Security Tracker feed, Drupal Security Advisories, and several others. Support for other vulnerability databases like vulners.com is also planned.
 
-DevAudit helps developers address at least 2 of the [OWASP Top 10](https://www.owasp.org/index.php/Top_10_2013) risks to web application development: [A9 Using Components with Known Vulnerabilities](https://www.owasp.org/index.php/Top_10_2013-A9-Using_Components_with_Known_Vulnerabilities), [A5 Security Misconfiguration](https://www.owasp.org/index.php/Top_10_2013-A5-Security_Misconfiguration) as well as risks classified by MITRE in the CWE dictionary such as [CWE-2 Environment](http://cwe.mitre.org/data/definitions/2.html). As development progress and its capabilities mature, DevAudit will be able to address the other risks on the OWASP Top 10 and CWE lists like Injection, XSS, and Sensitive Data Disclosure. With the focus on web and cloud and distributed multi-user applications, software development today is increasingly a complex affair with security issues and potential vulnerabilities arising at all levels of the stack developers rely on to deliver applications. The goal of DevAudit is to provide a platform for automating implementation of development security reviews and best practices at all levels of the solution stack from library package dependencies to application and server configuration to source code.
+DevAudit helps developers address at least 3 of the [OWASP Top 10](https://www.owasp.org/index.php/Top_10_2013) risks to web application development: 
+* [A9 Using Components with Known Vulnerabilities](https://www.owasp.org/index.php/Top_10_2013-A9-Using_Components_with_Known_Vulnerabilities)
+* [A5 Security Misconfiguration](https://www.owasp.org/index.php/Top_10_2013-A5-Security_Misconfiguration)
+* [A6 Sensitive Data Disclosure](https://www.owasp.org/index.php/Top_10_2013-A6-Sensitive_Data_Exposure)
+
+
+as well as risks classified by MITRE in the CWE dictionary such as [CWE-2 Environment](http://cwe.mitre.org/data/definitions/2.html). As development progress and its capabilities mature, DevAudit will be able to address the other risks on the OWASP Top 10 and CWE lists like Injection, XSS, and Sensitive Data Disclosure. With the focus on web and cloud and distributed multi-user applications, software development today is increasingly a complex affair with security issues and potential vulnerabilities arising at all levels of the stack developers rely on to deliver applications. The goal of DevAudit is to provide a platform for automating implementation of development security reviews and best practices at all levels of the solution stack from library package dependencies to application and server configuration to source code.
 
 ## Features
-* **Cross-platform with a Docker image also available.** DevAudit runs on Windows and Linux with *BSD and Mac support coming and ARM Linux a possibility. Only an up-to-date version of .NET or Mono is required to run DevAudit. A [DevAudit Docker image](https://hub.docker.com/r/ossindex/devaudit/) can also be pulled from Docker Hub and run on Linux without the need to install Mono.
+* **Cross-platform with a Docker image also available.** DevAudit runs on Windows and Linux with *BSD and Mac support coming and ARM Linux a possibility. Only an up-to-date version of .NET or Mono is required to run DevAudit. A [DevAudit Docker image](https://hub.docker.com/r/ossindex/devaudit/) can also be pulled from Docker Hub and run without the need to install Mono.
 
 * **CLI interface.** DevAudit has a CLI interface with an option for non-interactive output and can be easily integrated into CI build pipelines or as post-build command-line tasks in developer IDEs. Work on integration of the core audit library into IDE GUIs has already begun with the [Audit.Net](https://visualstudiogallery.msdn.microsoft.com/73493090-b219-452a-989e-e3d228023927?SRC=Home) Visual Studio extension.
 
 *  **Continuously updated vulnerabilties data**. DevAudit uses the [OSS Index API](https://ossindex.net/) which provides continuously updated vulnerabilities data compiled from a wide range of secuirty data feeds and sources such as the NVD CVE feeds, Drupal Security Advisories, and so on. Support for more backend data providers such as [vulners.com](https://vulners.com/#stats) is coming.
 
-* **Audit operating system and development package dependencies.** On Windows DevAudit audits applications and pacakges installed via Chocolatey, Windows MSI and OneGets. For development package dependencies and libraries DevAudit audits NuGet v2 dependencies for .NET, Bower dependencies for nodejs and Composer package dependencies for PHP development. Support for many more is coming.
+* **Audit operating system and development package dependencies.** DevAudit audits Windows applications and pacakges installed via Chocolatey, Windows MSI and OneGet for vulnerabilities reported for specific versions. For development package dependencies and libraries, DevAudit audits NuGet v2 dependencies for .NET, Bower dependencies for nodejs, and Composer package dependencies for PHP. Support for many more is coming.
 
-* **Audit application server configurations.** DevAudit audits the server configuration for OpenSSH sshd, Apache httpd, MySQL and Nginx with many more coming. Configuration auditing is based on the [Alpheus](https://github.com/allisterb/Alpheus) library and is done using full syntactic (and eventually semantic) analysis of the server configuration files. Server configuration rules are stored in YAML text files and can be customized to the needs of developers. Support for many more servers and applications is coming.
+* **Audit application server configurations.** DevAudit audits the server version and the server configuration for the OpenSSH sshd, Apache httpd, MySQL, and Nginx servers with many more coming. Configuration auditing is based on the [Alpheus](https://github.com/allisterb/Alpheus) library and is done using full syntactic analysis of the server configuration files with easy-. Server configuration rules are stored in YAML text files and can be customized to the needs of developers. Support for many more servers and applications and types of analysis is coming.
 
 * **Audit application configuration.** DevAudit audits Microsoft ASP.NET applications and detects vulnerabilities present in the application configuration.
  
-* **Audit application code by static analysis.** DevAudit currently supports static analysis of .NET CIL bytecode. Analyzers reside in external script files and can be fully customized based on the needs of the developer. Support for C# source code analysis via Roslyn, PHP7 source code analmany more languages and external static code analysis tools is coming.
+* **Audit application code by static analysis.** DevAudit currently supports static analysis of .NET CIL bytecode. Analyzers reside in external script files and can be fully customized based on the needs of the developer. Support for C# source code analysis via Roslyn, PHP7 source code and many more languages and external static code analysis tools is coming.
 
 * **Remote agentless auditing**. DevAudit can connect to remote hosts via SSH with identical auditing features available in remote environments as in local environments. Only a valid SSH login is required to audit remote hosts and DevAudit running on Windows can connect to and audit Linux hosts over SSH. Support for other remote protocols like WinRM is planned.
 
@@ -35,8 +41,7 @@ On Linux You must have a recent version (4.4.* or higher) of Mono. Check that th
  
 
 ## Installation
-DevAudit can be installed by the following methods: 
-
+DevAudit can be installed by the following methods:
 1. Building from source.
 2. On Windows or Linux using A release archive file downloaded from Github.
 3. On Windows using the release MSI installer downloaded from Github.
@@ -48,9 +53,9 @@ DevAudit can be installed by the following methods:
 
 2. Clone the DevAudit repository from https://github.com/OSSIndex/DevAudit.git
 
-3. Run the build.sh script in the root DevAudit directory. DevAudit should compile without any errors.
+3. Run the `build.sh` script in the root DevAudit directory. DevAudit should compile without any errors.
 
-4. Run ./devaudit --help and you should see the DevAudit version and help screen printed.
+4. Run `./devaudit --help` and you should see the DevAudit version and help screen printed.
 
 ### Building from source on Windows
 1. Pre-requisites: You must have one of:
@@ -58,9 +63,9 @@ DevAudit can be installed by the following methods:
     * Visual Studio 2015.
 2. Clone the DevAudit repository from https://github.com/OSSIndex/DevAudit.git
 
-3. Run the build.cmd script in the root DevAudit directory. DevAudit should compile without any errors.
+3. Run the `build.cmd` script in the root DevAudit directory. DevAudit should compile without any errors.
 
-4. Run ./devaudit --help and you should see the DevAudit version and help screen printed.
+4. Run `./devaudit --help` and you should see the DevAudit version and help screen printed.
 
 ### Installing from the release archive files on Windows on Linux
 2. Download the latest release archive file for Windows e.g DevAudit-0.2.0-Windows.zip or for Linux e.g DevAudit-0.2.0-Linux.tgz from the project [releases](https://github.com/OSSIndex/DevAudit/releases) page. Unpack this file to a directory.
@@ -120,12 +125,6 @@ DevAudit considers the path to the binary file as c:\myproject\bin\Debug\app2.ex
 Audit Targets
 ---
 ####Package Sources
-- `dpkg`   Do a package audit of a Debian Dpkg package source.
-
-- `yum`    Do a package audit of a Yum package source.
-
-- `rpm`    Do a package audit of an RPM package source.
-
 - `msi`    Do a package audit of the Windows Installer MSI package source on Windows machines.
 
 - `choco`  Do a package audit of packages installed by the Choco package manager.
@@ -215,21 +214,34 @@ DevAudit also ships as a Docker containerized app which allows users on Linux to
 
 The current image is around 370MB uncompressed. To run DevAudit as a containerized app:
 
-	docker run -i -t -v /:/hostroot:ro ossindex/devaudit TARGET [ENVIRONMENT] | [OPTIONS]
+	docker run -i -t ossindex/devaudit TARGET [ENVIRONMENT] | [OPTIONS]
 
 The -i and -t Docker options are necessary for running DevAudit interactively. If you don't specify these options then you must run DevAudit in non-interactive mode by using the DevAudit option -n. 
 
-You must mount any directories on the Docker host machine that DevAudit needs to access on the Docker image using the Docker -v option. If you mount your local root directory at a mount point named /hostroot on the Docker image then DevAudit can access files and directories on your local machine using the same paths. For example:
+You must mount any directories on the Docker host machine that DevAudit needs to access on the DevAudit Docker container using the Docker -v option. If you mount your local root directory at a mount point named /hostroot on the Docker image then DevAudit can access files and directories on your local machine using the same local paths. For example:
 
 `docker run -i -t -v /:/hostroot:ro ossindex/devaudit netfx -r /home/allisterb/vbot-debian/vbot.core`
 
-will allow the DevAudit Docker image to use and audit the local directory /home/allisterb/vbot-debian/vbot.core.
+will allow the DevAudit Docker container to audit the local directory /home/allisterb/vbot-debian/vbot.core. You _must_ mount your local root in this way to audit _other_ Docker containers from the DevAudit container e.g. 
 
-If you do not wish to mount your entire root directory then you can mount just the directory needed for the audit. For example:
+`docker run -i -t -v /:/hostroot:ro ossindex/devaudit mysql -i myapp1 -r / -c /etc/my.cnf --skip-packages-audit`
+
+will run a MySQL audit on a Docker container named `myapp1` from the `ossindex/devaudit` container.
+
+If you do not need to mount your entire root directory then you can mount just the directory needed for the audit. For example:
+
 `docker run -i -t -v /home/allisterb/vbot-debian/vbot.core:/vbot:ro ossindex/devaudit netfx -r /vbot -b @bin/Debug/vbot.core.dll`
 
-will mount read-only the `/home/allisterb/vbot-debian/vbot.core directory` as `/vbot` on the DevAudit image which allows DevAudit to access it as the root directory for a netfx application audit at `/vbot`. If you don't mount `/hostroot` then to use private key files you must mount your directory that contains the needed key files and then tell DevAudit to use a particular key file e.g
-`docker -i -t -v /home/allisterb/.ssh:/ssh:ro run ossindex/devaudit dpkg -s localhost -u allisterb -p -k /ssh/mykey.key`
-will mount the directory containing key files at /ssh and allow the DevAudit image to use them.
+will mount read-only the `/home/allisterb/vbot-debian/vbot.core` directory as `/vbot` on the DevAudit container which allows DevAudit to access it as the audit root directory for a netfx application audit at `/vbot`.
 
-Note that it's currently not possible to audit operating system package sources like dpkg or rpm or application servers like OpenSSH sshd without mounting your local root directory as described above. DevAudit must chroot into your local root directory from the Docker image when running executables like dpkg or server binaries like sshd and httpd.
+If you wish to use private key files on the local Docker host for an audit over SSH, you can mount your directory that contains the needed key file and then tell DevAudit to use that file path e.g.
+
+`docker -i -t -v /home/allisterb/.ssh:/ssh:ro run ossindex/devaudit dpkg -s localhost -u allisterb -p -k /ssh/mykey.key`
+
+will mount the directory containing key files at /ssh and allow the DevAudit container to use them.
+
+Note that it's currently not possible for the Docker container to audit operating system package sources like dpkg or rpm or application servers like OpenSSH sshd on the _local_ Docker host without mounting your local root directory at `/hostroot` as described above. DevAudit must chroot into your local root directory from the Docker container when running executables like dpkg or server binaries like sshd and httpd. You must also mount your local root as described above to audit other Docker containers from the DevAudit container as DevAudit also needs to chroot into your local root to execute local Docker commands to communicate with your other containers.
+
+
+For running audits over SSH from the DevAudit container it is not necessary to mount the local root at `/hostroot`.
+

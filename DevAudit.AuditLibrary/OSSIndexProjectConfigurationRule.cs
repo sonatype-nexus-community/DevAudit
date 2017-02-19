@@ -64,6 +64,10 @@ namespace DevAudit.AuditLibrary
         [JsonProperty]
         public string XPathTest { get; set; }
 
+        [YamlMember(Alias = "diagnostic")]
+        [JsonProperty("diagnostic")]
+        public string Diagnostic { get; set; }
+
         [YamlMember(Alias = "resolution")]
         [JsonProperty]
         public string Resolution { get; set; }
