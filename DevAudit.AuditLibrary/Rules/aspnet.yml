@@ -1,9 +1,9 @@
 ﻿---
 aspnet:
     -   id: 1
-        title: ASP.NET version headers are enabled
-        category: Information Disclosure 
+        title: ASP.NET version headers are enabled 
         tags: 
+            -   CWE/200/Information Exposure
             -   OWASP-Top10-2013/A5/Security Misconfiguration
         severity: 1
         xpathtest: not(boolean(/configuration/system.web/httpRuntime[@enableVersionHeader='false']))
@@ -17,10 +17,10 @@ aspnet:
 
     -   id: 2
         title: ASP.NET custom errors mode is not enabled
-        category: Information Disclosure 
         tags: 
-            -   OWASP-Top-10-2013/A5/Security Misconfiguration
             -   CWE/12/ASP.NET Misconfiguration/Missing Custom Error Page
+            -   CWE/209/Information Exposure Through an Error Message
+            -   OWASP-Top10-2013/A5/Security Misconfiguration
         severity: 2
         xpathtest: not(boolean(/configuration/system.web/customErrors)) | boolean(/configuration/system.web/customErrors[@mode='Off'])
         summary: |
@@ -37,8 +37,9 @@ aspnet:
         title: ASP.NET compilation is set to debug mode
         category: Information Disclosure 
         tags: 
-            -   OWASP-Top-10-2013/A5/Security Misconfiguration
+            -   CWE/215/Information Exposure Through Debug Information
             -   CWE/11/ASP.NET Misconfiguration/Creating Debug Binary
+            -   OWASP-Top10-2013/A5/Security Misconfiguration
         severity: 3
         enable-for-app-dev: false
         xpathtest: boolean(/configuration/system.web/compilation[@debug='true'])
@@ -57,9 +58,10 @@ aspnet:
         title: ASP.NET tracing is enabled
         enable-for-app-dev: false
         tags: 
-            -   OWASP-Top-10-2013/A5/Security Misconfiguration
             -   CWE/200/Information Exposure
-        severity: 1
+            -   CWE/497/Exposure of System Data to an Unauthorized Control Sphere
+            -   OWASP-Top10-2013/A5/Security Misconfiguration
+        severity: 3
         xpathtest: boolean(/configuration/system.web/trace[@enabled='true']) and not(boolean(/configuration/system.web/trace[@localOnly='true']))
         summary: |
            Tracing is enabled for the ASP.NET application. Detailed diagnostic and internal information is available at the trace.axd endpoint.
@@ -73,10 +75,11 @@ aspnet:
 
     -   id: 5
         title: ASP.NET request validation is disabled globally
-        category: XSS
         tags: 
-            -    OWASP Top 10 Application Security Risks A2
-        severity: 1
+            -   CWE/554/ASP.NET Misconfiguration/Not Using Input Validation Framework
+            -   OWASP-Top10-2013/A5/Security Misconfiguration
+            -   OWASP-Top10-2013/A3/Cross-Site Scripting
+        severity: 2
         xpathtest: boolean(/configuration/system.web/httpRuntime[@requestValidationMode='2.0']) and boolean(/configuration/system.web/pages[@validateRequest='false']))
         summary: |
            Request validation is disabled sitewide for the ASP.NET application. Request validation detects potentially malicous strings submitted by users to the server
@@ -90,10 +93,10 @@ aspnet:
 
     -   id: 6
         title: ASP.NET hashing algorithm is insecure
-        category: Insecure Cryptographic Storage
         tags: 
-            -    OWASP Top 10 Application Security Risks A7
-        severity: 1
+            -   OWASP-Top10-2013/A5/Security Misconfiguration
+            -   CWE/327/Use of a Broken or Risky Cryptographic Algorithm
+        severity: 2
         xpathtest: boolean(/configuration/system.web/machineKey[@validation='MD5']) or boolean(/configuration/system.web/machineKey[@validation='SHA1'])
         summary: |
             ASP.NET uses encryption and hashing algorithms to help secure and make tamper-proof data such as form authentication cookies and view state. 
@@ -108,12 +111,12 @@ aspnet:
     -   id: 7
         title: ASP.NET does not require SSL for authentication cookies
         tags:
-             
             -   CWE/614/Sensitive Cookie in HTTPS Session Without 'Secure' Attribute
             -   CWE/311/Missing Encryption of Sensitive Data
+            -   CWE/784/Reliance on Cookies without Validation and Integrity Checking in a Security Decision
+            -   OWASP-Top10-2013/A5/Security Misconfiguration
             -   OWASP-Top10-2013/A6/Sensitive Data Disclosure
-
-        severity: 1
+        severity: 3
         xpathtest: boolean(/configuration/system.web/authentication[@mode='Forms']) and not(boolean(/configuration/system.web/forms[@requireSSL='true']))
         summary: |
             ASP.NET uses the SSL protocol to encrypt sensitive data like form authentication cookies that must be transmitted on a public network.
@@ -127,10 +130,10 @@ aspnet:
 
     -   id: 8
         title: ASP.NET cookieless sessions are enabled
-        category: Broken authentication and session management
         tags: 
-            -    OWASP Top 10 Application Security Risks A3
-        severity: 1
+            -   OWASP-Top10-2013/A5/Security Misconfiguration
+            -   OWASP-Top10-2013/A2/Broken Authentication and Session Management
+        severity: 3
         xpathtest: boolean(/configuration/system.web/sessionState[@cookieless='true']) | boolean(/configuration/system.web/sessionState[@cookieless='UseUri'])
         summary: |
             ASP.NET uses cookies by default to store tokens and other related data that identifies user sessions that is not transmitted in plaintext and not normally visible to ordinary users. 
@@ -143,10 +146,11 @@ aspnet:
 
     -   id: 9
         title: ASP.NET cookieless forms authentication is enabled
-        category: Broken authentication and session management
         tags: 
-            -    OWASP Top 10 Application Security Risks A3
-        severity: 1
+            -   CWE/523/Unprotected Transport of Credentials
+            -   OWASP-Top10-2013/A2/Broken Authentication and Session Management
+            -   OWASP-Top10-2013/A5/Security Misconfiguration
+        severity: 3
         xpathtest: boolean(/configuration/system.web/authentication[@mode='Forms']) and boolean(/configuration/system.web/forms[@cookieless='UseUri'])
         summary: |
             Similar to cookieless sessions, if ASP.NET cookieless forms authentication is enabled then sensitive information is transmitted in an easily visible plaintext string 
@@ -159,10 +163,10 @@ aspnet:
    
     -  id: 10
        title: ASP.NET cookies are accessible through client-side script in Internet Explorer
-       category: Information Disclosure
        tags: 
-            -    OWASP Top 10 Application Security Risks A6
-       severity: 1
+        -   CWE/1004/Sensitive Cookie Without 'HttpOnly' Flag
+        -   OWASP-Top10-2013/A5/Security Misconfiguration
+       severity: 2
        xpathtest: not(boolean(/configuration/system.web/httpCookies[@httpOnlyCookies='true']))
        summary: |
            Internet Explorer 6 and above contain a feature where ASP.NET and web applications can mark cookies as not accessible from client-side script.

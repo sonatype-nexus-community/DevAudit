@@ -653,11 +653,13 @@ namespace DevAudit.AuditLibrary
             {
                 pv.Value.AsParallel().ForAll((vulnerability) =>
                 {
+                    string package_version = string.Empty;
                     try
                     {
                         List<OSSIndexQueryObject> packages = this.Packages.Where(p => p.PackageManager == vulnerability.Package.PackageManager && p.Name == vulnerability.Package.Name).ToList();
                         foreach (OSSIndexQueryObject p in packages)
                         {
+                            package_version = p.Version;
                             if (vulnerability.Versions.Any(version => !string.IsNullOrEmpty(version) && this.IsVulnerabilityVersionInPackageVersionRange(version, p.Version)))
                             {
                                 vulnerability.CurrentPackageVersionIsInRange = true;
@@ -668,7 +670,7 @@ namespace DevAudit.AuditLibrary
                     catch (Exception e)
                     {
                         this.AuditEnvironment.Warning("Error determining vulnerability version range ({0}) in package version range ({1}): {2}.",
-                            vulnerability.Versions.Aggregate((f, s) => { return f + "," + s; }), pv.Key.Version, e.Message);
+                            vulnerability.Versions.Aggregate((f, s) => { return f + "," + s; }), package_version, e.Message);
                     }
                 });
             });

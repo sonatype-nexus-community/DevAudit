@@ -7,6 +7,7 @@ httpd:
             -   CCE/27863-0/The Apache "ServerTokens" directive should be configured appropriately
             -   CCE/27821-8/The Apache "ServerTokens" directive should be configured appropriately.
             -   CCE/27380-5/The Apache "ServerTokens" directive should be configured appropriately.
+            -   OWASP-Top-10-2013/A5/Security Misconfiguration
         severity: 2
         xpathtest: >
             not(/Httpd/ServerSignature='Off') or
