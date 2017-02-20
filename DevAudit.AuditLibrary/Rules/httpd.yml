@@ -74,5 +74,15 @@ httpd:
         urls:
             -   http://www.tecmint.com/apache-security-tips/
 
-
-   
+    -   id: 6
+        title:  TRACE method is not disabled
+        tags :
+            - STIG/V/26325/The TRACE method must be disabled
+        xpathtest: not(boolean(/Httpd/*/TraceEnable='Off'))
+        summary: |
+            The HTTP 1.1 protocol TRACE method writes back the client request as a server response. This method is never needed on production servers and can lead to potential attacks.
+        resolution: |
+            Add the TraceEnable Off directive to the root level of your Apache configuration file.
+            Ensure there are no TraceEnable On directives in any virtual root or directory child sections in your file.
+        urls:
+            -   https://www.stigviewer.com/stig/apache_server_2.2windows/2015-08-27/finding/V-26325
