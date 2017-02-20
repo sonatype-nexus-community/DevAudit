@@ -10,8 +10,7 @@ DevAudit helps developers address at least 3 of the [OWASP Top 10](https://www.o
 * [A5 Security Misconfiguration](https://www.owasp.org/index.php/Top_10_2013-A5-Security_Misconfiguration)
 * [A6 Sensitive Data Disclosure](https://www.owasp.org/index.php/Top_10_2013-A6-Sensitive_Data_Exposure)
 
-
-as well as risks classified by MITRE in the CWE dictionary such as [CWE-2 Environment](http://cwe.mitre.org/data/definitions/2.html). As development progress and its capabilities mature, DevAudit will be able to address the other risks on the OWASP Top 10 and CWE lists like Injection, XSS, and Sensitive Data Disclosure. With the focus on web and cloud and distributed multi-user applications, software development today is increasingly a complex affair with security issues and potential vulnerabilities arising at all levels of the stack developers rely on to deliver applications. The goal of DevAudit is to provide a platform for automating implementation of development security reviews and best practices at all levels of the solution stack from library package dependencies to application and server configuration to source code.
+as well as risks classified by MITRE in the CWE dictionary such as [CWE-2 Environment](http://cwe.mitre.org/data/definitions/2.html). As development progresses and its capabilities mature, DevAudit will be able to address the other risks on the OWASP Top 10 and CWE lists like Injection and XSS. With the focus on web and cloud and distributed multi-user applications, software development today is increasingly a complex affair with security issues and potential vulnerabilities arising at all levels of the stack developers rely on to deliver applications. The goal of DevAudit is to provide a platform for automating implementation of development security reviews and best practices at all levels of the solution stack from library package dependencies to application and server configuration to source code.
 
 ## Features
 * **Cross-platform with a Docker image also available.** DevAudit runs on Windows and Linux with *BSD and Mac support coming and ARM Linux a possibility. Only an up-to-date version of .NET or Mono is required to run DevAudit. A [DevAudit Docker image](https://hub.docker.com/r/ossindex/devaudit/) can also be pulled from Docker Hub and run without the need to install Mono.
@@ -57,6 +56,7 @@ DevAudit can be installed by the following methods:
 
 4. Run `./devaudit --help` and you should see the DevAudit version and help screen printed.
 
+Note that NuGet on Linux may occasionally exit with `Error: NameResolutionFailure` which seems to be a transient problem with contacting the servers that contain the NuGet packages. You should just run ./build.sh again until the build completes normally.
 ### Building from source on Windows
 1. Pre-requisites: You must have one of:
     * A [.NET Framework 4.6](http://getdotnet.azurewebsites.net/target-dotnet-platforms.html) SDK or developer pack.
@@ -198,6 +198,7 @@ This section discusses how to **audit** Docker images using DevAudit installed o
 
 A Docker audit environment is specified by the following option: `-i CONTAINER_NAME | -i CONTAINER_ID`
 
+![Screenshot of DevAudit auditing a Docker container](https://lh3.googleusercontent.com/id4IBEf25ugvSjZOxF7KVY8CDoWLNlbb5dyHQ8R6wabtFpMjwrVl_EIJNnoPobzo2UCJj5vghOac8phJ2UKLciqCljB1ioUQ682dRTgOYOgkfLBZLrxVM2lcHGJX7wnQpyqyWw=w900-h450-no)
 `CONTAINER_(NAME|ID)` Specifes the name or id of a running Docker container to connect to. The container must be already running as DevAudit does not know how to start the container with the name or the state you require.  
 
 
@@ -212,7 +213,7 @@ DevAudit also ships as a Docker containerized app which allows users on Linux to
 
 `docker pull ossindex/devaudit`
 
-The current image is around 370MB uncompressed. To run DevAudit as a containerized app:
+The current image is about 131 MB compressed. To run DevAudit as a containerized app:
 
 	docker run -i -t ossindex/devaudit TARGET [ENVIRONMENT] | [OPTIONS]
 
