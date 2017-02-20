@@ -171,18 +171,20 @@ namespace DevAudit.CommandLine
             {
                 audit_options.Add("ListArtifacts", ProgramOptions.ListArtifacts);
             }
-            if (ProgramOptions.ListConfigurationRules)
-            {
-                audit_options.Add("ListConfigurationRules", ProgramOptions.ListConfigurationRules);
-            }
             if (ProgramOptions.PrintConfiguration)
             {
                 audit_options.Add("PrintConfiguration", ProgramOptions.PrintConfiguration);
+            }
+            
+            if (ProgramOptions.ListConfigurationRules)
+            {
+                audit_options.Add("ListConfigurationRules", ProgramOptions.ListConfigurationRules);
             }
             if (ProgramOptions.ListAnalyzers)
             {
                 audit_options.Add("ListAnalyzers", ProgramOptions.ListAnalyzers);
             }
+            
             if (ProgramOptions.OnlyLocalRules)
             {
                 audit_options.Add("OnlyLocalRules", ProgramOptions.OnlyLocalRules);
