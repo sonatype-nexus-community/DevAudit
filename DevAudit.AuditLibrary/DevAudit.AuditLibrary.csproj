@@ -308,8 +308,8 @@
       <HintPath>..\packages\System.Xml.XPath.XDocument.4.0.1\lib\net46\System.Xml.XPath.XDocument.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="Versatile.Core, Version=0.1.13.5, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Versatile.0.1.13.5\lib\net45\Versatile.Core.dll</HintPath>
+    <Reference Include="Versatile.Core, Version=0.1.13.6, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Versatile.0.1.13.6\lib\net45\Versatile.Core.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="YamlDotNet, Version=3.9.0.0, Culture=neutral, processorArchitecture=MSIL">
