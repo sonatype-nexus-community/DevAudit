@@ -171,18 +171,20 @@ namespace DevAudit.CommandLine
             {
                 audit_options.Add("ListArtifacts", ProgramOptions.ListArtifacts);
             }
-            if (ProgramOptions.ListConfigurationRules)
-            {
-                audit_options.Add("ListConfigurationRules", ProgramOptions.ListConfigurationRules);
-            }
             if (ProgramOptions.PrintConfiguration)
             {
                 audit_options.Add("PrintConfiguration", ProgramOptions.PrintConfiguration);
+            }
+            
+            if (ProgramOptions.ListConfigurationRules)
+            {
+                audit_options.Add("ListConfigurationRules", ProgramOptions.ListConfigurationRules);
             }
             if (ProgramOptions.ListAnalyzers)
             {
                 audit_options.Add("ListAnalyzers", ProgramOptions.ListAnalyzers);
             }
+            
             if (ProgramOptions.OnlyLocalRules)
             {
                 audit_options.Add("OnlyLocalRules", ProgramOptions.OnlyLocalRules);
@@ -1086,14 +1088,6 @@ namespace DevAudit.CommandLine
                                     PrintMessageLine("  --Exception {0} {1}.", e.Message, e.StackTrace);
                                 }
                             }
-                            if (bcar.DiagnosticMessages != null && bcar.DiagnosticMessages.Any())
-                            {
-                                foreach (string s in bcar.DiagnosticMessages)
-                                {
-                                    PrintMessageLine("  --Diagnostic {0}.", s);
-                                }
-                            }
-
                         }
                         else if (!bcar.Succeded)
                         {
@@ -1106,13 +1100,6 @@ namespace DevAudit.CommandLine
                                     PrintMessageLine("  --Exception {0} {1}.", e.Message, e.StackTrace);
                                 }
                             }
-                            if (bcar.DiagnosticMessages != null && bcar.DiagnosticMessages.Any())
-                            {
-                                foreach (string s in bcar.DiagnosticMessages)
-                                {
-                                    PrintMessageLine("  --Diagnostic {0}.", s);
-                                }
-                            }
                         }
                         else
                         {
@@ -1123,10 +1110,24 @@ namespace DevAudit.CommandLine
                             PrintMessageLine("  --Location: {0}", bcar.LocationDescription);
                             if (bcar.DiagnosticMessages != null && bcar.DiagnosticMessages.Any())
                             {
-                                PrintMessageLine("  --Diagnostics");
-                                foreach (string s in bcar.DiagnosticMessages)
+                                if (bcar.DiagnosticMessages != null && bcar.DiagnosticMessages.Any())
                                 {
-                                    PrintMessageLine("    --{0}", s);
+                                    PrintMessageLine("  --Diagnostics");
+                                    int dmc_total = bcar.DiagnosticMessages.Count, dmc_count = 0;
+                                    foreach (string diagnostics in bcar.DiagnosticMessages)
+                                    {
+                                        List<string> messages = diagnostics.Split("\n".ToCharArray()).ToList();
+                                        string name = messages.Where(d => d.StartsWith("Name:")).FirstOrDefault();
+                                        string severity = messages.Where(d => d.StartsWith("Severity:")).FirstOrDefault();
+                                        PrintMessage("    --[{0}/{1}] {2} Severity: ", ++dmc_count, dmc_total, name);
+                                        ConsoleColor severity_color = severity.Contains("Low") ? ConsoleColor.DarkYellow : severity.Contains("Medium") ? ConsoleColor.DarkRed : ConsoleColor.Red;
+                                        PrintMessageLine(severity_color, "{0}", severity.Replace("Severity: ", string.Empty));
+                                        messages.RemoveAll(m => m == name || m == severity);
+                                        foreach (string m in messages)
+                                        {
+                                            PrintMessageLine("      --{0}", m);
+                                        }
+                                    }
                                 }
                             }
                         }

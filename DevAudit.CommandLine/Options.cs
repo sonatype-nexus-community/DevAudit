@@ -140,12 +140,13 @@ namespace DevAudit.CommandLine
         [Option("list-artifacts", Required = false, HelpText = "Only list the artifacts corresponding to local packages found on OSS Index.", MutuallyExclusiveSet = "audit-action")]
         public bool ListArtifacts { get; set; }
 
-        [Option("list-rules", Required = false, HelpText = "Only list the configuration rules found for the application or application server.", MutuallyExclusiveSet = "audit-action")]
+        
+        //[Option("list-rules", Required = false, HelpText = "Only list the configuration rules found for the application or application server.", MutuallyExclusiveSet = "audit-action")]
         public bool ListConfigurationRules { get; set; }
 
-        [Option("list-analyzers", Required = false, HelpText = "Only list the analyzers found for the application or code project.", MutuallyExclusiveSet = "audit-action")]
+        //[Option("list-analyzers", Required = false, HelpText = "Only list the analyzers found for the application or code project.", MutuallyExclusiveSet = "audit-action")]
         public bool ListAnalyzers { get; set; }
-
+        
         [Option("print-configuration", Required = false, HelpText = "Only print the application or application server configuration.", MutuallyExclusiveSet = "audit-action")]
         public bool PrintConfiguration { get; set; }
 

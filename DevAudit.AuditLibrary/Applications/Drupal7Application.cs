@@ -190,7 +190,9 @@ namespace DevAudit.AuditLibrary
 
         public override bool IsVulnerabilityVersionInPackageVersionRange(string vulnerability_version, string package_version)
         {
-            string message = "";        
+            string message = "";
+            vulnerability_version = vulnerability_version.TrimEnd(".".ToCharArray());
+            package_version = package_version.TrimEnd(".".ToCharArray());       
             bool r = Drupal.RangeIntersect(vulnerability_version, package_version, out message);
             if (!r && !string.IsNullOrEmpty(message))
             {

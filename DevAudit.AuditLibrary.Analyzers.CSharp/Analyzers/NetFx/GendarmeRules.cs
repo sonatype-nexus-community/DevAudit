@@ -40,7 +40,22 @@ namespace DevAudit.AuditLibrary.Analyzers
                             select n;
                 if (query.Any())
                 {
-                    List<string> diagnostics = query.Select(d => string.Format("Name: {0} Problem: {1} Location: {2}", d.Rule.Name, d.Rule.Problem, d.Location)).ToList();
+                    /*
+                    List<ByteCodeAnalyzerResult> results = query.Select(d => new ByteCodeAnalyzerResult()
+                    {
+                        Analyzer = this,
+                        Executed = true,
+                        Succeded = true,
+                        IsVulnerable = true,
+                        Severity = (int) d.Severity,
+                        LocationDescription = d.Location.ToString(),
+                        Confidence = (int) d.Confidence,
+                        ModuleName = this.Module.Name,
+                        Problem = d.Text,
+                        Resolution = d.Rule.Solution
+                    }).ToList();
+                    */
+                    List<string> diagnostics = query.Select(d => string.Format("Name: {0}\nProblem: {1}\nLocation: {2}\nSeverity: {3}", d.Rule.Name, d.Rule.Problem, d.Location, d.Severity.ToString())).ToList();
                     return Task.FromResult(new ByteCodeAnalyzerResult()
                     {
                         Analyzer = this,
