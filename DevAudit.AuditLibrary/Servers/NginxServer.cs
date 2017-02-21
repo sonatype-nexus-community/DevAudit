@@ -102,6 +102,14 @@ namespace DevAudit.AuditLibrary
                 this.Configuration = nginx;
                 this.ConfigurationInitialised = true;
             }
+            else
+            {
+                this.AuditEnvironment.Error("Could not parse configuration from {0}.", nginx.FullFilePath);
+                if (nginx.LastParseException != null) this.AuditEnvironment.Error(nginx.LastParseException);
+                if (nginx.LastIOException != null) this.AuditEnvironment.Error(nginx.LastIOException);
+                this.Configuration = null;
+                this.ConfigurationInitialised = false;
+            }
             return this.Configuration;
         }
 

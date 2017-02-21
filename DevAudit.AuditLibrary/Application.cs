@@ -517,11 +517,6 @@ namespace DevAudit.AuditLibrary
             }
             return AuditResult.SUCCESS;
         }
-
-        public string GetConfigurationRuleDiagnostic(OSSIndexProjectConfigurationRule rule, List<string> results)
-        {
-            return string.Empty;
-        }
      
         protected int GetDefaultConfigurationRules()
         {

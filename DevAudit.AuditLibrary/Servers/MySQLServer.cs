@@ -92,6 +92,14 @@ namespace DevAudit.AuditLibrary
                 this.Configuration = mysql;
                 this.ConfigurationInitialised = true;
             }
+            else
+            {
+                this.AuditEnvironment.Error("Could not parse configuration from {0}.", mysql.FullFilePath);
+                if (mysql.LastParseException != null) this.AuditEnvironment.Error(mysql.LastParseException);
+                if (mysql.LastIOException != null) this.AuditEnvironment.Error(mysql.LastIOException);
+                this.Configuration = null;
+                this.ConfigurationInitialised = false;
+            }
             return this.Configuration;
         }
 
