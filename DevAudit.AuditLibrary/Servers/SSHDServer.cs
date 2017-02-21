@@ -107,12 +107,20 @@ namespace DevAudit.AuditLibrary
             Stopwatch sw = new Stopwatch();
             sw.Start();
             SSHD sshd = new SSHD(this.ConfigurationFile);
+            sw.Stop();
             if (sshd.ParseSucceded)
             {
                 this.Configuration = sshd;
-                sw.Stop();
                 this.ConfigurationInitialised = true;
                 this.AuditEnvironment.Success("Read configuration from {0} in {1} ms.", this.Configuration.File.Name, sw.ElapsedMilliseconds);
+            }
+            else
+            {
+                this.AuditEnvironment.Error("Could not parse configuration from {0}.", sshd.FullFilePath);
+                if (sshd.LastParseException != null) this.AuditEnvironment.Error(sshd.LastParseException);
+                if (sshd.LastIOException != null) this.AuditEnvironment.Error(sshd.LastIOException);
+                this.Configuration = null;
+                this.ConfigurationInitialised = false;
             }
             return this.Configuration;
         }

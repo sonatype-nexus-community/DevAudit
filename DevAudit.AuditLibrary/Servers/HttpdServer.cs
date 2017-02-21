@@ -74,9 +74,11 @@ namespace DevAudit.AuditLibrary
                 }
                 else
                 {
-                    this.AuditEnvironment.Error("Failed to parse {0} configuration file {1}.", this.ApplicationLabel, this.ConfigurationFile.FullName);
-                    if (httpd.LastException != null) this.AuditEnvironment.Error(httpd.LastException);
-                    throw new Exception("Exception thrown parsing configuration file.", httpd.LastException);
+                    this.AuditEnvironment.Error("Could not parse configuration from {0}.", httpd.FullFilePath);
+                    if (httpd.LastParseException != null) this.AuditEnvironment.Error(httpd.LastParseException);
+                    if (httpd.LastIOException != null) this.AuditEnvironment.Error(httpd.LastIOException);
+                    this.Configuration = null;
+                    this.ConfigurationInitialised = false;
                 }
             }
             return this.Configuration;

@@ -1012,12 +1012,12 @@ namespace DevAudit.CommandLine
                     PrintMessage("{0} rule(s). ", total_project_rules);
                     if (succeded_project_rules > 0)
                     {
-                        PrintMessage(ConsoleColor.Magenta, " {0} rule(s) succeded. ", succeded_project_rules);
+                        PrintMessage(ConsoleColor.Magenta, " {0} rule(s) succeeded. ", succeded_project_rules);
                         PrintMessageLine(ConsoleColor.Red, "[VULNERABLE]");
                     }
                     else
                     {
-                        PrintMessage(ConsoleColor.DarkGreen, " {0} rule(s) succeded. \n", succeded_project_rules);
+                        PrintMessage(ConsoleColor.DarkGreen, " {0} rule(s) succeeded. \n", succeded_project_rules);
                     }
                     foreach (KeyValuePair<OSSIndexProjectConfigurationRule, Tuple<bool, List<string>, string>> e in evals)
                     {
@@ -1429,7 +1429,7 @@ namespace DevAudit.CommandLine
             SecureString pass = new SecureString();
             ConsoleKeyInfo cki;
             Console.Write("Password: ");
-            while ((cki = Console.ReadKey(true)).Key != ConsoleKey.Enter)
+            while ((cki = Console.ReadKey(false)).Key != ConsoleKey.Enter)
             {
                 if ((cki.Key == ConsoleKey.Backspace) && (pass.Length > 0))
                 {
