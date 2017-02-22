@@ -68,7 +68,7 @@ namespace DevAudit.AuditLibrary
             if (this.Execute("stat", file_path, out process_status, out process_output, out process_error))
             {
                 this.Debug(caller, "Execute returned true for stat {0}. Output: {1}. Error: {2}.", file_path, process_output, process_error);
-                return !process_output.Contains("no such file or directory") && process_output.Contains("regular file");
+                return !process_output.Contains("no such file or directory") && (process_output.Contains("regular file") || process_output.Contains("symbolic link"));
             }
 
             else
@@ -89,7 +89,7 @@ namespace DevAudit.AuditLibrary
             {
 
                 this.Debug(caller, "Execute returned true for stat {0}. Output: {1}. Error: {2}.", dir_path, process_output, process_error);
-                return !process_output.Contains("no such file or directory") && process_output.Contains("directory");
+                return !process_output.Contains("no such file or directory") && (process_output.Contains("directory") || process_output.Contains("symbolic link"));
             }
 
             else
