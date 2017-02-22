@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text;
 using System.Xml;
 using System.Xml.Linq;
 
@@ -28,7 +29,14 @@ namespace DevAudit.AuditLibrary
             try
             {
                 AuditFileInfo config_file = this.AuditEnvironment.ConstructFile(this.PackageManagerConfigurationFile);
-                XElement root = XElement.Parse(config_file.ReadAsText());
+                string _byteOrderMarkUtf8 = Encoding.UTF8.GetString(Encoding.UTF8.GetPreamble());
+                string xml = config_file.ReadAsText();
+                if (xml.StartsWith(_byteOrderMarkUtf8))
+                {
+                    var lastIndexOfUtf8 = _byteOrderMarkUtf8.Length - 1;
+                    xml = xml.Remove(0, lastIndexOfUtf8);
+                }
+                XElement root = XElement.Parse(xml);
                 IEnumerable<OSSIndexQueryObject> packages =
                     from el in root.Elements("package")
                     select new OSSIndexQueryObject("nuget", el.Attribute("id").Value, el.Attribute("version").Value, "");
