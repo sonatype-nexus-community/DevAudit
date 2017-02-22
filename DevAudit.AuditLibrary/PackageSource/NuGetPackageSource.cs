@@ -33,7 +33,7 @@ namespace DevAudit.AuditLibrary
                 string xml = config_file.ReadAsText();
                 if (xml.StartsWith(_byteOrderMarkUtf8))
                 {
-                    var lastIndexOfUtf8 = _byteOrderMarkUtf8.Length - 1;
+                    var lastIndexOfUtf8 = _byteOrderMarkUtf8.Length;
                     xml = xml.Remove(0, lastIndexOfUtf8);
                 }
                 XElement root = XElement.Parse(xml);
