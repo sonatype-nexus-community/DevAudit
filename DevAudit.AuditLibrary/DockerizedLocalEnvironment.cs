@@ -23,61 +23,80 @@ namespace DevAudit.AuditLibrary
             {
                 this.HostRootIsMounted = true;
                 //throw new Exception(string.Format("The host root directory is not mounted on the DevAudit Docker image at {0}.", "/hostroot"));
-            }  
+            }
             else
             {
                 this.Warning("The Docker host root directory is not mounted on the DevAudit Docker image at /hostroot so no chroot for executables is possible.");
-            }         
+            }
         }
         #endregion
 
         #region Overriden methods
-        public override AuditDirectoryInfo ConstructDirectory(string dir_path)
-        {
-            dir_path = dir_path.Replace("/hostroot", string.Empty);
-            return this.HostRootIsMounted ? base.ConstructDirectory("/hostroot" + (dir_path.StartsWith(this.PathSeparator) ? dir_path : this.PathSeparator + dir_path)) 
-                : base.ConstructDirectory(dir_path);
-        }
-
         public override AuditFileInfo ConstructFile(string file_path)
         {
-            file_path = file_path.Replace("/hostroot", string.Empty);
-            return this.HostRootIsMounted ? base.ConstructFile("/hostroot" + (file_path.StartsWith(this.PathSeparator) ? file_path : this.PathSeparator + file_path)) 
-                : base.ConstructFile(file_path);
+            return new DockerizedLocalAuditFileInfo(this, file_path);
         }
 
-        public override bool FileExists(string file_path)
+        public override AuditDirectoryInfo ConstructDirectory(string dir_path)
         {
-            file_path = file_path.Replace("/hostroot", string.Empty);
-            return this.HostRootIsMounted ? File.Exists("/hostroot" + (file_path.StartsWith(this.PathSeparator) ? file_path : this.PathSeparator + file_path)) : 
-                File.Exists(file_path);
-        }
-
-        public override bool DirectoryExists(string dir_path)
-        {
-            dir_path = dir_path.Replace("/hostroot", string.Empty);
-            return this.HostRootIsMounted ? Directory.Exists("/hostroot" + (dir_path.StartsWith(this.PathSeparator) ? dir_path : this.PathSeparator + dir_path)) : 
-                Directory.Exists(dir_path);
+            return new DockerizedLocalAuditDirectoryInfo(this, dir_path);
         }
 
         public override bool Execute(string command, string arguments,
             out ProcessExecuteStatus process_status, out string process_output, out string process_error, Action<string> OutputDataReceived = null, Action<string> OutputErrorReceived = null, [CallerMemberName] string memberName = "", [CallerFilePath] string fileName = "", [CallerLineNumber] int lineNumber = 0)
         {
-            if (!HostRootIsMounted)
+            if (this.HostRootIsMounted)
             {
-                throw new InvalidOperationException("The Docker host root directory is not mounted at /hostroot so chroot for executables is not possible.\n Mount the host root using the the -v /:/hostroot:ro docker run  option.");
+                bool r = base.Execute("chroot", " /hostroot " + command + " " + arguments, out process_status, out process_output, out process_error);
+                this.Debug("Execute returned {2} for {0}. Output: {1}. Error:{3}", "chroot /hostroot " + command + " " + arguments, process_output, r, process_error);
+                return r;
+            }
+            else
+            {
+                bool r = base.Execute(command, arguments, out process_status, out process_output, out process_error);
+                this.Debug("Execute returned {2} for {0}. Output: {1}. Error {3}.", "chroot /hostroot " + command + " " + arguments, process_output, r, process_error);
+                return r;
+            }
+        }
+
+        public override bool FileExists(string file_path)
+        {
+            CallerInformation caller = this.Here();
+            string process_output = "";
+            string process_error = "";
+            ProcessExecuteStatus process_status;
+            if (this.Execute("stat", file_path, out process_status, out process_output, out process_error))
+            {
+                this.Debug(caller, "Execute returned true for stat {0}. Output: {1}. Error: {2}.", file_path, process_output, process_error);
+                return !process_output.Contains("no such file or directory") && process_output.Contains("regular file");
             }
 
-            if (command.Contains("/hostroot"))
+            else
             {
-                command = command.Replace("/hostroot", string.Empty);
-            }
-            if (arguments.Contains("/hostroot"))
-            {
-                arguments = arguments.Replace("/hostroot", string.Empty);
+                this.Debug(caller, "Execute returned false for stat {0}. Output: {1}. Error: {2}.", file_path, process_output, process_error);
+                return false;
             }
 
-            return base.Execute("chroot", " /hostroot "+ command + " " + arguments, out process_status, out process_output, out process_error);
+        }
+
+        public override bool DirectoryExists(string dir_path)
+        {
+            CallerInformation caller = this.Here();
+            string process_output = "";
+            string process_error = "";
+            ProcessExecuteStatus process_status;
+            if (this.Execute("stat", dir_path, out process_status, out process_output, out process_error))
+            {
+
+                this.Debug(caller, "Execute returned true for stat {0}. Output: {1}. Error: {2}.", dir_path, process_output, process_error);
+                return !process_output.Contains("no such file or directory") && process_output.Contains("directory");
+            }
+
+            else
+            {
+                this.Debug(caller, "Execute returned true for stat {0}. Output: {1}. Error: {2}.", dir_path, process_output, process_error);
+                return false;
+            }
         }
         #endregion
 
@@ -86,4 +105,3 @@ namespace DevAudit.AuditLibrary
         #endregion
     }
 }
-

@@ -1,3 +1,2 @@
 #!/bin/bash
-#MONO_LOG_LEVEL=debug 
-mono ./DevAudit.CommandLine/bin/Debug/devaudit.exe "$@"
+mono --debug ./DevAudit.CommandLine/bin/Debug/devaudit.exe "$@"

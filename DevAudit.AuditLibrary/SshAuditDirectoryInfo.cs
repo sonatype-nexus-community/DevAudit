@@ -212,11 +212,11 @@ namespace DevAudit.AuditLibrary
 
         #endregion
 
-        #region Protected properties
+        #region Properties
         protected SshAuditEnvironment SshAuditEnvironment { get; set; }
         #endregion
 
-        #region Private fields
+        #region Fields
         private bool? _Exists;
         #endregion
     }
