@@ -9,6 +9,7 @@ using System.Runtime.InteropServices;
 using System.Security;
 using System.Text;
 using System.Text.RegularExpressions;
+using System.Threading;
 using System.Threading.Tasks;
 
 
@@ -110,6 +111,9 @@ namespace DevAudit.AuditLibrary
             object results_lock = new object();
             Stopwatch sw = new Stopwatch();
             sw.Start();
+            int read_count = 0;
+            string _byteOrderMarkUtf8 = Encoding.UTF8.GetString(Encoding.UTF8.GetPreamble());
+            var lastIndexOfUtf8 = _byteOrderMarkUtf8.Length;
             Parallel.ForEach(files, new ParallelOptions() { MaxDegreeOfParallelism = 20 }, (_f, state) =>
             {
                 string process_output = "";
@@ -118,17 +122,22 @@ namespace DevAudit.AuditLibrary
                 bool r = this.Execute("cat", _f.FullName, out process_status, out process_output, out process_error);
                 if (r)
                 {
+                    if (process_output.StartsWith(_byteOrderMarkUtf8, StringComparison.Ordinal))
+                    {
+                        process_output = process_output.Remove(0, lastIndexOfUtf8);
+                    }
                     if (process_output == string.Format("cat: {0}: No such file or directory", _f.FullName))
                     {
                         this.Error(here, "File {0} does not exist.", _f.FullName);
                     }
                     else
-                    {
+                    {   
                         lock (results_lock)
                         {
                             results.Add(_f, process_output);
                         }
-                        Debug(here, "Read {0} chars from {1}.", process_output.Length, _f.FullName);
+                        Interlocked.Increment(ref read_count);
+                        Debug(here, string.Format("Read {1} chars from local file {0}.", _f.FullName, process_output.Length), files.Count, read_count);
                     }
                 }
                 else

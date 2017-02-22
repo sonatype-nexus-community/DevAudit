@@ -116,6 +116,12 @@ namespace DevAudit.AuditLibrary
 
             if (!string.IsNullOrEmpty(o))
             {
+                string _byteOrderMarkUtf8 = Encoding.UTF8.GetString(Encoding.UTF8.GetPreamble());
+                var lastIndexOfUtf8 = _byteOrderMarkUtf8.Length;
+                if (o.StartsWith(_byteOrderMarkUtf8, StringComparison.Ordinal))
+                {
+                    o = o.Remove(0, lastIndexOfUtf8);
+                }
                 if (o == string.Format("cat: {0}: No such file or directory", this.FullName))
                 {
                     EnvironmentCommandError(this.AuditEnvironment.Here(), "Access denied reading {0}.", this.FullName);

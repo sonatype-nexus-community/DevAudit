@@ -31,7 +31,7 @@ namespace DevAudit.AuditLibrary
                 AuditFileInfo config_file = this.AuditEnvironment.ConstructFile(this.PackageManagerConfigurationFile);
                 string _byteOrderMarkUtf8 = Encoding.UTF8.GetString(Encoding.UTF8.GetPreamble());
                 string xml = config_file.ReadAsText();
-                if (xml.StartsWith(_byteOrderMarkUtf8))
+                if (xml.StartsWith(_byteOrderMarkUtf8, StringComparison.Ordinal))
                 {
                     var lastIndexOfUtf8 = _byteOrderMarkUtf8.Length;
                     xml = xml.Remove(0, lastIndexOfUtf8);
