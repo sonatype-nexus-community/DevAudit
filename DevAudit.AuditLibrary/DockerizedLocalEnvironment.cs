@@ -14,10 +14,10 @@ using System.Threading.Tasks;
 
 namespace DevAudit.AuditLibrary
 {
-    public class DockerizedLocalEnvironment : LocalEnvironment
+    public class DockerizedLocalEnvironment : AuditEnvironment
     {
         #region Constructors
-        public DockerizedLocalEnvironment(EventHandler<EnvironmentEventArgs> message_handler) : base(message_handler)
+        public DockerizedLocalEnvironment(EventHandler<EnvironmentEventArgs> message_handler) : base(message_handler, Environment.OSVersion, null)
         {
             if (Directory.Exists("/hostroot"))
             {
@@ -29,6 +29,10 @@ namespace DevAudit.AuditLibrary
                 this.Warning("The Docker host root directory is not mounted on the DevAudit Docker image at /hostroot so no chroot for executables is possible.");
             }
         }
+        #endregion
+
+        #region Overriden properties
+        protected override TraceSource TraceSource { get; set; } = new TraceSource("LocalEnvironment");
         #endregion
 
         #region Overriden methods
@@ -47,13 +51,13 @@ namespace DevAudit.AuditLibrary
         {
             if (this.HostRootIsMounted)
             {
-                bool r = base.Execute("chroot", " /hostroot " + command + " " + arguments, out process_status, out process_output, out process_error);
+                bool r = this.LocalExecute("chroot", " /hostroot " + command + " " + arguments, out process_status, out process_output, out process_error);
                 this.Debug("Execute returned {2} for {0}. Output: {1}. Error:{3}", "chroot /hostroot " + command + " " + arguments, process_output, r, process_error);
                 return r;
             }
             else
             {
-                bool r = base.Execute(command, arguments, out process_status, out process_output, out process_error);
+                bool r = this.LocalExecute(command, arguments, out process_status, out process_output, out process_error);
                 this.Debug("Execute returned {2} for {0}. Output: {1}. Error {3}.", "chroot /hostroot " + command + " " + arguments, process_output, r, process_error);
                 return r;
             }
@@ -98,10 +102,131 @@ namespace DevAudit.AuditLibrary
                 return false;
             }
         }
+
+        public override Dictionary<AuditFileInfo, string> ReadFilesAsText(List<AuditFileInfo> files)
+        {
+            CallerInformation here = this.Here();
+            Dictionary<AuditFileInfo, string> results = new Dictionary<AuditFileInfo, string>(files.Count);
+            object results_lock = new object();
+            Stopwatch sw = new Stopwatch();
+            sw.Start();
+            Parallel.ForEach(files, new ParallelOptions() { MaxDegreeOfParallelism = 20 }, (_f, state) =>
+            {
+                string process_output = "";
+                string process_error = "";
+                ProcessExecuteStatus process_status;
+                bool r = this.Execute("cat", _f.FullName, out process_status, out process_output, out process_error);
+                if (r)
+                {
+                    if (process_output == string.Format("cat: {0}: No such file or directory", _f.FullName))
+                    {
+                        this.Error(here, "File {0} does not exist.", _f.FullName);
+                    }
+                    else
+                    {
+                        lock (results_lock)
+                        {
+                            results.Add(_f, process_output);
+                        }
+                        Debug(here, "Read {0} chars from {1}.", process_output.Length, _f.FullName);
+                    }
+                }
+                else
+                {
+                    Error(here, "Could not read {0} as text. Command returned: {1} {2}", _f.FullName, process_output, process_error);
+                }
+            });
+            sw.Stop();
+            Success("Read text for {0} out of {1} files in {2} ms.", results.Count(r => r.Value.Length > 0), results.Count(), sw.ElapsedMilliseconds);
+            return results;
+        }
+
         #endregion
 
         #region Properties
         public bool HostRootIsMounted { get; private set; }
+        #endregion
+
+        #region Methods
+        public bool LocalExecute(string command, string arguments,
+            out ProcessExecuteStatus process_status, out string process_output, out string process_error, Action<string> OutputDataReceived = null, Action<string> OutputErrorReceived = null, [CallerMemberName] string memberName = "", [CallerFilePath] string fileName = "", [CallerLineNumber] int lineNumber = 0)
+        {
+            FileInfo cf = new FileInfo(command);
+            int? process_exit_code = null;
+            StringBuilder process_out_sb = new StringBuilder();
+            StringBuilder process_err_sb = new StringBuilder();
+            ProcessStartInfo psi = new ProcessStartInfo(command);
+            psi.Arguments = arguments;
+            psi.CreateNoWindow = true;
+            psi.RedirectStandardError = true;
+            psi.RedirectStandardOutput = true;
+            psi.UseShellExecute = false;
+            if (cf.Exists)
+            {
+                psi.WorkingDirectory = cf.Directory.FullName;
+            }
+            Process p = new Process();
+            p.EnableRaisingEvents = true;
+            p.StartInfo = psi;
+            p.OutputDataReceived += (object sender, DataReceivedEventArgs e) =>
+            {
+                if (!String.IsNullOrEmpty(e.Data))
+                {
+                    process_out_sb.AppendLine(e.Data);
+                    OutputDataReceived?.Invoke(e.Data);
+                }
+            };
+            p.ErrorDataReceived += (object sender, DataReceivedEventArgs e) =>
+            {
+                if (!String.IsNullOrEmpty(e.Data))
+                {
+                    process_err_sb.AppendLine(e.Data);
+                    OutputErrorReceived?.Invoke(e.Data);
+                }
+
+            };
+            try
+            {
+                p.Start();
+                p.BeginErrorReadLine();
+                p.BeginOutputReadLine();
+                p.WaitForExit();
+                process_exit_code = p.ExitCode;
+                p.Close();
+            }
+            catch (Win32Exception e)
+            {
+                if (e.Message == "The system cannot find the file specified")
+                {
+                    process_status = ProcessExecuteStatus.FileNotFound;
+                    process_err_sb.AppendLine(e.Message);
+                    return false;
+                }
+            }
+            finally
+            {
+                process_output = process_out_sb.ToString();
+                process_error = process_err_sb.ToString();
+                p.Dispose();
+            }
+
+            if ((process_exit_code.HasValue && process_exit_code.Value != 0))
+            {
+                process_status = ProcessExecuteStatus.Error;
+                return false;
+            }
+            else if ((process_exit_code.HasValue && process_exit_code.Value == 0))
+            {
+                process_status = ProcessExecuteStatus.Completed;
+                return true;
+            }
+            else
+            {
+                process_status = ProcessExecuteStatus.Unknown;
+                return false;
+
+            }
+        }
         #endregion
     }
 }

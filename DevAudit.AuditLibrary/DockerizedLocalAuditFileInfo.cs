@@ -164,11 +164,11 @@ namespace DevAudit.AuditLibrary
         {
             if (this.DockerizedLocalEnvironment.HostRootIsMounted)
             {
-                return new LocalAuditFileInfo(this.DockerizedLocalEnvironment, new FileInfo(Path.Combine("/hostroot", this.FullName)));
+                return new LocalAuditFileInfo(new LocalEnvironment(), new FileInfo(Path.Combine("/hostroot", this.FullName)));
             }
             else
             {
-                return new LocalAuditFileInfo(this.DockerizedLocalEnvironment, new FileInfo(this.FullName));
+                return new LocalAuditFileInfo(new LocalEnvironment(), new FileInfo(this.FullName));
             }
         }
 
