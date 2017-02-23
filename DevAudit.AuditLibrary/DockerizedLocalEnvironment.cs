@@ -122,10 +122,11 @@ namespace DevAudit.AuditLibrary
                 bool r = this.Execute("cat", _f.FullName, out process_status, out process_output, out process_error);
                 if (r)
                 {
+                    /* May need this in the future.
                     if (process_output.StartsWith(_byteOrderMarkUtf8, StringComparison.Ordinal))
                     {
                         process_output = process_output.Remove(0, lastIndexOfUtf8);
-                    }
+                    }*/
                     if (process_output == string.Format("cat: {0}: No such file or directory", _f.FullName))
                     {
                         this.Error(here, "File {0} does not exist.", _f.FullName);
