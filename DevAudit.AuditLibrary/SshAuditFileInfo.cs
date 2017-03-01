@@ -12,6 +12,13 @@ namespace DevAudit.AuditLibrary
 {
     public class SshAuditFileInfo : AuditFileInfo
     {
+        #region Constructors
+        public SshAuditFileInfo(SshAuditEnvironment env, string file_path) : base(env, file_path)
+        {
+            this.SshAuditEnvironment = env;
+        }
+        #endregion
+
         #region Overriden properties
         public override string FullName { get; protected set; }
 
@@ -189,18 +196,13 @@ namespace DevAudit.AuditLibrary
         }
         #endregion
 
-        #region Constructors
-        public SshAuditFileInfo(SshAuditEnvironment env, string file_path) : base(env, file_path)
-        {
-            this.SshAuditEnvironment = env;
-        }
-        #endregion
+        
 
-        #region Protected properties
+        #region Properties
         protected SshAuditEnvironment SshAuditEnvironment { get; set; }
         #endregion
 
-        #region Private fields
+        #region Fields
         private long? _Length;
         private IDirectoryInfo _Directory;
         #endregion

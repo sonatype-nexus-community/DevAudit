@@ -57,6 +57,7 @@ namespace DevAudit.AuditLibrary
                     if (l.StartsWith("Drupal "))
                     {
                         core_version = l.Split(',')[0].Substring(7);
+                        break;
                     }
                 }
             }
@@ -64,6 +65,8 @@ namespace DevAudit.AuditLibrary
             sw.Stop();
             this.VersionInitialised = true;
             this.AuditEnvironment.Success("Got Drupal 8 version {0} in {1} ms.", this.Version, sw.ElapsedMilliseconds);
+            OSSIndexQueryObject core = this.ModulePackages["core"].Where(p => p.Name == "drupal_core").First();
+            core.Version = this.Version;
             return this.Version;
         }
 
@@ -80,7 +83,7 @@ namespace DevAudit.AuditLibrary
             if (core_module_files != null && core_module_files.Count > 0)
             {
                 List<OSSIndexQueryObject> core_modules = new List<OSSIndexQueryObject>(core_module_files.Count + 1);
-                this.AuditEnvironment.Info("Reading Drupal 8 core module files from environment...", core_module_files.Count);
+                this.AuditEnvironment.Status("Reading Drupal 8 core module files from environment...", core_module_files.Count);
                 Dictionary<AuditFileInfo, string> core_modules_files_text = this.CoreModulesDirectory.ReadFilesAsText(core_module_files);
                 Parallel.ForEach(core_modules_files_text, new ParallelOptions() { MaxDegreeOfParallelism = 20 }, kv =>
                 {
@@ -93,10 +96,11 @@ namespace DevAudit.AuditLibrary
                         {
                             core_modules.Add(new OSSIndexQueryObject("drupal", m.ShortName, m.Version == "VERSION" ? core_version : m.Version, "", string.Empty));
                         }
+                        this.AuditEnvironment.Debug("Added Drupal 8 core module {0}: {1}.", m.ShortName, m.Version);
                     }
                 });
                 M.Add("core", core_modules);
-                core_modules.Add(new OSSIndexQueryObject("drupal", "drupal_core", core_version));
+                core_modules.Add(new OSSIndexQueryObject("drupal", "drupal_core", string.Empty));
                 all_modules.AddRange(core_modules);
             }
             if (contrib_module_files != null && contrib_module_files.Count > 0)
@@ -113,8 +117,9 @@ namespace DevAudit.AuditLibrary
                         m.ShortName = kv.Key.Name.Split('.')[0];
                         lock (modules_lock)
                         {
-                            contrib_modules.Add(new OSSIndexQueryObject("drupal", m.ShortName, m.Version, "", string.Empty));
+                            contrib_modules.Add(new OSSIndexQueryObject(this.PackageManagerId, m.ShortName, m.Version));
                         }
+                        this.AuditEnvironment.Debug("Added Drupal 8 contrib module {0}: {1}.", m.ShortName, m.Version);
                     }
                 });
                 if (contrib_modules.Count > 0)
@@ -142,6 +147,7 @@ namespace DevAudit.AuditLibrary
                             {
                                 sites_all_contrib_modules.Add(new OSSIndexQueryObject("drupal", m.ShortName, m.Version, "", string.Empty));
                             }
+                            this.AuditEnvironment.Debug("Added Drupal 8 contrib module {0}: {1}.", m.ShortName, m.Version);
                         }
                     });
                     if (sites_all_contrib_modules.Count > 0)

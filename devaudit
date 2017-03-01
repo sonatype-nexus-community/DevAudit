@@ -1,3 +1,7 @@
 #!/bin/bash
-#MONO_LOG_LEVEL=debug 
-mono ./DevAudit.CommandLine/bin/Debug/devaudit.exe "$@"
+if [[ ${DEVAUDIT_TRACE+x} ]]
+then 
+	mono --trace=$DEVAUDIT_TRACE ./DevAudit.CommandLine/bin/Debug/devaudit.exe "$@"
+else
+	mono --debug ./DevAudit.CommandLine/bin/Debug/devaudit.exe "$@"
+fi

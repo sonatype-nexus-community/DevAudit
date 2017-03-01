@@ -1429,7 +1429,7 @@ namespace DevAudit.CommandLine
             SecureString pass = new SecureString();
             ConsoleKeyInfo cki;
             Console.Write("Password: ");
-            while ((cki = Console.ReadKey(false)).Key != ConsoleKey.Enter)
+            while ((cki = Console.ReadKey(true)).Key != ConsoleKey.Enter)
             {
                 if ((cki.Key == ConsoleKey.Backspace) && (pass.Length > 0))
                 {
