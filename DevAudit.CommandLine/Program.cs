@@ -20,7 +20,7 @@ namespace DevAudit.CommandLine
 {
     class Program
     {
-        static CC.Figlet FigletFont = new CC.Figlet(CC.FigletFont.Load("chunky.flf"));
+        static CC.Figlet FigletFont = null;
 
         static Options ProgramOptions = new Options();
 
@@ -63,7 +63,11 @@ namespace DevAudit.CommandLine
         static AuditTarget.AuditResult Exit;
 
         static int Main(string[] args)
-        { 
+        {
+            String fpath = System.Reflection.Assembly.GetEntryAssembly().Location;
+            String dpath = System.IO.Path.GetDirectoryName(fpath);
+            FigletFont = new CC.Figlet(CC.FigletFont.Load(dpath + "\\chunky.flf"));
+
             #region Setup console colors
             ConsoleMessageColors.Add(EventMessageType.INFO, Console.ForegroundColor);
             ConsoleMessageColors.Add(EventMessageType.PROGRESS, Console.ForegroundColor);
