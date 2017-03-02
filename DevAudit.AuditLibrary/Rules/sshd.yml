@@ -4,8 +4,8 @@ sshd:
         title: Root login is permitted (PermitRootLogin)
         xpathtest: not(/SSHD/Values/PermitRootLogin='no')
         summary: |
-            By default you can ssh to the server as root. It is best not to allow root to login directly to the server. 
-            Instead, you should login to the system as your account and then do ‘su -‘ to login as root.
+            By default you can ssh to the server as root. It is best not to allow root to login directly to the server over SSH. 
+            Instead, you should login to the system with your regular account and then do ‘su -‘ to login as root.
         resolution: |
             Add the directive PermitRootLogin='yes' to the configuration file.
         urls:
