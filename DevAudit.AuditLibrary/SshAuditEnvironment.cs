@@ -71,7 +71,7 @@ namespace DevAudit.AuditLibrary
             this.HostName = host_name;
             this.pass = pass;
             Success("Connected to {0} in {1} ms.", host_name, sw.ElapsedMilliseconds);
-            string tmp_dir = Environment.OSVersion.Platform == PlatformID.Win32NT ? Environment.GetEnvironmentVariable("TEMP") : Environment.GetEnvironmentVariable("TMPDIR");
+            string tmp_dir = Environment.OSVersion.Platform == PlatformID.Win32NT ? Environment.GetEnvironmentVariable("TEMP") : "/tmp";
             if (!string.IsNullOrEmpty(tmp_dir))
             {
                 this.WorkDirectory = new DirectoryInfo(Path.Combine(tmp_dir, "devaudit-work", this.GetTimestamp()));
