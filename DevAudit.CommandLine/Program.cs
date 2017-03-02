@@ -66,7 +66,8 @@ namespace DevAudit.CommandLine
         {
             String fpath = System.Reflection.Assembly.GetEntryAssembly().Location;
             String dpath = System.IO.Path.GetDirectoryName(fpath);
-            FigletFont = new CC.Figlet(CC.FigletFont.Load(dpath + "\\chunky.flf"));
+            Directory.SetCurrentDirectory(dpath);
+            FigletFont = new CC.Figlet(CC.FigletFont.Load("chunky.flf"));
 
             #region Setup console colors
             ConsoleMessageColors.Add(EventMessageType.INFO, Console.ForegroundColor);
