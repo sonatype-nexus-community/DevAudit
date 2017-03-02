@@ -71,7 +71,16 @@ namespace DevAudit.AuditLibrary
             this.HostName = host_name;
             this.pass = pass;
             Success("Connected to {0} in {1} ms.", host_name, sw.ElapsedMilliseconds);
-            this.WorkDirectory = new DirectoryInfo("work" + this.PathSeparator + this.GetTimestamp());
+            string tmp_dir = Environment.OSVersion.Platform == PlatformID.Win32NT ? Environment.GetEnvironmentVariable("TEMP") : "/tmp";
+            if (!string.IsNullOrEmpty(tmp_dir) && DirectoryExists(tmp_dir))
+            {
+                this.WorkDirectory = new DirectoryInfo(Path.Combine(tmp_dir, "devaudit-work", this.GetTimestamp()));
+            }
+            else
+            {
+                Warning("Could not value of temporary directory from environment. The work directory wll be created in the DevAudit root directory.");
+                this.WorkDirectory = new DirectoryInfo(Path.Combine("work",  this.GetTimestamp()));
+            }
             if (!this.WorkDirectory.Exists)
             {
                 this.WorkDirectory.Create();
