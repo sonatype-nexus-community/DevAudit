@@ -34,18 +34,18 @@ as well as risks classified by MITRE in the CWE dictionary such as [CWE-2 Enviro
 * **PowerShell** support. DevAudit can also be run inside the PowerShell system administration environment as cmdlets. Work on PowerShell support is paused at present but will resume in the near future with support for cross-platform Powershell both on Windows and Linux.
 
 ##Requirements
-DevAudit is a .NET 4.6 application. You will need either the Microsoft .NET Framework 4.6 runtime on Windows, or Mono 4.4+ on Linux. .NET 4.6 should be already installed on most recent versions of Windows, if not then it is available as a Windows feature that can be turned on or installed from the Programs and Features control panel applet on consumer Windows, or from Add Roles and Features option in Server Manager on server versions of Windows. For older versions of Windows, the .NET 4.6 installer from Microsoft can be found [here](https://www.microsoft.com/en-us/download/details.aspx?id=48130).
+DevAudit is a .NET 4.6 application. You will need either the Microsoft .NET Framework 4.6 runtime on Windows, or Mono 4.4+ on Linux. .NET 4.6 should be already installed on most recent versions of Windows, if not then it is available as a Windows feature that can be turned on or installed from the Programs and Features control panel applet on consumer Windows, or from the Add Roles and Features option in Server Manager on server versions of Windows. For older versions of Windows, the .NET 4.6 installer from Microsoft can be found [here](https://www.microsoft.com/en-us/download/details.aspx?id=48130).
 
 On Linux You must have a recent version (4.4.* or higher) of Mono. Check that the existing Mono packages provided by your distro are at least for Mono version 4.4 and above, otherwise you may have to install Mono packages manually.  Installation instructions for the most recent packages provided by the Mono project for several major Linux distros is [here](http://www.mono-project.com/docs/getting-started/install/linux/) It is recommended you have the mono-devel package installed as this will reduce the chances of missing assemblies.
- 
 
 ## Installation
 DevAudit can be installed by the following methods:
-1. Building from source.
-2. On Windows or Linux using A release archive file downloaded from Github.
-3. On Windows using the release MSI installer downloaded from Github.
-4. On Windows using the Chocolatey package manager.
-5. On Linux by pulling the DevAudit image from Docker Hub.
+- Building from source.
+- Using a binary release archive file downloaded from Github for Windows or Linux. 
+- Using the release MSI installer downloaded from Github for Windows.
+- Using the Chocolatey package manager on Windows.
+- Pulling the ossindex/devaudit Docker image from Docker Hub on Linux.
+
 
 ### Building from source on Linux
 1. Pre-requisites: Mono 4.4+ and the mono-devel package which provides the compiler and other tools needed for building Mono apps. Check that the existing Mono packages provided by your distro are at least Mono version 4.4 and above, otherwise you may have to install Mono packages manually.  Installation instructions for the most recent packages provided by the Mono project for several major Linux distros are [here](http://www.mono-project.com/docs/getting-started/install/linux/)
@@ -56,7 +56,8 @@ DevAudit can be installed by the following methods:
 
 4. Run `./devaudit --help` and you should see the DevAudit version and help screen printed.
 
-Note that NuGet on Linux may occasionally exit with `Error: NameResolutionFailure` which seems to be a transient problem with contacting the servers that contain the NuGet packages. You should just run ./build.sh again until the build completes normally.
+Note that NuGet on Linux may occasionally exit with `Error: NameResolutionFailure` which seems to be a transient problem contacting the servers that contain the NuGet packages. You should just run ./build.sh again until the build completes normally.
+
 ### Building from source on Windows
 1. Pre-requisites: You must have one of:
     * A [.NET Framework 4.6](http://getdotnet.azurewebsites.net/target-dotnet-platforms.html) SDK or developer pack.
@@ -68,14 +69,15 @@ Note that NuGet on Linux may occasionally exit with `Error: NameResolutionFailur
 4. Run `./devaudit --help` and you should see the DevAudit version and help screen printed.
 
 ### Installing from the release archive files on Windows on Linux
-2. Download the latest release archive file for Windows e.g DevAudit-0.2.0-Windows.zip or for Linux e.g DevAudit-0.2.0-Linux.tgz from the project [releases](https://github.com/OSSIndex/DevAudit/releases) page. Unpack this file to a directory.
+1. Pre-requisites: You must have Mono 4.4+ on Linux or .NET 4.6 on Windows.
+2. Download the latest release archive file for Windows and Linux e.g [DevAudit-2.0.0.40-beta](https://github.com/OSSIndex/DevAudit/releases/tag/v2.0.0.40-beta) from the project [releases](https://github.com/OSSIndex/DevAudit/releases) page. Unpack this file to a directory.
 
-2. From the directory where you unpacked the release archive run devaudit --help on Windows or ./devaudit --help on Linux. You should see the version and help screen printed.
+2. From the directory where you unpacked the release archive run `devaudit --help` on Windows or `./devaudit --help` on Linux. You should see the version and help screen printed.
 
-3. Add the DevAudit installation directory to your PATH environment variable
+3. (Optional) Add the DevAudit installation directory to your PATH environment variable
 
 ### Installing using the MSI Installer on Windows
-The MSI installer for a release can be found on the releases page.
+The MSI installer for a release can be found on the Github releases page.
 
 1. Click on the [releases](https://github.com/OSSIndex/DevAudit/releases) link near the top of the page.
 2. Identify the release you would like to install.
@@ -84,8 +86,8 @@ The MSI installer for a release can be found on the releases page.
 6. Open a *new* command prompt or PowerShell window in order to have DevAudit in path.
 7. Run DevAudit.
 
-### Installing on Windows using Chocolatey
-DevAudit is also available on [Chocolatey](https://chocolatey.org/packages/devaudit/1.0.1)
+### Installing using Chocolatey on Windows 
+DevAudit is also available on [Chocolatey](https://chocolatey.org/packages/devaudit/2.0.0.40-beta).
 
 1. Install [Chocolatey](https://chocolatey.org).
 2. Open an admin console or PowerShell window.
@@ -129,12 +131,16 @@ Audit Targets
 
 - `choco`  Do a package audit of packages installed by the Choco package manager.
 
-- `oneget` Do a package audit of the OneGet package source on Windows.
+- `oneget` Do a package audit of the system OneGet package source on Windows.
 
 - `nuget` Do a package audit of a NuGet v2 package source. You must specify the location of the NuGet packages.config file you wish to audit using the `-f` or `--file` option otherwise the current directory will be searched.
 - `bower` Do a package audit of a Bower package source. You must specify the location of the Bower packages.json file you wish to audit using the `-f` or `--file` option otherwise the current directory will be searched.
-
 - `composer` Do a package audit of a Composer package source. You must specify the location of the Composer composer.json file you wish to audit using the `-f` or `--file` option otherwise the current directory will be searched.
+
+- `dpkg` [Experimental] Do a package audit of the system dpkg package source on Debian Linux and derivatives.
+
+- `rpm` [Experimental] Do a package audit of the system RPM package source on RedHat Linux and derivatives.
+- `yum` [Experimental] Do a package audit of the system YUM package source on RedHat Linux and derivatives.
 
 For every package source the following general audit options can be used:
 - `-f --file` Specify the location of the package manager configuration file if needed. The NuGet, Bower and Composer package sources require this option.
@@ -142,11 +148,14 @@ For every package source the following general audit options can be used:
 
 - `--list-artifacts` Only list the artifacts found on OSS Index for packages scanned by DevAudit.
 
+Package sources tagged [Experimental] are only available in the master branch of the source code and may have limited back-end OSS Index support. However you can always list the packages scanned and artifacts available on OSS Index using the `list-packages` and `list-artifacts` options.
+
 ####Applications
 - `aspnet` Do an application audit on a ASP.NET application. The relevant options are:
 	- `-r --root-directory` Specify the root directory of the application. This is just the top-level application directory that contains files like Global.asax and Web.config.
 	- `-b --application-binary` Specify the application binary. The is the .NET assembly that contains the application's .NET bytecode. This file is usually a .DLL and located in the bin sub-folder of the ASP.NET application root directory.
 	- `-c --configuration-file` or `-o AppConfig=configuration-file` Specifies the ASP.NET application configuration file. This file is usually named Web.config and located in the application root directory. You can override the default @Web.config value with this option.
+	- `-o AppDevMode=enabled` Specifies that application development mode should be enabled for the audit. This mode can be used when auditing an application that is under development. Certain configuration rules that are tagged as disabled for AppDevMode (e.g running the application in ASP.NET debug mode) will not be enabled during the audit.
 
 - `drupal7` Do an application audit on a Drupal 7 application.
 	- `-r --root-directory` Specify the root directory of the application. This is just the top-level directory of your Drupal 7 install.
@@ -154,6 +163,12 @@ For every package source the following general audit options can be used:
 - `drupal8` Do an application audit on a Drupal 8 application.
 	- `-r --root-directory` Specify the root directory of the application. This is just the top-level directory of your Drupal 8 install.
 
+All applications also support the following common options for auding the application modules or plugins:
+- `--list-packages` Only list the application plugins or modules scanned by DevAudit.
+
+- `--list-artifacts` Only list the artifacts found on OSS Index for application plugins and modules scanned by DevAudit.
+
+- `--skip-packages-audit` Only do an appplication / server configuration or code analysis audit and skip the packages
 ####Application Servers
 - `sshd` Do an application server audit on an OpenSSH sshd-compatible server.
 
@@ -169,14 +184,15 @@ which audits an Apache Httpd server running on a Docker image named httpd-2.2.
 
 The following are audit options common to all application servers:
 - `-r --root-directory` Specifies the root directory of the server. This is just the top-level of your server filesystem where directories like /etc and /sbin are located. Usually is specified as `/` unless you require a different server root.
-- `-c --configuration-file` Specifies the server configuration file e.g in the above audit the Apache configuration file is located at `/usr/local/apache2/conf/httpd.conf`. If you don't specify the configuration file DevAudit will try a default path which usually is whatever the default server configuration file path is on Ubuntu.
-- `-b --application-binary` Specifies the server binary e.g in the above audit the Apache binary is located at `/usr/local/apache2/bin/httpd`. If you don't specify the binary path DevAudit will try a default path which usually is whatever the default server binary path is on Ubuntu.
+- `-c --configuration-file` Specifies the server configuration file. e.g in the above audit the Apache configuration file is located at `/usr/local/apache2/conf/httpd.conf`. If you don't specify the configuration file DevAudit will try a default path which usually is whatever the default server configuration file path is on Ubuntu.
+- `-b --application-binary` Specifies the server binary. e.g in the above audit the Apache binary is located at `/usr/local/apache2/bin/httpd`. If you don't specify the binary path DevAudit will try a default path which usually is whatever the default server binary path is on Ubuntu.
 
-Applications and application servers also support the following common options for listing the application modules or plugins scanned:
+Application servers also support the following common options for auditing the application modules or plugins:
 - `--list-packages` Only list the application plugins or modules scanned by DevAudit.
 
 - `--list-artifacts` Only list the artifacts found on OSS Index for application plugins and modules scanned by DevAudit.
 
+- `--skip-packages-audit` Only do an appplication / server configuration or code analysis audit and skip the packages audit.
 For example: 
 `devaudit drupal7 -r D:\Apps\drupal-7.53 --list-packages`
 will list the Drupal 7 modules found in the Drupal 7 application located at the path specified by -r.
@@ -245,4 +261,10 @@ Note that it's currently not possible for the Docker container to audit operatin
 
 
 For running audits over SSH from the DevAudit container it is not necessary to mount the local root at `/hostroot`.
+
+Troubleshooting
+---
+If you encounter a bug or other issue with DevAudit there are a couple of things you can enable to help us resolve it:
+- Use the -d option to enable debugging output. Diagnostic information will be emitted during the audit run.
+- On Linux use the DEVAUDIT_TRACE variable to enable tracing program execution. The value of this variable must be in the format for [Mono tracing](http://www.mono-project.com/docs/debug+profile/debug/#tracing-program-execution) e.g you can set DEVAUDIT_TRACE=N:DevAudit.AuditLibrary to trace all the calls made to the audit library duing an audit.
 
