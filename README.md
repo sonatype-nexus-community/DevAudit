@@ -140,7 +140,7 @@ Audit Targets
 - `dpkg` [Experimental] Do a package audit of the system dpkg package source on Debian Linux and derivatives.
 
 - `rpm` [Experimental] Do a package audit of the system RPM package source on RedHat Linux and derivatives.
-- `yum` [Experimental] Do a package audit of the system YUM package source on RedHat Linux and derivatives.
+- `yum` [Experimental] Do a package audit of the system Yum package source on RedHat Linux and derivatives.
 
 For every package source the following general audit options can be used:
 - `-f --file` Specify the location of the package manager configuration file if needed. The NuGet, Bower and Composer package sources require this option.
@@ -168,7 +168,8 @@ All applications also support the following common options for auding the applic
 
 - `--list-artifacts` Only list the artifacts found on OSS Index for application plugins and modules scanned by DevAudit.
 
-- `--skip-packages-audit` Only do an appplication / server configuration or code analysis audit and skip the packages
+- `--skip-packages-audit` Only do an appplication configuration or code analysis audit and skip the packages audit.
+
 ####Application Servers
 - `sshd` Do an application server audit on an OpenSSH sshd-compatible server.
 
