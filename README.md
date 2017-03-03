@@ -1,5 +1,9 @@
 # DevAudit: Development Auditing
+Get the latest release from the [releases](https://github.com/OSSIndex/DevAudit/releases) page.
+
 ![Screenshot of DevAudit package source audit](https://lh3.googleusercontent.com/tR98RwJops5G97vjm6-lXWHAxAhLA_pvan7qKF9wrxJttPt6C8VW9kGnruvPnUJ7q1jV2exWGH9w=w1382-h957-no)
+
+
 
 ![Screenshot of DevAudit configuration audit](https://lh3.googleusercontent.com/ZLnNFiFH-4KSFhE9Tvwqwz1jYUKpaxwlUhL7Zg_4Xojhp465fo4_armzWZ6kCIqE7C31qmQpcfuG=w1440-h957-no)
 ##About
@@ -10,7 +14,11 @@ DevAudit helps developers address at least 3 of the [OWASP Top 10](https://www.o
 * [A5 Security Misconfiguration](https://www.owasp.org/index.php/Top_10_2013-A5-Security_Misconfiguration)
 * [A6 Sensitive Data Disclosure](https://www.owasp.org/index.php/Top_10_2013-A6-Sensitive_Data_Exposure)
 
-as well as risks classified by MITRE in the CWE dictionary such as [CWE-2 Environment](http://cwe.mitre.org/data/definitions/2.html). As development progresses and its capabilities mature, DevAudit will be able to address the other risks on the OWASP Top 10 and CWE lists like Injection and XSS. With the focus on web and cloud and distributed multi-user applications, software development today is increasingly a complex affair with security issues and potential vulnerabilities arising at all levels of the stack developers rely on to deliver applications. The goal of DevAudit is to provide a platform for automating implementation of development security reviews and best practices at all levels of the solution stack from library package dependencies to application and server configuration to source code.
+as well as risks classified by MITRE in the CWE dictionary such as [CWE-2 Environment](http://cwe.mitre.org/data/definitions/2.html). 
+
+![Screenshot of DevAudit ASP.NET application audit](https://lh3.googleusercontent.com/WiMC-en25YIOG5lWzPjhF6D9l3WTw5GdY_ne-LjpbQcOcaWgzg2beS3fQc1YrCVblmPo59QIZMmWk98suJjEG_CGeC1gAEfPqZbOUbm59ibTwfuxvtHSr-dwNkp8NMzl7PYHHg=w1402-h815-no)
+
+As development progresses and its capabilities mature, DevAudit will be able to address the other risks on the OWASP Top 10 and CWE lists like Injection and XSS. With the focus on web and cloud and distributed multi-user applications, software development today is increasingly a complex affair with security issues and potential vulnerabilities arising at all levels of the stack developers rely on to deliver applications. The goal of DevAudit is to provide a platform for automating implementation of development security reviews and best practices at all levels of the solution stack from library package dependencies to application and server configuration to source code.
 
 ## Features
 * **Cross-platform with a Docker image also available.** DevAudit runs on Windows and Linux with *BSD and Mac support coming and ARM Linux a possibility. Only an up-to-date version of .NET or Mono is required to run DevAudit. A [DevAudit Docker image](https://hub.docker.com/r/ossindex/devaudit/) can also be pulled from Docker Hub and run without the need to install Mono.
@@ -70,7 +78,7 @@ Note that NuGet on Linux may occasionally exit with `Error: NameResolutionFailur
 
 ### Installing from the release archive files on Windows on Linux
 1. Pre-requisites: You must have Mono 4.4+ on Linux or .NET 4.6 on Windows.
-2. Download the latest release archive file for Windows and Linux e.g [DevAudit-2.0.0.40-beta](https://github.com/OSSIndex/DevAudit/releases/tag/v2.0.0.40-beta) from the project [releases](https://github.com/OSSIndex/DevAudit/releases) page. Unpack this file to a directory.
+2. Download the latest release archive file for Windows or Linux e.g [DevAudit-2.0.0.40-beta](https://github.com/OSSIndex/DevAudit/releases/tag/v2.0.0.40-beta) from the project [releases](https://github.com/OSSIndex/DevAudit/releases) page. Unpack this file to a directory.
 
 2. From the directory where you unpacked the release archive run `devaudit --help` on Windows or `./devaudit --help` on Linux. You should see the version and help screen printed.
 
@@ -269,3 +277,6 @@ If you encounter a bug or other issue with DevAudit there are a couple of things
 - Use the -d option to enable debugging output. Diagnostic information will be emitted during the audit run.
 - On Linux use the DEVAUDIT_TRACE variable to enable tracing program execution. The value of this variable must be in the format for [Mono tracing](http://www.mono-project.com/docs/debug+profile/debug/#tracing-program-execution) e.g you can set DEVAUDIT_TRACE=N:DevAudit.AuditLibrary to trace all the calls made to the audit library duing an audit.
 
+Known Issues
+---
+- There appears to be an issue using the Windows console app [ConEmu](https://conemu.github.io/) and the Cygwin builds of the OpenSSH client when SSHing into remote Linux hosts to run Mono apps. If you run DevAudit this way you may notice strange sequences appearing sometimes at the end of console output. You may also have problems during keyboard interactive entry like entering passwords for SSH audits where the wrong password appears to be sent. If you are having problems entering passwords for SSH audits using ConEmu (or possibly other console apps on Windows) when working remotely, try holding the backspace key for a second or two to clear the input buffer before entering your password.
