@@ -42,9 +42,11 @@ As development progresses and its capabilities mature, DevAudit will be able to 
 * **PowerShell** support. DevAudit can also be run inside the PowerShell system administration environment as cmdlets. Work on PowerShell support is paused at present but will resume in the near future with support for cross-platform Powershell both on Windows and Linux.
 
 ##Requirements
-DevAudit is a .NET 4.6 application. You will need either the Microsoft .NET Framework 4.6 runtime on Windows, or Mono 4.4+ on Linux. .NET 4.6 should be already installed on most recent versions of Windows, if not then it is available as a Windows feature that can be turned on or installed from the Programs and Features control panel applet on consumer Windows, or from the Add Roles and Features option in Server Manager on server versions of Windows. For older versions of Windows, the .NET 4.6 installer from Microsoft can be found [here](https://www.microsoft.com/en-us/download/details.aspx?id=48130).
+DevAudit is a .NET 4.6 application. To install locally on your machine you will need either the Microsoft .NET Framework 4.6 runtime on Windows, or Mono 4.4+ on Linux. .NET 4.6 should be already installed on most recent versions of Windows, if not then it is available as a Windows feature that can be turned on or installed from the Programs and Features control panel applet on consumer Windows, or from the Add Roles and Features option in Server Manager on server versions of Windows. For older versions of Windows, the .NET 4.6 installer from Microsoft can be found [here](https://www.microsoft.com/en-us/download/details.aspx?id=48130).
 
-On Linux You must have a recent version (4.4.* or higher) of Mono. Check that the existing Mono packages provided by your distro are at least for Mono version 4.4 and above, otherwise you may have to install Mono packages manually.  Installation instructions for the most recent packages provided by the Mono project for several major Linux distros is [here](http://www.mono-project.com/docs/getting-started/install/linux/) It is recommended you have the mono-devel package installed as this will reduce the chances of missing assemblies.
+On Linux you must have a recent version (4.4.* or higher) of Mono. Check that the existing Mono packages provided by your distro are at least for Mono version 4.4 and above, otherwise you may have to install Mono packages manually.  Installation instructions for the most recent packages provided by the Mono project for several major Linux distros is [here](http://www.mono-project.com/docs/getting-started/install/linux/) It is recommended you have the mono-devel package installed as this will reduce the chances of missing assemblies.
+
+Alternatively on Linux you can use the DevAudit Docker image if you do not wish to install Mono and already have Docker installed on ypur machine.
 
 ## Installation
 DevAudit can be installed by the following methods:
@@ -52,7 +54,7 @@ DevAudit can be installed by the following methods:
 - Using a binary release archive file downloaded from Github for Windows or Linux. 
 - Using the release MSI installer downloaded from Github for Windows.
 - Using the Chocolatey package manager on Windows.
-- Pulling the ossindex/devaudit Docker image from Docker Hub on Linux.
+- Pulling the ossindex/devaudit image from Docker Hub on Linux.
 
 
 ### Building from source on Linux
