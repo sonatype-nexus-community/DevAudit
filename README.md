@@ -96,6 +96,9 @@ The MSI installer for a release can be found on the Github releases page.
 6. Open a *new* command prompt or PowerShell window in order to have DevAudit in path.
 7. Run DevAudit.
 
+### Installing using Docker on Linux
+Pull the Devaudit image from Docker Hub: `docker pull ossindex/devaudit`.
+
 ### Installing using Chocolatey on Windows 
 DevAudit is also available on [Chocolatey](https://chocolatey.org/packages/devaudit/2.0.0.40-beta).
 
@@ -130,6 +133,8 @@ The CLI is the primary interface to the DevAudit program and is suitable both fo
 	devaudit TARGET [ENVIRONMENT] | [OPTIONS]
 where `TARGET` specifies the audit target `ENVIRONMENT` specifies the audit environment and `OPTIONS` specifies the options for the audit target and environment. There are 2 ways to specify options: program options and general audit options that apply to more than one target can be specified directly on the command-line as parameters . Target-specific options can be specified with the `-o` options using the format:
 `-o OPTION1=VALUE1,OPTION2=VALUE2,....`
+
+If you are piping or redirecting the program output to a file then you should always use the `-n --non-interactive` option to disable any interactive user interface features and animations.
 
 When specifying file paths, an @ prefix before a path indicates to DevAudit that this path is relative to the root directory of the audit target e.g if you specify: 
 `-r c:\myproject -b @bin\Debug\app2.exe`
@@ -173,7 +178,7 @@ Package sources tagged [Experimental] are only available in the master branch of
 - `drupal8` Do an application audit on a Drupal 8 application.
 	- `-r --root-directory` Specify the root directory of the application. This is just the top-level directory of your Drupal 8 install.
 
-All applications also support the following common options for auding the application modules or plugins:
+All applications also support the following common options for auditing the application modules or plugins:
 - `--list-packages` Only list the application plugins or modules scanned by DevAudit.
 
 - `--list-artifacts` Only list the artifacts found on OSS Index for application plugins and modules scanned by DevAudit.
@@ -198,15 +203,12 @@ The following are audit options common to all application servers:
 - `-c --configuration-file` Specifies the server configuration file. e.g in the above audit the Apache configuration file is located at `/usr/local/apache2/conf/httpd.conf`. If you don't specify the configuration file DevAudit will try a default path which usually is whatever the default server configuration file path is on Ubuntu.
 - `-b --application-binary` Specifies the server binary. e.g in the above audit the Apache binary is located at `/usr/local/apache2/bin/httpd`. If you don't specify the binary path DevAudit will try a default path which usually is whatever the default server binary path is on Ubuntu.
 
-Application servers also support the following common options for auditing the application modules or plugins:
+Application servers also support the following common options for auditing the server modules or plugins:
 - `--list-packages` Only list the application plugins or modules scanned by DevAudit.
 
 - `--list-artifacts` Only list the artifacts found on OSS Index for application plugins and modules scanned by DevAudit.
 
-- `--skip-packages-audit` Only do an appplication / server configuration or code analysis audit and skip the packages audit.
-For example: 
-`devaudit drupal7 -r D:\Apps\drupal-7.53 --list-packages`
-will list the Drupal 7 modules found in the Drupal 7 application located at the path specified by -r.
+- `--skip-packages-audit` Only do a server configuration audit and skip the packages audit.
 
 ###Environments
 
@@ -281,4 +283,6 @@ If you encounter a bug or other issue with DevAudit there are a couple of things
 
 Known Issues
 ---
+- On Windows you _must_ use the `-n --non-interactive` program option when piping or redirecting program output to a file otherwise a crash will result. This behaviour may be changed in the future to make non-interactive mode the default.
+
 - There appears to be an issue using the Windows console app [ConEmu](https://conemu.github.io/) and the Cygwin builds of the OpenSSH client when SSHing into remote Linux hosts to run Mono apps. If you run DevAudit this way you may notice strange sequences appearing sometimes at the end of console output. You may also have problems during keyboard interactive entry like entering passwords for SSH audits where the wrong password appears to be sent. If you are having problems entering passwords for SSH audits using ConEmu (or possibly other console apps on Windows) when working remotely, try holding the backspace key for a second or two to clear the input buffer before entering your password.
