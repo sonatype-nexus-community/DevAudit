@@ -96,9 +96,6 @@ The MSI installer for a release can be found on the Github releases page.
 6. Open a *new* command prompt or PowerShell window in order to have DevAudit in path.
 7. Run DevAudit.
 
-### Installing using Docker on Linux
-Pull the Devaudit image from Docker Hub: `docker pull ossindex/devaudit`.
-
 ### Installing using Chocolatey on Windows 
 DevAudit is also available on [Chocolatey](https://chocolatey.org/packages/devaudit/2.0.0.40-beta).
 
@@ -106,6 +103,9 @@ DevAudit is also available on [Chocolatey](https://chocolatey.org/packages/devau
 2. Open an admin console or PowerShell window.
 3. Type `choco install devaudit`
 4. Run DevAudit.
+
+### Installing using Docker on Linux
+Pull the Devaudit image from Docker Hub: `docker pull ossindex/devaudit`.
 
 Concepts
 ---
@@ -172,6 +172,35 @@ Package sources tagged [Experimental] are only available in the master branch of
 	- `-c --configuration-file` or `-o AppConfig=configuration-file` Specifies the ASP.NET application configuration file. This file is usually named Web.config and located in the application root directory. You can override the default @Web.config value with this option.
 	- `-o AppDevMode=enabled` Specifies that application development mode should be enabled for the audit. This mode can be used when auditing an application that is under development. Certain configuration rules that are tagged as disabled for AppDevMode (e.g running the application in ASP.NET debug mode) will not be enabled during the audit.
 
+- `netfx` Do an application audit on a .NET application. The relevant options are:
+	- `-r --root-directory` Specify the root directory of the application. This is just the top-level application directory that contains files like App.config.
+	- `-b --application-binary` Specify the application binary. The is the .NET assembly that contains the application's .NET bytecode. This file is usually a .DLL and located in the bin sub-folder of the ASP.NET application root directory.
+	- `-c --configuration-file` or `-o AppConfig=configuration-file` Specifies the .NET application configuration file. This file is usually named App.config and located in the application root directory. You can override the default @App.config value with this option.
+	- `-o GendarmeRules=RuleLibrary` Specifies that the Gendarme static analyzer should enabled for the audit with rules from the specified rules library used. For example: 
+	`devaudit netfx -r /home/allisterb/vbot-debian/vbot.core -b @bin/Debug/vbot.core.dll --skip-packages-audit -o GendarmeRules=Gendarme.Rules.Naming`
+	will run the Gendarme static analyzer on the vbot.core.dll assembly using rules from Gendarme.Rules.Naming library. 	The complete list of rules is (taken from the Gendarme wiki):
+    * [Gendarme.Rules.BadPractice](https://github.com/spouliot/gendarme/wiki/Gendarme.Rules.BadPractice%28git%29)
+	* [Gendarme.Rules.Concurrency](https://github.com/spouliot/gendarme/wiki/Gendarme.Rules.Concurrency%28git%29)
+	* [Gendarme.Rules.Correctness](https://github.com/spouliot/gendarme/wiki/Gendarme.Rules.Correctness%28git%29)
+	* [Gendarme.Rules.Design](https://github.com/spouliot/gendarme/wiki/Gendarme.Rules.Design%28git%29)
+	* [Gendarme.Rules.Design.Generic](https://github.com/spouliot/gendarme/wiki/Gendarme.Rules.Design.Generic%28git%29)
+	* [Gendarme.Rules.Design.Linq](https://github.com/spouliot/gendarme/wiki/Gendarme.Rules.Design.Linq%28git%29)
+	* [Gendarme.Rules.Exceptions](https://github.com/spouliot/gendarme/wiki/Gendarme.Rules.Exceptions%28git%29)
+	* [Gendarme.Rules.Gendarme](https://github.com/spouliot/gendarme/wiki/Gendarme.Rules.Gendarme%28git%29)
+	* [Gendarme.Rules.Globalization](https://github.com/spouliot/gendarme/wiki/Gendarme.Rules.Globalization%28git%29)
+	* [Gendarme.Rules.Interoperability](https://github.com/spouliot/gendarme/wiki/Gendarme.Rules.Interoperability%28git%29)
+	* [Gendarme.Rules.Interoperability.Com](https://github.com/spouliot/gendarme/wiki/Gendarme.Rules.Interoperability.Com%28git%29)
+	* [Gendarme.Rules.Maintainability](https://github.com/spouliot/gendarme/wiki/Gendarme.Rules.Maintainability%28git%29)
+	* [Gendarme.Rules.NUnit](https://github.com/spouliot/gendarme/wiki/Gendarme.Rules.NUnit%28git%29)
+	* [Gendarme.Rules.Naming](https://github.com/spouliot/gendarme/wiki/Gendarme.Rules.Naming%28git%29)
+	* [Gendarme.Rules.Performance](https://github.com/spouliot/gendarme/wiki/Gendarme.Rules.Performance%28git%29)
+	* [Gendarme.Rules.Portability](https://github.com/spouliot/gendarme/wiki/Gendarme.Rules.Portability%28git%29)
+	* [Gendarme.Rules.Security](https://github.com/spouliot/gendarme/wiki/Gendarme.Rules.Security%28git%29)
+	* [Gendarme.Rules.Security.Cas](https://github.com/spouliot/gendarme/wiki/Gendarme.Rules.Security.Cas%28git%29)
+	* [Gendarme.Rules.Serialization](https://github.com/spouliot/gendarme/wiki/Gendarme.Rules.Serialization%28git%29)
+	* [Gendarme.Rules.Smells](https://github.com/spouliot/gendarme/wiki/Gendarme.Rules.Smells%28git%29)
+	* [Gendarme.Rules.Ui](https://github.com/spouliot/gendarme/wiki/Gendarme.Rules.Ui%28git%29)
+
 - `drupal7` Do an application audit on a Drupal 7 application.
 	- `-r --root-directory` Specify the root directory of the application. This is just the top-level directory of your Drupal 7 install.
 
@@ -215,11 +244,16 @@ Application servers also support the following common options for auditing the s
 There are 3 kinds of audit environment supported: local, remote hosts over SSH, and Docker containers. Local environments are used by default when no other environment options are specified.
 
 ####SSH
-The SSH environment allows audits to be performed on any remote hosts accessible over SSH without requiring DevAudit to be installed on the remote host. SSH environments are cross-platform: you can connect to a Linux remote host from a Windows machine running DevAudit. An SSH environment is created by the following options:`-s SERVER -u USER [-k KEYFILE] [-p | --password-text PASSWORD]`
+The SSH environment allows audits to be performed on any remote hosts accessible over SSH without requiring DevAudit to be installed on the remote host. SSH environments are cross-platform: you can connect to a Linux remote host from a Windows machine running DevAudit. An SSH environment is created by the following options:`-s SERVER [--ssh-port PORT] -u USER [-k KEYFILE] [-p | --password-text PASSWORD]`
 
 `-s SERVER` Specifies the remote host or IP to connect to via SSH.
-`-k KEYFILE` Specifies the OpenSSH compatible private key file to use to cinnect to the remote server.. Currently only RSA or DSA keys in files in the PEM format are supported.
+
+`--ssh-port PORT` Specifies the port on the remote host to connect to. The default is 22.
+
+`-k KEYFILE` Specifies the OpenSSH compatible private key file to use to connect to the remote server. Currently only RSA or DSA keys in files in the PEM format are supported.
+
 `-p` Provide a prompt with local echo disabled for interactive entry of the server password or key file passphrase.
+
 `--password-text PASSWORD` Specify the server password or key file passphrase as plaintext on the command-line.
 
 ####Docker
