@@ -176,9 +176,9 @@ Package sources tagged [Experimental] are only available in the master branch of
 	- `-r --root-directory` Specify the root directory of the application. This is just the top-level application directory that contains files like App.config.
 	- `-b --application-binary` Specify the application binary. The is the .NET assembly that contains the application's .NET bytecode. This file is usually a .DLL and located in the bin sub-folder of the ASP.NET application root directory.
 	- `-c --configuration-file` or `-o AppConfig=configuration-file` Specifies the .NET application configuration file. This file is usually named App.config and located in the application root directory. You can override the default @App.config value with this option.
-	- `-o GendarmeRules=RuleLibrary` Specifies that the Gendarme static analyzer should enabled for the audit with rules from the specified rules library used. For example: 
+	- `-o GendarmeRules=RuleLibrary` Specifies that the [Gendarme](http://www.mono-project.com/docs/tools+libraries/tools/gendarme/) static analyzer should enabled for the audit with rules from the specified rules library used. For example: 
 	`devaudit netfx -r /home/allisterb/vbot-debian/vbot.core -b @bin/Debug/vbot.core.dll --skip-packages-audit -o GendarmeRules=Gendarme.Rules.Naming`
-	will run the Gendarme static analyzer on the vbot.core.dll assembly using rules from Gendarme.Rules.Naming library. 	The complete list of rules is (taken from the Gendarme wiki):
+	will run the Gendarme static analyzer on the vbot.core.dll assembly using rules from Gendarme.Rules.Naming library. 	The complete list of rules libraries is (taken from the Gendarme wiki):
     * [Gendarme.Rules.BadPractice](https://github.com/spouliot/gendarme/wiki/Gendarme.Rules.BadPractice%28git%29)
 	* [Gendarme.Rules.Concurrency](https://github.com/spouliot/gendarme/wiki/Gendarme.Rules.Concurrency%28git%29)
 	* [Gendarme.Rules.Correctness](https://github.com/spouliot/gendarme/wiki/Gendarme.Rules.Correctness%28git%29)
@@ -318,5 +318,5 @@ If you encounter a bug or other issue with DevAudit there are a couple of things
 Known Issues
 ---
 - On Windows you _must_ use the `-n --non-interactive` program option when piping or redirecting program output to a file otherwise a crash will result. This behaviour may be changed in the future to make non-interactive mode the default.
-
+- When installed on Windows using Chocolatey, the Gendarme analyzer will not run due to assembly collisions. This should be fixed in the next patch release.
 - There appears to be an issue using the Windows console app [ConEmu](https://conemu.github.io/) and the Cygwin builds of the OpenSSH client when SSHing into remote Linux hosts to run Mono apps. If you run DevAudit this way you may notice strange sequences appearing sometimes at the end of console output. You may also have problems during keyboard interactive entry like entering passwords for SSH audits where the wrong password appears to be sent. If you are having problems entering passwords for SSH audits using ConEmu (or possibly other console apps on Windows) when working remotely, try holding the backspace key for a second or two to clear the input buffer before entering your password.
