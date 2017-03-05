@@ -89,18 +89,18 @@ namespace DevAudit.AuditLibrary
                 {
                     if (this.AuditOptions.Keys.Contains("RemoteKeyPassPhrase"))
                     {
-                        ssh_environment = new SshAuditEnvironment(this.HostEnvironmentMessage, client, (string)this.AuditOptions["RemoteHost"],
+                        ssh_environment = new SshAuditEnvironment(this.HostEnvironmentMessage, client, (string)this.AuditOptions["RemoteHost"], (int) this.AuditOptions["RemoteSshPort"],
                             (string)this.AuditOptions["RemoteUser"], this.AuditOptions["RemoteKeyPassPhrase"], (string)this.AuditOptions["RemoteKeyFile"], new OperatingSystem(PlatformID.Unix, new Version(0, 0)), this.HostEnvironment);
                     }
                     else
                     {
-                        ssh_environment = new SshAuditEnvironment(this.HostEnvironmentMessage, client, (string)this.AuditOptions["RemoteHost"],
+                        ssh_environment = new SshAuditEnvironment(this.HostEnvironmentMessage, client, (string)this.AuditOptions["RemoteHost"], (int)this.AuditOptions["RemoteSshPort"],
                             (string)this.AuditOptions["RemoteUser"], null, (string)this.AuditOptions["RemoteKeyFile"], new OperatingSystem(PlatformID.Unix, new Version(0, 0)), this.HostEnvironment);
                     }
                 }
                 else if (this.AuditOptions.Keys.Contains("RemoteUser") && this.AuditOptions.Keys.Contains("RemotePass"))
                 {
-                    ssh_environment = new SshAuditEnvironment(this.HostEnvironmentMessage, client, (string)this.AuditOptions["RemoteHost"],
+                    ssh_environment = new SshAuditEnvironment(this.HostEnvironmentMessage, client, (string)this.AuditOptions["RemoteHost"], (int)this.AuditOptions["RemoteSshPort"],
                         (string)this.AuditOptions["RemoteUser"], this.AuditOptions["RemotePass"], null, new OperatingSystem(PlatformID.Unix, new Version(0, 0)), this.HostEnvironment);
                 }
                 else throw new Exception("Unknown remote host authentication options.");
