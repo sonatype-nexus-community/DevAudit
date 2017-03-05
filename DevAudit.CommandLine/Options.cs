@@ -119,6 +119,9 @@ namespace DevAudit.CommandLine
         [Option('k', "key", Required = false, HelpText = "Specifies the private-key file for the user to login to the remote host. Use the -p or --password-text option to specify the pass-phrase for the file if needed." )]
         public string RemoteKey { get; set; }
 
+        [Option("ssh-port", Required = false, HelpText = "Specifies the SSH port to connect to on the remote host.", DefaultValue = 22)]
+        public int RemoteSshPort { get; set; }
+
         [Option('c', "config-file", Required = false, HelpText = "Specifies the configuration file for the application server to be audited.")]
         public string ConfigurationFile { get; set; }
 

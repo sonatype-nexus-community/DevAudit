@@ -115,6 +115,12 @@ namespace DevAudit.CommandLine
                 else
                 {
                     audit_options.Add("RemoteHost", ProgramOptions.RemoteHost);
+                    if (ProgramOptions.RemoteSshPort < 0 || ProgramOptions.RemoteSshPort > 65535)
+                    {
+                        PrintErrorMessage("Invalid port number: {0}.", ProgramOptions.RemoteSshPort);
+                        return (int)Exit;
+                    }
+                    audit_options.Add("RemoteSshPort", ProgramOptions.RemoteSshPort);
                 }
 
                 #region User and password or key file

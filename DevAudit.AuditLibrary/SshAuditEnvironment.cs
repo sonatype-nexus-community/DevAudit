@@ -21,22 +21,22 @@ namespace DevAudit.AuditLibrary
     public class SshAuditEnvironment : AuditEnvironment
     {
         #region Constructors
-        public SshAuditEnvironment(EventHandler<EnvironmentEventArgs> message_handler, string client, string host_name, string user, object pass, string keyfile, OperatingSystem os, LocalEnvironment host_environment) : base(message_handler, os, host_environment)
+        public SshAuditEnvironment(EventHandler<EnvironmentEventArgs> message_handler, string client, string host_name, int port, string user, object pass, string keyfile, OperatingSystem os, LocalEnvironment host_environment) : base(message_handler, os, host_environment)
         {
             ConnectionInfo ci;
-            Info("Connecting to {0}...", host_name);
+            Info("Connecting to {0}:{1}...", host_name, port);
             if (string.IsNullOrEmpty(keyfile))
             {
-                ci = new ConnectionInfo(host_name, user, new PasswordAuthenticationMethod(user, ToInsecureString(pass)));
+                ci = new ConnectionInfo(host_name, port, user, new PasswordAuthenticationMethod(user, ToInsecureString(pass)));
             }
             else if (!string.IsNullOrEmpty(keyfile) && pass != null)
             {
-                ci = new ConnectionInfo(host_name, user, new PrivateKeyAuthenticationMethod(user, 
+                ci = new ConnectionInfo(host_name, port, user, new PrivateKeyAuthenticationMethod(user, 
                     new PrivateKeyFile[] { new PrivateKeyFile(keyfile, ToInsecureString(pass)) }));
             }
             else 
             {
-                ci = new ConnectionInfo(host_name, user, new PrivateKeyAuthenticationMethod(user));
+                ci = new ConnectionInfo(host_name, port, user, new PrivateKeyAuthenticationMethod(user));
             }
             SshClient = new SshClient(ci);
             SshClient.ErrorOccurred += SshClient_ErrorOccurred;
