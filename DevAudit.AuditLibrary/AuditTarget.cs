@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -165,6 +167,7 @@ namespace DevAudit.AuditLibrary
         #endregion
 
         #region Properties
+        public string DevAuditDirectory = Path.GetDirectoryName(Assembly.GetEntryAssembly().Location);
         public Dictionary<string, object> AuditOptions { get; set; } = new Dictionary<string, object>();
         public bool IsDockerized { get; protected set; }
         public LocalEnvironment HostEnvironment { get; protected set; }

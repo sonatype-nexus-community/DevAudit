@@ -523,7 +523,7 @@ namespace DevAudit.AuditLibrary
             this.AuditEnvironment.Info("Loading default configuration rules for {0} application.", this.ApplicationLabel);
             Stopwatch sw = new Stopwatch();
             sw.Start();
-            AuditFileInfo rules_file = this.HostEnvironment.ConstructFile(this.CombinePath("Rules", this.ApplicationId + "." + "yml"));
+            AuditFileInfo rules_file = this.HostEnvironment.ConstructFile(Path.Combine(this.DevAuditDirectory, "Rules", this.ApplicationId + "." + "yml"));
             if (!rules_file.Exists) throw new Exception(string.Format("The default rules file {0} does not exist.", rules_file.FullName));
             Deserializer yaml_deserializer = new Deserializer(namingConvention: new CamelCaseNamingConvention(), ignoreUnmatched: true);
             Dictionary<string, List<OSSIndexProjectConfigurationRule>> rules;
@@ -654,7 +654,7 @@ namespace DevAudit.AuditLibrary
             CSScript.EvaluatorConfig.Engine = EvaluatorEngine.Mono;
             CSScript.CacheEnabled = false; //Script caching is broken on Mono: https://github.com/oleg-shilo/cs-script/issues/10
             CSScript.KeepCompilingHistory = true;
-            DirectoryInfo analyzers_dir = new DirectoryInfo(Path.Combine("Analyzers", this.AnalyzerType));
+            DirectoryInfo analyzers_dir = new DirectoryInfo(Path.Combine(this.DevAuditDirectory, "Analyzers", this.AnalyzerType));
             if (!analyzers_dir.Exists)
             {
                 this.AnalyzersInitialized = false;
