@@ -97,6 +97,20 @@ namespace DevAudit.CommandLine
             }
             #endregion
 
+            if (!string.IsNullOrEmpty(ProgramOptions.HttpsProxy))
+            {
+                Uri https_proxy = null;
+                if (Uri.TryCreate(ProgramOptions.HttpsProxy, UriKind.Absolute, out https_proxy))
+                {
+                    audit_options.Add("HttpsProxy", https_proxy);
+                }
+                else
+                {
+                    PrintErrorMessage("Invalid HTTPS proxy Url: {0}.", ProgramOptions.HttpsProxy);
+                    return (int)Exit;
+                }
+            }
+
             if (!string.IsNullOrEmpty(Environment.GetEnvironmentVariable("DOCKER")))
             {
                 audit_options.Add("Dockerized", true);
