@@ -43,6 +43,10 @@ namespace DevAudit.AuditLibrary
             if (this.PackageSourceOptions.ContainsKey("SkipPackagesAudit"))
             {
                 this.SkipPackagesAudit = true;
+            }
+            if (this.PackageSourceOptions.ContainsKey("HttpsProxy"))
+            {
+                this.HttpClient.HttpsProxy = (Uri) this.PackageSourceOptions["HttpsProxy"];
             }				           
             #region Cache option
             if (this.PackageSourceOptions.ContainsKey("Cache") && (bool)this.PackageSourceOptions["Cache"] == true)

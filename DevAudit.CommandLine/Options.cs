@@ -159,6 +159,9 @@ namespace DevAudit.CommandLine
         [Option("only-local-rules", Required = false, HelpText = "Only use the configuration rules for the application or application server listed in YAML rules files.")]
         public bool OnlyLocalRules { get; set; }
 
+        [Option("https-proxy", Required = false, HelpText = "Use the specified Url as the proxy for HTTPS calls made to the OSS Index API.")]
+        public string HttpsProxy { get; set; }
+
         public static Dictionary<string, object> Parse(string o)
         {
             Dictionary<string, object> audit_options = new Dictionary<string, object>();
