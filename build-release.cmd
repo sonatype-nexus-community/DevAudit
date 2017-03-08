@@ -1,7 +1,7 @@
 @echo off
 @setlocal
-call "C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\vcvarsall.bat"
-call "D:\Program Files\Microsoft Visual Studio 14.0\VC\vcvarsall.bat"
+call "C:\Program Files (x86)\Microsoft Visual Studio 14.0\Common7\Tools\vsvars32.bat"
+call "D:\Program Files\Microsoft Visual Studio 14.0\Common7\Tools\vsvars32.bat"
 set ERRORCODE=0
 if "%FrameworkDir%" == "" goto EnvError
 if "%1" == "" goto ArgError
