@@ -169,5 +169,5 @@
   <Target Name="AfterBuild">
   </Target>
   -->
-  <Import Project="$(SolutionDir)\Build\Common.targets" />
+  <Import Project="$(SolutionDir)\BuildCommon\Common.targets" />
 </Project>
