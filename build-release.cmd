@@ -15,7 +15,9 @@ set PATCH=%3
 set BUILD=%4
 set OUTPUT=%5
 set RELEASE_DIR=%OUTPUT%\%MAJOR%.%MINOR%.%PATCH%.%BUILD%\DevAudit
-msbuild DevAudit.sln /p:Major=%MAJOR%;Minor=%MINOR%;Revision=%PATCH%;Build=%BUILD%;Configuration=RuntimeDebug;OutputPath=%RELEASE_DIR%
+rmdir /s /q "%RELEASE_DIR%"
+msbuild DevAudit.sln /p:Configuration=RuntimeDebug;OutputPath=%RELEASE_DIR%;VersionAssembly=%MAJOR%.%MINOR%.%PATCH%.%BUILD%
+
 if not exist ".\Analyzers" goto AnalyzersDirError
 if not exist ".\Rules" goto RulesDirError
 if not exist ".\Examples" goto ExamplesDirError
@@ -58,5 +60,5 @@ goto Error
 set ERRORCODE=1
 
 :End
-endlocal
+@endlocal
 exit /B %ERRORCODE%
