@@ -12,29 +12,6 @@
 
     Works with both, .cs and .vb version of the AssemblyInfo file, meaning it supports C# and VB.Net projects simultaneously.
 -->
-<Target Name="CommonBuildDefineModifiedAssemblyVersion" Condition="'$(VersionAssembly)' != ''">
-    <!-- Find AssemblyInfo.cs or AssemblyInfo.vb in the "Compile" Items. Remove it from "Compile" Items because we will use a modified version instead. -->
-    <ItemGroup>
-        <OriginalAssemblyInfo Include="@(Compile)" Condition="%(Filename) == 'AssemblyInfo' And (%(Extension) == '.vb' Or %(Extension) == '.cs')" />
-        <Compile Remove="**/AssemblyInfo.vb" />
-        <Compile Remove="**/AssemblyInfo.cs" />
-    </ItemGroup>
-    <!-- Copy the original AssemblyInfo.cs/.vb to obj\ folder, i.e. $(IntermediateOutputPath). The copied filepath is saved into @(ModifiedAssemblyInfo) Item. -->
-    <Copy SourceFiles="@(OriginalAssemblyInfo)"
-          DestinationFiles="@(OriginalAssemblyInfo->'$(IntermediateOutputPath)%(Identity)')">
-        <Output TaskParameter="DestinationFiles" ItemName="ModifiedAssemblyInfo"/>
-    </Copy>
-    <!-- Replace the version bit (in AssemblyVersion and AssemblyFileVersion attributes) using regular expression. Use the defined property: $(VersionAssembly). -->
-    <Message Text="Setting AssemblyVersion to $(VersionAssembly)" />
-    <RegexUpdateFile Files="@(ModifiedAssemblyInfo)"
-                Regex="Version\(&quot;(\d+)\.(\d+)(\.(\d+)(\.(\d+))?|\.*)&quot;\)"
-                ReplacementText="Version(&quot;$(VersionAssembly)&quot;)"
-                />
-    <!-- Include the modified AssemblyInfo.cs/.vb file in "Compile" items (instead of the original). -->
-    <ItemGroup>
-        <Compile Include="@(ModifiedAssemblyInfo)" />
-    </ItemGroup>
-</Target>
 <UsingTask TaskName="RegexUpdateFile" TaskFactory="CodeTaskFactory" AssemblyFile="$(MSBuildToolsPath)\Microsoft.Build.Tasks.Core.dll">
     <ParameterGroup>
         <Files ParameterType="Microsoft.Build.Framework.ITaskItem[]" Required="true" />
@@ -71,4 +48,27 @@
         </Code>
     </Task>
 </UsingTask>
+    <Target Name="CommonBuildDefineModifiedAssemblyVersion" Condition="'$(VersionAssembly)' != ''">
+        <!-- Find AssemblyInfo.cs or AssemblyInfo.vb in the "Compile" Items. Remove it from "Compile" Items because we will use a modified version instead. -->
+        <ItemGroup>
+            <OriginalAssemblyInfo Include="@(Compile)" Condition="%(Filename) == 'AssemblyInfo' And (%(Extension) == '.vb' Or %(Extension) == '.cs')" />
+            <Compile Remove="**/AssemblyInfo.vb" />
+            <Compile Remove="**/AssemblyInfo.cs" />
+        </ItemGroup>
+        <!-- Copy the original AssemblyInfo.cs/.vb to obj\ folder, i.e. $(IntermediateOutputPath). The copied filepath is saved into @(ModifiedAssemblyInfo) Item. -->
+        <Copy SourceFiles="@(OriginalAssemblyInfo)"
+              DestinationFiles="@(OriginalAssemblyInfo->'$(IntermediateOutputPath)%(Identity)')">
+            <Output TaskParameter="DestinationFiles" ItemName="ModifiedAssemblyInfo"/>
+        </Copy>
+        <!-- Replace the version bit (in AssemblyVersion and AssemblyFileVersion attributes) using regular expression. Use the defined property: $(VersionAssembly). -->
+        <Message Text="Setting AssemblyVersion to $(VersionAssembly)" />
+        <RegexUpdateFile Files="@(ModifiedAssemblyInfo)"
+                    Regex="Version\(&quot;(\d+)\.(\d+)(\.(\d+)(\.(\d+))?|\.*)&quot;\)"
+                    ReplacementText="Version(&quot;$(VersionAssembly)&quot;)"
+                />
+        <!-- Include the modified AssemblyInfo.cs/.vb file in "Compile" items (instead of the original). -->
+        <ItemGroup>
+            <Compile Include="@(ModifiedAssemblyInfo)" />
+        </ItemGroup>
+    </Target>
 </Project>
