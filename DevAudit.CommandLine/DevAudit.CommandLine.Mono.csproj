@@ -86,7 +86,7 @@
   <Target Name="AfterBuild">
   </Target>
   -->
-  <Import Project="$(SolutionDir)\BuildCommon\Mono.Common.targets" />
+  <Import Project="$(SolutionDir)BuildCommon\Mono.Common.targets" />
   <ItemGroup>
     <ProjectReference Include="..\DevAudit.AuditLibrary\DevAudit.AuditLibrary.Mono.csproj">
       <Project>{36F663F6-4B5C-441F-B11A-9CC556D1C1FE}</Project>
