@@ -35,7 +35,7 @@
         <Compile Include="@(ModifiedAssemblyInfo)" />
     </ItemGroup>
 </Target>
-<UsingTask TaskName="RegexUpdateFile" TaskFactory="CodeTaskFactory" AssemblyFile="$(MSBuildToolsPath)\Mono.XBuild.Tasks.dll">
+<UsingTask TaskName="RegexUpdateFile" TaskFactory="CodeTaskFactory" AssemblyFile="$(MSBuildToolsPath)\Microsoft.Build.Tasks.Core.dll">
     <ParameterGroup>
         <Files ParameterType="Microsoft.Build.Framework.ITaskItem[]" Required="true" />
         <Regex ParameterType="System.String" Required="true" />
