@@ -12,7 +12,7 @@
 
     Works with both, .cs and .vb version of the AssemblyInfo file, meaning it supports C# and VB.Net projects simultaneously.
 -->
-<UsingTask TaskName="RegexUpdateFile" TaskFactory="CodeTaskFactory" AssemblyFile="$(MSBuildToolsPath)\Microsoft.Build.Tasks.Core.dll">
+<UsingTask TaskName="RegexUpdateFile" TaskFactory="CodeTaskFactory" AssemblyFile="$(MSBuildToolsPath)\Microsoft.Build.Tasks.v12.0.dll">
     <ParameterGroup>
         <Files ParameterType="Microsoft.Build.Framework.ITaskItem[]" Required="true" />
         <Regex ParameterType="System.String" Required="true" />
