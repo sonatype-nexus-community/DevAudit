@@ -35,7 +35,7 @@ if [ -d "$RELEASE_DIR" ]; then
 fi
 mkdir $RELEASE_DIR
 mkdir $RELEASE_DIR/DevAudit
-nuget restore $BUILD_DIR/DevAudit.Mono.sln && xbuild $BUILD_DIR/DevAudit.Mono.sln /p:Configuration=RuntimeDebug /p:VersionAssembly=$MAJOR.$MINOR.$PATCH.$BUILD
+nuget restore $BUILD_DIR/DevAudit.Mono.sln && xbuild $BUILD_DIR/DevAudit.Mono.sln /verbosity:diagnostic /p:Configuration=RuntimeDebug /p:VersionAssembly=$MAJOR.$MINOR.$PATCH.$BUILD
 if [[ $? -ne 0 ]]; then
 	echo An error occurred during build.
     rm -rf "$BUILD_DIR"
