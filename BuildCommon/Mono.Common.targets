@@ -1,12 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
 <!--Defining custom Targets to execute before project compilation starts.-->
-<PropertyGroup>
-    <CompileDependsOn>
-        CommonBuildDefineModifiedAssemblyVersion;
-        $(CompileDependsOn);
-    </CompileDependsOn>
-</PropertyGroup>
+
 <!--
     Creates modified version of AssemblyInfo.cs, replaces [AssemblyVersion] attribute with the one specifying actual build version (from MSBuild properties), and includes that file instead of the original AssemblyInfo.cs in the compilation.
 
@@ -71,4 +66,10 @@
             <Compile Include="@(ModifiedAssemblyInfo)" />
         </ItemGroup>
     </Target>
+    <PropertyGroup>
+    <CompileDependsOn>
+        CommonBuildDefineModifiedAssemblyVersion;
+        $(CompileDependsOn);
+    </CompileDependsOn>
+</PropertyGroup>
 </Project>

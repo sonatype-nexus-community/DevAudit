@@ -38,6 +38,8 @@ mkdir $RELEASE_DIR/DevAudit
 nuget restore $BUILD_DIR/DevAudit.Mono.sln && xbuild $BUILD_DIR/DevAudit.Mono.sln /p:Configuration=RuntimeDebug /p:VersionAssembly=$MAJOR.$MINOR.$PATCH.$BUILD
 if [[ $? -ne 0 ]]; then
 	echo An error occurred during build.
+    rm -rf "$BUILD_DIR"
+    rm -rf "$RELEASE_DIR"
 	exit 1
 fi
 cp $BUILD_DIR/DevAudit.AuditLibrary/bin/Debug/Gendarme.Rules.* ./DevAudit.CommandLine/bin/Debug/
@@ -47,3 +49,4 @@ chmod +x $RELEASE_DIR/DevAudit/devaudit
 cp -R $BUILD_DIR/DevAudit.CommandLine/bin/Debug/* $RELEASE_DIR/DevAudit 
 tar -cvzf DevAudit-$RELEASE_DIR.tgz $RELEASE_DIR/DevAudit
 rm -rf "$BUILD_DIR"
+rm -rf "$RELEASE_DIR"
