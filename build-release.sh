@@ -14,6 +14,7 @@ else
 	SPECIAL=""
 fi
 TAG=v$MAJOR.$MINOR.x
+BUILD_TAG=$MAJOR.$MINOR.$PATCH.$BUILD
 RELEASE_TAG=$MAJOR.$MINOR.$PATCH.$BUILD$SPECIAL
 BUILD_DIR=DevAudit.$TAG.Build_$BUILD
 if [ -d "$BUILD_DIR" ]; then
@@ -22,7 +23,7 @@ if [ -d "$BUILD_DIR" ]; then
 fi
 git clone --branch "$TAG" https://github.com/OSSIndex/DevAudit $BUILD_DIR
 if [[ $? -ne 0 ]]; then
-	echo An error occurred during checkout.
+	echo An error occurred during checkout of branch $TAG.
 	exit 1
 fi
 if [ ! -f $BUILD_DIR/DevAudit.Mono.sln ]; then
@@ -36,9 +37,9 @@ if [ -d "$RELEASE_DIR" ]; then
 fi
 mkdir $RELEASE_DIR
 mkdir $RELEASE_DIR/DevAudit
-nuget restore $BUILD_DIR/DevAudit.Mono.sln && xbuild $BUILD_DIR/DevAudit.Mono.sln /verbosity:diagnostic /p:Configuration=RuntimeDebug /p:VersionAssembly=$RELEASE_TAG
+nuget restore $BUILD_DIR/DevAudit.Mono.sln && xbuild $BUILD_DIR/DevAudit.Mono.sln /verbosity:diagnostic /p:Configuration=RuntimeDebug /p:VersionAssembly=$BUILD_TAG
 if [[ $? -ne 0 ]]; then
-	echo An error occurred during build.
+	echo An error occurred during build in $BUILD_DIR.
     rm -rf "$BUILD_DIR"
     rm -rf "$RELEASE_DIR"
 	exit 1
@@ -50,3 +51,4 @@ chmod +x $RELEASE_DIR/DevAudit/devaudit
 cp -R $BUILD_DIR/DevAudit.CommandLine/bin/Debug/* $RELEASE_DIR/DevAudit 
 tar -cvzf DevAudit-$RELEASE_DIR.tgz $RELEASE_DIR/DevAudit
 rm -rf "$BUILD_DIR"
+echo Release RELEASE_TAG created in $RELEASE_DIR and archive $RELEASE_DIR.tgz.
