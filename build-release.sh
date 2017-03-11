@@ -30,7 +30,7 @@ if [ ! -f $BUILD_DIR/DevAudit.Mono.sln ]; then
 	echo Could not find the solution file $BUILD_DIR/DevAudit.Mono.sln. An error may have occurred during git checkout.	
 	exit 1
 fi
-RELEASE_DIR=RELEASE_TAG
+RELEASE_DIR=$RELEASE_TAG
 if [ -d "$RELEASE_DIR" ]; then
 	echo Deleting $RELEASE_DIR.
 	rm -rf "$RELEASE_DIR"
@@ -51,4 +51,4 @@ chmod +x $RELEASE_DIR/DevAudit/devaudit
 cp -R $BUILD_DIR/DevAudit.CommandLine/bin/Debug/* $RELEASE_DIR/DevAudit 
 tar -cvzf DevAudit-$RELEASE_DIR.tgz $RELEASE_DIR/DevAudit
 rm -rf "$BUILD_DIR"
-echo Release RELEASE_TAG created in $RELEASE_DIR and archive $RELEASE_DIR.tgz.
+echo Release $RELEASE_TAG created in $RELEASE_DIR and archive $RELEASE_DIR.tgz.
