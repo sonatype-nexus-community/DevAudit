@@ -1,49 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
 <!--Defining custom Targets to execute before project compilation starts.-->
-
-<!--
-    Creates modified version of AssemblyInfo.cs, replaces [AssemblyVersion] attribute with the one specifying actual build version (from MSBuild properties), and includes that file instead of the original AssemblyInfo.cs in the compilation.
-
-    Works with both, .cs and .vb version of the AssemblyInfo file, meaning it supports C# and VB.Net projects simultaneously.
--->
-<UsingTask TaskName="RegexUpdateFile" TaskFactory="CodeTaskFactory" AssemblyFile="/usr/lib/mono/4.5/Microsoft.Build.Tasks.v4.0.dll">
-    <ParameterGroup>
-        <Files ParameterType="Microsoft.Build.Framework.ITaskItem[]" Required="true" />
-        <Regex ParameterType="System.String" Required="true" />
-        <ReplacementText ParameterType="System.String" Required="true" />
-    </ParameterGroup>
-    <Task>
-        <Reference Include="System.Core" />
-        <Using Namespace="System" />
-        <Using Namespace="System.IO" />
-        <Using Namespace="System.Text.RegularExpressions" />
-        <Using Namespace="Microsoft.Build.Framework" />
-        <Using Namespace="Microsoft.Build.Utilities" />
-        <Code Type="Fragment" Language="cs">
-            <![CDATA[
-            try {
-                var rx = new System.Text.RegularExpressions.Regex(this.Regex);
-                for (int i = 0; i < Files.Length; ++i)
-                {
-                    var path = Files[i].GetMetadata("FullPath");
-                    if (!File.Exists(path)) continue;
-
-                    var txt = File.ReadAllText(path);
-                    txt = rx.Replace(txt, this.ReplacementText);
-                    File.WriteAllText(path, txt);
-                }
-                return true;
-            }
-            catch (Exception ex) {
-                Log.LogErrorFromException(ex);
-                return false;
-            }
-        ]]>
-        </Code>
-    </Task>
-</UsingTask>
-    <Target Name="CommonBuildDefineModifiedAssemblyVersion" Condition="'$(VersionAssembly)' != ''">
+<PropertyGroup>
+<CompileDependsOn>
+        CommonBuildDefineModifiedAssemblyVersion;
+        $(CompileDependsOn);
+    </CompileDependsOn>
+</PropertyGroup>
+ <Target Name="CommonBuildDefineModifiedAssemblyVersion" Condition="'$(VersionAssembly)' != ''">
         <!-- Find AssemblyInfo.cs or AssemblyInfo.vb in the "Compile" Items. Remove it from "Compile" Items because we will use a modified version instead. -->
         <ItemGroup>
             <OriginalAssemblyInfo Include="@(Compile)" Condition="%(Filename) == 'AssemblyInfo' And (%(Extension) == '.vb' Or %(Extension) == '.cs')" />
@@ -57,19 +21,11 @@
         </Copy>
         <!-- Replace the version bit (in AssemblyVersion and AssemblyFileVersion attributes) using regular expression. Use the defined property: $(VersionAssembly). -->
         <Message Text="Setting AssemblyVersion to $(VersionAssembly)" />
-        <RegexUpdateFile Files="@(ModifiedAssemblyInfo)"
-                    Regex="Version\(&quot;(\d+)\.(\d+)(\.(\d+)(\.(\d+))?|\.*)&quot;\)"
-                    ReplacementText="Version(&quot;$(VersionAssembly)&quot;)"
-                />
+        <Exec Command="$(SolutionDir)BuildCommon\devaudit-linux-replace-assembly-version.sh @(ModifiedAssemblyInfo) $(VersionAssembly)" />
         <!-- Include the modified AssemblyInfo.cs/.vb file in "Compile" items (instead of the original). -->
         <ItemGroup>
             <Compile Include="@(ModifiedAssemblyInfo)" />
         </ItemGroup>
     </Target>
-    <PropertyGroup>
-    <CompileDependsOn>
-        CommonBuildDefineModifiedAssemblyVersion;
-        $(CompileDependsOn);
-    </CompileDependsOn>
-</PropertyGroup>
+
 </Project>
