@@ -51,4 +51,4 @@ chmod +x $RELEASE_DIR/DevAudit/devaudit
 cp -R $BUILD_DIR/DevAudit.CommandLine/bin/Debug/* $RELEASE_DIR/DevAudit 
 tar -cvzf DevAudit-$RELEASE_DIR.tgz $RELEASE_DIR/DevAudit
 rm -rf "$BUILD_DIR"
-echo Release $RELEASE_TAG created in $RELEASE_DIR and archive $RELEASE_DIR.tgz.
+echo Release $RELEASE_TAG created in directory $RELEASE_DIR and archive DevAudit-$RELEASE_DIR.tgz.
