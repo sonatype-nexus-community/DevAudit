@@ -44,7 +44,7 @@ if [[ $? -ne 0 ]]; then
     rm -rf "$RELEASE_DIR"
 	exit 1
 fi
-cp $BUILD_DIR/DevAudit.AuditLibrary/bin/Debug/Gendarme.Rules.* ./DevAudit.CommandLine/bin/Debug/
+cp $BUILD_DIR/DevAudit.AuditLibrary/bin/Debug/Gendarme.Rules.* $BUILD_DIR/DevAudit.CommandLine/bin/Debug/
 cp $BUILD_DIR/BuildCommon/devaudit-run-linux.sh $RELEASE_DIR/DevAudit
 mv $RELEASE_DIR/DevAudit/devaudit-run-linux.sh $RELEASE_DIR/DevAudit/devaudit 
 chmod +x $RELEASE_DIR/DevAudit/devaudit
