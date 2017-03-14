@@ -51,7 +51,7 @@ mkdir $RELEASE_DIR/Examples && cp -R $BUILD_DIR/Examples/* $RELEASE_DIR/Examples
 copy ./README.md %RELEASE_DIR%
 copy ./LICENSE %RELEASE_DIR%
 cp $BUILD_DIR/BuildCommon/devaudit-run-linux.sh $RELEASE_DIR
-mv $RELEASE_DIR/DevAudit/devaudit-run-linux.sh $RELEASE_DIR/devaudit 
+mv $RELEASE_DIR/devaudit-run-linux.sh $RELEASE_DIR/devaudit 
 chmod +x $RELEASE_DIR/devaudit
 cd $RELEASE_TAG
 tar -cvzf ../DevAudit-$RELEASE_TAG.tgz DevAudit
