@@ -1,4 +1,4 @@
-
+@echo off
 @setlocal
 set ERROR_CODE=0
 set DIR=%CD%
@@ -107,9 +107,9 @@ if exist "%RELEASE_DIR%" (
 )
 
 :End
+cd %DIR%
 if exist "%BUILD_DIR%" (
     rmdir /s /q "%BUILD_DIR%"
 )
-cd %DIR%
 @endlocal
 exit /b %ERROR_CODE%
