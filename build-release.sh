@@ -28,27 +28,33 @@ if [[ $? -ne 0 ]]; then
 fi
 if [ ! -f $BUILD_DIR/DevAudit.Mono.sln ]; then
 	echo Could not find the solution file $BUILD_DIR/DevAudit.Mono.sln. An error may have occurred during git checkout.	
-	exit 1
+	exit 2
 fi
-RELEASE_DIR=$RELEASE_TAG
-if [ -d "$RELEASE_DIR" ]; then
-	echo Deleting $RELEASE_DIR.
-	rm -rf "$RELEASE_DIR"
+
+if [ -d "$RELEASE_TAG" ]; then
+	echo Deleting $RELEASE_TAG.
+	rm -rf "$RELEASE_TAG"
 fi
-mkdir $RELEASE_DIR
-mkdir $RELEASE_DIR/DevAudit
+mkdir $RELEASE_TAG
+mkdir $RELEASE_TAG/DevAudit
+RELEASE_DIR=$RELEASE_TAG/DevAudit
 nuget restore $BUILD_DIR/DevAudit.Mono.sln && xbuild $BUILD_DIR/DevAudit.Mono.sln /verbosity:diagnostic /p:Configuration=RuntimeDebug /p:VersionAssembly=$BUILD_TAG
 if [[ $? -ne 0 ]]; then
 	echo An error occurred during build in $BUILD_DIR.
     rm -rf "$BUILD_DIR"
     rm -rf "$RELEASE_DIR"
-	exit 1
+	exit 3
 fi
 cp $BUILD_DIR/DevAudit.AuditLibrary/bin/Debug/Gendarme.Rules.* $BUILD_DIR/DevAudit.CommandLine/bin/Debug/
-cp $BUILD_DIR/BuildCommon/devaudit-run-linux.sh $RELEASE_DIR/DevAudit
-mv $RELEASE_DIR/DevAudit/devaudit-run-linux.sh $RELEASE_DIR/DevAudit/devaudit 
-chmod +x $RELEASE_DIR/DevAudit/devaudit
-cp -R $BUILD_DIR/DevAudit.CommandLine/bin/Debug/* $RELEASE_DIR/DevAudit 
-tar -cvzf DevAudit-$RELEASE_DIR.tgz $RELEASE_DIR/DevAudit
+cp -R $BUILD_DIR/DevAudit.CommandLine/bin/Debug/* $RELEASE_DIR
+mkdir $RELEASE_DIR\Examples && cp -R $BUILD_DIR\Examples\* $RELEASE_DIR\Examples
+copy .\README.md %RELEASE_DIR%
+copy .\LICENSE %RELEASE_DIR%
+cp $BUILD_DIR/BuildCommon/devaudit-run-linux.sh $RELEASE_DIR
+mv $RELEASE_DIR/DevAudit/devaudit-run-linux.sh $RELEASE_DIR/devaudit 
+chmod +x $RELEASE_DIR/devaudit
+cd $RELEASE_TAG
+tar -cvzf DevAudit-$RELEASE_TAG.tgz DevAudit
+cd ..
 rm -rf "$BUILD_DIR"
-echo Release $RELEASE_TAG created in directory $RELEASE_DIR and archive DevAudit-$RELEASE_DIR.tgz.
+echo Release $RELEASE_TAG created in directory $RELEASE_DIR and archive DevAudit-$RELEASE_TAG.tgz.
