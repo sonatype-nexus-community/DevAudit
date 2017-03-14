@@ -36,7 +36,7 @@ if not %ERRORLEVEL% == 0 goto CheckoutError
 mkdir %RELEASE_TAG%
 mkdir %RELEASE_TAG%\DevAudit
 cd %BUILD_DIR%
-build.cmd "VersionAssembly=%MAJOR%.%MINOR%.%PATCH%.%BUILD%"
+call build.cmd "VersionAssembly=%MAJOR%.%MINOR%.%PATCH%.%BUILD%"
 cd %DIR%
 if not %ERRORLEVEL%==0 goto BuildError
 if not exist ".\Analyzers" goto AnalyzersDirError
