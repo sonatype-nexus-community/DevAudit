@@ -14,12 +14,16 @@ set MINOR=%2
 set PATCH=%3
 set BUILD=%4
 if not "%5"=="" (
-   set SPECIAL=-%5 
+   set SPECIAL=%5
 )
 if not exist "DevAudit.sln" goto SlnError
 set TAG=v%MAJOR%.%MINOR%.x
 set BUILD_TAG=%MAJOR%.%MINOR%.%PATCH%.%BUILD%
-set RELEASE_TAG=%BUILD_TAG%%SPECIAL%
+if not "%5"=="" (
+   set RELEASE_TAG=%BUILD_TAG%-%SPECIAL%
+) else (
+    set RELEASE_TAG=%BUILD_TAG%
+)
 set BUILD_DIR=DevAudit.%TAG%.Build_%BUILD%
 set RELEASE_DIR=%RELEASE_TAG%\DevAudit
 if exist "%BUILD_DIR%" (
@@ -47,6 +51,10 @@ xcopy /E /Y %BUILD_DIR%\DevAudit.CommandLine\bin\Debug\* %RELEASE_DIR%
 mkdir %RELEASE_DIR%\Examples & xcopy /E /Y %BUILD_DIR%\Examples %RELEASE_DIR%\Examples
 copy .\README.md %RELEASE_DIR%
 copy .\LICENSE %RELEASE_DIR%
+cd %RELEASE_TAG%
+%DIR%\.7zip\7za a -tzip -r %DIR%\DevAudit-%RELEASE_TAG%.zip DevAudit
+cd %DIR%
+echo Release %RELEASE_TAG% created at %RELEASE_DIR% and at archive %DIR%\DevAudit-%RELEASE_TAG%.zip.
 goto End
 
 :EnvError
