@@ -5,8 +5,9 @@ Get the latest release from the [releases](https://github.com/OSSIndex/DevAudit/
 
 
 
-![Screenshot of DevAudit configuration audit](https://lh3.googleusercontent.com/ZLnNFiFH-4KSFhE9Tvwqwz1jYUKpaxwlUhL7Zg_4Xojhp465fo4_armzWZ6kCIqE7C31qmQpcfuG=w1440-h957-no)
-##About
+![Screenshot of DevAudit configuration audit](https://lh3.googleusercontent.com/ZLnNFiFH 4KSFhE9Tvwqwz1jYUKpaxwlUhL7Zg_4Xojhp465fo4_armzWZ6kCIqE7C31qmQpcfuG=w1440-h957-no)
+
+## About
 DevAudit is an open-source, cross-platform, multi-purpose security auditing tool targeted at developers and DevOps practitioners that detects security vulnerabilities at multiple levels of the solution stack. DevAudit provides a wide array of auditing capabilities that automate security practices and implementation of security auditing in the software development life-cycle. DevAudit can scan your operating system and application package dependencies, application and application server configurations, and application code, for potential vulnerabilities based on data aggregated by [OSS Index]((https://ossindex.net/)) from a wide array of sources and data feeds such as the National Vulnerability Database (NVD) CVE data feed, the Debian Security Advisories data feed, Drupal Security Advisories, and several others. Support for other 3rd party vulnerability databases like vulners.com is also planned.
 
 DevAudit helps developers address at least 3 of the [OWASP Top 10](https://www.owasp.org/index.php/Top_10_2013) risks to web application development: 
@@ -41,7 +42,7 @@ As development progresses and its capabilities mature, DevAudit will be able to 
 
 * **PowerShell** support. DevAudit can also be run inside the PowerShell system administration environment as cmdlets. Work on PowerShell support is paused at present but will resume in the near future with support for cross-platform Powershell both on Windows and Linux.
 
-##Requirements
+## Requirements
 DevAudit is a .NET 4.6 application. To install locally on your machine you will need either the Microsoft .NET Framework 4.6 runtime on Windows, or Mono 4.4+ on Linux. .NET 4.6 should be already installed on most recent versions of Windows, if not then it is available as a Windows feature that can be turned on or installed from the Programs and Features control panel applet on consumer Windows, or from the Add Roles and Features option in Server Manager on server versions of Windows. For older versions of Windows, the .NET 4.6 installer from Microsoft can be found [here](https://www.microsoft.com/en-us/download/details.aspx?id=48130).
 
 On Linux you must have a recent version (4.4.* or higher) of Mono. Check that the existing Mono packages provided by your distro are at least for Mono version 4.4 and above, otherwise you may have to install Mono packages manually.  Installation instructions for the most recent packages provided by the Mono project for several major Linux distros is [here](http://www.mono-project.com/docs/getting-started/install/linux/) It is recommended you have the mono-devel package installed as this will reduce the chances of missing assemblies.
@@ -109,21 +110,21 @@ Pull the Devaudit image from Docker Hub: `docker pull ossindex/devaudit`. The im
 
 Concepts
 ---
-####Audit Target
+#### Audit Target
 Represents a logical group of auditing functions. DevAudit currently supports the following audit targets:
 
 - **Package Source**. A package source manages application and library dependencies using a package manager. Package managers install, remove or update applications and library dependencies for an operating system like Debian Linux, or for a development language or framework like .NET or nodejs. Examples of package sources are dpkg, yum, Chocolatey, Composer, and Bower. DevAudit audits the names and versions of installed packages against vulnerabilities reported for specific versions of those packages.
 - **Application**. An application like Drupal or a custom application built using a framework like ASP.NET. DevAudit audits applications and application modules and plugins against vulnerabilities reported for specific versions of application binaries and modules and plugins. DevAudit can also audit application configurations for known vulnerabilities, and perform static analysis on application code looking for known weaknesses. 
 - **Application Server**. Application servers provide continuously running services or daemons like a web or database server for other applications to use, or for users to access services like authentication. Examples of application servers are the OpenSSH sshd and Apache httpd servers. DevAudit can audit application server binaries, modules and plugins against vulnerabilities reported for specific versions as well as audit server configurations for known server configuration vulnerabilities and weaknesses.
 
-####Audit Environment
+#### Audit Environment
 Represents a logical environment where audits against audit targets are executed. Audit environments abstract the I/O and command executions required for an audit and allow identical functions to be performed against audit targets on whatever physical or network location the target's files and executables are located. There are 3 audit environments currently supported by DevAudit:
 
 - **Local**. This is the default audit environment where audits are executed on the local machine.
 - **SSH**. Audits are executed on a remote host connected over SSH. It is not necessary to have DevAudit installed on the remote host.
 - **Docker**. Audits are executed on a Docker container image. It is not necessary to have DevAudit installed on the container image.
 
-####Audit Options
+#### Audit Options
 These are different options that can be enabled for the audit. You can specify options that apply to the DevAudit program for example, to run in non-interactive mode, as well as options that apply to the target e.g if you set the AppDevMode option for auditing ASP.NET applications to true then certain audit rules will not be enabled. 
 
 Basic Usage
@@ -131,17 +132,17 @@ Basic Usage
 The CLI is the primary interface to the DevAudit program and is suitable both for interactive use and for non-interactive use in scheduled tasks, shell scripts, CI build pipelines and post-build tasks in developer IDEs. The basic DevAudit CLI syntax is:
 
 	devaudit TARGET [ENVIRONMENT] | [OPTIONS]
-where `TARGET` specifies the audit target `ENVIRONMENT` specifies the audit environment and `OPTIONS` specifies the options for the audit target and environment. There are 2 ways to specify options: program options and general audit options that apply to more than one target can be specified directly on the command-line as parameters . Target-specific options can be specified with the `-o` options using the format:
-`-o OPTION1=VALUE1,OPTION2=VALUE2,....` with commas delimiting each option key-value pair. 
+where `TARGET` specifies the audit target `ENVIRONMENT` specifies the audit environment and `OPTIONS` specifies the options for the audit target and environment. There are 2 ways to specify options: program options and general audit options that apply to more than one target can be specified directly on the command-line as parameters . Target-specific options can be specified with the `-o` options using the format: `-o OPTION1=VALUE1,OPTION2=VALUE2,....` with commas delimiting each option key-value pair.
 
-If you are piping or redirecting the program output to a file then you should always use the `-n --non-interactive` option to disable any interactive user interface features and animations.
+If you are piping or redirecting the program output to a file then you should always use the `-n --non-interactive` option to disable any interactive user interface features and animations. 
 
 When specifying file paths, an @ prefix before a path indicates to DevAudit that this path is relative to the root directory of the audit target e.g if you specify: 
 `-r c:\myproject -b @bin\Debug\app2.exe`
 DevAudit considers the path to the binary file as c:\myproject\bin\Debug\app2.exe.
+
 Audit Targets
 ---
-####Package Sources
+#### Package Sources
 - `msi`    Do a package audit of the Windows Installer MSI package source on Windows machines.
 
 - `choco`  Do a package audit of packages installed by the Choco package manager.
@@ -165,7 +166,7 @@ For every package source the following general audit options can be used:
 
 Package sources tagged [Experimental] are only available in the master branch of the source code and may have limited back-end OSS Index support. However you can always list the packages scanned and artifacts available on OSS Index using the `list-packages` and `list-artifacts` options.
 
-####Applications
+#### Applications
 - `aspnet` Do an application audit on a ASP.NET application. The relevant options are:
 	- `-r --root-directory` Specify the root directory of the application. This is just the top-level application directory that contains files like Global.asax and Web.config.
 	- `-b --application-binary` Specify the application binary. The is the .NET assembly that contains the application's .NET bytecode. This file is usually a .DLL and located in the bin sub-folder of the ASP.NET application root directory.
@@ -214,7 +215,7 @@ All applications also support the following common options for auditing the appl
 
 - `--skip-packages-audit` Only do an appplication configuration or code analysis audit and skip the packages audit.
 
-####Application Servers
+#### Application Servers
 - `sshd` Do an application server audit on an OpenSSH sshd-compatible server.
 
 - `httpd` Do an application server audit on an Apache httpd-compatible server.
@@ -239,11 +240,11 @@ Application servers also support the following common options for auditing the s
 
 - `--skip-packages-audit` Only do a server configuration audit and skip the packages audit.
 
-###Environments
+### Environments
 
 There are 3 kinds of audit environment supported: local, remote hosts over SSH, and Docker containers. Local environments are used by default when no other environment options are specified.
 
-####SSH
+#### SSH
 The SSH environment allows audits to be performed on any remote hosts accessible over SSH without requiring DevAudit to be installed on the remote host. SSH environments are cross-platform: you can connect to a Linux remote host from a Windows machine running DevAudit. An SSH environment is created by the following options:`-s SERVER [--ssh-port PORT] -u USER [-k KEYFILE] [-p | --password-text PASSWORD]`
 
 `-s SERVER` Specifies the remote host or IP to connect to via SSH.
@@ -256,7 +257,7 @@ The SSH environment allows audits to be performed on any remote hosts accessible
 
 `--password-text PASSWORD` Specify the server password or key file passphrase as plaintext on the command-line. Note that on Linux when your password contains special characters you should use enclose the text on the command-line using single-quotes like `'MyPa<ss'` to avoid the shell interpreting the special characters.
 
-####Docker
+#### Docker
 This section discusses how to **audit** Docker images using DevAudit installed on the local machine. For **running** DevAudit as a containerized Docker app see the section below on Docker Usage.
 
 A Docker audit environment is specified by the following option: `-i CONTAINER_NAME | -i CONTAINER_ID`
