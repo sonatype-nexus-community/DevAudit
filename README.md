@@ -7,14 +7,14 @@ Get the latest release from the [releases](https://github.com/OSSIndex/DevAudit/
 
 ![Screenshot of DevAudit configuration audit](https://lh3.googleusercontent.com/ZLnNFiFH-4KSFhE9Tvwqwz1jYUKpaxwlUhL7Zg_4Xojhp465fo4_armzWZ6kCIqE7C31qmQpcfuG=w1440-h957-no)
 ##About
-DevAudit is an open-source, cross-platform, multi-purpose security auditing tool targeted at developers and DevOps practitioners that detects security vulnerabilities at multiple levels of the solution stack. DevAudit provides a wide array of auditing capabilities that automate security practices and implementation of security auditing in the software development life-cycle. DevAudit can scan your operating system and application package dependencies, application server configurations, and application source code for potential vulnerabilities based on data aggregated by OSS Index from a wide array of sources and data feeds such as the National Vulnerability Database (NVD) CVE data feed, the Debian Security Tracker feed, Drupal Security Advisories, and several others. Support for other 3rd party vulnerability databases like vulners.com is also planned.
+DevAudit is an open-source, cross-platform, multi-purpose security auditing tool targeted at developers and DevOps practitioners that detects security vulnerabilities at multiple levels of the solution stack. DevAudit provides a wide array of auditing capabilities that automate security practices and implementation of security auditing in the software development life-cycle. DevAudit can scan your operating system and application package dependencies, application and application server configurations, and application code, for potential vulnerabilities based on data aggregated by [OSS Index]((https://ossindex.net/)) from a wide array of sources and data feeds such as the National Vulnerability Database (NVD) CVE data feed, the Debian Security Advisories data feed, Drupal Security Advisories, and several others. Support for other 3rd party vulnerability databases like vulners.com is also planned.
 
 DevAudit helps developers address at least 3 of the [OWASP Top 10](https://www.owasp.org/index.php/Top_10_2013) risks to web application development: 
 * [A9 Using Components with Known Vulnerabilities](https://www.owasp.org/index.php/Top_10_2013-A9-Using_Components_with_Known_Vulnerabilities)
 * [A5 Security Misconfiguration](https://www.owasp.org/index.php/Top_10_2013-A5-Security_Misconfiguration)
 * [A6 Sensitive Data Disclosure](https://www.owasp.org/index.php/Top_10_2013-A6-Sensitive_Data_Exposure)
 
-as well as risks classified by MITRE in the CWE dictionary such as [CWE-2 Environment](http://cwe.mitre.org/data/definitions/2.html). 
+as well as risks classified by MITRE in the CWE dictionary such as [CWE-2 Environment](http://cwe.mitre.org/data/definitions/2.html) and [CWE-200 Information Disclosure](http://cwe.mitre.org/data/definitions/200.html)
 
 ![Screenshot of DevAudit ASP.NET application audit](https://lh3.googleusercontent.com/WiMC-en25YIOG5lWzPjhF6D9l3WTw5GdY_ne-LjpbQcOcaWgzg2beS3fQc1YrCVblmPo59QIZMmWk98suJjEG_CGeC1gAEfPqZbOUbm59ibTwfuxvtHSr-dwNkp8NMzl7PYHHg=w1402-h815-no)
 
@@ -58,7 +58,7 @@ DevAudit can be installed by the following methods:
 
 
 ### Building from source on Linux
-1. Pre-requisites: Mono 4.4+ and the mono-devel package which provides the compiler and other tools needed for building Mono apps. Check that the existing Mono packages provided by your distro are at least Mono version 4.4 and above, otherwise you may have to install Mono packages manually.  Installation instructions for the most recent packages provided by the Mono project for several major Linux distros are [here](http://www.mono-project.com/docs/getting-started/install/linux/)
+1. Pre-requisites: Mono 4.4+ and the mono-devel package which provides the compiler and other tools needed for building Mono apps. Your distro should have packages for at least Mono version 4.4 and above, otherwise manual installation instructions for the most recent packages provided by the Mono project for several major Linux distros are [here](http://www.mono-project.com/docs/getting-started/install/linux/)
 
 2. Clone the DevAudit repository from https://github.com/OSSIndex/DevAudit.git
 
@@ -80,7 +80,7 @@ Note that NuGet on Linux may occasionally exit with `Error: NameResolutionFailur
 
 ### Installing from the release archive files on Windows on Linux
 1. Pre-requisites: You must have Mono 4.4+ on Linux or .NET 4.6 on Windows.
-2. Download the latest release archive file for Windows or Linux e.g [DevAudit-2.0.0.40-beta](https://github.com/OSSIndex/DevAudit/releases/tag/v2.0.0.40-beta) from the project [releases](https://github.com/OSSIndex/DevAudit/releases) page. Unpack this file to a directory.
+2. Download the latest release archive file for Windows or Linux from the project [releases](https://github.com/OSSIndex/DevAudit/releases) page. Unpack this file to a directory.
 
 2. From the directory where you unpacked the release archive run `devaudit --help` on Windows or `./devaudit --help` on Linux. You should see the version and help screen printed.
 
@@ -105,15 +105,15 @@ DevAudit is also available on [Chocolatey](https://chocolatey.org/packages/devau
 4. Run DevAudit.
 
 ### Installing using Docker on Linux
-Pull the Devaudit image from Docker Hub: `docker pull ossindex/devaudit`.
+Pull the Devaudit image from Docker Hub: `docker pull ossindex/devaudit`. The image tagged `ossindex/devaudit:latest` (which is the default image that is downloaded) is built from the most recent release while `ossindex/devaudit:unstable` is built on the master branch of the source code and contains the newest additions albeit with less testing.
 
 Concepts
 ---
 ####Audit Target
 Represents a logical group of auditing functions. DevAudit currently supports the following audit targets:
 
-- **Package Source**. A package source manages application and library dependencies using a package manager. Package managers install, remove or update applications and library dependencies for an operating system like Debian Linux, or for a development langauge or framework like .NET or nodejs. Examples of package sources are dpkg, yum, Chocolatey, Composer, and Bower. DevAudit audits the names and versions of installed packages against vulnerabilities reported for specific versions of those packages.
-- **Application**. An application like Drupal or a custom application built using a framework like ASP.NET. DevAudit audits applications and application modules and plugins against vulnerabilities reported for specific versions of application binaries and moddules and plugins. DevAudit can also audit application configurations for known vulnerabilities, and perform static analysis on application code looking for known weaknesses. 
+- **Package Source**. A package source manages application and library dependencies using a package manager. Package managers install, remove or update applications and library dependencies for an operating system like Debian Linux, or for a development language or framework like .NET or nodejs. Examples of package sources are dpkg, yum, Chocolatey, Composer, and Bower. DevAudit audits the names and versions of installed packages against vulnerabilities reported for specific versions of those packages.
+- **Application**. An application like Drupal or a custom application built using a framework like ASP.NET. DevAudit audits applications and application modules and plugins against vulnerabilities reported for specific versions of application binaries and modules and plugins. DevAudit can also audit application configurations for known vulnerabilities, and perform static analysis on application code looking for known weaknesses. 
 - **Application Server**. Application servers provide continuously running services or daemons like a web or database server for other applications to use, or for users to access services like authentication. Examples of application servers are the OpenSSH sshd and Apache httpd servers. DevAudit can audit application server binaries, modules and plugins against vulnerabilities reported for specific versions as well as audit server configurations for known server configuration vulnerabilities and weaknesses.
 
 ####Audit Environment
@@ -132,7 +132,7 @@ The CLI is the primary interface to the DevAudit program and is suitable both fo
 
 	devaudit TARGET [ENVIRONMENT] | [OPTIONS]
 where `TARGET` specifies the audit target `ENVIRONMENT` specifies the audit environment and `OPTIONS` specifies the options for the audit target and environment. There are 2 ways to specify options: program options and general audit options that apply to more than one target can be specified directly on the command-line as parameters . Target-specific options can be specified with the `-o` options using the format:
-`-o OPTION1=VALUE1,OPTION2=VALUE2,....`
+`-o OPTION1=VALUE1,OPTION2=VALUE2,....` with commas delimiting each option key-value pair. 
 
 If you are piping or redirecting the program output to a file then you should always use the `-n --non-interactive` option to disable any interactive user interface features and animations.
 
@@ -148,9 +148,9 @@ Audit Targets
 
 - `oneget` Do a package audit of the system OneGet package source on Windows.
 
-- `nuget` Do a package audit of a NuGet v2 package source. You must specify the location of the NuGet packages.config file you wish to audit using the `-f` or `--file` option otherwise the current directory will be searched.
-- `bower` Do a package audit of a Bower package source. You must specify the location of the Bower packages.json file you wish to audit using the `-f` or `--file` option otherwise the current directory will be searched.
-- `composer` Do a package audit of a Composer package source. You must specify the location of the Composer composer.json file you wish to audit using the `-f` or `--file` option otherwise the current directory will be searched.
+- `nuget` Do a package audit of a NuGet v2 package source. You must specify the location of the NuGet `packages.config` file you wish to audit using the `-f` or `--file` option otherwise the current directory will be searched for this file.
+- `bower` Do a package audit of a Bower package source. You must specify the location of the Bower `packages.json` file you wish to audit using the `-f` or `--file` option otherwise the current directory will be searched for this file.
+- `composer` Do a package audit of a Composer package source. You must specify the location of the Composer `composer.json` file you wish to audit using the `-f` or `--file` option otherwise the current directory will be searched for this file.
 
 - `dpkg` [Experimental] Do a package audit of the system dpkg package source on Debian Linux and derivatives.
 
@@ -225,7 +225,7 @@ All applications also support the following common options for auditing the appl
 
 This is an example command line for an application server audit:
 `./devaudit httpd -i httpd-2.2 -r / -c /usr/local/apache2/conf/httpd.conf -b /usr/local/apache2/bin/httpd`
-which audits an Apache Httpd server running on a Docker image named httpd-2.2.
+which audits an Apache Httpd server running on a Docker container named httpd-2.2.
 
 The following are audit options common to all application servers:
 - `-r --root-directory` Specifies the root directory of the server. This is just the top-level of your server filesystem where directories like /etc and /sbin are located. Usually is specified as `/` unless you require a different server root.
@@ -254,7 +254,7 @@ The SSH environment allows audits to be performed on any remote hosts accessible
 
 `-p` Provide a prompt with local echo disabled for interactive entry of the server password or key file passphrase.
 
-`--password-text PASSWORD` Specify the server password or key file passphrase as plaintext on the command-line.
+`--password-text PASSWORD` Specify the server password or key file passphrase as plaintext on the command-line. Note that on Linux when your password contains special characters you should use enclose the text on the command-line using single-quotes like `'MyPa<ss'` to avoid the shell interpreting the special characters.
 
 ####Docker
 This section discusses how to **audit** Docker images using DevAudit installed on the local machine. For **running** DevAudit as a containerized Docker app see the section below on Docker Usage.
@@ -274,9 +274,9 @@ Docker Usage
 ---
 DevAudit also ships as a Docker containerized app which allows users on Linux to run DevAudit without the need to install Mono and build from source. To pull the DevAudit Docker image from Docker Hub:
 
-`docker pull ossindex/devaudit`
+`docker pull ossindex/devaudit[:label]`
 
-The current image is about 131 MB compressed. To run DevAudit as a containerized app:
+The current images are about 131 MB compressed. By default the image labelled `latest` is pulled which is the most recent release of the program. An `unstable` image is also available which tracks the master branch of the source code. To run DevAudit as a containerized app:
 
 	docker run -i -t ossindex/devaudit TARGET [ENVIRONMENT] | [OPTIONS]
 
@@ -318,5 +318,4 @@ If you encounter a bug or other issue with DevAudit there are a couple of things
 Known Issues
 ---
 - On Windows you _must_ use the `-n --non-interactive` program option when piping or redirecting program output to a file otherwise a crash will result. This behaviour may be changed in the future to make non-interactive mode the default.
-- When installed on Windows using Chocolatey, the Gendarme analyzer will not run due to assembly collisions. This should be fixed in the next patch release.
-- There appears to be an issue using the Windows console app [ConEmu](https://conemu.github.io/) and the Cygwin builds of the OpenSSH client when SSHing into remote Linux hosts to run Mono apps. If you run DevAudit this way you may notice strange sequences appearing sometimes at the end of console output. You may also have problems during keyboard interactive entry like entering passwords for SSH audits where the wrong password appears to be sent. If you are having problems entering passwords for SSH audits using ConEmu (or possibly other console apps on Windows) when working remotely, try holding the backspace key for a second or two to clear the input buffer before entering your password.
+- There appears to be an issue using the Windows console app [ConEmu](https://conemu.github.io/) and the Cygwin builds of the OpenSSH client when SSHing into remote Linux hosts to run Mono apps. If you run DevAudit this way you may notice strange sequences appearing sometimes at the end of console output. You may also have problems during keyboard interactive entry like entering passwords for SSH audits where the wrong password appears to be sent. If you are having problems entering passwords for SSH audits using ConEmu when working remotely, try holding the backspace key for a second or two to clear the input buffer before entering your password.
