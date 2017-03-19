@@ -201,6 +201,10 @@
       <HintPath>..\packages\Newtonsoft.Json.9.0.1\lib\net45\Newtonsoft.Json.dll</HintPath>
       <Private>True</Private>
     </Reference>
+    <Reference Include="Octokit, Version=0.24.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Octokit.0.24.0\lib\net45\Octokit.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
     <Reference Include="SharpCompress, Version=0.14.1.0, Culture=neutral, PublicKeyToken=afb0a02973931d96, processorArchitecture=MSIL">
       <HintPath>..\packages\SharpCompress.0.14.1\lib\net45\SharpCompress.dll</HintPath>
       <Private>True</Private>
@@ -318,6 +322,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Codecs.cs" />
     <Compile Include="DevAuditGendarmeRunner.cs" />
     <Compile Include="ByteCodeAnalyzer.cs" />
     <Compile Include="Analyzers\NetFxAnalyzer.cs" />
@@ -328,6 +333,7 @@
     <Compile Include="DockerizedLocalEnvironment.cs" />
     <Compile Include="DockerAuditEnvironment.cs" />
     <Compile Include="DockerAuditFileInfo.cs" />
+    <Compile Include="GitHubAuditEnvironment.cs" />
     <Compile Include="OSSIndexApiv2Result.cs" />
     <Compile Include="OSSIndexApiv2Vulnerability.cs" />
     <Compile Include="Projects\Drupal8ModuleCodeProject.cs" />
@@ -352,6 +358,8 @@
     <Compile Include="ScriptEnvironment.cs" />
     <Compile Include="DockerizedLocalAuditFileInfo.cs" />
     <Compile Include="DockerizedLocalAuditDirectoryInfo.cs" />
+    <Compile Include="GitHubAuditFileInfo.cs" />
+    <Compile Include="GitHubAuditDirectoryInfo.cs" />
     <Compile Include="SshAuditFileInfo.cs" />
     <Compile Include="SshAuditDirectoryInfo.cs" />
     <Compile Include="AuditEnvironment.cs" />
