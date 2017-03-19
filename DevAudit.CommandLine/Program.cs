@@ -179,6 +179,56 @@ namespace DevAudit.CommandLine
                 }
             }
             #endregion
+
+            #region GitHub
+            if (!string.IsNullOrEmpty(ProgramOptions.GitHubOptions))
+            {
+                Dictionary<string, object> parsed_options = Options.Parse(ProgramOptions.GitHubOptions);
+                if (parsed_options.Count == 0)
+                {
+                    PrintErrorMessage("There was an error parsing the GitHub options {0}.", ProgramOptions.GitHubOptions);
+                    return (int)Exit;
+                }
+                else if (parsed_options.Where(o => o.Key == "_ERROR_").Count() > 0)
+                {
+
+                    string error_options = parsed_options.Where(o => o.Key == "_ERROR_").Select(kv => (string)kv.Value).Aggregate((s1, s2) => s1 + Environment.NewLine + s2);
+                    PrintErrorMessage("There was an error parsing the following options {0}.", error_options);
+                    parsed_options = parsed_options.Where(o => o.Key != "_ERROR_").ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
+
+                }
+                if (!parsed_options.ContainsKey("Owner"))
+                {
+                    PrintErrorMessage("You must specify the repository owner as Owner=<owner> in the GitHub options {0}.", ProgramOptions.GitHubOptions);
+                    return (int)Exit;
+                }
+                if (!parsed_options.ContainsKey("Name"))
+                {
+                    PrintErrorMessage("You must specify the repository name as Name=<name> in the GitHub options {0}.", ProgramOptions.GitHubOptions);
+                    return (int)Exit;
+                }
+                if (!parsed_options.ContainsKey("Branch"))
+                {
+                    parsed_options.Add("Branch", "master");
+                }
+                foreach (KeyValuePair<string, object> kvp in parsed_options)
+                {
+                    if (audit_options.ContainsKey("Repository" + kvp.Key))
+                    {
+                        audit_options["Repository" + kvp.Key] = kvp.Value;
+                    }
+                    else
+                    {
+                        audit_options.Add("Repository" + kvp.Key, kvp.Value);
+                    }
+                }
+            }
+            if (!string.IsNullOrEmpty(ProgramOptions.GitHubToken))
+            {
+                audit_options.Add("GitHubToken", ProgramOptions.GitHubToken);
+            }
+            #endregion
+
             if (ProgramOptions.SkipPackagesAudit && ProgramOptions.ListPackages)
             {
                 PrintErrorMessage("You can't specify both --skip-packages-audit and --list-packages.");

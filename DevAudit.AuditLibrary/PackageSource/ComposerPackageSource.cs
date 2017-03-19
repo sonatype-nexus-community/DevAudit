@@ -26,14 +26,26 @@ namespace DevAudit.AuditLibrary
             JObject json = (JObject)JToken.Parse(config_file.ReadAsText());
             JObject require = (JObject)json["require"];
             JObject require_dev = (JObject)json["require-dev"];
-            if (require_dev != null)
+            if (require != null)
             {
-                return require.Properties().Select(d => new OSSIndexQueryObject("composer", d.Name.Split('/').Last(), d.Value.ToString(), "", d.Name.Split('/').First()))
-                    .Concat(require_dev.Properties().Select(d => new OSSIndexQueryObject("composer", d.Name.Split('/').Last(), d.Value.ToString(), "", d.Name.Split('/').First())));
+                if (require_dev != null)
+                {
+                    return require.Properties().Select(d => new OSSIndexQueryObject("composer", d.Name.Split('/').Last(), d.Value.ToString(), "", d.Name.Split('/').First()))
+                        .Concat(require_dev.Properties().Select(d => new OSSIndexQueryObject("composer", d.Name.Split('/').Last(), d.Value.ToString(), "", d.Name.Split('/').First())));
+                }
+                else
+                {
+                    return require.Properties().Select(d => new OSSIndexQueryObject("composer", d.Name.Split('/').Last(), d.Value.ToString(), "", d.Name.Split('/').First()));
+                }
+            }
+            else if (require_dev != null)
+            {
+                return require_dev.Properties().Select(d => new OSSIndexQueryObject("composer", d.Name.Split('/').Last(), d.Value.ToString(), "", d.Name.Split('/').First()));
             }
             else
             {
-                return require.Properties().Select(d => new OSSIndexQueryObject("composer", d.Name.Split('/').Last(), d.Value.ToString(), "", d.Name.Split('/').First()));
+                this.AuditEnvironment.Warning("{0} file does not contain a require or require_dev element.", config_file.FullName);
+                return new List<OSSIndexQueryObject>();
             }
         }
 

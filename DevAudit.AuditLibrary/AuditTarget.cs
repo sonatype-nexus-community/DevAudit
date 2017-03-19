@@ -132,7 +132,30 @@ namespace DevAudit.AuditLibrary
                 this.AuditEnvironment = new DockerizedLocalEnvironment(this.AuditEnvironmentMessage);
                 this.AuditEnvironmentIntialised = true;
             }
-            
+            else if (this.AuditOptions.ContainsKey("RepositoryName"))
+            {
+                string user_api_token = string.Empty;
+                if (!this.AuditOptions.ContainsKey("RepositoryOwner") || !this.AuditOptions.ContainsKey("RepositoryBranch"))
+                {
+                    throw new ArgumentException("A required audit option for the GitHub environment is missing.");
+                }
+                GitHubAuditEnvironment github_environment = new GitHubAuditEnvironment(this.HostEnvironmentMessage, user_api_token, (string)this.AuditOptions["RepositoryOwner"],
+                   (string)this.AuditOptions["RepositoryName"], (string)this.AuditOptions["RepositoryBranch"], this.HostEnvironment);
+                if (github_environment.RepositoryInitialised)
+                {
+                    this.AuditEnvironment = github_environment;
+                    this.AuditEnvironmentIntialised = true;
+                    this.AuditEnvironmentMessage = AuditTarget_AuditEnvironmentMessageHandler;
+                    this.AuditEnvironment.MessageHandler -= HostEnvironmentMessage;
+                    this.AuditEnvironment.MessageHandler += this.AuditEnvironmentMessage;
+                }
+                else
+                {
+                    github_environment = null;
+                    this.AuditEnvironmentIntialised = false;
+                    throw new Exception("Failed to initialise audit environment.");
+                }
+            }
             else
             {
                 this.AuditEnvironmentMessage = AuditTarget_AuditEnvironmentMessageHandler;
