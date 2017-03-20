@@ -132,15 +132,15 @@ namespace DevAudit.AuditLibrary
                 this.AuditEnvironment = new DockerizedLocalEnvironment(this.AuditEnvironmentMessage);
                 this.AuditEnvironmentIntialised = true;
             }
-            else if (this.AuditOptions.ContainsKey("RepositoryName"))
+            else if (this.AuditOptions.ContainsKey("GitHubRepoName"))
             {
                 string user_api_token = string.Empty;
-                if (!this.AuditOptions.ContainsKey("RepositoryOwner") || !this.AuditOptions.ContainsKey("RepositoryBranch"))
+                if (!this.AuditOptions.ContainsKey("GitHubRepoOwner") || !this.AuditOptions.ContainsKey("GitHubRepoBranch"))
                 {
                     throw new ArgumentException("A required audit option for the GitHub environment is missing.");
                 }
-                GitHubAuditEnvironment github_environment = new GitHubAuditEnvironment(this.HostEnvironmentMessage, user_api_token, (string)this.AuditOptions["RepositoryOwner"],
-                   (string)this.AuditOptions["RepositoryName"], (string)this.AuditOptions["RepositoryBranch"], this.HostEnvironment);
+                GitHubAuditEnvironment github_environment = new GitHubAuditEnvironment(this.HostEnvironmentMessage, user_api_token, (string)this.AuditOptions["GitHubRepoOwner"],
+                   (string)this.AuditOptions["GitHubRepoName"], (string)this.AuditOptions["GitHubRepoBranch"], this.HostEnvironment);
                 if (github_environment.RepositoryInitialised)
                 {
                     this.AuditEnvironment = github_environment;

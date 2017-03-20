@@ -120,11 +120,14 @@ namespace DevAudit.CommandLine
         [Option('i', "docker", Required = false, HelpText = "Run the audit on a Docker container with this name or id.")]
         public string Docker { get; set; }
 
-        [Option('g', "github", Required = false, HelpText = "Specify a set of comma delimited, key=value options for the GitHub audit environment. You can specify 3 options: Owner=<owner>,Namr=<repo>,Branch=<branch> for the repository owner, name and branch respectively. Omitting the Branch value will specify the master branch by default.")]
+        [Option('g', "github", Required = false, HelpText = "Specify a set of comma delimited, key=value options for the GitHub audit environment. You can specify 3 options: Owner=<owner>,Name=<repo>,Branch=<branch> for the GitHub repository owner, name and branch respectively. Omitting the Branch value will specify the master branch by default.")]
         public string GitHubOptions { get; set; }
 
         [Option("github-token", Required = false, HelpText = "Specify a set of comma delimited, key=value options for the GitHub audit environment. You can specify 3 options: owner=<owner>")]
         public string GitHubToken { get; set; }
+
+        [Option("github-report", Required = false, HelpText = "Specify a set of comma delimited, key=value options for the GitHub audit reporter. You can specify 3 options: Owner=<owner>,Name=<repo>,Title=<title> for the repository GitHub owner, name and issue title respectively. Omitting the Title value will result in the default issue title being used.")]
+        public string GitHubReporter { get; set; }
 
         [Option('m', "project-name", Required = false, HelpText = "The name of the code project to audit.")]
         public string ProjectName { get; set; }

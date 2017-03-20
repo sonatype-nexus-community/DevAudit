@@ -322,6 +322,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="AuditReporter.cs" />
     <Compile Include="Codecs.cs" />
     <Compile Include="DevAuditGendarmeRunner.cs" />
     <Compile Include="ByteCodeAnalyzer.cs" />
@@ -355,6 +356,7 @@
     <Compile Include="CodeProject.cs" />
     <Compile Include="Projects\AspNetCodeProject.cs" />
     <Compile Include="Projects\NetFxCodeProject.cs" />
+    <Compile Include="Reporters\GitHubIssueReporter.cs" />
     <Compile Include="ScriptEnvironment.cs" />
     <Compile Include="DockerizedLocalAuditFileInfo.cs" />
     <Compile Include="DockerizedLocalAuditDirectoryInfo.cs" />

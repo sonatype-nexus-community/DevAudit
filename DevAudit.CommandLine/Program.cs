@@ -181,6 +181,10 @@ namespace DevAudit.CommandLine
             #endregion
 
             #region GitHub
+            if (!string.IsNullOrEmpty(ProgramOptions.GitHubToken))
+            {
+                audit_options.Add("GitHubToken", ProgramOptions.GitHubToken);
+            }
             if (!string.IsNullOrEmpty(ProgramOptions.GitHubOptions))
             {
                 Dictionary<string, object> parsed_options = Options.Parse(ProgramOptions.GitHubOptions);
@@ -213,19 +217,69 @@ namespace DevAudit.CommandLine
                 }
                 foreach (KeyValuePair<string, object> kvp in parsed_options)
                 {
-                    if (audit_options.ContainsKey("Repository" + kvp.Key))
+                    if (audit_options.ContainsKey("GitHubRepo" + kvp.Key))
                     {
-                        audit_options["Repository" + kvp.Key] = kvp.Value;
+                        audit_options["GitHubRepo" + kvp.Key] = kvp.Value;
                     }
                     else
                     {
-                        audit_options.Add("Repository" + kvp.Key, kvp.Value);
+                        audit_options.Add("GitHubRepo" + kvp.Key, kvp.Value);
                     }
                 }
+                if (audit_options.ContainsKey("GitHubRepoReport") && !audit_options.ContainsKey("GitHubToken"))
+                {
+                    PrintErrorMessage("You must specify a GitHub token using --github-token when using the GitHub reporter.");
+                    return (int)Exit;
+                }
+                else if (audit_options.ContainsKey("GitHubRepoReport"))
+                {
+                    audit_options.Add("GitHubReportName", audit_options["GitHubRepoName"]);
+                    audit_options.Add("GitHubReportOwner", audit_options["GitHubRepoOwner"]);
+                }
             }
-            if (!string.IsNullOrEmpty(ProgramOptions.GitHubToken))
+            if (!string.IsNullOrEmpty(ProgramOptions.GitHubReporter))
             {
-                audit_options.Add("GitHubToken", ProgramOptions.GitHubToken);
+                if (!audit_options.ContainsKey("GitHubToken"))
+                {
+                    PrintErrorMessage("You must specify a GitHub user token with --github-token when using the GitHub reporter.");
+                    return (int)Exit;
+                }
+                Dictionary<string, object> parsed_options = Options.Parse(ProgramOptions.GitHubReporter);
+                if (parsed_options.Count == 0)
+                {
+                    PrintErrorMessage("There was an error parsing the GitHub reporter options {0}.", ProgramOptions.GitHubReporter);
+                    return (int)Exit;
+                }
+                else if (parsed_options.Where(o => o.Key == "_ERROR_").Count() > 0)
+                {
+
+                    string error_options = parsed_options.Where(o => o.Key == "_ERROR_").Select(kv => (string)kv.Value).Aggregate((s1, s2) => s1 + Environment.NewLine + s2);
+                    PrintErrorMessage("There was an error parsing the following options {0}.", error_options);
+                    parsed_options = parsed_options.Where(o => o.Key != "_ERROR_").ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
+
+                }
+                if (!parsed_options.ContainsKey("Owner"))
+                {
+                    PrintErrorMessage("You must specify the repository owner as Owner=<owner> in the GitHub reporter options {0}.", ProgramOptions.GitHubReporter);
+                    return (int)Exit;
+                }
+                if (!parsed_options.ContainsKey("Name"))
+                {
+                    PrintErrorMessage("You must specify the repository name as Name=<name> in the GitHub reporter options {0}.", ProgramOptions.GitHubReporter);
+                    return (int)Exit;
+                }
+
+                foreach (KeyValuePair<string, object> kvp in parsed_options)
+                {
+                    if (audit_options.ContainsKey("GitHubReport" + kvp.Key))
+                    {
+                        audit_options["GitHubReport" + kvp.Key] = kvp.Value;
+                    }
+                    else
+                    {
+                        audit_options.Add("GitHubReport" + kvp.Key, kvp.Value);
+                    }
+                }
             }
             #endregion
 

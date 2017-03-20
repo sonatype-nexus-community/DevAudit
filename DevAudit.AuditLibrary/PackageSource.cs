@@ -302,6 +302,8 @@ namespace DevAudit.AuditLibrary
 
         public Task EvaluateVulnerabilitiesTask { get; protected set; }
 
+        public Task ReportAuditTask { get; protected set; }
+
         #region Cache stuff
         private string ProjectVulnerabilitiesCacheFile { get; set; }
 
@@ -414,6 +416,25 @@ namespace DevAudit.AuditLibrary
                 this.AuditEnvironment.Error(caller, ae.InnerException, "Exception thrown in {0} task.", ae.InnerException.TargetSite.Name);
                 return AuditResult.ERROR_EVALUATING_VULNERABILITIES;
             }
+
+            if (this.Vulnerabilities.Count == 0)
+            {
+                this.ReportAuditTask = Task.CompletedTask;
+                this.AuditEnvironment.Info("Not reporting package source audit with zero vulnerabilities.");
+            }
+            else
+            {
+                this.ReportAuditTask = Task.Run(() => this.ReportAudit(), ct);
+            }
+            try
+            {
+                this.ReportAuditTask.Wait();
+            }
+            catch (AggregateException ae)
+            {
+                this.AuditEnvironment.Error(caller, ae.InnerException, "Exception thrown in {0} task.", ae.InnerException.TargetSite.Name);
+            }
+
             return AuditResult.SUCCESS;
         }
         
@@ -680,6 +701,24 @@ namespace DevAudit.AuditLibrary
             this.AuditEnvironment.Info("Evaluated {0} vulnerabilities with {1} matches to package version in {2} ms.", this.Vulnerabilities
                 .Sum(pv => pv.Value.Count()), this.Vulnerabilities
                 .Sum(pv => pv.Value.Count(v => v.CurrentPackageVersionIsInRange)), sw.ElapsedMilliseconds);
+        }
+
+        protected void ReportAudit()
+        {
+            if (this.AuditOptions.ContainsKey("GitHubReportName"))
+            {
+                this.AuditEnvironment.Status("Creating GitHub report for {0} package source audit.", this.PackageManagerLabel);
+                AuditReporter reporter = new GitHubIssueReporter(this);
+                if (reporter.ReportPackageSourceAudit().Result == true)
+                {
+                    this.AuditEnvironment.Info("Created GitHub audit report.");
+                }
+                else
+                {
+                    this.AuditEnvironment.Error("Failed to create GitHub audit report");
+                }
+            }
+
         }
 
         private async Task<KeyValuePair<IEnumerable<OSSIndexQueryObject>, IEnumerable<OSSIndexArtifact>>> AddArtifiactAsync(IEnumerable<OSSIndexQueryObject> query, Task<IEnumerable<OSSIndexArtifact>> artifact_task)
