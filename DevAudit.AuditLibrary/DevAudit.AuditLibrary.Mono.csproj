@@ -250,6 +250,8 @@
     <None Include="packages.config" />
 </ItemGroup>
   <ItemGroup>
+    <Compile Include="AuditReporter.cs" />
+    <Compile Include="Codecs.cs" />
     <Compile Include="GitLabAuditEnvironment.cs" />
     <Compile Include="GithubAuditEnvironment.cs" />
     <Compile Include="DevAuditGendarmeRunner.cs" />
