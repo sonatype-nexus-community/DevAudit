@@ -197,6 +197,23 @@
     <Reference Include="Newtonsoft.Json, Version=9.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed">
       <HintPath>..\packages\Newtonsoft.Json.9.0.1\lib\net45\Newtonsoft.Json.dll</HintPath>
     </Reference>
+    <Reference Include="NGitLab, Version=1.3.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\NGitLab.1.3.0-beta-0028\lib\net45\NGitLab.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="Octokit, Version=0.24.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Octokit.0.24.0\lib\net45\Octokit.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="RestSharp, Version=105.2.3.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\RestSharp.105.2.3\lib\net46\RestSharp.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="SharpBucket, Version=0.6.5.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\SharpBucket.0.6.5\lib\net40\SharpBucket.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+
     <Reference Include="SharpCompress, Version=0.14.1.0, Culture=neutral, PublicKeyToken=null">
       <HintPath>..\packages\sharpcompress.0.14.1\lib\net45\SharpCompress.dll</HintPath>
     </Reference>
@@ -233,6 +250,8 @@
     <None Include="packages.config" />
 </ItemGroup>
   <ItemGroup>
+    <Compile Include="GitLabAuditEnvironment.cs" />
+    <Compile Include="GitHubAuditEnvironment.cs" />
     <Compile Include="DevAuditGendarmeRunner.cs" />
     <Compile Include="ByteCodeAnalyzer.cs" />
     <Compile Include="Analyzers\NetFxAnalyzer.cs" />
@@ -245,6 +264,8 @@
     <Compile Include="Projects\PHPCodeProject.cs" />
     <Compile Include="Projects\PHPTreeVisitors.cs" />
     <Compile Include="Analyzers\RoslynAnalyzer.cs" />
+    <Compile Include="Reporters\BitBucketIssueReporter.cs" />
+    <Compile Include="Reporters\GitHubIssueReporter.cs" />
     <Compile Include="Application.cs" />
     <Compile Include="Applications\Drupal7Application.cs" />
     <Compile Include="Applications\Drupal8Application.cs" />
@@ -261,6 +282,8 @@
     <Compile Include="ScriptEnvironment.cs" />
     <Compile Include="SshAuditFileInfo.cs" />
     <Compile Include="SshAuditDirectoryInfo.cs" />
+    <Compile Include="GitHubAuditFileInfo.cs" />
+    <Compile Include="GitHubAuditDirectoryInfo.cs" />
     <Compile Include="AuditEnvironment.cs" />
     <Compile Include="AuditDirectoryInfo.cs" />
     <Compile Include="AuditFileInfo.cs" />

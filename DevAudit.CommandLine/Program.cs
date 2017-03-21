@@ -283,6 +283,169 @@ namespace DevAudit.CommandLine
             }
             #endregion
 
+            #region GitLab
+            if (!string.IsNullOrEmpty(ProgramOptions.GitLabToken))
+            {
+                audit_options.Add("GitLabToken", ProgramOptions.GitLabToken);
+            }
+            if (!string.IsNullOrEmpty(ProgramOptions.GitLabOptions))
+            {
+                Dictionary<string, object> parsed_options = Options.Parse(ProgramOptions.GitLabOptions);
+                if (parsed_options.Count == 0)
+                {
+                    PrintErrorMessage("There was an error parsing the GitLab options {0}.", ProgramOptions.GitLabOptions);
+                    return (int)Exit;
+                }
+                else if (parsed_options.Where(o => o.Key == "_ERROR_").Count() > 0)
+                {
+
+                    string error_options = parsed_options.Where(o => o.Key == "_ERROR_").Select(kv => (string)kv.Value).Aggregate((s1, s2) => s1 + Environment.NewLine + s2);
+                    PrintErrorMessage("There was an error parsing the following options {0}.", error_options);
+                    parsed_options = parsed_options.Where(o => o.Key != "_ERROR_").ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
+
+                }
+                if (!parsed_options.ContainsKey("Url"))
+                {
+                    PrintErrorMessage("You must specify the GitLab host url as Url=<url> in the GitLab options {0}.", ProgramOptions.GitLabOptions);
+                    return (int)Exit;
+                }
+                if (!parsed_options.ContainsKey("Name"))
+                {
+                    PrintErrorMessage("You must specify the GitLab project namespaced name as Name=<namespace/project_name> in the GitLab options {0}.", ProgramOptions.GitLabOptions);
+                    return (int)Exit;
+                }
+                if (!parsed_options.ContainsKey("Branch"))
+                {
+                    parsed_options.Add("Branch", "master");
+                }
+                foreach (KeyValuePair<string, object> kvp in parsed_options)
+                {
+                    if (audit_options.ContainsKey("GitLabRepo" + kvp.Key))
+                    {
+                        audit_options["GitLabRepo" + kvp.Key] = kvp.Value;
+                    }
+                    else
+                    {
+                        audit_options.Add("GitLabRepo" + kvp.Key, kvp.Value);
+                    }
+                }
+                if (audit_options.ContainsKey("GitLabRepoReport") && !audit_options.ContainsKey("GitLabToken"))
+                {
+                    PrintErrorMessage("You must specify a GitLab token using --GitLab-token when using the GitLab reporter.");
+                    return (int)Exit;
+                }
+                else if (audit_options.ContainsKey("GitLabRepoReport"))
+                {
+                    audit_options.Add("GitLabReportUrl", audit_options["GitLabRepoUrl"]);
+                    audit_options.Add("GitLabReportName", audit_options["GitLabRepoName"]);
+                }
+            }
+            if (!string.IsNullOrEmpty(ProgramOptions.GitLabReporter))
+            {
+                if (!audit_options.ContainsKey("GitLabToken"))
+                {
+                    PrintErrorMessage("You must specify a GitLab user token with --GitLab-token when using the GitLab reporter.");
+                    return (int)Exit;
+                }
+                Dictionary<string, object> parsed_options = Options.Parse(ProgramOptions.GitLabReporter);
+                if (parsed_options.Count == 0)
+                {
+                    PrintErrorMessage("There was an error parsing the GitLab reporter options {0}.", ProgramOptions.GitLabReporter);
+                    return (int)Exit;
+                }
+                else if (parsed_options.Where(o => o.Key == "_ERROR_").Count() > 0)
+                {
+
+                    string error_options = parsed_options.Where(o => o.Key == "_ERROR_").Select(kv => (string)kv.Value).Aggregate((s1, s2) => s1 + Environment.NewLine + s2);
+                    PrintErrorMessage("There was an error parsing the following options {0}.", error_options);
+                    parsed_options = parsed_options.Where(o => o.Key != "_ERROR_").ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
+
+                }
+                if (!parsed_options.ContainsKey("Url"))
+                {
+                    PrintErrorMessage("You must specify the repository owner as Owner=<owner> in the GitLab reporter options {0}.", ProgramOptions.GitLabReporter);
+                    return (int)Exit;
+                }
+                if (!parsed_options.ContainsKey("Name"))
+                {
+                    PrintErrorMessage("You must specify the GitLab project namespaced name as Name=<namespace/project_name> in the GitLab options {0}.", ProgramOptions.GitLabReporter);
+                    return (int)Exit;
+                }
+
+                foreach (KeyValuePair<string, object> kvp in parsed_options)
+                {
+                    if (audit_options.ContainsKey("GitLabReport" + kvp.Key))
+                    {
+                        audit_options["GitLabReport" + kvp.Key] = kvp.Value;
+                    }
+                    else
+                    {
+                        audit_options.Add("GitLabReport" + kvp.Key, kvp.Value);
+                    }
+                }
+            }
+            #endregion
+
+            #region BitBucket
+            if (!string.IsNullOrEmpty(ProgramOptions.BitBucketKey))
+            {
+                string[] components = ProgramOptions.BitBucketKey.Split('|');
+                if (components.Count() != 2)
+                {
+                    PrintErrorMessage("There was an error parsing the BitBucket key {0}. The key must be specified in the format <consumer_key>|<secret_key>", ProgramOptions.BitBucketKey);
+                    return (int)Exit;
+                }
+                else
+                {
+                    audit_options.Add("BitBucketKey", ProgramOptions.BitBucketKey);
+                }
+            }
+            if (!string.IsNullOrEmpty(ProgramOptions.BitBucketReporter))
+            {
+                if (!audit_options.ContainsKey("BitBucketKey"))
+                {
+                    PrintErrorMessage("You must specify a BitBucket OAuth consumer key/secret with --bitbucket-key when using the BitBucket reporter.");
+                    return (int)Exit;
+                }
+                Dictionary<string, object> parsed_options = Options.Parse(ProgramOptions.BitBucketReporter);
+                if (parsed_options.Count == 0)
+                {
+                    PrintErrorMessage("There was an error parsing the BitBucket reporter options {0}.", ProgramOptions.BitBucketReporter);
+                    return (int)Exit;
+                }
+                else if (parsed_options.Where(o => o.Key == "_ERROR_").Count() > 0)
+                {
+
+                    string error_options = parsed_options.Where(o => o.Key == "_ERROR_").Select(kv => (string)kv.Value).Aggregate((s1, s2) => s1 + Environment.NewLine + s2);
+                    PrintErrorMessage("There was an error parsing the following options {0}.", error_options);
+                    parsed_options = parsed_options.Where(o => o.Key != "_ERROR_").ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
+
+                }
+                if (!parsed_options.ContainsKey("Account"))
+                {
+                    PrintErrorMessage("You must specify the account as Account=<account> in the BitBucket reporter options {0}.", ProgramOptions.BitBucketReporter);
+                    return (int)Exit;
+                }
+                if (!parsed_options.ContainsKey("Name"))
+                {
+                    PrintErrorMessage("You must specify the BitBucket repository name as Name=<name> in the BitBucket options {0}.", ProgramOptions.BitBucketReporter);
+                    return (int)Exit;
+                }
+
+                foreach (KeyValuePair<string, object> kvp in parsed_options)
+                {
+                    if (audit_options.ContainsKey("BitBucketReport" + kvp.Key))
+                    {
+                        audit_options["BitBucketReport" + kvp.Key] = kvp.Value;
+                    }
+                    else
+                    {
+                        audit_options.Add("BitBucketReport" + kvp.Key, kvp.Value);
+                    }
+                }
+            }
+            #endregion
+
             if (ProgramOptions.SkipPackagesAudit && ProgramOptions.ListPackages)
             {
                 PrintErrorMessage("You can't specify both --skip-packages-audit and --list-packages.");

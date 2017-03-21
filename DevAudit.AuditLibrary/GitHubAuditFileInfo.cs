@@ -150,8 +150,6 @@ namespace DevAudit.AuditLibrary
         }
         #endregion
 
-
-
         #region Properties
         public RepositoryContent RepositoryFile
         {

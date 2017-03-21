@@ -156,12 +156,37 @@ namespace DevAudit.AuditLibrary
                     throw new Exception("Failed to initialise audit environment.");
                 }
             }
+            else if (this.AuditOptions.ContainsKey("GitLabRepoName"))
+            {
+                string api_token = string.Empty;
+                if (!this.AuditOptions.ContainsKey("GitLabRepoUrl") || !this.AuditOptions.ContainsKey("GitLabRepoName") || !this.AuditOptions.ContainsKey("GitLabRepoBranch"))
+                {
+                    throw new ArgumentException("A required audit option for the GitLab environment is missing.");
+                }
+                GitLabAuditEnvironment GitLab_environment = new GitLabAuditEnvironment(this.HostEnvironmentMessage, api_token, (string)this.AuditOptions["GitLabRepoUrl"],
+                   (string)this.AuditOptions["GitLabRepoName"], (string)this.AuditOptions["GitLabRepoBranch"], this.HostEnvironment);
+                if (GitLab_environment.RepositoryInitialised)
+                {
+                    this.AuditEnvironment = GitLab_environment;
+                    this.AuditEnvironmentIntialised = true;
+                    this.AuditEnvironmentMessage = AuditTarget_AuditEnvironmentMessageHandler;
+                    this.AuditEnvironment.MessageHandler -= HostEnvironmentMessage;
+                    this.AuditEnvironment.MessageHandler += this.AuditEnvironmentMessage;
+                }
+                else
+                {
+                    GitLab_environment = null;
+                    this.AuditEnvironmentIntialised = false;
+                    throw new Exception("Failed to initialise audit environment.");
+                }
+            }
             else
             {
                 this.AuditEnvironmentMessage = AuditTarget_AuditEnvironmentMessageHandler;
                 this.AuditEnvironment = new LocalEnvironment(this.AuditEnvironmentMessage);
                 this.AuditEnvironmentIntialised = true;
             }
+
         }
 
         private void AuditTarget_HostEnvironmentMessageHandler(object sender, EnvironmentEventArgs e)
