@@ -251,7 +251,7 @@
 </ItemGroup>
   <ItemGroup>
     <Compile Include="GitLabAuditEnvironment.cs" />
-    <Compile Include="GitHubAuditEnvironment.cs" />
+    <Compile Include="GithubAuditEnvironment.cs" />
     <Compile Include="DevAuditGendarmeRunner.cs" />
     <Compile Include="ByteCodeAnalyzer.cs" />
     <Compile Include="Analyzers\NetFxAnalyzer.cs" />
