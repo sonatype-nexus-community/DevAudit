@@ -146,7 +146,6 @@ namespace DevAudit.AuditLibrary
 
         public override bool Execute(string command, string arguments, out ProcessExecuteStatus process_status, out string process_output, out string process_error, Action<string> OutputDataReceived = null, Action<string> OutputErrorReceived = null, [CallerMemberName] string memberName = "", [CallerFilePath] string fileName = "", [CallerLineNumber] int lineNumber = 0)
         {
-            if (!this.IsConnected) throw new InvalidOperationException("The SSH session is not connected.");
             CallerInformation caller = new CallerInformation(memberName, fileName, lineNumber);
             if (!this.IsConnected) throw new InvalidOperationException("The SSH session is not connected.");
             process_status = ProcessExecuteStatus.Unknown;
@@ -169,12 +168,53 @@ namespace DevAudit.AuditLibrary
             }
         }
 
+        public List<Tuple<string, ProcessExecuteStatus, string, string>> ExecuteMany(List<Tuple<string, string>> commands)
+        {
+            CallerInformation caller = this.Here();
+            if (!this.IsConnected) throw new InvalidOperationException("The SSH session is not connected.");
+            List<Tuple<string, ProcessExecuteStatus, string, string>> results = new List<Tuple<string, ProcessExecuteStatus, string, string>>(commands.Count);
+            object results_lock = new object();
+            Stopwatch sw = new Stopwatch();
+            sw.Start();
+            Parallel.ForEach(commands, new ParallelOptions() { MaxDegreeOfParallelism = 20 }, (_c, state) =>
+            {
+                string process_output = string.Empty;
+                string process_error = string.Empty;
+                SshCommand cmd = this.SshClient.CreateCommand(_c.Item1 + " " + _c.Item2);
+                Stopwatch cs = new Stopwatch();
+                cs.Start();
+                CommandAsyncResult result = cmd.BeginExecute(new AsyncCallback(SshCommandAsyncCallback), new KeyValuePair<SshCommand, Stopwatch>(cmd, cs)) as CommandAsyncResult;
+                cmd.EndExecute(result);
+                KeyValuePair<SshCommand, Stopwatch> s = (KeyValuePair<SshCommand, Stopwatch>) result.AsyncState;
+                process_output = s.Key.Result.Trim();
+                process_error = s.Key.Error.Trim();
+                if (s.Value.IsRunning) s.Value.Stop();
+                if (process_output!= string.Empty)
+                {
+                    lock (results_lock)
+                    {
+                        results.Add(new Tuple<string, ProcessExecuteStatus, string, string>(_c.Item1, ProcessExecuteStatus.Completed, process_output, process_error));
+                    }
+                    Debug(caller, "Execute {0} completed with {1} {2}.", s.Key.Result.Length, cmd.CommandText, process_output, process_error);
+                }
+                else
+                {
+                    lock (results_lock)
+                    {
+                        results.Add(new Tuple<string, ProcessExecuteStatus, string, string>(_c.Item1, ProcessExecuteStatus.Error, process_output, process_error));
+                    }
+                    Debug(caller, "Execute {0} did not complete: {1} {2}.", s.Key.Result.Length, cmd.CommandText, process_output, process_error);
+                }
+            });
+            return results;
+        }
+
         public override Dictionary<AuditFileInfo, string> ReadFilesAsText(List<AuditFileInfo> files)
         {
             CallerInformation here = this.Here();
             Dictionary<AuditFileInfo, string> results = new Dictionary<AuditFileInfo, string>(files.Count);
             object results_lock = new object();
-            System.Diagnostics.Stopwatch sw = new System.Diagnostics.Stopwatch();
+            Stopwatch sw = new Stopwatch();
             sw.Start();
             Parallel.ForEach(files, new ParallelOptions() { MaxDegreeOfParallelism = 20 }, (_f, state) => 
             {

@@ -201,8 +201,20 @@
       <HintPath>..\packages\Newtonsoft.Json.9.0.1\lib\net45\Newtonsoft.Json.dll</HintPath>
       <Private>True</Private>
     </Reference>
+    <Reference Include="NGitLab, Version=1.3.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\NGitLab.1.3.0-beta-0028\lib\net45\NGitLab.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
     <Reference Include="Octokit, Version=0.24.0.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\Octokit.0.24.0\lib\net45\Octokit.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="RestSharp, Version=105.2.3.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\RestSharp.105.2.3\lib\net46\RestSharp.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="SharpBucket, Version=0.6.5.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\SharpBucket.0.6.5\lib\net40\SharpBucket.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="SharpCompress, Version=0.14.1.0, Culture=neutral, PublicKeyToken=afb0a02973931d96, processorArchitecture=MSIL">
@@ -334,6 +346,7 @@
     <Compile Include="DockerizedLocalEnvironment.cs" />
     <Compile Include="DockerAuditEnvironment.cs" />
     <Compile Include="DockerAuditFileInfo.cs" />
+    <Compile Include="GitLabAuditEnvironment.cs" />
     <Compile Include="GitHubAuditEnvironment.cs" />
     <Compile Include="OSSIndexApiv2Result.cs" />
     <Compile Include="OSSIndexApiv2Vulnerability.cs" />
@@ -356,6 +369,7 @@
     <Compile Include="CodeProject.cs" />
     <Compile Include="Projects\AspNetCodeProject.cs" />
     <Compile Include="Projects\NetFxCodeProject.cs" />
+    <Compile Include="Reporters\BitBucketIssueReporter.cs" />
     <Compile Include="Reporters\GitHubIssueReporter.cs" />
     <Compile Include="ScriptEnvironment.cs" />
     <Compile Include="DockerizedLocalAuditFileInfo.cs" />

@@ -32,22 +32,15 @@ namespace DevAudit.AuditLibrary
             GitHubClient client;
             client = new GitHubClient(new ProductHeaderValue("DevAudit"));
             client.Credentials = new Credentials((string) AuditOptions["GitHubToken"]);
-            /*
-             * Repository repository;
+            Repository repository;
             try
             {
                 repository = await client.Repository.Get((string) AuditOptions["GitHubReportOwner"], (string) AuditOptions["GitHubReportName"]);
             }
-            catch (AggregateException ae)
+            catch (Exception)
             {
-                AuditEnvironment.Error(ae, "Error getting repository {0}/{1}.", (string) AuditOptions["GitHubReportOwner"], (string) AuditOptions["GitHubReportName"]);
-                return false;
+                AuditEnvironment.Warning("Could not get repository {0}/{1}.", (string) AuditOptions["GitHubReportOwner"], (string) AuditOptions["GitHubReportName"]);
             }
-            catch (Exception e)
-            {
-                AuditEnvironment.Error(e, "Error getting repository {0}/{1}.", (string) AuditOptions["GitHubReportOwner"], (string) AuditOptions["GitHubReportName"]);
-                return false;
-            }*/
             NewIssue issue = new NewIssue(IssueTitle);
             BuildPackageSourceAuditReport();
             issue.Body = IssueText.ToString();

@@ -137,11 +137,26 @@ namespace DevAudit.CommandLine
         [Option('g', "github", Required = false, HelpText = "Specify a set of comma delimited, key=value options for the GitHub audit environment. You can specify 3 options: Owner=<owner>,Name=<repo>,Branch=<branch> for the GitHub repository owner, name and branch respectively. Omitting the Branch value will specify the master branch by default.")]
         public string GitHubOptions { get; set; }
 
-        [Option("github-token", Required = false, HelpText = "Specify a set of comma delimited, key=value options for the GitHub audit environment. You can specify 3 options: owner=<owner>")]
+        [Option("github-token", Required = false, HelpText = "Specify a GitHub personal access token for authenticating with GitHub.")]
         public string GitHubToken { get; set; }
 
         [Option("github-report", Required = false, HelpText = "Specify a set of comma delimited, key=value options for the GitHub audit reporter. You can specify 3 options: Owner=<owner>,Name=<repo>,Title=<title> for the repository GitHub owner, name and issue title respectively. Omitting the Title value will result in the default issue title being used.")]
         public string GitHubReporter { get; set; }
+
+        [Option('l', "gitlab", Required = false, HelpText = "Specify a set of comma delimited, key=value options for the GitLab audit environment. You can specify 3 options: Url=<owner>,Project=<project_name_with_namespace>,Branch=<branch> for the GitLab host url, project name and branch respectively. Omitting the Branch value will specify the master branch by default.")]
+        public string GitLabOptions { get; set; }
+
+        [Option("gitlab-token", Required = false, HelpText = "Specify a GitLab OAuth token for authenticating with GitLab.")]
+        public string GitLabToken { get; set; }
+
+        [Option("github-report", Required = false, HelpText = "Specify a set of comma delimited, key=value options for the GitLab audit reporter. You can specify 3 options: Owner=<owner>,Name=<repo>,Title=<title> for the repository GitHub owner, name and issue title respectively. Omitting the Title value will result in the default issue title being used.")]
+        public string GitLabReporter { get; set; }
+
+        [Option("bitbucket-key", Required = false, HelpText = "Specify the BitBucket OAuth2 token or key to use for authentication with BitBucket. For a OAuth consumer key/secret pair you can use the format key|secret.")]
+        public string BitBucketKey { get; set; }
+
+        [Option("bitbucket-report", Required = false, HelpText = "Specify a set of comma delimited, key=value options for the BitBucket audit reporter. You can specify 3 options: Account=<account>,Name=<repo>,Title=<title> for the BitBucket5th account, repository name and issue title respectively. Omitting the Title value will result in the default issue title being used.")]
+        public string BitBucketReporter { get; set; }
 
         [Option('m', "project-name", Required = false, HelpText = "The name of the code project to audit.")]
         public string ProjectName { get; set; }
