@@ -3,9 +3,7 @@ Get the latest release from the [releases](https://github.com/OSSIndex/DevAudit/
 
 ![Screenshot of DevAudit package source audit](https://lh3.googleusercontent.com/tR98RwJops5G97vjm6-lXWHAxAhLA_pvan7qKF9wrxJttPt6C8VW9kGnruvPnUJ7q1jV2exWGH9w=w1382-h957-no)
 
-
-
-![Screenshot of DevAudit configuration audit](https://lh3.googleusercontent.com/ZLnNFiFH 4KSFhE9Tvwqwz1jYUKpaxwlUhL7Zg_4Xojhp465fo4_armzWZ6kCIqE7C31qmQpcfuG=w1440-h957-no)
+![Screenshot of DevAudit configuration audit](https://lh3.googleusercontent.com/tnqX8jGJ1WW2vimXHwlKxBTOuP2bvsPVgzq92isPg0ditWoQdsDzh3_PEbMiOldinezQeSqGsQmMSaXE_2tKJ2fzGSeAH7OnNZBofZXom1U6PS8RX4jd_h5DfF1How_xwsRDIw=w1082-h811-no)
 
 ## About
 DevAudit is an open-source, cross-platform, multi-purpose security auditing tool targeted at developers and DevOps practitioners that detects security vulnerabilities at multiple levels of the solution stack. DevAudit provides a wide array of auditing capabilities that automate security practices and implementation of security auditing in the software development life-cycle. DevAudit can scan your operating system and application package dependencies, application and application server configurations, and application code, for potential vulnerabilities based on data aggregated by [OSS Index]((https://ossindex.net/)) from a wide array of sources and data feeds such as the National Vulnerability Database (NVD) CVE data feed, the Debian Security Advisories data feed, Drupal Security Advisories, and several others. Support for other 3rd party vulnerability databases like vulners.com is also planned.
