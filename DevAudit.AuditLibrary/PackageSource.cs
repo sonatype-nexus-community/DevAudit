@@ -731,6 +731,19 @@ namespace DevAudit.AuditLibrary
                     this.AuditEnvironment.Error("Failed to create BitBucket audit report");
                 }
             }
+            else if (this.AuditOptions.ContainsKey("GitLabReportName"))
+            {
+                this.AuditEnvironment.Status("Creating GitLab report for {0} package source audit.", this.PackageManagerLabel);
+                AuditReporter reporter = new GitLabIssueReporter(this);
+                if (reporter.ReportPackageSourceAudit().Result)
+                {
+                    this.AuditEnvironment.Info("Created GitLab issue audit report.");
+                }
+                else
+                {
+                    this.AuditEnvironment.Error("Failed to create GitLab audit report");
+                }
+            }
         }
 
         private async Task<KeyValuePair<IEnumerable<OSSIndexQueryObject>, IEnumerable<OSSIndexArtifact>>> AddArtifiactAsync(IEnumerable<OSSIndexQueryObject> query, Task<IEnumerable<OSSIndexArtifact>> artifact_task)

@@ -19,11 +19,23 @@ namespace DevAudit.AuditLibrary
         {
             try
             {
-                GitLabClient = GitLabClient.Connect(host_url, api_token);
-                Project = GitLabClient.Projects.All.Where(p => p.PathWithNamespace == project_name).FirstOrDefault();
+                GitLabClient = new GitLabClient(host_url, api_token);
+                IEnumerable<Project> projects = GitLabClient.Projects.Accessible().Result;
+                Project = projects.Where(p => p.PathWithNamespace == project_name).FirstOrDefault();
+                if (Project == null)
+                {
+                    host_environment.Error("Could not find project {0}.", project_name);
+                    RepositoryInitialised = false;
+                    return;
+                }
                 Repository = GitLabClient.GetRepository(Project.Id);
+                if (Repository == null)
+                {
+                    host_environment.Error("Could not get repository for project {0}.", project_name);
+                    RepositoryInitialised = false;
+                    return;
+                }
             }
-
             catch (AggregateException ae)
             {
                 host_environment.Error(ae, "Error getting repository for project {0} from {1}.", project_name, host_url);
@@ -36,9 +48,10 @@ namespace DevAudit.AuditLibrary
                 RepositoryInitialised = false;
                 return;
             }
+            
             try
             {
-                RepositoryBranch = Repository.Branches.All.Where(b => b.Name == repository_branch).FirstOrDefault();
+                RepositoryBranch = Repository.Branches.All().Result.Where(b => b.Name == repository_branch).FirstOrDefault();
             }
             catch (AggregateException ae)
             {
@@ -71,6 +84,7 @@ namespace DevAudit.AuditLibrary
             CallerInformation here = this.Here();
             if (file_path.StartsWith(this.PathSeparator)) file_path = file_path.Remove(0, 1);
             throw new NotImplementedException();
+           
         }
 
         public override bool DirectoryExists(string dir_path)
@@ -115,11 +129,13 @@ namespace DevAudit.AuditLibrary
             {
                 for (int i = 0; i < components.Length - 1; i++)
                 {
-                    parent = Repository.Tree.Where(t => t.Name == components[i] && t.Type == ObjectType.tree).FirstOrDefault();
+                    
+                    parent = Repository.Tree().Result.Where(t => t.Name == components[i] && t.Type == ObjectType.tree).FirstOrDefault();
                     if (parent == null)
                     {
                         ancestors_exist = false;
                     }
+                    
                 }
             }
             catch (Exception)
