@@ -27,7 +27,7 @@ namespace DevAudit.AuditLibrary
             }
             else
             {
-                IssueTitle = string.Format("[DevAudit] [audit] audit on {0} {1}", DateTime.UtcNow.ToShortDateString(), DateTime.UtcNow.ToShortTimeString());
+                IssueTitle = string.Format("[DevAudit] {2} audit on {0} {1}", DateTime.UtcNow.ToShortDateString(), DateTime.UtcNow.ToShortTimeString(), Source.PackageManagerLabel);
             }
             GitHubClient client;
             client = new GitHubClient(new ProductHeaderValue("DevAudit"));
