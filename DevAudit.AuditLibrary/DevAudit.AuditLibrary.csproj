@@ -149,8 +149,16 @@
       <HintPath>..\packages\Gendarme.Rules.2.11.0.20121120\lib\net40\Gendarme.Rules.Ui.dll</HintPath>
       <Private>True</Private>
     </Reference>
+    <Reference Include="ICSharpCode.SharpZipLib, Version=0.86.0.518, Culture=neutral, PublicKeyToken=1b03e6acf1164f73, processorArchitecture=MSIL">
+      <HintPath>..\packages\SharpZipLib.0.86.0\lib\20\ICSharpCode.SharpZipLib.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
     <Reference Include="INIFileParser, Version=2.3.0.0, Culture=neutral, PublicKeyToken=79af7b307b65cf3c, processorArchitecture=MSIL">
       <HintPath>..\packages\ini-parser.2.3.0\lib\net20\INIFileParser.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="Lucene.Net, Version=3.0.3.0, Culture=neutral, PublicKeyToken=85089178b9ac3181, processorArchitecture=MSIL">
+      <HintPath>..\packages\Lucene.Net.3.0.3\lib\NET40\Lucene.Net.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="Microsoft.CodeAnalysis, Version=2.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
@@ -343,27 +351,35 @@
     <Compile Include="AnalyzerVulnerability.cs" />
     <Compile Include="AuditReporter.cs" />
     <Compile Include="Codecs.cs" />
+    <Compile Include="DataSources\LibrariesdotIO\LibrariesdotIODataSource.cs" />
+    <Compile Include="DataSources\LibrariesdotIO\Models\LibdotIOArtifact.cs" />
+    <Compile Include="HttpDataSource.cs" />
+    <Compile Include="IArtifact.cs" />
+    <Compile Include="IDataSource.cs" />
     <Compile Include="DevAuditGendarmeRunner.cs" />
     <Compile Include="ByteCodeAnalyzer.cs" />
     <Compile Include="Analyzers\NetFxAnalyzer.cs" />
     <Compile Include="Analyzers\PHPAnalyzer.cs" />
     <Compile Include="Applications\AspNetApplication.cs" />
     <Compile Include="Applications\NetFxApplication.cs" />
-    <Compile Include="DockerAuditDirectoryInfo.cs" />
-    <Compile Include="DockerizedLocalEnvironment.cs" />
-    <Compile Include="DockerAuditEnvironment.cs" />
-    <Compile Include="DockerAuditFileInfo.cs" />
-    <Compile Include="GitLabAuditEnvironment.cs" />
-    <Compile Include="GitHubAuditEnvironment.cs" />
-    <Compile Include="OSSIndexApiv2Result.cs" />
-    <Compile Include="OSSIndexApiv2Vulnerability.cs" />
+    <Compile Include="Environments\DockerAuditDirectoryInfo.cs" />
+    <Compile Include="Environments\DockerizedLocalEnvironment.cs" />
+    <Compile Include="Environments\DockerAuditEnvironment.cs" />
+    <Compile Include="Environments\DockerAuditFileInfo.cs" />
+    <Compile Include="Environments\GitLabAuditEnvironment.cs" />
+    <Compile Include="Environments\GitHubAuditEnvironment.cs" />
+    <Compile Include="DataSources\OSSIndex\Models\OSSIndexApiv2Result.cs" />
+    <Compile Include="DataSources\OSSIndex\Models\OSSIndexApiv2Vulnerability.cs" />
+    <Compile Include="IPackage.cs" />
+    <Compile Include="IVulnerability.cs" />
+    <Compile Include="LocalDataSource.cs" />
     <Compile Include="Projects\Drupal8ModuleCodeProject.cs" />
     <Compile Include="Projects\PHPAuditCodeSourceUnit.cs" />
     <Compile Include="Projects\PHPAuditErrorSink.cs" />
     <Compile Include="Projects\PHPCodeProject.cs" />
     <Compile Include="Projects\PHPTreeVisitors.cs" />
     <Compile Include="Analyzers\RoslynAnalyzer.cs" />
-    <Compile Include="Application.cs" />
+    <Compile Include="Targets\Application.cs" />
     <Compile Include="Applications\Drupal7Application.cs" />
     <Compile Include="Applications\Drupal8Application.cs" />
     <Compile Include="Applications\DrupalModuleInfo.cs" />
@@ -371,9 +387,9 @@
     <Compile Include="AuditScpClient.cs" />
     <Compile Include="Analyzer.cs" />
     <Compile Include="IAnalyzer.cs" />
-    <Compile Include="LocalAuditDirectoryInfo.cs" />
-    <Compile Include="LocalAuditFileInfo.cs" />
-    <Compile Include="CodeProject.cs" />
+    <Compile Include="Environments\LocalAuditDirectoryInfo.cs" />
+    <Compile Include="Environments\LocalAuditFileInfo.cs" />
+    <Compile Include="Targets\CodeProject.cs" />
     <Compile Include="Projects\AspNetCodeProject.cs" />
     <Compile Include="Projects\NetFxCodeProject.cs" />
     <Compile Include="Reporters\BitBucketIssueReporter.cs" />
@@ -381,29 +397,28 @@
     <Compile Include="Reporters\GitLabIssueReporter.cs" />
     <Compile Include="Reporters\GitHubIssueReporter.cs" />
     <Compile Include="ScriptEnvironment.cs" />
-    <Compile Include="DockerizedLocalAuditFileInfo.cs" />
-    <Compile Include="DockerizedLocalAuditDirectoryInfo.cs" />
-    <Compile Include="GitHubAuditFileInfo.cs" />
-    <Compile Include="GitHubAuditDirectoryInfo.cs" />
-    <Compile Include="SshAuditFileInfo.cs" />
-    <Compile Include="SshAuditDirectoryInfo.cs" />
+    <Compile Include="Environments\DockerizedLocalAuditFileInfo.cs" />
+    <Compile Include="Environments\DockerizedLocalAuditDirectoryInfo.cs" />
+    <Compile Include="Environments\GitHubAuditFileInfo.cs" />
+    <Compile Include="Environments\GitHubAuditDirectoryInfo.cs" />
+    <Compile Include="Environments\SshAuditFileInfo.cs" />
+    <Compile Include="Environments\SshAuditDirectoryInfo.cs" />
     <Compile Include="AuditEnvironment.cs" />
     <Compile Include="AuditDirectoryInfo.cs" />
     <Compile Include="AuditFileInfo.cs" />
     <Compile Include="AuditTargetEventArgs.cs" />
     <Compile Include="BsonSerializer.cs" />
-    <Compile Include="Docker.cs" />
     <Compile Include="AuditTarget.cs" />
-    <Compile Include="LocalEnvironment.cs" />
-    <Compile Include="OSSIndexArtifact.cs" />
-    <Compile Include="OSSIndexProjectConfigurationRule.cs" />
-    <Compile Include="OSSIndexHttpClient.cs" />
-    <Compile Include="OSSIndexHttpException.cs" />
-    <Compile Include="OSSIndexPackageVulnerability.cs" />
-    <Compile Include="OSSIndexProject.cs" />
-    <Compile Include="OSSIndexProjectVulnerability.cs" />
-    <Compile Include="OSSIndexQueryObject.cs" />
-    <Compile Include="PackageSource.cs" />
+    <Compile Include="Environments\LocalEnvironment.cs" />
+    <Compile Include="DataSources\OSSIndex\Models\OSSIndexArtifact.cs" />
+    <Compile Include="DataSources\OSSIndex\Models\OSSIndexProjectConfigurationRule.cs" />
+    <Compile Include="DataSources\OSSIndex\OSSIndexHttpClient.cs" />
+    <Compile Include="DataSources\OSSIndex\OSSIndexHttpException.cs" />
+    <Compile Include="DataSources\OSSIndex\Models\OSSIndexPackageVulnerability.cs" />
+    <Compile Include="DataSources\OSSIndex\Models\OSSIndexProject.cs" />
+    <Compile Include="DataSources\OSSIndex\Models\OSSIndexProjectVulnerability.cs" />
+    <Compile Include="DataSources\OSSIndex\Models\OSSIndexQueryObject.cs" />
+    <Compile Include="Targets\PackageSource.cs" />
     <Compile Include="PackageSource\BowerPackageSource.cs" />
     <Compile Include="PackageSource\ChocolateyPackageSource.cs" />
     <Compile Include="PackageSource\ComposerPackageSource.cs" />
@@ -415,12 +430,12 @@
     <Compile Include="PackageSource\OneGetPackageSource.cs" />
     <Compile Include="ProjectVulnerabilitiesCacheItem.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="ApplicationServer.cs" />
+    <Compile Include="Targets\ApplicationServer.cs" />
     <Compile Include="Servers\NginxServer.cs" />
     <Compile Include="Servers\HttpdServer.cs" />
     <Compile Include="Servers\SSHDServer.cs" />
     <Compile Include="Servers\MySQLServer.cs" />
-    <Compile Include="SshAuditEnvironment.cs" />
+    <Compile Include="Environments\SshAuditEnvironment.cs" />
     <Compile Include="EnvironmentEventArgs.cs" />
     <Compile Include="Analyzers\StyleCopAnalyzer.cs" />
   </ItemGroup>
@@ -430,8 +445,9 @@
     </Examples>
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="Configurations\" />
+    <Folder Include="DataSources\Vulnersdotcom\" />
     <Folder Include="Examples\Drupal\core\modules\" />
+    <Folder Include="Models\" />
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />

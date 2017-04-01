@@ -10,7 +10,7 @@ namespace DevAudit.AuditLibrary
     {
         #region Constructors
         public AspNetApplication(Dictionary<string, object> application_options, EventHandler<EnvironmentEventArgs> message_handler) 
-            : base(application_options, new Dictionary<string, string[]> { { "AppConfig", new string[] { "@", "Web.config" } } }, new Dictionary<string, string[]>(), "AspNet", message_handler)
+            : base(application_options, new Dictionary<string, string[]> (), new Dictionary<string, string[]>(), "AspNet", message_handler)
         {}
 
         public AspNetApplication(Dictionary<string, object> application_options, EventHandler<EnvironmentEventArgs> message_handler, NuGetPackageSource package_source) : 
