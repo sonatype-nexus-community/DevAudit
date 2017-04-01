@@ -167,7 +167,8 @@ namespace DevAudit.CommandLine
         [Option("list-artifacts", Required = false, HelpText = "Only list the artifacts corresponding to local packages found on OSS Index.", MutuallyExclusiveSet = "audit-action")]
         public bool ListArtifacts { get; set; }
 
-        
+        [Option("package-info", Required = false, HelpText = "Retrieve and print detailed package info for each package scanned from the package source.")]
+        public bool PackageInfo { get; set; }
         //[Option("list-rules", Required = false, HelpText = "Only list the configuration rules found for the application or application server.", MutuallyExclusiveSet = "audit-action")]
         public bool ListConfigurationRules { get; set; }
 

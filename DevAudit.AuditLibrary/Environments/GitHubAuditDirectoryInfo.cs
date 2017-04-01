@@ -72,7 +72,7 @@ namespace DevAudit.AuditLibrary
             }
             else if (c.Count == 0 || c.Where(content => content.Type == ContentType.Dir).Count() == 0)
             {
-                return null;
+                return new GitHubAuditDirectoryInfo[] { };
             }
             else
             {
@@ -93,7 +93,7 @@ namespace DevAudit.AuditLibrary
             }
             else if (c.Count == 0 || c.Where(content => content.Type == ContentType.Dir).Count() == 0)
             {
-                return null;
+                return new GitHubAuditDirectoryInfo[] { };
             }
             else
             {

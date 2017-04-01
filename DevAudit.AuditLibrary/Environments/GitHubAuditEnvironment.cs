@@ -96,13 +96,9 @@ namespace DevAudit.AuditLibrary
             {
                 return false;
             }
-            else if (f != null && f.First().Path == dir_path)
-            {
-                return true;
-            }
             else
             {
-                return false;
+                return true;
             }
         }
 
@@ -113,7 +109,7 @@ namespace DevAudit.AuditLibrary
 
         public override AuditDirectoryInfo ConstructDirectory(string dir_path)
         {
-            throw new NotImplementedException();
+            return new GitHubAuditDirectoryInfo(this, dir_path);
         }
 
         public override Dictionary<AuditFileInfo, string> ReadFilesAsText(List<AuditFileInfo> files)
@@ -143,14 +139,10 @@ namespace DevAudit.AuditLibrary
                 return c;
                
             }
-            catch (AggregateException ae)
-            {
-                Error(here, ae, "Error getting path {0} from GitHub repository {1}/{2}.", path, RepositoryOwner, RepositoryName);
-                return null;
-            }
+            
             catch (Exception e)
             {
-                Error(here, e, "Error getting path {0} from GitHub repository {1}/{2}.", path, RepositoryOwner, RepositoryName);
+                Debug("Exception getting path {0} from GitHub repository {1}/{2}: {3}.", path, RepositoryOwner, RepositoryName, e.Message);
                 return null;
             }
         }
