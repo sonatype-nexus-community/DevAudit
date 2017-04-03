@@ -203,8 +203,9 @@ namespace DevAudit.AuditLibrary
             AuditEnvironment.ProcessExecuteStatus process_status;
             string process_output;
             string process_error;
-            string args = string.Format("/ -wholename '{0}' 2>&-", path);
-            if (this.AuditEnvironment.Execute("find", args, out process_status, out process_output, out process_error))
+            string args = string.Format("/ -wholename '{0}'", path);
+            bool r = this.AuditEnvironment.Execute("find", args, out process_status, out process_output, out process_error);
+            if (r || (!string.IsNullOrEmpty(process_output) && process_error.Split(this.AuditEnvironment.LineTerminator.ToCharArray()).All(e => e.Contains("Permission denied"))))
             {
                 return process_output.Split(this.AuditEnvironment.LineTerminator.ToCharArray());
             }
