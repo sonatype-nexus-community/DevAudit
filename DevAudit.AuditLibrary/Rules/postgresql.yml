@@ -1,3 +1,37 @@
 ﻿---
-postgresql_default:
-    -   id: 0
+postgresql:
+    -   id: 1
+        title:  Server port is set to default (Port)
+        tags:
+            -   STIG/V-72841/PostgreSQL must be configured to prohibit or restrict the use of organization defined functions, ports, protocols, and/or services
+        severity: 1
+        xpathtest:  not(boolean(/PGSQL/Values/port)) or boolean(/PGSQL/Values/port='5432') 
+        summary: |
+            By default postgres runs on port 5432. Most attackers will check if a server is listening on port 5432.
+            If you change the port # to something different, others need to know exactly what port to use to access the server.  
+        resolution: |
+            Add directives like the following to configuration file: port 9122. 
+        urls:
+            -   https://www.crunchydata.com/postgres-stig/PGSQL-STIG-9.5+.pdf
+
+    -   id: 2
+        title:  Server auditing is not enabled
+        tags:
+            -   STIG/V-72843/PostgreSQL must produce audit records containing sufficient information to establish the outcome (success or failure) of the events.
+        severity: 2
+        xpathtest:  >
+            not(boolean(/PGSQL/Values/pgaudit.log_catalog='on')) or 
+            not(boolean(/PGSQL/Values/pgaudit.log_level='log')) or
+            not(boolean(/PGSQL/Values/pgaudit.log_parameter='on')) or
+            not(boolean(/PGSQL/Values/pgaudit.log_statement_once='off')) or
+            not(boolean(/PGSQL/Values/pgaudit.log='all, -misc'))
+        summary: |
+            Information system auditing capability is critical for accurate forensic analysis. 
+            Without information about the outcome of events, security personnel cannot make an accurate assessment as to whether an attack was successful or if changes were made to the security state of the system.
+            Event outcomes can include indicators of event success or failure and event-specific results (e.g., the security state of the information system after the event occurred). 
+            As such, they also provide a means to measure the impact of an event and help authorized personnel to determine the appropriate response.
+        resolution: |
+            You must install and configure the pgaudit extension.
+        urls:
+            -   https://www.crunchydata.com/postgres-stig/PGSQL-STIG-9.5+.pdf
+            -   http://pgaudit.org
