@@ -210,8 +210,8 @@ namespace DevAudit.AuditLibrary
             }
             else
             {
-                this.AuditEnvironment.Debug("Did not successfully execute command 'which {0}'. Process error: {1}.", path, process_error);
-                return null;
+                this.AuditEnvironment.Debug("Did not successfully execute command 'find {0}'. Process error: {1}.", args, process_error);
+                return new string[] { };
             }
         }
         #endregion
