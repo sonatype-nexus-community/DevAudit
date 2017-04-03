@@ -11,32 +11,32 @@ using Alpheus;
 
 namespace DevAudit.AuditLibrary
 {
-    public class NginxServer : ApplicationServer
+    public class PostgreSQLServer : ApplicationServer
     {
         #region Constructors
-        public NginxServer(Dictionary<string, object> server_options, EventHandler<EnvironmentEventArgs> message_handler) : base(server_options, 
+        public PostgreSQLServer(Dictionary<string, object> server_options, EventHandler<EnvironmentEventArgs> message_handler) : base(server_options, 
             new Dictionary<PlatformID, string[]>()
             {
-                { PlatformID.Unix, new string[] {"find", "@", "*bin", "nginx"} },
-                { PlatformID.Win32NT, new string[] { "@", "nginx.exe" } }
-            },
-            new Dictionary<PlatformID, string[]>()
-            {
-                { PlatformID.Unix, new string[] { "@", "etc", "nginx", "nginx.conf" } },
-                { PlatformID.Win32NT, new string[] { "@", "conf", "nginx.conf" } }
-            }, new Dictionary<string, string[]>(), new Dictionary<string, string[]>(), message_handler)
+                { PlatformID.Unix, new string[] {"find", "@", "*", "bin", "postgres" } },
+                { PlatformID.Win32NT, new string[] { "@", "bin", "postgres.exe" } }
+            }, 
+            new Dictionary<PlatformID, string[]>() {
+                { PlatformID.Unix, new string[] { "find", "@", "etc", "*", "postgresql.conf" } },
+                { PlatformID.Win32NT, new string[] { "@", "postgresql.conf" } }
+            }, 
+            new Dictionary<string, string[]>(), new Dictionary<string, string[]>(), message_handler)
         {
             if (this.ApplicationBinary != null)
             {
-                this.ApplicationFileSystemMap["nginx"] = this.ApplicationBinary;
+                this.ApplicationFileSystemMap["postgres"] = this.ApplicationBinary;
             }
         }
         #endregion
 
         #region Overriden properties
-        public override string ServerId { get { return "nginx"; } }
+        public override string ServerId { get { return "postgresql"; } }
 
-        public override string ServerLabel { get { return "Nginx"; } }
+        public override string ServerLabel { get { return "PostgreSQL"; } }
 
         public override PackageSource PackageSource => this as PackageSource;
         #endregion
@@ -47,30 +47,21 @@ namespace DevAudit.AuditLibrary
             AuditEnvironment.ProcessExecuteStatus process_status;
             string process_output;
             string process_error;
-            AuditEnvironment.Execute(ApplicationBinary.FullName, "-v", out process_status, out process_output, out process_error);
-            if (process_status == AuditEnvironment.ProcessExecuteStatus.Completed && (process_output.Contains("nginx version: ") || process_error.Contains("nginx version: ")))
+            AuditEnvironment.Execute(ApplicationBinary.FullName, "-V", out process_status, out process_output, out process_error);
+            if (process_status == AuditEnvironment.ProcessExecuteStatus.Completed && (process_output.Contains("postgres (PostgreSQL) ") || process_error.Contains("postgres (PostgreSQL) ")))
             {
                 if (!string.IsNullOrEmpty(process_error) && string.IsNullOrEmpty(process_output))
                 {
                     process_output = process_error;
                 }
-                this.Version = process_output.Substring("nginx version: ".Length);
+                this.Version = process_output.Substring("postgres (PostgreSQL) ".Length);
                 this.VersionInitialised = true;
-                return this.Version;
-            }
-            else if (process_output.Contains("nginx version: ") || process_error.Contains("nginx version: "))
-            {
-                if (!string.IsNullOrEmpty(process_error) && string.IsNullOrEmpty(process_output))
-                {
-                    process_output = process_error;
-                }
-                this.Version = process_output.Substring("nginx version: ".Length);
-                this.VersionInitialised = true;
+                this.AuditEnvironment.Success("Got {0} server version {1}.", this.ApplicationLabel, this.Version);
                 return this.Version;
             }
             else
             {
-                throw new Exception(string.Format("Did not execute process {0} successfully or could not parse output. Process output: {1}.\nProcess error: {2}.", ApplicationBinary.Name, process_output, process_error));
+                throw new Exception(string.Format("Did not execute command {0} successfully or could not parse command output. Process output: {1}.\nProcess error: {2}.", ApplicationBinary.Name, process_output, process_error));
             }
         }
 
@@ -78,7 +69,7 @@ namespace DevAudit.AuditLibrary
         {
             Dictionary<string, IEnumerable<OSSIndexQueryObject>> m = new Dictionary<string, IEnumerable<OSSIndexQueryObject>>
             {
-                {"nginx", new List<OSSIndexQueryObject> {new OSSIndexQueryObject(this.PackageManagerId, "nginx", this.Version) }}
+                {"postgres", new List<OSSIndexQueryObject> {new OSSIndexQueryObject(this.PackageManagerId, "postgres", this.Version) }}
             };
             this.ModulePackages = m;
             this.PackageSourceInitialized = this.ModulesInitialised = true;
@@ -87,17 +78,18 @@ namespace DevAudit.AuditLibrary
 
         protected override IConfiguration GetConfiguration()
         {
-            Nginx nginx = new Nginx(this.ConfigurationFile);
-            if (nginx.ParseSucceded)
+            PostgreSQL pgsql = new PostgreSQL(this.ConfigurationFile);
+            if (pgsql.ParseSucceded)
             {
-                this.Configuration = nginx;
+                this.Configuration = pgsql;
                 this.ConfigurationInitialised = true;
+                this.AuditEnvironment.Success(this.ConfigurationStatistics);
             }
             else
             {
-                this.AuditEnvironment.Error("Could not parse configuration from {0}.", nginx.FullFilePath);
-                if (nginx.LastParseException != null) this.AuditEnvironment.Error(nginx.LastParseException);
-                if (nginx.LastIOException != null) this.AuditEnvironment.Error(nginx.LastIOException);
+                this.AuditEnvironment.Error("Could not parse configuration from {0}.", pgsql.FullFilePath);
+                if (pgsql.LastParseException != null) this.AuditEnvironment.Error(pgsql.LastParseException);
+                if (pgsql.LastIOException != null) this.AuditEnvironment.Error(pgsql.LastIOException);
                 this.Configuration = null;
                 this.ConfigurationInitialised = false;
             }
@@ -112,7 +104,7 @@ namespace DevAudit.AuditLibrary
         public override IEnumerable<OSSIndexQueryObject> GetPackages(params string[] o)
         {
             if (!this.ModulesInitialised) throw new InvalidOperationException("Modules must be initialised before GetPackages is called.");
-            return this.GetModules()["nginx"];
+            return this.GetModules()["postgres"];
         }
 
         public override bool IsVulnerabilityVersionInPackageVersionRange(string vulnerability_version, string package_version)

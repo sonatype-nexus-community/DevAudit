@@ -41,8 +41,8 @@
     <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Alpheus.Core, Version=0.1.9.5, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Alpheus.0.1.9.5\lib\net45\Alpheus.Core.dll</HintPath>
+    <Reference Include="Alpheus.Core, Version=0.2.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Alpheus.0.2.0.0\lib\net45\Alpheus.Core.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="Autofac, Version=4.1.1.0, Culture=neutral, PublicKeyToken=17863af14b0044da, processorArchitecture=MSIL">
@@ -337,8 +337,8 @@
       <HintPath>..\packages\System.Xml.XPath.XDocument.4.0.1\lib\net46\System.Xml.XPath.XDocument.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="Versatile.Core, Version=0.1.13.6, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Versatile.0.1.13.6\lib\net45\Versatile.Core.dll</HintPath>
+    <Reference Include="Versatile.Core, Version=0.2.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Versatile.0.2.0.0\lib\net45\Versatile.Core.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="YamlDotNet, Version=3.9.0.0, Culture=neutral, processorArchitecture=MSIL">
@@ -379,6 +379,7 @@
     <Compile Include="Projects\PHPCodeProject.cs" />
     <Compile Include="Projects\PHPTreeVisitors.cs" />
     <Compile Include="Analyzers\RoslynAnalyzer.cs" />
+    <Compile Include="Servers\PostgreSQLServer.cs" />
     <Compile Include="Targets\Application.cs" />
     <Compile Include="Applications\Drupal7Application.cs" />
     <Compile Include="Applications\Drupal8Application.cs" />
@@ -491,6 +492,9 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Rules>
     <Rules Include="Rules\sshd.yml">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Rules>
+    <Rules Include="Rules\postgresql.yml">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Rules>
   </ItemGroup>

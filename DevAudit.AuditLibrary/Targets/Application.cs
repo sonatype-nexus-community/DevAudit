@@ -40,7 +40,8 @@ namespace DevAudit.AuditLibrary
             }
             else
             {
-                throw new ArgumentException(string.Format("The root application directory was not specified."), "application_options");
+                //throw new ArgumentException(string.Format("The root application directory was not specified."), "application_options");
+                this.ApplicationFileSystemMap.Add("RootDirectory", this.AuditEnvironment.ConstructDirectory(this.AuditEnvironment.PathSeparator));
             }
 
             this.RequiredFileLocations = RequiredFileLocationPaths.Select(kv => new KeyValuePair<string, string>(kv.Key, this.CombinePath(kv.Value))).ToDictionary(x => x.Key, x => x.Value);
