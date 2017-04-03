@@ -385,7 +385,6 @@
     <Compile Include="Applications\Drupal8Application.cs" />
     <Compile Include="Applications\DrupalModuleInfo.cs" />
     <Compile Include="AuditFileSystemInfo.cs" />
-    <Compile Include="AuditScpClient.cs" />
     <Compile Include="Analyzer.cs" />
     <Compile Include="IAnalyzer.cs" />
     <Compile Include="Environments\LocalAuditDirectoryInfo.cs" />
