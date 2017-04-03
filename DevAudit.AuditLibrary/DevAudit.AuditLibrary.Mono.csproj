@@ -253,7 +253,7 @@
     <Compile Include="AuditReporter.cs" />
     <Compile Include="Codecs.cs" />
     <Compile Include="Environments\GitLabAuditEnvironment.cs" />
-    <Compile Include="Environments\GithubAuditEnvironment.cs" />
+    <Compile Include="Environments\GitHubAuditEnvironment.cs" />
     <Compile Include="DevAuditGendarmeRunner.cs" />
     <Compile Include="ByteCodeAnalyzer.cs" />
     <Compile Include="Analyzers\NetFxAnalyzer.cs" />
@@ -274,7 +274,7 @@
     <Compile Include="Applications\Drupal7Application.cs" />
     <Compile Include="Applications\Drupal8Application.cs" />
     <Compile Include="Applications\DrupalModuleInfo.cs" />
-    <Compile Include="Environments\AuditFileSystemInfo.cs" />
+    <Compile Include="AuditFileSystemInfo.cs" />
     <Compile Include="Analyzer.cs" />
     <Compile Include="IAnalyzer.cs" />
     <Compile Include="Environments\LocalAuditDirectoryInfo.cs" />
