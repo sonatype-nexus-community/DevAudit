@@ -641,6 +641,12 @@ namespace DevAudit.CommandLine
                         Application = Server as Application;
                         Source = Server.PackageSource;
                     }
+                    else if (verb == "pgsql")
+                    {
+                        Server = new PostgreSQLServer(audit_options, EnvironmentMessageHandler);
+                        Application = Server as Application;
+                        Source = Server.PackageSource;
+                    }
                     else if (verb == "netfx-code")
                     {
                         CodeProject = new NetFxCodeProject(audit_options, EnvironmentMessageHandler);

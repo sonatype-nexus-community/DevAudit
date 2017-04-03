@@ -13,30 +13,21 @@ namespace DevAudit.AuditLibrary
     public class MySQLServer : ApplicationServer
     {
         #region Constructors
-        public MySQLServer(Dictionary<string, object> server_options, EventHandler<EnvironmentEventArgs> message_handler) : base(server_options, new Dictionary<PlatformID, string[]>()
+        public MySQLServer(Dictionary<string, object> server_options, EventHandler<EnvironmentEventArgs> message_handler) : base(server_options, 
+            new Dictionary<PlatformID, string[]>()
             {
-                { PlatformID.Unix, new string[] { "@", "etc", "mysql", "my.cnf" } },
-                { PlatformID.MacOSX, new string[] { "@", "etc", "mysql", "my.cnf" } },
+                { PlatformID.Unix,  new string[] { "find", "@", "*bin", "mysqld" } },
+                { PlatformID.Win32NT, new string[] { "@", "bin", "mysqld.exe" } }
+            },
+            new Dictionary<PlatformID, string[]>()
+            {
+                { PlatformID.Unix, new string[] { "find", "@", "etc", "*", "mysql", "my.cnf" } },
                 { PlatformID.Win32NT, new string[] { "@", "my.ini" } }
             }, new Dictionary<string, string[]>(), new Dictionary<string, string[]>(), message_handler)
         {
             if (this.ApplicationBinary != null)
             {
                 this.ApplicationFileSystemMap["mysqld"] = this.ApplicationBinary;
-            }
-            else
-            {
-                string fn = this.AuditEnvironment.OS.Platform == PlatformID.Unix || this.AuditEnvironment.OS.Platform == PlatformID.MacOSX
-                ? CombinePath("@", "usr", "sbin", "mysqld") : CombinePath("@", "bin", "mysqld.exe");
-                if (!this.AuditEnvironment.FileExists(fn))
-                {
-                    throw new ArgumentException(string.Format("The server binary for MySQL was not specified and the default file path {0} does not exist.", fn));
-                }
-                else
-                {
-                    this.ApplicationBinary = this.AuditEnvironment.ConstructFile(fn);
-                    this.ApplicationFileSystemMap["mysqld"] = this.ApplicationBinary;
-                }
             }
         }
         #endregion

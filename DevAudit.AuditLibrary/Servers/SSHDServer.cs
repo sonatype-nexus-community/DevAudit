@@ -17,10 +17,15 @@ namespace DevAudit.AuditLibrary
     public class SSHDServer : ApplicationServer
     {
         #region Constructors
-        public SSHDServer(Dictionary<string, object> server_options, EventHandler<EnvironmentEventArgs> message_handler) : base(server_options, new Dictionary<PlatformID, string[]>()
+        public SSHDServer(Dictionary<string, object> server_options, EventHandler<EnvironmentEventArgs> message_handler) : base(server_options,
+            new Dictionary<PlatformID, string[]>()
             {
-                { PlatformID.Unix, new string[] { "@", "etc", "ssh", "sshd_config" } },
-                { PlatformID.MacOSX, new string[] { "@", "etc", "ssh", "sshd_config" } },
+                { PlatformID.Unix, new string[] { "find", "@", "*bin", "sshd" } },
+                { PlatformID.Win32NT, new string[] { "@", "usr", "sbin", "sshd.exe" } }
+            },
+            new Dictionary<PlatformID, string[]>()
+            {
+                { PlatformID.Unix, new string[] { "find", "@", "etc", "*", "sshd_config" } },
                 { PlatformID.Win32NT, new string[] { "@", "etc", "ssh", "sshd_config" } }
             }, new Dictionary<string, string[]>(), new Dictionary<string, string[]>(), message_handler)
         {
@@ -28,27 +33,14 @@ namespace DevAudit.AuditLibrary
             {
                 this.ApplicationFileSystemMap["sshd"] = this.ApplicationBinary;
             }
-            else
-            {
-                string fn = this.AuditEnvironment.OS.Platform == PlatformID.Unix || this.AuditEnvironment.OS.Platform == PlatformID.MacOSX
-                ? CombinePath("@", "usr", "sbin", "sshd") : CombinePath("@", "usr", "sbin", "sshd.exe");
-                if (!this.AuditEnvironment.FileExists(fn))
-                {
-                    throw new ArgumentException(string.Format("The server binary for SSHD was not specified and the default file path {0} does not exist.", fn));
-                }
-                else
-                {
-                    this.ApplicationBinary = this.AuditEnvironment.ConstructFile(fn);
-                    this.ApplicationFileSystemMap["sshd"] = this.ApplicationBinary;
-                }
-            }
+
         }
         #endregion
 
         #region Overriden properties
         public override string ServerId { get { return "sshd"; } }
 
-        public override string ServerLabel { get { return "OpenSSH sshd server"; } }
+        public override string ServerLabel { get { return "OpenSSH sshd"; } }
 
         public override PackageSource PackageSource => this as PackageSource;
         #endregion

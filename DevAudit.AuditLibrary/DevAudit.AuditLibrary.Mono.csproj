@@ -55,8 +55,8 @@
     <Reference Include="Microsoft.Build.Engine" />
     <Reference Include="Microsoft.Build.Framework" />
     <Reference Include="System.ComponentModel.Composition" />
-    <Reference Include="Alpheus.Core, Version=0.1.9.5, Culture=neutral, PublicKeyToken=null">
-      <HintPath>..\packages\Alpheus.0.1.9.5\lib\net45\Alpheus.Core.dll</HintPath>
+    <Reference Include="Alpheus.Core, Version=0.2.0.0, Culture=neutral, PublicKeyToken=null">
+      <HintPath>..\packages\Alpheus.0.2.0.0\lib\net45\Alpheus.Core.dll</HintPath>
     </Reference>
     <Reference Include="CSharpTest.Net.BPlusTree, Version=2.14.126.467, Culture=neutral, PublicKeyToken=06aee00cce822474">
       <HintPath>..\packages\CSharpTest.Net.BPlusTree.2.14.126.467\lib\net45\CSharpTest.Net.BPlusTree.dll</HintPath>
@@ -238,8 +238,8 @@
     <Reference Include="System.Composition.TypedParts, Version=1.0.27.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
       <HintPath>..\packages\Microsoft.Composition.1.0.27\lib\portable-net45+win8+wp8+wpa81\System.Composition.TypedParts.dll</HintPath>
     </Reference>
-    <Reference Include="Versatile.Core, Version=0.1.13.6, Culture=neutral, PublicKeyToken=null">
-      <HintPath>..\packages\Versatile.0.1.13.6\lib\net45\Versatile.Core.dll</HintPath>
+    <Reference Include="Versatile.Core, Version=0.2.0.0, Culture=neutral, PublicKeyToken=null">
+      <HintPath>..\packages\Versatile.0.2.0.0\lib\net45\Versatile.Core.dll</HintPath>
     </Reference>
     <Reference Include="YamlDotNet, Version=3.9.0.0, Culture=neutral, PublicKeyToken=null">
       <HintPath>..\packages\YamlDotNet.3.9.0\lib\net35\YamlDotNet.dll</HintPath>
@@ -252,8 +252,8 @@
   <ItemGroup>
     <Compile Include="AuditReporter.cs" />
     <Compile Include="Codecs.cs" />
-    <Compile Include="GitLabAuditEnvironment.cs" />
-    <Compile Include="GithubAuditEnvironment.cs" />
+    <Compile Include="Environments\GitLabAuditEnvironment.cs" />
+    <Compile Include="Environments\GithubAuditEnvironment.cs" />
     <Compile Include="DevAuditGendarmeRunner.cs" />
     <Compile Include="ByteCodeAnalyzer.cs" />
     <Compile Include="Analyzers\NetFxAnalyzer.cs" />
@@ -270,43 +270,41 @@
     <Compile Include="Reporters\GitHubIssueReporter.cs" />
     <Compile Include="Reporters\ConsoleReporter.cs" />
     <Compile Include="Reporters\GitLabIssueReporter.cs" />
-    <Compile Include="Application.cs" />
+    <Compile Include="Targets\Application.cs" />
     <Compile Include="Applications\Drupal7Application.cs" />
     <Compile Include="Applications\Drupal8Application.cs" />
     <Compile Include="Applications\DrupalModuleInfo.cs" />
-    <Compile Include="AuditFileSystemInfo.cs" />
-    <Compile Include="AuditScpClient.cs" />
+    <Compile Include="Environments\AuditFileSystemInfo.cs" />
     <Compile Include="Analyzer.cs" />
     <Compile Include="IAnalyzer.cs" />
-    <Compile Include="LocalAuditDirectoryInfo.cs" />
-    <Compile Include="LocalAuditFileInfo.cs" />
-    <Compile Include="CodeProject.cs" />
+    <Compile Include="Environments\LocalAuditDirectoryInfo.cs" />
+    <Compile Include="Environments\LocalAuditFileInfo.cs" />
+    <Compile Include="Targets\CodeProject.cs" />
     <Compile Include="Projects\ASPNETCodeProject.cs" />
     <Compile Include="Projects\NetFxCodeProject.cs" />
     <Compile Include="ScriptEnvironment.cs" />
-    <Compile Include="SshAuditFileInfo.cs" />
-    <Compile Include="SshAuditDirectoryInfo.cs" />
-    <Compile Include="GitHubAuditFileInfo.cs" />
-    <Compile Include="GitHubAuditDirectoryInfo.cs" />
+    <Compile Include="Environments\SshAuditFileInfo.cs" />
+    <Compile Include="Environments\SshAuditDirectoryInfo.cs" />
+    <Compile Include="Environments\GitHubAuditFileInfo.cs" />
+    <Compile Include="Environments\GitHubAuditDirectoryInfo.cs" />
     <Compile Include="AuditEnvironment.cs" />
     <Compile Include="AuditDirectoryInfo.cs" />
     <Compile Include="AuditFileInfo.cs" />
     <Compile Include="AuditTargetEventArgs.cs" />
     <Compile Include="BsonSerializer.cs" />
-    <Compile Include="Docker.cs" />
     <Compile Include="AuditTarget.cs" />
-    <Compile Include="LocalEnvironment.cs" />
-    <Compile Include="OSSIndexArtifact.cs" />
-    <Compile Include="OSSIndexProjectConfigurationRule.cs" />
-    <Compile Include="OSSIndexHttpClient.cs" />
-    <Compile Include="OSSIndexHttpException.cs" />
-    <Compile Include="OSSIndexPackageVulnerability.cs" />
-    <Compile Include="OSSIndexProject.cs" />
-    <Compile Include="OSSIndexProjectVulnerability.cs" />
-    <Compile Include="OSSIndexQueryObject.cs" />
-    <Compile Include="OSSIndexApiv2Result.cs" />
-    <Compile Include="OSSIndexApiv2Vulnerability.cs" />
-    <Compile Include="PackageSource.cs" />
+    <Compile Include="Environments\LocalEnvironment.cs" />
+    <Compile Include="DataSources\OSSIndex\Models\OSSIndexArtifact.cs" />
+    <Compile Include="DataSources\OSSIndex\Models\OSSIndexProjectConfigurationRule.cs" />
+    <Compile Include="DataSources\OSSIndex\OSSIndexHttpClient.cs" />
+    <Compile Include="DataSources\OSSIndex\OSSIndexHttpException.cs" />
+    <Compile Include="DataSources\OSSIndex\Models\OSSIndexPackageVulnerability.cs" />
+    <Compile Include="DataSources\OSSIndex\Models\OSSIndexProject.cs" />
+    <Compile Include="DataSources\OSSIndex\Models\OSSIndexProjectVulnerability.cs" />
+    <Compile Include="DataSources\OSSIndex\Models\OSSIndexQueryObject.cs" />
+    <Compile Include="DataSources\OSSIndex\Models\OSSIndexApiv2Result.cs" />
+    <Compile Include="DataSources\OSSIndex\Models\OSSIndexApiv2Vulnerability.cs" />
+    <Compile Include="Targets\PackageSource.cs" />
     <Compile Include="PackageSource\BowerPackageSource.cs" />
     <Compile Include="PackageSource\ChocolateyPackageSource.cs" />
     <Compile Include="PackageSource\ComposerPackageSource.cs" />
@@ -318,23 +316,24 @@
     <Compile Include="PackageSource\OneGetPackageSource.cs" />
     <Compile Include="ProjectVulnerabilitiesCacheItem.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="ApplicationServer.cs" />
+    <Compile Include="Targets\ApplicationServer.cs" />
     <Compile Include="Servers\NginxServer.cs" />
     <Compile Include="Servers\HttpdServer.cs" />
     <Compile Include="Servers\SSHDServer.cs" />
     <Compile Include="Servers\MySQLServer.cs" />
-    <Compile Include="SshAuditEnvironment.cs" />
+    <Compile Include="Environments\SshAuditEnvironment.cs" />
     <Compile Include="EnvironmentEventArgs.cs" />
     <Compile Include="Analyzers\StyleCopAnalyzer.cs" />
-    <Compile Include="DockerAuditEnvironment.cs" />
-    <Compile Include="DockerAuditFileInfo.cs" />
-    <Compile Include="DockerAuditDirectoryInfo.cs" />
-    <Compile Include="DockerizedLocalEnvironment.cs" />
-    <Compile Include="DockerizedLocalAuditFileInfo.cs" />
-    <Compile Include="DockerizedLocalAuditDirectoryInfo.cs" />
+    <Compile Include="Environments\DockerAuditEnvironment.cs" />
+    <Compile Include="Environments\DockerAuditFileInfo.cs" />
+    <Compile Include="Environments\DockerAuditDirectoryInfo.cs" />
+    <Compile Include="Environments\DockerizedLocalEnvironment.cs" />
+    <Compile Include="Environments\DockerizedLocalAuditFileInfo.cs" />
+    <Compile Include="Environments\DockerizedLocalAuditDirectoryInfo.cs" />
+    <Compile Include="Servers\PostgreSQLServer.cs" />
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="Configurations\" />
+    
     <Folder Include="Examples\Drupal\core\modules\" />
   </ItemGroup>
   <ItemGroup>

@@ -63,8 +63,11 @@ namespace DevAudit.CommandLine
         [VerbOption("httpd", HelpText = "Audit an Apache httpd server instance. Use the -r option to specify the root directory of the httpd server. Use the -b option to specify the path to the httpd server binary and the -c option to specify the configuration file otherwise default values will be used for these 2 parameters.")]
         public Options Httpd { get; set; }
 
-        [VerbOption("nginx", HelpText = "Audit an Nginx server instance. Use the -r option to specify the root directory of the httpd server. Use the -b option to specify the path to the httpd server binary and the -c option to specify the configuration file otherwise default values will be used for these 2 parameters.")]
+        [VerbOption("nginx", HelpText = "Audit a Nginx server instance. Use the -r option to specify the root directory of the server. Use the -b option to specify the path to the httpd server binary and the -c option to specify the configuration file otherwise default values will be used for these 2 parameters.")]
         public Options Nginx { get; set; }
+
+        [VerbOption("pgsql", HelpText = "Audit a PostgreSQL server instance. Use the -r option to specify the root directory of the httpd server. The server binary and configuration files will be autodetected; to override use the -b option to specify the path to the postgres server binary and the -c option to specify the configuration file.")]
+        public Options PGSQL { get; set; }
 
         [VerbOption("netfx", HelpText = "Audit a .NET Framework application. Use the --root option to specify the root directory of the application and the -b option to specify the application .NET assembly.")]
         public Options NetFx { get; set; }
