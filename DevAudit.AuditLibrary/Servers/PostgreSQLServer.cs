@@ -21,7 +21,7 @@ namespace DevAudit.AuditLibrary
                 { PlatformID.Win32NT, new string[] { "@", "bin", "postgres.exe" } }
             }, 
             new Dictionary<PlatformID, string[]>() {
-                { PlatformID.Unix, new string[] { "find", "@", "etc", "*", "postgresql.conf" } },
+                { PlatformID.Unix, new string[] { "find", "@", "var", "lib", "*", "data", "postgresql.conf" } },
                 { PlatformID.Win32NT, new string[] { "@", "postgresql.conf" } }
             }, 
             new Dictionary<string, string[]>(), new Dictionary<string, string[]>(), message_handler)
