@@ -131,7 +131,7 @@ namespace DevAudit.AuditLibrary
 
         public override string ReadAsText()
         {
-            return RepositoryFile.Content;
+            return RepositoryFile?.Content;
         }
 
         public override byte[] ReadAsBinary()

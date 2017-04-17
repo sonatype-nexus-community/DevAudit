@@ -200,19 +200,39 @@ namespace DevAudit.AuditLibrary
 
         protected string[] FindServerFile(string path)
         {
-            AuditEnvironment.ProcessExecuteStatus process_status;
-            string process_output;
-            string process_error;
-            string args = string.Format("/ -wholename '{0}'", path);
-            bool r = this.AuditEnvironment.Execute("find", args, out process_status, out process_output, out process_error);
-            if (r || (!string.IsNullOrEmpty(process_output)))
+            if (this.AuditEnvironment.OS.Platform == PlatformID.Win32NT)
             {
-                return process_output.Split(this.AuditEnvironment.LineTerminator.ToCharArray());
+                AuditEnvironment.ProcessExecuteStatus process_status;
+                string process_output;
+                string process_error;
+                string args = string.Format("/ -wholename '{0}'", path);
+                bool r = this.AuditEnvironment.Execute("find", args, out process_status, out process_output, out process_error);
+                if (r || (!string.IsNullOrEmpty(process_output)))
+                {
+                    return process_output.Split(this.AuditEnvironment.LineTerminator.ToCharArray());
+                }
+                else
+                {
+                    this.AuditEnvironment.Debug("Did not successfully execute command 'find {0}'. Process error: {1}.", args, process_error);
+                    return new string[] { };
+                }
             }
             else
             {
-                this.AuditEnvironment.Debug("Did not successfully execute command 'find {0}'. Process error: {1}.", args, process_error);
-                return new string[] { };
+                AuditEnvironment.ProcessExecuteStatus process_status;
+                string process_output;
+                string process_error;
+                string args = string.Format("/ -wholename '{0}'", path);
+                bool r = this.AuditEnvironment.Execute("find", args, out process_status, out process_output, out process_error);
+                if (r || (!string.IsNullOrEmpty(process_output)))
+                {
+                    return process_output.Split(this.AuditEnvironment.LineTerminator.ToCharArray());
+                }
+                else
+                {
+                    this.AuditEnvironment.Debug("Did not successfully execute command 'find {0}'. Process error: {1}.", args, process_error);
+                    return new string[] { };
+                }
             }
         }
         #endregion

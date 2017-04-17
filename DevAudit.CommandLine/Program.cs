@@ -5,6 +5,7 @@ using System.Diagnostics;
 using System.Drawing;
 using System.IO;
 using System.Linq;
+using System.Net;
 using System.Security;
 using System.Text;
 using System.Threading;
@@ -115,9 +116,64 @@ namespace DevAudit.CommandLine
             {
                 audit_options.Add("Dockerized", true);
             }
+
             if (!string.IsNullOrEmpty(ProgramOptions.Docker))
             {
                 audit_options.Add("DockerContainer", ProgramOptions.Docker);
+            }
+            else if (!string.IsNullOrEmpty(ProgramOptions.RemoteHost) && ProgramOptions.WinRm)
+            {
+                if (Uri.CheckHostName(ProgramOptions.RemoteHost) == UriHostNameType.IPv4 || Uri.CheckHostName(ProgramOptions.RemoteHost) == UriHostNameType.IPv6)
+                {
+                    IPAddress address = null;
+                    if (IPAddress.TryParse(ProgramOptions.RemoteHost, out address))
+                    {
+                        audit_options.Add("WinRmRemoteIp", address);
+                    }       
+                    else
+                    {
+                        PrintErrorMessage("Invalid IP address: {0}.", ProgramOptions.RemoteHost);
+                        return (int)Exit;
+                    }
+                }
+                else if (Uri.CheckHostName(ProgramOptions.RemoteHost) != UriHostNameType.Unknown)
+                {
+                    audit_options.Add("WinRmRemoteHost", new Uri(ProgramOptions.RemoteHost));
+                }
+                else
+                {
+                    PrintErrorMessage("Invalid host name: {0}.", ProgramOptions.RemoteHost);
+                    return (int)Exit;
+                }
+
+                #region User and password
+                if (!string.IsNullOrEmpty(ProgramOptions.RemoteUser))
+                {
+                    audit_options.Add("RemoteUser", ProgramOptions.RemoteUser);
+                    if (ProgramOptions.EnterRemotePassword)
+                    {
+                        SecureString p = ReadPassword('*');
+                        audit_options.Add("RemotePass", p);
+                    }
+                    else if (!string.IsNullOrEmpty(ProgramOptions.RemotePasswordText))
+                    {
+                        audit_options.Add("RemotePass", ToSecureString(ProgramOptions.RemotePasswordText));
+                    }
+                    else
+                    {
+                        PrintErrorMessage("You must specify the Windows password to authenticate with the remote host.");
+                        return (int)Exit;
+                    }
+
+                }
+                else
+                {
+                    PrintErrorMessage("You must specify the Windows user to authenticate with the remote host.");
+                    return (int)Exit;
+
+                }
+                #endregion
+
             }
             else if (!string.IsNullOrEmpty(ProgramOptions.RemoteHost))
             {
