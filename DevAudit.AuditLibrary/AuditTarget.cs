@@ -2,8 +2,10 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Net;
 using System.Linq;
 using System.Reflection;
+using System.Security;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -119,7 +121,39 @@ namespace DevAudit.AuditLibrary
                 {
                     ssh_environment = null;
                     this.AuditEnvironmentIntialised = false;
-                    throw new Exception("Failed to initialise audit environment.");
+                    throw new Exception("Failed to initialise SSH audit environment.");
+                }
+            }
+            else if (this.AuditOptions.Keys.Contains("WinRmRemoteIp") || this.AuditOptions.Keys.Contains("WinRmRemoteHost"))
+            {
+                if (!this.AuditOptions.Keys.Contains("RemoteUser") || !this.AuditOptions.Keys.Contains("RemotePass"))
+                {
+                    throw new Exception("A remote user and password must be specified.");
+                }
+                WinRmAuditEnvironment winrm;
+                if (this.AuditOptions.Keys.Contains("WinRmRemoteIp"))
+                {
+                    winrm  = new WinRmAuditEnvironment(this.HostEnvironmentMessage, this.AuditOptions["WinRmRemoteIp"] as IPAddress,
+                        (string)this.AuditOptions["RemoteUser"], (SecureString)this.AuditOptions["RemotePass"], this.HostEnvironment);
+                    if (winrm.IsConnected)
+                    {
+                        this.AuditEnvironment = winrm;
+                        this.AuditEnvironmentIntialised = true;
+                        this.AuditEnvironmentMessage = AuditTarget_AuditEnvironmentMessageHandler;
+                        this.AuditEnvironment.MessageHandler -= HostEnvironmentMessage;
+                        this.AuditEnvironment.MessageHandler += this.AuditEnvironmentMessage;
+                    }
+                    else
+                    {
+                        winrm = null;
+                        this.AuditEnvironmentIntialised = false;
+                        throw new Exception("Failed to initialise WinRM audit environment.");
+                    }
+                }
+                else
+                {
+                    winrm = new WinRmAuditEnvironment(this.HostEnvironmentMessage, (string)this.AuditOptions["WinRmRemoteHost"],
+                        (string)this.AuditOptions["RemoteUser"], (SecureString)this.AuditOptions["RemotePass"], this.HostEnvironment);
                 }
             }
             else if (this.AuditOptions.Keys.Contains("RemoteUser") || this.AuditOptions.Keys.Contains("RemotePass"))
@@ -134,10 +168,14 @@ namespace DevAudit.AuditLibrary
             }
             else if (this.AuditOptions.ContainsKey("GitHubRepoName"))
             {
-                string user_api_token = string.Empty;
                 if (!this.AuditOptions.ContainsKey("GitHubRepoOwner") || !this.AuditOptions.ContainsKey("GitHubRepoBranch"))
                 {
                     throw new ArgumentException("A required audit option for the GitHub environment is missing.");
+                }
+                string user_api_token = string.Empty;
+                if (this.AuditOptions.ContainsKey("GitHubToken"))
+                {
+                    user_api_token = (string)this.AuditOptions["GitHubToken"];
                 }
                 GitHubAuditEnvironment github_environment = new GitHubAuditEnvironment(this.HostEnvironmentMessage, user_api_token, (string)this.AuditOptions["GitHubRepoOwner"],
                    (string)this.AuditOptions["GitHubRepoName"], (string)this.AuditOptions["GitHubRepoBranch"], this.HostEnvironment);
@@ -153,7 +191,7 @@ namespace DevAudit.AuditLibrary
                 {
                     github_environment = null;
                     this.AuditEnvironmentIntialised = false;
-                    throw new Exception("Failed to initialise audit environment.");
+                    throw new Exception("Failed to initialise GitHub audit environment.");
                 }
             }
             else if (this.AuditOptions.ContainsKey("GitLabRepoName"))

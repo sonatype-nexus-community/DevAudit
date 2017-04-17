@@ -14,7 +14,7 @@ namespace DevAudit.AuditLibrary
         {}
 
         public AspNetApplication(Dictionary<string, object> application_options, EventHandler<EnvironmentEventArgs> message_handler, NuGetPackageSource package_source) : 
-            base(application_options, new Dictionary<string, string[]> { { "AppConfig", new string[] { "@", "Web.config" } } }, new Dictionary<string, string[]>(), "AspNet", message_handler, package_source)
+            base(application_options, new Dictionary<string, string[]> (), new Dictionary<string, string[]>(), "AspNet", message_handler, package_source)
         {}
         #endregion
 

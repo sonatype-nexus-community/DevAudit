@@ -35,3 +35,25 @@ postgresql:
         urls:
             -   https://www.crunchydata.com/postgres-stig/PGSQL-STIG-9.5+.pdf
             -   http://pgaudit.org
+
+    -   id: 3
+        title:  Server log files must be mode 0600
+        tags:
+            -   STIG/V-72847/The audit information produced by PostgreSQL must be protected from unauthorized modification.
+        severity: 2
+        xpathtest:  >
+            boolean(/PGSQL/Values/log_)) or 
+            not(boolean(/PGSQL/Values/pgaudit.log_level='log')) or
+            not(boolean(/PGSQL/Values/pgaudit.log_parameter='on')) or
+            not(boolean(/PGSQL/Values/pgaudit.log_statement_once='off')) or
+            not(boolean(/PGSQL/Values/pgaudit.log='all, -misc'))
+        summary: |
+            Information system auditing capability is critical for accurate forensic analysis. 
+            Without information about the outcome of events, security personnel cannot make an accurate assessment as to whether an attack was successful or if changes were made to the security state of the system.
+            Event outcomes can include indicators of event success or failure and event-specific results (e.g., the security state of the information system after the event occurred). 
+            As such, they also provide a means to measure the impact of an event and help authorized personnel to determine the appropriate response.
+        resolution: |
+            You must install and configure the pgaudit extension.
+        urls:
+            -   https://www.crunchydata.com/postgres-stig/PGSQL-STIG-9.5+.pdf
+            -   http://pgaudit.org

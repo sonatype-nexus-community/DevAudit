@@ -5,9 +5,10 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-using YamlDotNet.Serialization;
-using YamlDotNet.Serialization.NamingConventions;
+
+using Versatile;
 using Alpheus;
+using Alpheus.IO;
 
 namespace DevAudit.AuditLibrary
 {
@@ -21,7 +22,7 @@ namespace DevAudit.AuditLibrary
                 { PlatformID.Win32NT, new string[] { "@", "bin", "postgres.exe" } }
             }, 
             new Dictionary<PlatformID, string[]>() {
-                { PlatformID.Unix, new string[] { "find", "@", "var", "lib", "*", "data", "postgresql.conf" } },
+                { PlatformID.Unix, new string[] { "find", "@", "var", "lib", "*sql", "*", "data", "postgresql.conf" } },
                 { PlatformID.Win32NT, new string[] { "@", "postgresql.conf" } }
             }, 
             new Dictionary<string, string[]>(), new Dictionary<string, string[]>(), message_handler)
@@ -78,12 +79,28 @@ namespace DevAudit.AuditLibrary
 
         protected override IConfiguration GetConfiguration()
         {
+            
             PostgreSQL pgsql = new PostgreSQL(this.ConfigurationFile);
             if (pgsql.ParseSucceded)
             {
                 this.Configuration = pgsql;
                 this.ConfigurationInitialised = true;
                 this.AuditEnvironment.Success(this.ConfigurationStatistics);
+                if (this.AuditEnvironment.OS.Platform == PlatformID.Unix)
+                {
+                    string auto_file_path = this.FindServerFile(this.CombinePath("@", "var", "lib", "*sql", "*", "postgresql.auto.conf")).FirstOrDefault();
+                    if (!string.IsNullOrEmpty(auto_file_path))
+                    {
+                        AuditFileInfo auto_config_file = this.AuditEnvironment.ConstructFile(auto_file_path);
+                        this.AuditEnvironment.Info("Found PostgreSQL server auto configuration file {0}.", auto_config_file.FullName);
+                        PostgreSQL auto_pgsql = new PostgreSQL(auto_config_file);
+                        if (auto_pgsql.ParseSucceded)
+                        {
+                            pgsql.XmlConfiguration.Root.Element("Values").Add(auto_pgsql.XmlConfiguration.Root.Element("Values").Descendants());
+                            this.AuditEnvironment.Success("Merged configuration from {0}.", auto_pgsql.FullFilePath);
+                        }
+                    }
+                }
             }
             else
             {
@@ -109,7 +126,13 @@ namespace DevAudit.AuditLibrary
 
         public override bool IsVulnerabilityVersionInPackageVersionRange(string vulnerability_version, string package_version)
         {
-            return vulnerability_version == package_version;
+            string message = "";
+            bool r = NuGetv2.RangeIntersect(vulnerability_version, package_version, out message);
+            if (!r && !string.IsNullOrEmpty(message))
+            {
+                throw new Exception(message);
+            }
+            else return r;
         }
         #endregion
     }

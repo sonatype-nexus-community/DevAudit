@@ -125,6 +125,9 @@ namespace DevAudit.CommandLine
         [Option("ssh-port", Required = false, HelpText = "Specifies the SSH port to connect to on the remote host.", DefaultValue = 22)]
         public int RemoteSshPort { get; set; }
 
+        [Option('w', "winrm", Required = false, HelpText = "Connect to the remote host using the WinRM protocol. You must enable WinRM on the remote Windows machine.")]
+        public bool WinRm { get; set; }
+
         [Option('c', "config-file", Required = false, HelpText = "Specifies the configuration file for the application server to be audited.")]
         public string ConfigurationFile { get; set; }
 
