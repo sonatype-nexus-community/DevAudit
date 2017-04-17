@@ -56,6 +56,7 @@ namespace DevAudit.AuditLibrary
                 }
                 this.Version = process_output.Substring("nginx version: ".Length);
                 this.VersionInitialised = true;
+                this.AuditEnvironment.Success("Got Nginx version {0}.", this.Version);
                 return this.Version;
             }
             else if (process_output.Contains("nginx version: ") || process_error.Contains("nginx version: "))
@@ -66,6 +67,7 @@ namespace DevAudit.AuditLibrary
                 }
                 this.Version = process_output.Substring("nginx version: ".Length);
                 this.VersionInitialised = true;
+                this.AuditEnvironment.Success("Got Nginx version {0}.", this.Version);
                 return this.Version;
             }
             else
