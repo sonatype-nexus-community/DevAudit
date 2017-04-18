@@ -786,11 +786,11 @@ namespace DevAudit.AuditLibrary
                 if (paths.First() == "@")
                 {
                     paths[0] = this.RootDirectory.FullName;
-                    return System.IO.Path.Combine(paths);
+                    return Path.Combine(paths);
                 }
                 else
                 {
-                    return System.IO.Path.Combine(paths);
+                    return Path.Combine(paths);
                 }
             }
         }

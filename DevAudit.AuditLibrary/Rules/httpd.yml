@@ -31,7 +31,7 @@ httpd:
         summary: |
             By default Apache lists the contents of a Document root directory in the absence of index files. 
             Instead you can prevent directory contents from being listed.
-        resolution: |
+        resolution: |   
             Add directives like the following to each <Directory /> section.
         urls:
             -   http://www.tecmint.com/apache-security-tips/

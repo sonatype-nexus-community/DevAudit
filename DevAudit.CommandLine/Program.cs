@@ -703,6 +703,12 @@ namespace DevAudit.CommandLine
                         Application = Server as Application;
                         Source = Server.PackageSource;
                     }
+                    else if (verb == "iis6")
+                    {
+                        Server = new IIS6Server(audit_options, EnvironmentMessageHandler);
+                        Application = Server as Application;
+                        Source = Server.PackageSource;
+                    }
                     else if (verb == "netfx-code")
                     {
                         CodeProject = new NetFxCodeProject(audit_options, EnvironmentMessageHandler);
