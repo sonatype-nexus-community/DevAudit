@@ -63,6 +63,9 @@ namespace DevAudit.CommandLine
         [VerbOption("pgsql", HelpText = "Audit a PostgreSQL server instance. Use the -r option to specify the root directory of the httpd server. The server binary and configuration files will be autodetected; to override use the -b option to specify the path to the postgres server binary and the -c option to specify the configuration file.")]
         public Options PGSQL { get; set; }
 
+        [VerbOption("iis6", HelpText = "Audit an IIS 6 server instance. Use the -r option to specify the root otherwise the default C:\\Window\\system32\\inetsrv is used.")]
+        public Options IIS6 { get; set; }
+
         [VerbOption("netfx", HelpText = "Audit a .NET Framework application. Use the --root option to specify the root directory of the application and the -b option to specify the application .NET assembly.")]
         public Options NetFx { get; set; }
 
