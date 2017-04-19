@@ -113,10 +113,10 @@ namespace DevAudit.AuditLibrary
             IReadOnlyList<RepositoryContent> c = this.GitHubAuditEnvironment.GetContent(this.FullName);
             if (c == null)
             {
-                this.AuditEnvironment.Warning("Could not get directories for path {0}.", this.FullName);
+                this.AuditEnvironment.Warning("Could not get files for path {0}.", this.FullName);
                 return null;
             }
-            else if (c.Count == 0 || c.Where(content => content.Type == ContentType.Dir).Count() == 0)
+            else if (c.Count == 0 || c.Where(content => content.Type == ContentType.File).Count() == 0)
             {
                 return null;
             }
@@ -138,7 +138,7 @@ namespace DevAudit.AuditLibrary
                 this.AuditEnvironment.Warning("Could not get directories for path {0}.", this.FullName);
                 return null;
             }
-            else if (c.Count == 0 || c.Where(content => content.Type == ContentType.Dir).Count() == 0)
+            else if (c.Count == 0 || c.Where(content => content.Type == ContentType.File).Count() == 0)
             {
                 return null;
             }

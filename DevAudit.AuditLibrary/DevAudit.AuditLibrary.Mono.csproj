@@ -55,8 +55,8 @@
     <Reference Include="Microsoft.Build.Engine" />
     <Reference Include="Microsoft.Build.Framework" />
     <Reference Include="System.ComponentModel.Composition" />
-    <Reference Include="Alpheus.Core, Version=0.2.1.0, Culture=neutral, PublicKeyToken=null">
-      <HintPath>..\packages\Alpheus.0.2.1.0\lib\net45\Alpheus.Core.dll</HintPath>
+    <Reference Include="Alpheus.Core, Version=0.2.2.0, Culture=neutral, PublicKeyToken=null">
+      <HintPath>..\packages\Alpheus.0.2.2-beta\lib\net45\Alpheus.Core.dll</HintPath>
     </Reference>
     <Reference Include="CSharpTest.Net.BPlusTree, Version=2.14.126.467, Culture=neutral, PublicKeyToken=06aee00cce822474">
       <HintPath>..\packages\CSharpTest.Net.BPlusTree.2.14.126.467\lib\net45\CSharpTest.Net.BPlusTree.dll</HintPath>
@@ -74,87 +74,6 @@
       <HintPath>..\packages\Gendarme.Framework.2.11.0.20121120\lib\net40\Gendarme.Framework.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="Gendarme.Rules.BadPractice, Version=2.11.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Gendarme.Rules.2.11.0.20121120\lib\net40\Gendarme.Rules.BadPractice.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="Gendarme.Rules.Concurrency, Version=2.11.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Gendarme.Rules.2.11.0.20121120\lib\net40\Gendarme.Rules.Concurrency.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="Gendarme.Rules.Correctness, Version=2.11.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Gendarme.Rules.2.11.0.20121120\lib\net40\Gendarme.Rules.Correctness.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="Gendarme.Rules.Design, Version=2.11.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Gendarme.Rules.2.11.0.20121120\lib\net40\Gendarme.Rules.Design.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="Gendarme.Rules.Design.Generic, Version=2.11.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Gendarme.Rules.2.11.0.20121120\lib\net40\Gendarme.Rules.Design.Generic.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="Gendarme.Rules.Design.Linq, Version=2.11.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Gendarme.Rules.2.11.0.20121120\lib\net40\Gendarme.Rules.Design.Linq.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="Gendarme.Rules.Exceptions, Version=2.11.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Gendarme.Rules.2.11.0.20121120\lib\net40\Gendarme.Rules.Exceptions.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="Gendarme.Rules.Gendarme, Version=2.11.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Gendarme.Rules.2.11.0.20121120\lib\net40\Gendarme.Rules.Gendarme.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="Gendarme.Rules.Interoperability, Version=2.11.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Gendarme.Rules.2.11.0.20121120\lib\net40\Gendarme.Rules.Interoperability.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="Gendarme.Rules.Interoperability.Com, Version=2.11.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Gendarme.Rules.2.11.0.20121120\lib\net40\Gendarme.Rules.Interoperability.Com.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="Gendarme.Rules.Maintainability, Version=2.11.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Gendarme.Rules.2.11.0.20121120\lib\net40\Gendarme.Rules.Maintainability.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="Gendarme.Rules.Naming, Version=2.11.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Gendarme.Rules.2.11.0.20121120\lib\net40\Gendarme.Rules.Naming.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="Gendarme.Rules.NUnit, Version=2.11.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Gendarme.Rules.2.11.0.20121120\lib\net40\Gendarme.Rules.NUnit.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="Gendarme.Rules.Performance, Version=2.11.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Gendarme.Rules.2.11.0.20121120\lib\net40\Gendarme.Rules.Performance.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="Gendarme.Rules.Portability, Version=2.11.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Gendarme.Rules.2.11.0.20121120\lib\net40\Gendarme.Rules.Portability.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="Gendarme.Rules.Security, Version=2.11.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Gendarme.Rules.2.11.0.20121120\lib\net40\Gendarme.Rules.Security.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="Gendarme.Rules.Security.Cas, Version=2.11.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Gendarme.Rules.2.11.0.20121120\lib\net40\Gendarme.Rules.Security.Cas.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="Gendarme.Rules.Serialization, Version=2.11.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Gendarme.Rules.2.11.0.20121120\lib\net40\Gendarme.Rules.Serialization.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="Gendarme.Rules.Smells, Version=2.11.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Gendarme.Rules.2.11.0.20121120\lib\net40\Gendarme.Rules.Smells.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="Gendarme.Rules.Ui, Version=2.11.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Gendarme.Rules.2.11.0.20121120\lib\net40\Gendarme.Rules.Ui.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-
     <Reference Include="INIFileParser, Version=2.3.0.0, Culture=neutral, PublicKeyToken=79af7b307b65cf3c">
       <HintPath>..\packages\ini-parser.2.3.0\lib\net20\INIFileParser.dll</HintPath>
     </Reference>
@@ -196,6 +115,14 @@
     </Reference>
     <Reference Include="Newtonsoft.Json, Version=9.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed">
       <HintPath>..\packages\Newtonsoft.Json.9.0.1\lib\net45\Newtonsoft.Json.dll</HintPath>
+    </Reference>
+<Reference Include="Naos.WinRM, Version=1.0.45.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Naos.WinRM.1.0.45\lib\net45\Naos.WinRM.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+<Reference Include="System.Management.Automation, Version=3.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\packages\Naos.External.MS-WinRM.1.0.0.1\lib\40\System.Management.Automation.dll</HintPath>
+      <Private>True</Private>
     </Reference>
     <Reference Include="NGitLab, Version=2.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\NGitLab.2.0.0-beta-0065\lib\net45\NGitLab.dll</HintPath>
@@ -330,7 +257,11 @@
     <Compile Include="Environments\DockerizedLocalEnvironment.cs" />
     <Compile Include="Environments\DockerizedLocalAuditFileInfo.cs" />
     <Compile Include="Environments\DockerizedLocalAuditDirectoryInfo.cs" />
+<Compile Include="Environments\WinRmAuditDirectoryInfo.cs" />
+    <Compile Include="Environments\WinRmAuditFileInfo.cs" />
+    <Compile Include="Environments\WinRmAuditEnvironment.cs" />
     <Compile Include="Servers\PostgreSQLServer.cs" />
+<Compile Include="Servers\IIS6Server.cs" />
   </ItemGroup>
   <ItemGroup>
     
