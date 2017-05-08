@@ -56,6 +56,7 @@ namespace DevAudit.AuditLibrary
             }
             RepositoryName = repository_name;
             RepositoryOwner = repository_owner;
+            Success("Connected to GitHub repository {0}/{1} on branch {2}.", RepositoryOwner, RepositoryName, RepositoryBranch.Name);
             this.RepositoryInitialised = true;
         }
 
@@ -95,6 +96,10 @@ namespace DevAudit.AuditLibrary
             if (f == null || f.Count == 0)
             {
                 return false;
+            }
+            else if (f.First().Type != ContentType.Dir)
+            {
+                return true;
             }
             else
             {
