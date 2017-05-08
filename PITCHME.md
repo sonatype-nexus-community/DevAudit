@@ -1,38 +1,47 @@
 #HSLIDE
 
-### Apache Spark
-### AWS Lambda Executor
-### (SAMBA)
-
-<span style="color:gray">An Apache Spark Package</span>
-
+### DevAudit
+### Open-source cross-platform multi-purpose security auditing for developers
 ---
 
-### SAMBA Apache Spark Package
+### Motivation
+>Only a quarter to a half of organizations do what their own programmers say is needed for the security of their code: automated code scans, peer security code reviews, and further code reviews by security experts. 
 
-  - Offers seamless integration with the AWS Lambda compute service
-  - Within Spark batch and streaming apps on the JVM
+...
 
+>Most developers do not use tools for improving software quality. In
+large part, this is because they lack the budget to acquire them. One
+part of the problem here was addressed in the previous point: lack‐
+ing adequate tools, programmers simply will not be able to maintain
+code quality at the level they would like to. Beyond that, however,
+lies a deeper issue for organizations, namely that they are not dedi‐
+cating enough resources—or, in some cases, communicating the
+availability of those resources—to enable their development teams
+to deliver high-quality code using a consistent, empirical methodol‐
+ogy.
+
+...
+
+>more than 70 percent
+of survey respondents reported that they have no budget reserved
+for code quality tools—not even a few dollars per month. SIG’s
+hands-on experience with development teams in organizations
+viii | Prefaceacross a range of sizes and sectors shows clearly that use of the right
+tools and methodologies for code quality has a marked impact on
+the performance, stability, security, and maintainability of enterprise
+software. In general, paying attention to code quality is the best way
+to make software “future-proof.”
+
+"Improving Code Quality: A Survey of Tools, Trends, and Habits
+Across Sofware Organizations" O'Reilly/SIG
 ---
 
-### SAMBA API
-
-<ol>
-<li class="fragment" data-fragment-index="1">New `delegate` operation on RDD[<span style="color:gray">AWSTask</span>]</li>
-<li class="fragment" data-fragment-index="2">This operation executes AWS Lambda functions</li>
-<li class="fragment" data-fragment-index="3">And generates RDD[<span style="color:gray">AWSResult</span>]</li>
-</ol>
-
-<span class="fragment" data-fragment-index="4" style="font-size: 0.8em; color:gray">The SAMBA API is built on top of the <a target="_blank" href="https://github.com/onetapbeyond/aws-gataway-executor">aws-gateway-executor</a> library.</span>
-
----
-
-### aws-gateway-executor
+### Features
 
 - A lightweight, fluent Java library
 - For calling APIs on the Amazon Web Service API Gateway
 - Inside any application running on the JVM
-- Defines <span style="color:gray">AWSGateway</span>, <span style="color:gray">AWSTask</span> and <span style="color:gray">AWSResult</span>
+
 
 +++
 
@@ -46,89 +55,3 @@ AWSGateway gateway = AWS.Gateway(echo-api-key)
                         .region(AWS.Region.OREGON)
                         .build();
 ```
-
-
-+++
-
-### AWSTask
-
-<span style="color:gray">An executable object that represents an AWS Gateway call.</span>
-
-```Java
-AWSTask aTask = AWS.Task(gateway)
-                   .resource("/echo")
-                   .get();
-
-```
-
-+++
-
-### AWSResult
-
-<span style="color:gray">An object that represents the result of an AWS Gateway call.</span>
-
-```Java
-AWSResult aResult = aTask.execute();
-```
-
----
-
-### SAMBA + Apache Spark Batch Processing
-
-+++
-
-#### Step 1. Build RDD[<span style="color:gray">AWSTask</span>]
-
-```Scala
-import io.onetapbeyond.lambda.spark.executor.Gateway._
-import io.onetapbeyond.aws.gateway.executor._
-
-val aTaskRDD = dataRDD.map(data => {
-  AWS.Task(gateway)
-     .resource("/score")
-     .input(data.asInput())
-     .post()
-  })
-```
-
-+++
-
-#### Step 2. Delegate RDD[<span style="color:gray">AWSTask</span>]
-
-```Scala
-// Perform RDD[AWSTask].delegate operation to execute
-// AWS Gateway calls and generate resulting RDD[AWSResult].
-
-val aResultRDD = aTaskRDD.delegate
-```
-
-+++
-
-#### Step 3. Process RDD[<span style="color:gray">AWSResult</span>]
-
-```Scala
-// Process RDD[AWSResult] data per app requirements. 
-
-aTaskResultRDD.foreach { result => {
-        println("TaskDelegation: compute score input=" +
-          result.input + " result=" + result.success)
-}}
-```
-
-+++?gist=494e0fecaf0d6a2aa2acadfb8eb9d6e8
-
----
-
-#### SAMBA Deployment Architecture
-
-![SAMBA Deployment](https://onetapbeyond.github.io/resource/img/samba/new-samba-deploy.jpg)
-
----
-
-#### Some Related Links
-
-- [GitHub: SAMBA Package](https://github.com/onetapbeyond/lambda-spark-executor)
-- [GitHub: SAMBA Examples](https://github.com/onetapbeyond/lambda-spark-executor#samba-examples)
-- [GitHub: aws-gateway-executor](https://github.com/onetapbeyond/aws-gateway-executor)
-- [GitHub: Apache Spark](https://github.com/apache/spark)
-- [Apache Spark Packages](https://spark-packages.org/package/onetapbeyond/lambda-spark-executor)
