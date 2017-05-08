@@ -1,5 +1,4 @@
 #HSLIDE
-
 ### DevAudit
 #### Cross-platform multi-purpose security auditing for developers
 ![Screenshot](https://lh3.googleusercontent.com/tnqX8jGJ1WW2vimXHwlKxBTOuP2bvsPVgzq92isPg0ditWoQdsDzh3_PEbMiOldinezQeSqGsQmMSaXE_2tKJ2fzGSeAH7OnNZBofZXom1U6PS8RX4jd_h5DfF1How_xwsRDIw=w812-h608-no)
@@ -7,6 +6,7 @@
 
 ### About
 DevAudit is an open-source auditing tool targeted at developers and DevOps practitioners that detects security vulnerabilities at multiple levels of the solution stack. DevAudit provides a wide array of auditing capabilities that automate security practices and implementation of security auditing in the software development life-cycle.
+---
 
 ### Motivation
 From ["Improving Code Quality: A Survey of Tools, Trends, and Habits Across Sofware Organizations."](https://www.sig.eu/wp-content/uploads/2017/04/Improving-Code-Quality-.pdf) SIG/O'Reilly. 2017.
