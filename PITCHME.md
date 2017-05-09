@@ -55,15 +55,16 @@ software.
 +++
 
 ### Package Manager Auditing Overview
-- Audit OS package managers and development library package managers
-- Uses Versatile library for comparing package versions and reducing false positives
-- Several more package source targets planned e,g, Yarn
+- Audit OS package managers and development library package managers.
+- Audits package versions recorded in package manager against reported vulnerabilities from OSS Index.
+- Uses [Versatile library](https://github.com/allisterb/Versatile) for comparing package versions and reducing false positives.
+
 
 +++
 
 ### Package Manager Auditing : OS package managers
-- Debian dpkg
-- Redhat rpm/yum
+- Debian Dpkg
+- Redhat RPM/YUM
 - Windows Chocolatey 
 - Windows MSI and OneGet
 
@@ -73,7 +74,7 @@ software.
 - Bower
 - Composer
 - NuGet v2
-- More planned e.g. Yarn
+- More planned e.g. Yarn, NuGet v3
 ---
 
 ### Features: Application Server Configuration Auditing
@@ -82,7 +83,10 @@ software.
 +++
 
 ### Application Server Configuration Auditing : Overview
-DevAudit audits the server version and the server configuration for the OpenSSH sshd, Apache httpd, MySQL, and Nginx servers with many more coming. Configuration auditing is based on the [Alpheus](https://github.com/allisterb/Alpheus) library and is done using full syntactic analysis of the server configuration files. Server configuration rules are stored in YAML text files and can be customized to the needs of developers. Support for many more servers and applications and types of analysis is coming.
+- Audits the server version and the server configuration for servers.
+- Supports OpenSSH sshd, Apache httpd, MySQL, and Nginx servers with many more coming. 
+- Configuration auditing is based on the [Alpheus](https://github.com/allisterb/Alpheus) library using full syntactic analysis of the server configuration files. 
+- Server configuration rules are stored in YAML text files and can be customized to the needs of developers.
 
 ---
 
