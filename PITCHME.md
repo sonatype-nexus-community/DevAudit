@@ -38,23 +38,30 @@ software.
 
 ### Features: Overview
 
-- CLI interface that can be easily integrated into CI build pipelines. 
+- CLI interface that can be easily integrated into CI build pipelines. DevAudit Docker image available.
 
 - Uses the [OSS Index API](https://ossindex.net/) which provides continuously updated vulnerabilities data.
 
-- Agentless remote-auditing: audit remote hosts via SSH or WinRM.
+- Agentless remote-auditing: audit remote hosts via SSH or WinRM without DevAudit installed on remote hosts. 
 
-- Audit Docker containers. 
+- Audit Docker containers without DevAudit installed on containers. 
+
+---
+
+### Features: Package Manager Auditing
+
+![Screenshot of DevAudit package source audit](https://lh3.googleusercontent.com/tR98RwJops5G97vjm6-lXWHAxAhLA_pvan7qKF9wrxJttPt6C8VW9kGnruvPnUJ7q1jV2exWGH9w=w1382-h957-no)
 
 +++
 
-### Features: Package Dependencies Auditing
-
-![Screenshot of DevAudit auditing over SSH](https://lh3.googleusercontent.com/giEat4IU1U6zrRUkT2CR0NLT2bfspdQqflfwV0_4q486EgdqvDNj_-mMblSh82kF_Ptj0I8V7ydN1RZbrkdjMSlc3SSYfZyifH_8S60ghmdno-GtXnBjxFAzNvJklwPdWndFg3ihi8P4Xb8XR07TGJttS0AhxS0ySSm-nLnomZj_6oCyqBcWG_1yvldpaVJkCqz5f9lGzueLVlW9n3KpiuvZFOHGhejz7D5OhnR9tH34-6tr88lEqik4NOE5ZeqycqmX5iB2UVpzDS6piqYJ4NPZNxPcxkA7HmFOWC6NTYh0BPAU5eKw416K9fNv4YRuUp2yH3kPhu9tKq6IBnmq1t20zIUPOtDmzz_Ts-PrdL_S4npk4qG0YD9G1ifD23Jtep1Kz7-mTIlGUo9jXlzjzpZSvVE7PXCFSxLu9hyftddLAloUYqz1IWznldSGjYBkSf8ap3o7vWgP27FGDDil67UF1eRwYbE1VTmV0vS3w5B0vpHhso3OrL_I4QT2DLtYYbET5vjFZMQCnrjq4beBXviKy-vvO8QM5x9kro0_JP31YpLKkX_yVaqt2va0X_lPdF2DdFhpIjlDmoCeH3dfxF1F7Zs4lbqHOB3K90VC_nhmrbtsyGUeYnE39dgNHS9HOejDKzSfTlwAmmoC6z-jAqbN3rTdoX6dbuqML8Qbsw=w1600-h828-no)
+### Package Manager Auditing Overview
+- Audit OS package managers and development library package managers
+- Uses Versatile library for comparing package versions and reducing false positives
+- Several more package source targets planned e,g, Yarn
 
 +++
 
-### Features: Package Dependencies Auditing : OS package managers
+### Package Manager Auditing : OS package managers
 - Debian dpkg
 - Redhat rpm/yum
 - Windows Chocolatey 
@@ -62,29 +69,22 @@ software.
 
 +++
 
-### Features: Package Dependencies Auditing : Development package managers
+### Package Manager Auditing : Library package managers
 - Bower
 - Composer
 - NuGet v2
-
-+++
-
-### Features: Package Dependencies Auditing 
-- Uses Versatile library for comparing package versions and reducing false positives
-- Several more planned e,g, Yarn
-
+- More planned e.g. Yarn
 ---
 
 ### Features: Application Server Configuration Auditing
-![Screenshot of DevAudit configuration audit]
-(https://lh3.googleusercontent.com/tnqX8jGJ1WW2vimXHwlKxBTOuP2bvsPVgzq92isPg0ditWoQdsDzh3_PEbMiOldinezQeSqGsQmMSaXE_2tKJ2fzGSeAH7OnNZBofZXom1U6PS8RX4jd_h5DfF1How_xwsRDIw=w812-h608-no)
+![Screenshot of DevAudit configuration audit](https://lh3.googleusercontent.com/tnqX8jGJ1WW2vimXHwlKxBTOuP2bvsPVgzq92isPg0ditWoQdsDzh3_PEbMiOldinezQeSqGsQmMSaXE_2tKJ2fzGSeAH7OnNZBofZXom1U6PS8RX4jd_h5DfF1How_xwsRDIw=w812-h608-no)
 
 +++
 
-### Features: Application Server Configuration Auditing
+### Application Server Configuration Auditing : Overview
 DevAudit audits the server version and the server configuration for the OpenSSH sshd, Apache httpd, MySQL, and Nginx servers with many more coming. Configuration auditing is based on the [Alpheus](https://github.com/allisterb/Alpheus) library and is done using full syntactic analysis of the server configuration files. Server configuration rules are stored in YAML text files and can be customized to the needs of developers. Support for many more servers and applications and types of analysis is coming.
 
-+++
+---
 
 ### Features: Application Configuration Auditing
 ![Screenshot of DevAudit ASP.NET application audit](https://lh3.googleusercontent.com/WiMC-en25YIOG5lWzPjhF6D9l3WTw5GdY_ne-LjpbQcOcaWgzg2beS3fQc1YrCVblmPo59QIZMmWk98suJjEG_CGeC1gAEfPqZbOUbm59ibTwfuxvtHSr-dwNkp8NMzl7PYHHg=w812-h608-no)
