@@ -35,10 +35,21 @@ software.
 ![Screenshot](https://lh3.googleusercontent.com/tnqX8jGJ1WW2vimXHwlKxBTOuP2bvsPVgzq92isPg0ditWoQdsDzh3_PEbMiOldinezQeSqGsQmMSaXE_2tKJ2fzGSeAH7OnNZBofZXom1U6PS8RX4jd_h5DfF1How_xwsRDIw=w812-h608-no)
 
 +++
+### Features: Overview I
 
-### Features: Overview
+- Audit operating system package and library dependency versions for vulnerabilities.
 
-- CLI interface that can be easily integrated into CI build pipelines. DevAudit Docker image available.
+- Audit application and application server configurations for vulnerabilities. 
+
+- Audit application code using static analysis.
+
+- Modular, extendable architecture: use from command line interface, Docker, web application, Visual Studio extension etc.
+
++++
+
+### Features: Overview II
+
+- CLI interface that can be easily integrated into CI build pipelines. DevAudit [Docker image](https://hub.docker.com/r/ossindex/devaudit/tags/) available.
 
 - Uses the [OSS Index API](https://ossindex.net/) which provides continuously updated vulnerabilities data.
 
@@ -46,12 +57,21 @@ software.
 
 - Audit Docker containers without DevAudit installed on containers. 
 
++++
+
+### Features: Overview III
+
+- Audit GitHub projects directly from GitHub repository.
+
+- Use GitHub,GitLab,BitBucket audit reporters for reporting audit results to issue queue.
+
+![Screenshot](https://cdn-images-1.medium.com/max/1116/1*Uj0WBK9RlS8YvN0qW-IFZQ.png)
+
 ---
 
 ### Features: Package Manager Auditing
 
 ![Screenshot of DevAudit package source audit](https://lh3.googleusercontent.com/tR98RwJops5G97vjm6-lXWHAxAhLA_pvan7qKF9wrxJttPt6C8VW9kGnruvPnUJ7q1jV2exWGH9w=w1382-h957-no)
-
 +++
 
 ### Package Manager Auditing Overview
@@ -79,7 +99,6 @@ software.
 
 ### Features: Application Server Configuration Auditing
 ![Screenshot of DevAudit configuration audit](https://lh3.googleusercontent.com/tnqX8jGJ1WW2vimXHwlKxBTOuP2bvsPVgzq92isPg0ditWoQdsDzh3_PEbMiOldinezQeSqGsQmMSaXE_2tKJ2fzGSeAH7OnNZBofZXom1U6PS8RX4jd_h5DfF1How_xwsRDIw=w812-h608-no)
-
 +++
 
 ### Application Server Configuration Auditing : Overview
@@ -92,7 +111,14 @@ software.
 
 ### Features: Application Configuration Auditing
 ![Screenshot of DevAudit ASP.NET application audit](https://lh3.googleusercontent.com/WiMC-en25YIOG5lWzPjhF6D9l3WTw5GdY_ne-LjpbQcOcaWgzg2beS3fQc1YrCVblmPo59QIZMmWk98suJjEG_CGeC1gAEfPqZbOUbm59ibTwfuxvtHSr-dwNkp8NMzl7PYHHg=w812-h608-no)
+
 +++
+
+### Application Configuration Auditing : Overview
+- Audit application configuration for vulnerabilities.
+- Supports ASP.NET applications with several more planned.
+
+
 
 ### Features: Application Code Static Analysis
 DevAudit currently supports static analysis of .NET CIL bytecode. Analyzers reside in external script files and can be fully customized based on the needs of the developer. Support for C# source code analysis via Roslyn, PHP7 source code and many more languages and external static code analysis tools is coming.
