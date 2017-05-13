@@ -118,7 +118,7 @@ software.
 - Audit application configuration for vulnerabilities.
 - Supports ASP.NET applications with several more planned.
 
-
+---
 
 ### Features: Application Code Static Analysis
 DevAudit currently supports static analysis of .NET CIL bytecode. Analyzers reside in external script files and can be fully customized based on the needs of the developer. Support for C# source code analysis via Roslyn, PHP7 source code and many more languages and external static code analysis tools is coming.
