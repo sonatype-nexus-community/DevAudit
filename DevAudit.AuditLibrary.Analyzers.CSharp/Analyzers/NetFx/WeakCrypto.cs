@@ -42,10 +42,10 @@ namespace DevAudit.AuditLibrary.Analyzers
                         this.ScriptEnvironment.Info("Type reference to SHA1CryptoServiceProvider found in module {0}", this.Module.Name);
 
                     }
-
                     foreach (MethodDefinition md in methods)
                     {
                         this.ScriptEnvironment.Debug("Method {0} returns {1}.", md.Name, md.MethodReturnType.ReturnType.Name);
+                        if (md.Body == null) continue;
                         foreach (Instruction i in md.Body.Instructions.Where(i => i.OpCode == OpCodes.Call || i.OpCode == OpCodes.Callvirt && i.Operand != null))
                         {
                             MethodReference mr = (MethodReference)i.Operand;
@@ -64,6 +64,7 @@ namespace DevAudit.AuditLibrary.Analyzers
                                 return Task.FromResult(this.AnalyzerResult);
                             }
                         }
+                        
                     }
                     return Task.FromResult(new ByteCodeAnalyzerResult()
                     {
@@ -91,6 +92,7 @@ namespace DevAudit.AuditLibrary.Analyzers
             catch (Exception e)
             {
                 ScriptEnvironment.Error(e);
+                ScriptEnvironment.Error(e.Source);
                 List<Exception> exceptions = new List<Exception> { e };
                 if (e.InnerException != null) exceptions.Add(e.InnerException);
                 return Task.FromResult(new ByteCodeAnalyzerResult()
