@@ -10,7 +10,7 @@ postgresql:
             By default postgres runs on port 5432. Most attackers will check if a server is listening on port 5432.
             If you change the port # to something different, others need to know exactly what port to use to access the server.  
         resolution: |
-            Add directives like the following to configuration file: port 9122. 
+            Add a directive like the following to the PGSQL configuration file: port 9122. 
         urls:
             -   https://www.crunchydata.com/postgres-stig/PGSQL-STIG-9.5+.pdf
 
@@ -37,23 +37,86 @@ postgresql:
             -   http://pgaudit.org
 
     -   id: 3
-        title:  Server log files must be mode 0600
+        title:  Server log files are not mode 0600
         tags:
             -   STIG/V-72847/The audit information produced by PostgreSQL must be protected from unauthorized modification.
         severity: 2
         xpathtest:  >
-            boolean(/PGSQL/Values/log_)) or 
-            not(boolean(/PGSQL/Values/pgaudit.log_level='log')) or
-            not(boolean(/PGSQL/Values/pgaudit.log_parameter='on')) or
-            not(boolean(/PGSQL/Values/pgaudit.log_statement_once='off')) or
-            not(boolean(/PGSQL/Values/pgaudit.log='all, -misc'))
+            boolean(/PGSQL/Values/log_file_mode) and 
+            not(boolean(/PGSQL/Values/log_file_mode='0600'))
         summary: |
-            Information system auditing capability is critical for accurate forensic analysis. 
-            Without information about the outcome of events, security personnel cannot make an accurate assessment as to whether an attack was successful or if changes were made to the security state of the system.
-            Event outcomes can include indicators of event success or failure and event-specific results (e.g., the security state of the information system after the event occurred). 
-            As such, they also provide a means to measure the impact of an event and help authorized personnel to determine the appropriate response.
+            If audit data were to become compromised, then competent forensic analysis and discovery of the true source of
+            potentially malicious system activity is impossible to achieve.
+            To ensure the veracity of audit data the information system and/or the application must protect audit information from unauthorized modification.
+            This requirement can be achieved through multiple methods that will depend upon system architecture and design. Some commonly employed methods
+            include ensuring log files enjoy the proper file system permissions and limiting log data locations.
         resolution: |
-            You must install and configure the pgaudit extension.
+            Set the log_file_mode directive in the PGSQL configuration file to 0600.
         urls:
             -   https://www.crunchydata.com/postgres-stig/PGSQL-STIG-9.5+.pdf
-            -   http://pgaudit.org
+            -   https://www.postgresql.org/docs/9.1/static/runtime-config-logging.html
+
+    -   id: 4
+        title:  client_min_messages is not set to error
+        tags:
+            -   STIG/V-72851/PostgreSQL must provide non-privileged users with error messages that provide information necessary for corrective actions without revealing information that could be exploited by adversaries.
+        severity: 2
+        xpathtest:  >
+            not(boolean(/PGSQL/Values/client_min_messages='error'))
+        summary: |
+            Any PostgreSQL or associated application providing too much information in error messages on the screen or printout risks compromising the data and security of the system. 
+            The structure and content of error messages need to be carefully considered by the organization and development team.
+        resolution: |
+            Set the client_min_messages directive in the PGSQL configuration file to error.
+        urls:
+            -   https://www.crunchydata.com/postgres-stig/PGSQL-STIG-9.5+.pdf
+            -   https://www.postgresql.org/docs/9.1/static/runtime-config-logging.html
+
+    -   id: 5
+        title:  client_min_messages is set to log or debug
+        tags:
+            -   STIG/V-72889/PostgreSQL must reveal detailed error messages only to the ISSO, ISSM, SA and DBA.
+        severity: 2
+        xpathtest:  >
+            boolean(/PGSQL/Values/client_min_messages='log') or
+            boolean(/PGSQL/Values/client_min_messages='debug')
+        summary: |
+            If PostgreSQL provides too much information in error logs and administrative messages to the screen, this could lead to compromise. 
+            The structure and content of error messages need to be carefully considered by the organization and development team. 
+            The extent to which the information system is able to identify and handle error conditions is guided by organizational policy and operational requirements.        
+        resolution: |
+            Set the client_min_messages directive in the PGSQL configuration file to error.
+        urls:
+            -   https://www.crunchydata.com/postgres-stig/PGSQL-STIG-9.5+.pdf
+            -   https://www.postgresql.org/docs/9.1/static/runtime-config-logging.html
+    
+    -   id: 6
+        title:  max_connections is not set
+        tags:
+            -   STIG/V-72863/PostgreSQL must limit the number of concurrent sessions to an organization-defined number per user for all accounts and/or account types.
+        severity: 2
+        xpathtest:  >
+            not(boolean(/PGSQL/Values/max_connections))
+        summary: |
+            Database management includes the ability to control the number of users and user sessions utilizing PostgreSQL. Unlimited
+            concurrent connections to PostgreSQL could allow a successful Denial of Service (DoS) attack by exhausting connection resources; and a system can
+            also fail or be degraded by an overload of legitimate users. Limiting the number of concurrent sessions per user is helpful in reducing these risks.
+        resolution: |
+            Set the max_connections directive in the PGSQL configuration file to an organization approved value.
+        urls:
+            -   https://www.crunchydata.com/postgres-stig/PGSQL-STIG-9.5+.pdf
+
+    -   id: 7
+        title:  log_timezone is not set
+        tags:
+            -   STIG/V-72887/PostgreSQL must record time stamps, in audit records and application data, that can be mapped to Coordinated Universal Time (UTC, formerly GMT)..
+        severity: 2
+        xpathtest:  >
+            not(boolean(/PGSQL/Values/log_timezone))
+        summary: |
+            Time stamps generated by PostgreSQL must include date and time. Time is commonly expressed in Coordinated Universal Time (UTC), 
+            a modern continuation of Greenwich Mean Time (GMT), or local time with an offset from UTC.        
+        resolution: |
+            Set the log_timezone directive in the PGSQL configuration file to the current timezone.
+        urls:
+            -   https://www.crunchydata.com/postgres-stig/PGSQL-STIG-9.5+.pdf

@@ -55,7 +55,7 @@ namespace DevAudit.AuditLibrary
                 {
                     process_output = process_error;
                 }
-                this.Version = process_output.Substring("postgres (PostgreSQL) ".Length);
+                this.Version = process_output.Substring("postgres (PostgreSQL) ".Length).Trim();
                 this.VersionInitialised = true;
                 this.AuditEnvironment.Success("Got {0} server version {1}.", this.ApplicationLabel, this.Version);
                 return this.Version;
