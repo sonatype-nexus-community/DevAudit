@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.Concurrent;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
@@ -60,6 +61,7 @@ namespace DevAudit.AuditLibrary
         public bool DataSourceInitialised { get; protected set; } = false;
         public Uri ApiUrl { get; protected set; }
         public Uri HttpsProxy { get; protected set; }
+        public ConcurrentDictionary<IPackage, Exception> SearchArtifactsExceptions = new ConcurrentDictionary<IPackage, Exception>();
         #endregion
 
         #region Methods

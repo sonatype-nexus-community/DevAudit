@@ -281,6 +281,8 @@
   <ItemGroup>
     <Compile Include="Analyzers\ShellCommands.cs" />
     <Compile Include="AnalyzerVulnerability.cs" />
+    <Compile Include="AuditProfile.cs" />
+    <Compile Include="AuditProfileRule.cs" />
     <Compile Include="AuditReporter.cs" />
     <Compile Include="Codecs.cs" />
     <Compile Include="DataSources\LibrariesdotIO\LibrariesdotIODataSource.cs" />
@@ -291,8 +293,8 @@
     <Compile Include="HttpDataSource.cs" />
     <Compile Include="IArtifact.cs" />
     <Compile Include="IDataSource.cs" />
-    <Compile Include="DevAuditGendarmeRunner.cs" />
-    <Compile Include="ByteCodeAnalyzer.cs" />
+    <Compile Include="Analyzers\DevAuditGendarmeRunner.cs" />
+    <Compile Include="Analyzers\ByteCodeAnalyzer.cs" />
     <Compile Include="Analyzers\NetFxAnalyzer.cs" />
     <Compile Include="Analyzers\PHPAnalyzer.cs" />
     <Compile Include="Applications\AspNetApplication.cs" />

@@ -1,0 +1,5 @@
+﻿---
+-   category: exclude
+    target: nuget
+    match_name: log4net
+

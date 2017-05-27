@@ -5,6 +5,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -33,6 +34,11 @@ namespace DevAudit.AuditLibrary
             if (this.PackageSourceOptions.ContainsKey("ListPackages"))
             {
                 this.ListPackages = true;
+            }
+
+            if (this.PackageSourceOptions.ContainsKey("WithPackageInfo"))
+            {
+                this.WithPackageInfo = true;
             }
 
             if (this.PackageSourceOptions.ContainsKey("ListArtifacts"))
@@ -170,6 +176,8 @@ namespace DevAudit.AuditLibrary
 
         public bool ListPackages { get; protected set; } = false;
 
+        public bool WithPackageInfo { get; protected set; } = false;
+
         public bool ListArtifacts { get; protected set; } = false;
 
         public bool SkipPackagesAudit { get; protected set; } = false;
@@ -298,6 +306,8 @@ namespace DevAudit.AuditLibrary
 
         public Task ArtifactsTask { get; protected set; }
 
+        public Task PackageInfoTask { get; protected set; }
+
         public Task VulnerabilitiesTask { get; protected set; }
 
         public Task EvaluateVulnerabilitiesTask { get; protected set; }
@@ -358,7 +368,9 @@ namespace DevAudit.AuditLibrary
                 this.AuditEnvironment.Error(caller, ae, "Exception thrown in {0} method in GetPackages task.", ae.InnerException.TargetSite.Name);
                 return AuditResult.ERROR_SCANNING_PACKAGES;
             }
-            
+
+            this.Packages = this.FilterPackagesUsingProfile();
+
             if (this.ListPackages || this.Packages.Count() == 0)
             {
                 this.ArtifactsTask = this.VulnerabilitiesTask = this.EvaluateVulnerabilitiesTask = Task.CompletedTask;
@@ -438,6 +450,37 @@ namespace DevAudit.AuditLibrary
             return AuditResult.SUCCESS;
         }
         
+        protected IEnumerable<OSSIndexQueryObject> FilterPackagesUsingProfile()
+        {
+            if (this.Packages == null || this.Packages.Count() == 0 || this.AuditProfile == null || this.AuditProfile.Rules == null)
+            {
+                return this.Packages;
+            }
+            else if (this.AuditProfile.Rules.Any(r => r.Category == "exclude" && r.Target == this.PackageManagerId))
+            {
+                List<OSSIndexQueryObject> packages = this.Packages.ToList();
+                List<AuditProfileRule> exclude_rules = this.AuditProfile.Rules.Where(r => r.Category == "exclude" && r.Target == this.PackageManagerId).ToList();
+                foreach (AuditProfileRule r in exclude_rules.Where(r => !string.IsNullOrEmpty(r.MatchName)))
+                {
+                    try
+                    {
+                        if (packages.Any(p => Regex.IsMatch(p.Name, r.MatchName)))
+                        {
+                            int c = packages.RemoveAll(p => Regex.IsMatch(p.Name, r.MatchName) &&
+                                (string.IsNullOrEmpty(r.MatchVersion) || (!string.IsNullOrEmpty(r.MatchVersion) && this.IsVulnerabilityVersionInPackageVersionRange(r.MatchVersion, p.Version))));
+                            AuditEnvironment.Info("Excluded {0} package(s) using audit profile rules.", c);
+
+                        }
+                    }
+                    catch (Exception e)
+                    {
+                        AuditEnvironment.Warning("Error attempting to match name {0} with a package name: {1}. Skipping rule.", r.MatchName, e.Message);
+                    }
+                }
+                return packages;
+            }
+            else return this.Packages;
+        }
         protected Tuple<int, int> GetArtifacts()
         {
             CallerInformation caller = this.AuditEnvironment.Here();
@@ -485,6 +528,13 @@ namespace DevAudit.AuditLibrary
                 this.AuditEnvironment.Warning("Found 0 artifacts on OSS Index in {0} ms.", sw.ElapsedMilliseconds);
             }
             return new Tuple<int, int>(package_count, artifact_count);
+        }
+
+        protected List<IArtifact> GetPackageInfo()
+        {
+
+            throw new NotImplementedException();
+
         }
 
         protected void GetVulnerabilties()

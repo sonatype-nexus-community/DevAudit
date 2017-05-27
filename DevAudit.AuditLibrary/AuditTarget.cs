@@ -224,7 +224,18 @@ namespace DevAudit.AuditLibrary
                 this.AuditEnvironment = new LocalEnvironment(this.AuditEnvironmentMessage);
                 this.AuditEnvironmentIntialised = true;
             }
-
+            if (this.AuditOptions.ContainsKey("Profile"))
+            {
+                AuditFileInfo pf = this.AuditEnvironment.ConstructFile((string)this.AuditOptions["Profile"]);
+                if (pf.Exists)
+                {
+                    this.AuditProfile = new AuditProfile(this.AuditEnvironment, pf);
+                }
+                else
+                {
+                    this.AuditEnvironment.Warning("The profile file {0} does not exist. No audit profile will be used.", pf.FullName);
+                }
+            }
         }
 
         private void AuditTarget_HostEnvironmentMessageHandler(object sender, EnvironmentEventArgs e)
@@ -255,6 +266,7 @@ namespace DevAudit.AuditLibrary
         #region Properties
         public string DevAuditDirectory = Path.GetDirectoryName(Assembly.GetEntryAssembly().Location);
         public Dictionary<string, object> AuditOptions { get; set; } = new Dictionary<string, object>();
+        public AuditProfile AuditProfile { get; set; }
         public bool IsDockerized { get; protected set; }
         public LocalEnvironment HostEnvironment { get; protected set; }
         public AuditEnvironment AuditEnvironment { get; protected set; }

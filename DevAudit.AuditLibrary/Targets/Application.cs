@@ -134,6 +134,14 @@ namespace DevAudit.AuditLibrary
                 }
             }
 
+            if (this.AuditProfile == null)
+            {
+                AuditFileInfo pf = this.AuditEnvironment.ConstructFile(".devaudit");
+                if (pf.Exists)
+                {
+                    this.AuditProfile = new AuditProfile(this.AuditEnvironment, pf);
+                }
+            }
             if (this.ApplicationOptions.ContainsKey("PrintConfiguration"))
             {
                 this.PrintConfiguration = true;

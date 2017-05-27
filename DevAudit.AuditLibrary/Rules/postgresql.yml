@@ -1,5 +1,5 @@
 ﻿---
-postgresql:
+postgres:
     -   id: 1
         title:  Server port is set to default (Port)
         tags:

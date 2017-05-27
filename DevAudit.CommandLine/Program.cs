@@ -67,7 +67,6 @@ namespace DevAudit.CommandLine
 
         static int Main(string[] args)
         {
-            
             FigletFont = new CC.Figlet(CC.FigletFont.Load(Path.Combine(DevAuditDirectory, "chunky.flf")));
 
             #region Setup console colors
@@ -604,6 +603,13 @@ namespace DevAudit.CommandLine
                     }
                 }
             }
+            #region Profile
+            if (!string.IsNullOrEmpty(ProgramOptions.Profile))
+            {
+                audit_options.Add("Profile", ProgramOptions.Profile);
+            }
+            #endregion
+
             #endregion
 
             PrintBanner();

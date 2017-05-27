@@ -4,7 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-
+using System.Xml.Linq;
 
 using Versatile;
 using Alpheus;
@@ -79,7 +79,6 @@ namespace DevAudit.AuditLibrary
 
         protected override IConfiguration GetConfiguration()
         {
-            
             PostgreSQL pgsql = new PostgreSQL(this.ConfigurationFile);
             if (pgsql.ParseSucceded)
             {
@@ -101,6 +100,7 @@ namespace DevAudit.AuditLibrary
                         }
                     }
                 }
+                this.Configuration.XmlConfiguration.Root.Add(new XAttribute("Version", this.Version));
             }
             else
             {
