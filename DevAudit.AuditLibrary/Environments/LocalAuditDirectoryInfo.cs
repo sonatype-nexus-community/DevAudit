@@ -72,13 +72,13 @@ namespace DevAudit.AuditLibrary
         public override IFileInfo[] GetFiles(string searchPattern)
         {
             FileInfo[] files = this.directory.GetFiles(searchPattern,SearchOption.AllDirectories);
-            return files != null ? files.Select(f => this.AuditEnvironment.ConstructFile(f.FullName)).ToArray() : null;
+            return files != null && files.Count() > 0 ? files.Select(f => this.AuditEnvironment.ConstructFile(f.FullName)).ToArray() : null;
         }
 
         public override IFileInfo[] GetFiles(string searchPattern, SearchOption searchOption)
         {
             FileInfo[] files = this.directory.GetFiles(searchPattern, searchOption);
-            return files != null ? files.Select(f => this.AuditEnvironment.ConstructFile(f.FullName)).ToArray() : null;
+            return files != null && files.Count() > 0 ? files.Select(f => this.AuditEnvironment.ConstructFile(f.FullName)).ToArray() : null;
         }
 
         public override Dictionary<AuditFileInfo, string> ReadFilesAsText(IEnumerable<AuditFileInfo> files)

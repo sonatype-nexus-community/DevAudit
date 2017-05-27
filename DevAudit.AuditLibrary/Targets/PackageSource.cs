@@ -12,6 +12,7 @@ using System.Threading.Tasks;
 using CSharpTest.Net.Collections;
 using CSharpTest.Net.Serialization;
 using Sprache;
+using Alpheus.IO;
 
 namespace DevAudit.AuditLibrary
 {
@@ -29,6 +30,15 @@ namespace DevAudit.AuditLibrary
             else
             {
                 this.PackageManagerConfigurationFile = "";
+            }
+
+            if (!string.IsNullOrEmpty(this.PackageManagerConfigurationFile))
+            {
+                AuditFileInfo cf = this.AuditEnvironment.ConstructFile(this.PackageManagerConfigurationFile);
+                AuditDirectoryInfo d = this.AuditEnvironment.ConstructDirectory(cf.DirectoryName);
+                IFileInfo[] pf;
+                if ((pf = d.GetFiles("devaudit.yaml")) != null)
+                this.AuditProfile = new AuditProfile(this.AuditEnvironment, this.AuditEnvironment.ConstructFile(pf.First().FullName));
             }
 
             if (this.PackageSourceOptions.ContainsKey("ListPackages"))
