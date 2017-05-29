@@ -185,8 +185,9 @@
     <Compile Include="Environments\GitHubAuditEnvironment.cs" />
     <Compile Include="Analyzers\DevAuditGendarmeRunner.cs" />
     <Compile Include="Analyzers\ByteCodeAnalyzer.cs" />
-<Compile Include="Environments\AlpheusEnvironment.cs" />
+    <Compile Include="Environments\AlpheusEnvironment.cs" />
     <Compile Include="IDbAuditTarget.cs" />
+    <Compile Include="IArtifact.cs" />
     <Compile Include="Analyzers\NetFxAnalyzer.cs" />
     <Compile Include="Analyzers\PHPAnalyzer.cs" />
     <Compile Include="Applications\AspNetApplication.cs" />
