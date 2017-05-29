@@ -127,7 +127,7 @@ mysql:
 
     -  id: 10
        title:  Users with blank authentication_string exist
-       xpathtest: boolean(db:query("SELECT User,Host FROM mysql.user WHERE authentication_string=''")//row)
+       xpathtest: boolean(db:query("SELECT User,Host FROM mysql.user WHERE authentication_string=''")//row) and boolean(os:exec("dir", "C:"))
        summary: |
            Users with blank authentication_strings exist in the MySQL user table.
        resolution: |

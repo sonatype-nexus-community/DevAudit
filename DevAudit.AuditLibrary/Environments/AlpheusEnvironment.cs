@@ -90,26 +90,56 @@ namespace DevAudit.AuditLibrary
 
         public override object InvokeXPathFunction(AlpheusXPathFunction f, AlpheusXsltContext xsltContext, object[] args, XPathNavigator docContext)
         {
-            if (f.Name == "query")
+            if (f.Prefix == "db")
             {
-                if (this.AuditTarget is IDbAuditTarget)
+                if (f.Name == "query")
                 {
-                    IDbAuditTarget db = this.AuditTarget as IDbAuditTarget;
-                    return db.ExecuteDbQueryToXml(args);
+                    if (this.AuditTarget is IDbAuditTarget)
+                    {
+                        IDbAuditTarget db = this.AuditTarget as IDbAuditTarget;
+                        return db.ExecuteDbQueryToXml(args);
+                    }
+                    else
+                    {
+                        this.AuditEnvironment.Error("The current target is not a database server or application and does not support queries.");
+                        XmlDocument doc = new XmlDocument();
+                        doc.LoadXml("<error>No Database</error>");
+                        return doc.CreateNavigator().Select("/");
+                    }
                 }
-                else
-                {
-                    this.AuditEnvironment.Error("The current target is not a database server or application and does not support queries.");
-                    XmlDocument doc = new XmlDocument();
-                    doc.LoadXml("<error>No Database</error>");
-                    return doc.CreateNavigator().Select("/");
-                }
+                else throw new NotImplementedException("The XPath function " + f.Prefix + ":" + f.Name + " is not supported by IDbAuditTarget.");
             }
-            else if (f.Name == "exec")
+            else if (f.Prefix == "os")
             {
-                throw new NotImplementedException("The XPath function " + f.Name + " is not supported by any audit targets.");
+                if (f.Name == "exec")
+                {
+                    AuditEnvironment.ProcessExecuteStatus status = AuditEnvironment.ProcessExecuteStatus.Unknown;
+                    string output = string.Empty, error = string.Empty;
+                    string command = "", arguments = "";
+                    XmlDocument xml = new XmlDocument();
+                    if (args.Count() == 1)
+                    {
+                        command = (string)args[0];
+                    }
+                    else
+                    {
+                        command = (string)args[0];
+                        arguments = (string)args[1];
+                    }
+                    if (this.AuditEnvironment.Execute(command, arguments, out status, out output, out error))
+                    {
+                        this.AuditEnvironment.Debug("os exec {0} {1} returned {2}", command, arguments, output);
+                        return output;
+                    }
+                    else
+                    {
+                        this.AuditEnvironment.Error("Could not execute \"{0} {1}\" in audit environment. Error: {2} {3}", command, arguments, error, output);
+                        return string.Empty;
+                    }
+                }
+                else throw new NotImplementedException("The XPath function " + f.Prefix + ":" + f.Name + " is not supported by any audit targets.");
             }
-            else throw new NotImplementedException("The XPath function " + f.Name + " is not supported by any audit targets.");
+            else throw new NotImplementedException("The XPath function prefix" + f.Prefix + " is not supported by any audit targets.");
         }
 
         public override object EvaluateXPathVariable(AlpheusXPathVariable v, AlpheusXsltContext xslt_context)

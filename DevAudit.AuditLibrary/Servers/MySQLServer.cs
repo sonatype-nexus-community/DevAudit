@@ -119,10 +119,11 @@ namespace DevAudit.AuditLibrary
         #region Methods
         public XPathNodeIterator ExecuteDbQueryToXml(object[] args)
         {
+            CallerInformation caller = this.AuditEnvironment.Here();
             XmlDocument queryXml = new XmlDocument();
             if (string.IsNullOrEmpty(this.AppUser))
             {
-                this.AuditEnvironment.Error("The MySQL user was not specified in the audit options so database queries cannot be executed.");
+                this.AuditEnvironment.Error(caller, "The MySQL user was not specified in the audit options so database queries cannot be executed.");
                 queryXml.LoadXml("<error>No User</error>");
                 return queryXml.CreateNavigator().Select("/");
             }
@@ -145,19 +146,20 @@ namespace DevAudit.AuditLibrary
             {
                 if (!output.StartsWith("ERROR"))
                 {
+                    this.AuditEnvironment.Debug(caller, "MySQL query \"{0}\" returned: {1}", mysql_query, output);
                     queryXml.LoadXml(output);
                     return queryXml.CreateNavigator().Select("/");
                 }
                 else
                 {
-                    this.AuditEnvironment.Error("Could not execute database query \"{0}\" on MySQL server. Server returned: {1}", mysql_query, output);
+                    this.AuditEnvironment.Error(caller, "Could not execute database query \"{0}\" on MySQL server. Server returned: {1}", mysql_query, output);
                     queryXml.LoadXml(string.Format("<error><![CDATA[{0}]]><error>", output));
                     return queryXml.CreateNavigator().Select("/");
                 }
             }
             else
             {
-                this.AuditEnvironment.Error("Could not execute database query \"{0}\" on MySQL server. Error: {1} {2}", mysql_query, error, output);
+                this.AuditEnvironment.Error(caller, "Could not execute database query \"{0}\" on MySQL server. Error: {1} {2}", mysql_query, error, output);
                 queryXml.LoadXml(string.Format("<error><![CDATA[{0}\n{1]]]><error>", error, output));
                 return queryXml.CreateNavigator().Select("/");
             }
