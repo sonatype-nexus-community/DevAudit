@@ -116,7 +116,7 @@ mysql:
 
     -  id: 9
        title:  Users with blank passwords exist
-       xpathtest: boolean(db:sql("SELECT user,host FROM mysql.user WHERE password=''")//row)
+       xpathtest: boolean(db:sql("SELECT User,Host FROM mysql.user WHERE Password=''")//row)
        summary: |
            Users with blank passwords exist in the MySQL user table.
        resolution: |
