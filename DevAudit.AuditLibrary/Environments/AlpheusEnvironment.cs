@@ -88,15 +88,41 @@ namespace DevAudit.AuditLibrary
             this.AuditEnvironment.Error(message_format, message);
         }
 
-        public override object InvokeXPathFunction(AlpheusXPathFunction f, XsltContext xsltContext, object[] args, XPathNavigator docContext)
+        public override object InvokeXPathFunction(AlpheusXPathFunction f, AlpheusXsltContext xsltContext, object[] args, XPathNavigator docContext)
         {
-            AlpheusXsltContext ctx = xsltContext as AlpheusXsltContext;
-            if (this.AuditTarget is IDbAuditTarget)
+            if (f.Name == "query")
             {
-                IDbAuditTarget db = this.AuditTarget as IDbAuditTarget;
-                return db.ExecuteDbQueryToXml(args);
+                if (this.AuditTarget is IDbAuditTarget)
+                {
+                    IDbAuditTarget db = this.AuditTarget as IDbAuditTarget;
+                    return db.ExecuteDbQueryToXml(args);
+                }
+                else
+                {
+                    this.AuditEnvironment.Error("The current target is not a database server or application and does not support queries.");
+                    XmlDocument doc = new XmlDocument();
+                    doc.LoadXml("<error>No Database</error>");
+                    return doc.CreateNavigator().Select("/");
+                }
             }
-            else throw new InvalidOperationException("The current audit target does not support database operations.");
+            else if (f.Name == "exec")
+            {
+                throw new NotImplementedException("The XPath function " + f.Name + " is not supported by any audit targets.");
+            }
+            else throw new NotImplementedException("The XPath function " + f.Name + " is not supported by any audit targets.");
+        }
+
+        public override object EvaluateXPathVariable(AlpheusXPathVariable v, AlpheusXsltContext xslt_context)
+        {
+            if (v.Prefix == "env")
+            {
+                return this.AuditTarget.GetEnvironmentVar((string) v.Name);
+            }
+            else
+            {
+                this.AuditEnvironment.Error("Unknown variable type: {0}:{1}", v.Prefix, v.Name);
+                return string.Empty;
+            }
         }
         #endregion
 

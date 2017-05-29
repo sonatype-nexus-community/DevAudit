@@ -116,9 +116,20 @@ mysql:
 
     -  id: 9
        title:  Users with blank passwords exist
-       xpathtest: boolean(db:sql("SELECT User,Host FROM mysql.user WHERE Password=''")//row)
+       xpathtest: boolean(db:query("SELECT User,Host FROM mysql.user WHERE Password=''")//row)
        summary: |
            Users with blank passwords exist in the MySQL user table.
+       resolution: |
+            Assign passwords to every user that exists in the mysql.user table or remove unused user accounts.
+            e.g ALTER USER 'myuser' SET PASSWORD=.... 
+       urls:
+            -   https://www.doag.org/formes/pubfiles/7535404/docs/Konferenz/2015/vortraege/MySQL/2015-K-MySQL-Carsten_Thalheimer-MySQL_Enterprise_-_Haerten_von_MySQL-Instanzen-Praesentation.pdf
+
+    -  id: 10
+       title:  Users with blank authentication_string exist
+       xpathtest: boolean(db:query("SELECT User,Host FROM mysql.user WHERE authentication_string=''")//row)
+       summary: |
+           Users with blank authentication_strings exist in the MySQL user table.
        resolution: |
             Assign passwords to every user that exists in the mysql.user table or remove unused user accounts.
             e.g ALTER USER 'myuser' SET PASSWORD=.... 
