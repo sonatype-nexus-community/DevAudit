@@ -60,7 +60,7 @@ namespace DevAudit.AuditLibrary
 
         protected override IConfiguration GetConfiguration()
         {
-            XMLConfig xml = new XMLConfig(this.ConfigurationFile);
+            XMLConfig xml = new XMLConfig(this.ConfigurationFile, this.AlpheusEnvironment);
             if (xml.ParseSucceded)
             {
                 this.Configuration = xml;

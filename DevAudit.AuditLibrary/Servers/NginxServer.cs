@@ -89,7 +89,7 @@ namespace DevAudit.AuditLibrary
 
         protected override IConfiguration GetConfiguration()
         {
-            Nginx nginx = new Nginx(this.ConfigurationFile);
+            Nginx nginx = new Nginx(this.ConfigurationFile, this.AlpheusEnvironment);
             if (nginx.ParseSucceded)
             {
                 this.Configuration = nginx;

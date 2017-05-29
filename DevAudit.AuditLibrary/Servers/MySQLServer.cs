@@ -76,7 +76,7 @@ namespace DevAudit.AuditLibrary
 
         protected override IConfiguration GetConfiguration()
         {
-            MySQL mysql = new MySQL(this.ConfigurationFile);
+            MySQL mysql = new MySQL(this.ConfigurationFile, this.AlpheusEnvironment);
             ;
             if (mysql.ParseSucceded)
             {

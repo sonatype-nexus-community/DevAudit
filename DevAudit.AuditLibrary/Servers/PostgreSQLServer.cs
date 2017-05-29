@@ -12,7 +12,7 @@ using Alpheus.IO;
 
 namespace DevAudit.AuditLibrary
 {
-    public class PostgreSQLServer : ApplicationServer
+    public class PostgreSQLServer : ApplicationServer, IDbAuditTarget
     {
         #region Constructors
         public PostgreSQLServer(Dictionary<string, object> server_options, EventHandler<EnvironmentEventArgs> message_handler) : base(server_options, 
@@ -79,7 +79,7 @@ namespace DevAudit.AuditLibrary
 
         protected override IConfiguration GetConfiguration()
         {
-            PostgreSQL pgsql = new PostgreSQL(this.ConfigurationFile);
+            PostgreSQL pgsql = new PostgreSQL(this.ConfigurationFile, this.AlpheusEnvironment);
             if (pgsql.ParseSucceded)
             {
                 this.Configuration = pgsql;
@@ -133,6 +133,11 @@ namespace DevAudit.AuditLibrary
                 throw new Exception(message);
             }
             else return r;
+        }
+
+        public string ExecuteDbQuery(object[] args)
+        {
+            throw new NotImplementedException();
         }
         #endregion
     }

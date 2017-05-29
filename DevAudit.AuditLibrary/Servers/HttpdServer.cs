@@ -57,7 +57,7 @@ namespace DevAudit.AuditLibrary
         {
             if (this.Configuration == null)
             { 
-                Httpd httpd = new Httpd(this.ConfigurationFile);
+                Httpd httpd = new Httpd(this.ConfigurationFile, this.AlpheusEnvironment);
                 if (httpd.ParseSucceded)
                 {
                     this.Configuration = httpd;

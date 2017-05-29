@@ -238,7 +238,7 @@ namespace DevAudit.AuditLibrary
             if (this.AppConfig == null) return null;//throw new InvalidOperationException("The application configuration file was not specified.");
             Stopwatch sw = new Stopwatch();
             sw.Start();
-            XMLConfig config = new XMLConfig(this.AppConfig);
+            XMLConfig config = new XMLConfig(this.AppConfig, this.AlpheusEnvironment);
             if (config.ParseSucceded)
             {
                 this.Configuration = config;

@@ -98,7 +98,7 @@ namespace DevAudit.AuditLibrary
             this.AuditEnvironment.Status("Scanning {0} configuration.", this.ApplicationLabel);
             Stopwatch sw = new Stopwatch();
             sw.Start();
-            SSHD sshd = new SSHD(this.ConfigurationFile);
+            SSHD sshd = new SSHD(this.ConfigurationFile, this.AlpheusEnvironment);
             sw.Stop();
             if (sshd.ParseSucceded)
             {

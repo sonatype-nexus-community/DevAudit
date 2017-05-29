@@ -236,6 +236,7 @@ namespace DevAudit.AuditLibrary
                     this.AuditEnvironment.Warning("The profile file {0} does not exist. No audit profile will be used.", pf.FullName);
                 }
             }
+            this.AlpheusEnvironment = new AlEnvironment(this);
         }
 
         private void AuditTarget_HostEnvironmentMessageHandler(object sender, EnvironmentEventArgs e)
@@ -270,6 +271,7 @@ namespace DevAudit.AuditLibrary
         public bool IsDockerized { get; protected set; }
         public LocalEnvironment HostEnvironment { get; protected set; }
         public AuditEnvironment AuditEnvironment { get; protected set; }
+        public AlEnvironment AlpheusEnvironment { get; protected set; }
         public bool HostEnvironmentInitialised { get; private set; } = false;
         public bool AuditEnvironmentIntialised { get; private set; } = false;
         public bool UseAsyncMethods { get; private set; } = false;                

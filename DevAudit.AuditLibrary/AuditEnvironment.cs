@@ -109,7 +109,7 @@ namespace DevAudit.AuditLibrary
         protected abstract TraceSource TraceSource { get; set; }
         #endregion
 
-        #region Public properties
+        #region Properties
         public bool IsWindows
         {
             get
@@ -163,46 +163,21 @@ namespace DevAudit.AuditLibrary
         public LocalEnvironment HostEnvironment { get; protected set; }
     
         public DirectoryInfo WorkDirectory { get; protected set; }
+
+        protected StringBuilder ProcessOutputSB = new StringBuilder();
+
+        protected StringBuilder ProcessErrorSB = new StringBuilder();
+
+        internal string LineTerminator { get; set; }
+
         #endregion
 
-        #region Public methods
+        #region Methods
         public string GetTimestamp ()
         {
             return (DateTime.UtcNow.Subtract(new DateTime(1970, 1, 1))).TotalSeconds.ToString();
         }
 
-        #endregion
-
-        #region Constructors
-        public AuditEnvironment(EventHandler<EnvironmentEventArgs> message_handler, OperatingSystem os, LocalEnvironment host_environment)
-        {
-            this.OS = os;
-            if (OS.Platform == PlatformID.Win32NT)
-            {
-                this.LineTerminator = "\r\n";
-                this.PathSeparator = "\\";
-            }
-            else
-            {
-                this.LineTerminator = "\n";
-                this.PathSeparator = "/";
-            }
-            this.MessageHandler = message_handler;
-            this.HostEnvironment = host_environment;
-        }
-        #endregion
-
-        #region Protected properties
-        protected StringBuilder ProcessOutputSB = new StringBuilder();
-        protected StringBuilder ProcessErrorSB = new StringBuilder();
-        //protected Stopwatch Stopwatch { get; } = new Stopwatch();
-        #endregion
-
-        #region Protected fields
-        protected object message_lock = new object();
-        #endregion
-
-        #region Internal methods
         internal void Message(EventMessageType message_type, string message_format, params object[] message)
         {
             OnMessage(new EnvironmentEventArgs(message_type, message_format, message));
@@ -221,7 +196,7 @@ namespace DevAudit.AuditLibrary
         }
 
         internal void Error(CallerInformation caller, string message_format, params object[] message)
-        {   
+        {
             OnMessage(new EnvironmentEventArgs(caller, EventMessageType.ERROR, message_format, message));
         }
 
@@ -315,10 +290,30 @@ namespace DevAudit.AuditLibrary
             c.LineNumber = lineNumber;
             return c;
         }
+
         #endregion
 
-        #region Internal properties
-        internal string LineTerminator { get; set; }
+        #region Constructors
+        public AuditEnvironment(EventHandler<EnvironmentEventArgs> message_handler, OperatingSystem os, LocalEnvironment host_environment)
+        {
+            this.OS = os;
+            if (OS.Platform == PlatformID.Win32NT)
+            {
+                this.LineTerminator = "\r\n";
+                this.PathSeparator = "\\";
+            }
+            else
+            {
+                this.LineTerminator = "\n";
+                this.PathSeparator = "/";
+            }
+            this.MessageHandler = message_handler;
+            this.HostEnvironment = host_environment;
+        }
+        #endregion
+
+        #region Fields
+        protected object message_lock = new object();
         #endregion
 
         #region Disposer and Finalizer
