@@ -55,8 +55,8 @@
     <Reference Include="Microsoft.Build.Engine" />
     <Reference Include="Microsoft.Build.Framework" />
     <Reference Include="System.ComponentModel.Composition" />
-    <Reference Include="Alpheus.Core, Version=0.2.2.0, Culture=neutral, PublicKeyToken=null">
-      <HintPath>..\packages\Alpheus.0.2.2-beta\lib\net45\Alpheus.Core.dll</HintPath>
+    <Reference Include="Alpheus.Core, Version=0.3.1.0, Culture=neutral, PublicKeyToken=null">
+      <HintPath>..\packages\Alpheus.0.3.1-beta\lib\net45\Alpheus.Core.dll</HintPath>
     </Reference>
     <Reference Include="CSharpTest.Net.BPlusTree, Version=2.14.126.467, Culture=neutral, PublicKeyToken=06aee00cce822474">
       <HintPath>..\packages\CSharpTest.Net.BPlusTree.2.14.126.467\lib\net45\CSharpTest.Net.BPlusTree.dll</HintPath>
@@ -177,12 +177,16 @@
     <None Include="packages.config" />
 </ItemGroup>
   <ItemGroup>
+    <Compile Include="AuditProfile.cs" />
+    <Compile Include="AuditProfileRule.cs" />
     <Compile Include="AuditReporter.cs" />
     <Compile Include="Codecs.cs" />
     <Compile Include="Environments\GitLabAuditEnvironment.cs" />
     <Compile Include="Environments\GitHubAuditEnvironment.cs" />
-    <Compile Include="DevAuditGendarmeRunner.cs" />
-    <Compile Include="ByteCodeAnalyzer.cs" />
+    <Compile Include="Analyzers\DevAuditGendarmeRunner.cs" />
+    <Compile Include="Analyzers\ByteCodeAnalyzer.cs" />
+<Compile Include="Environments\AlpheusEnvironment.cs" />
+    <Compile Include="IDbAuditTarget.cs" />
     <Compile Include="Analyzers\NetFxAnalyzer.cs" />
     <Compile Include="Analyzers\PHPAnalyzer.cs" />
     <Compile Include="Applications\AspNetApplication.cs" />

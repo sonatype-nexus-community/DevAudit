@@ -279,8 +279,6 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Analyzers\ShellCommands.cs" />
-    <Compile Include="AnalyzerVulnerability.cs" />
     <Compile Include="AuditProfile.cs" />
     <Compile Include="AuditProfileRule.cs" />
     <Compile Include="AuditReporter.cs" />
@@ -310,7 +308,6 @@
     <Compile Include="DataSources\OSSIndex\Models\OSSIndexApiv2Result.cs" />
     <Compile Include="DataSources\OSSIndex\Models\OSSIndexApiv2Vulnerability.cs" />
     <Compile Include="IPackage.cs" />
-    <Compile Include="IShellCommandAuditTarget.cs" />
     <Compile Include="IVulnerability.cs" />
     <Compile Include="LocalDataSource.cs" />
     <Compile Include="Projects\Drupal8ModuleCodeProject.cs" />
