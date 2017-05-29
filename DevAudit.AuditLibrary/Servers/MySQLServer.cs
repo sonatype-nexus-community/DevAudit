@@ -5,12 +5,15 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Xml;
+using System.Xml.XPath;
+
 
 using Alpheus;
 
 namespace DevAudit.AuditLibrary
 {
-    public class MySQLServer : ApplicationServer
+    public class MySQLServer : ApplicationServer, IDbAuditTarget
     {
         #region Constructors
         public MySQLServer(Dictionary<string, object> server_options, EventHandler<EnvironmentEventArgs> message_handler) : base(server_options, 
@@ -110,6 +113,53 @@ namespace DevAudit.AuditLibrary
         public override bool IsVulnerabilityVersionInPackageVersionRange(string vulnerability_version, string package_version)
         {
             return vulnerability_version == package_version;
+        }
+        #endregion
+
+        #region Methods
+        public XPathNodeIterator ExecuteDbQueryToXml(object[] args)
+        {
+            XmlDocument queryXml = new XmlDocument();
+            if (string.IsNullOrEmpty(this.AppUser))
+            {
+                this.AuditEnvironment.Error("The MySQL user was not specified in the audit options so database queries cannot be executed.");
+                queryXml.LoadXml("<error>No User</error>");
+                return queryXml.CreateNavigator().Select("/");
+            }
+            string mysql_query;
+            string mysql_db;
+            if (args.Count() == 1)
+            {
+                mysql_query = (string)args[0];
+            }
+            else
+            {
+                mysql_db = (string)args[0];
+                mysql_query = (string)args[1];
+            }
+            AuditEnvironment.ProcessExecuteStatus status = AuditEnvironment.ProcessExecuteStatus.Unknown;
+            string output = string.Empty, error = string.Empty;
+            string mysql_args = string.Format("--user={0}\t--password={1}\t-X\t--execute={2}", this.AppUser, this.AppPass, mysql_query);
+            if (this.AuditEnvironment.Execute("mysql", mysql_args, out status, out output, out error))
+            {
+                if (!output.StartsWith("ERROR"))
+                {
+                    queryXml.LoadXml(output);
+                    return queryXml.CreateNavigator().Select("/");
+                }
+                else
+                {
+                    this.AuditEnvironment.Error("Could not execute database query \"{0}\" on MySQL server. Server returned: {1}", mysql_query, output);
+                    queryXml.LoadXml(string.Format("<error><![CDATA[{0}]]><error>", output));
+                    return queryXml.CreateNavigator().Select("/");
+                }
+            }
+            else
+            {
+                this.AuditEnvironment.Error("Could not execute database query \"{0}\" on MySQL server. Error: {1} {2}", mysql_query, error, output);
+                queryXml.LoadXml(string.Format("<error><![CDATA[{0}\n{1]]]><error>", error, output));
+                return queryXml.CreateNavigator().Select("/");
+            }
         }
         #endregion
     }

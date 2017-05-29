@@ -162,6 +162,26 @@ namespace DevAudit.AuditLibrary
                 this.AppDevMode = true;
             }
 
+            if ((this.ApplicationOptions.ContainsKey("OSUser")))
+            {
+                this.OSUser = (string)this.ApplicationOptions["OSUser"];
+            }
+
+            if ((this.ApplicationOptions.ContainsKey("OSPass")))
+            {
+                this.OSPass = (string)this.ApplicationOptions["OSPass"];
+            }
+
+            if ((this.ApplicationOptions.ContainsKey("AppUser")))
+            {
+                this.AppUser = (string)this.ApplicationOptions["AppUser"];
+            }
+
+            if ((this.ApplicationOptions.ContainsKey("AppPass")))
+            {
+                this.AppPass = (string)this.ApplicationOptions["AppPass"];
+            }
+
         }
 
         public Application(Dictionary<string, object> application_options, Dictionary<string, string[]> RequiredFileLocationPaths, Dictionary<string, string[]> RequiredDirectoryLocationPaths, string analyzer_type, EventHandler<EnvironmentEventArgs> message_handler) : 
@@ -331,6 +351,14 @@ namespace DevAudit.AuditLibrary
         public bool OnlyLocalRules { get; protected set; } = false;
 
         public bool AppDevMode { get; protected set; }
+
+        public string OSUser { get; protected set; }
+
+        public string OSPass { get; protected set; }
+
+        public string AppUser { get; protected set; }
+
+        public string AppPass { get; protected set; }
 
         #endregion
 

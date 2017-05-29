@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Xml.XPath;
 using System.Xml.Linq;
 
 using Versatile;
@@ -120,8 +121,14 @@ namespace DevAudit.AuditLibrary
         
         public override IEnumerable<OSSIndexQueryObject> GetPackages(params string[] o)
         {
-            if (!this.ModulesInitialised) throw new InvalidOperationException("Modules must be initialised before GetPackages is called.");
-            return this.GetModules()["postgres"];
+            if (!this.ModulesInitialised)
+            {
+                throw new InvalidOperationException("Modules must be initialised before GetPackages is called.");
+            }
+            else
+            {
+                return this.GetModules()["postgres"];
+            }
         }
 
         public override bool IsVulnerabilityVersionInPackageVersionRange(string vulnerability_version, string package_version)
@@ -135,7 +142,7 @@ namespace DevAudit.AuditLibrary
             else return r;
         }
 
-        public string ExecuteDbQuery(object[] args)
+        public XPathNodeIterator ExecuteDbQueryToXml(object[] args)
         {
             throw new NotImplementedException();
         }

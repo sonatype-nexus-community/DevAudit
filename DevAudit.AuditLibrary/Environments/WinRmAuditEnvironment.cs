@@ -76,7 +76,7 @@ namespace DevAudit.AuditLibrary
             process_error = string.Empty;
             try
             {
-                process_output = this.Manager.RunCmd(command, arguments.Split(' ').ToList());
+                process_output = this.Manager.RunCmd(command, arguments.Split('\t').ToList());
                 process_status = ProcessExecuteStatus.Completed;
                 return true;
             }

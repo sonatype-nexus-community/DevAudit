@@ -202,7 +202,7 @@ namespace DevAudit.CommandLine
         public static Dictionary<string, object> Parse(string o)
         {
             Dictionary<string, object> audit_options = new Dictionary<string, object>();
-            Regex re = new Regex(@"(\w+)\=([A-Za-z0-9_\-\\\/\.\:\+@]+)", RegexOptions.Compiled);
+            Regex re = new Regex(@"(\w+)\=([^\,]+)", RegexOptions.Compiled);
             string [] pairs = o.Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
             foreach (string s in pairs)
             {

@@ -94,11 +94,7 @@ namespace DevAudit.AuditLibrary
             if (this.AuditTarget is IDbAuditTarget)
             {
                 IDbAuditTarget db = this.AuditTarget as IDbAuditTarget;
-                string r = db.ExecuteDbQuery(args);
-                XmlDocument doc = new XmlDocument();
-                doc.PreserveWhitespace = true;
-                doc.LoadXml("<root>" + r + "</root>");
-                return doc.CreateNavigator().Select("/root");
+                return db.ExecuteDbQueryToXml(args);
             }
             else throw new InvalidOperationException("The current audit target does not support database operations.");
         }

@@ -113,3 +113,14 @@ mysql:
             symbolic-links=0
        urls:
             -   https://www.doag.org/formes/pubfiles/7535404/docs/Konferenz/2015/vortraege/MySQL/2015-K-MySQL-Carsten_Thalheimer-MySQL_Enterprise_-_Haerten_von_MySQL-Instanzen-Praesentation.pdf
+
+    -  id: 9
+       title:  Users with blank passwords exist
+       xpathtest: boolean(db:sql("SELECT user,host FROM mysql.user WHERE password=''")//row)
+       summary: |
+           Users with blank passwords exist in the MySQL user table.
+       resolution: |
+            Assign passwords to every user that exists in the mysql.user table or remove unused user accounts.
+            e.g ALTER USER 'myuser' SET PASSWORD=.... 
+       urls:
+            -   https://www.doag.org/formes/pubfiles/7535404/docs/Konferenz/2015/vortraege/MySQL/2015-K-MySQL-Carsten_Thalheimer-MySQL_Enterprise_-_Haerten_von_MySQL-Instanzen-Praesentation.pdf

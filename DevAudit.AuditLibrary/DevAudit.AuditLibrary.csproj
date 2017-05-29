@@ -310,6 +310,7 @@
     <Compile Include="DataSources\OSSIndex\Models\OSSIndexApiv2Result.cs" />
     <Compile Include="DataSources\OSSIndex\Models\OSSIndexApiv2Vulnerability.cs" />
     <Compile Include="IPackage.cs" />
+    <Compile Include="IShellCommandAuditTarget.cs" />
     <Compile Include="IVulnerability.cs" />
     <Compile Include="LocalDataSource.cs" />
     <Compile Include="Projects\Drupal8ModuleCodeProject.cs" />
