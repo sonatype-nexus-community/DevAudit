@@ -27,6 +27,9 @@ namespace DevAudit.CommandLine
         [VerbOption("bower", HelpText = "Audit Bower packages. Use the --file option to specify a particular bower.json file otherwise the one in the current directory will be used.")]
         public Options AuditBower { get; set; }
 
+        [VerbOption("yarn", HelpText = "Audit Yarn packages. Use the --file option to specify a particular package.json file otherwise the one in the current directory will be used.")]
+        public Options AuditYarn { get; set; }
+
         [VerbOption("oneget", HelpText = "Audit OneGet packages on Windows. Packages are scanned from the system OneGet repository.")]
         public Options AuditOneGet { get; set; }
 

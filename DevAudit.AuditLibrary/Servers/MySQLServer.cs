@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 using System.Xml;
 using System.Xml.XPath;
 
-
+using Versatile;
 using Alpheus;
 
 namespace DevAudit.AuditLibrary
@@ -66,7 +66,8 @@ namespace DevAudit.AuditLibrary
             sw.Stop();
             if (process_status == AuditEnvironment.ProcessExecuteStatus.Completed)
             {
-                this.Version = process_output.Substring(process_output.IndexOf("Ver") + 4);
+                string v0 = process_output.Substring(process_output.IndexOf("Ver") + 4);
+                this.Version = v0.Substring(0, v0.IndexOf(" "));
                 this.VersionInitialised = true;
                 this.AuditEnvironment.Success("Got {0} version {1} in {2} ms.", this.ApplicationLabel, this.Version, sw.ElapsedMilliseconds);
                 return this.Version;
@@ -112,7 +113,13 @@ namespace DevAudit.AuditLibrary
 
         public override bool IsVulnerabilityVersionInPackageVersionRange(string vulnerability_version, string package_version)
         {
-            return vulnerability_version == package_version;
+            string message = "";
+            bool r = NuGetv2.RangeIntersect(vulnerability_version, package_version, out message);
+            if (!r && !string.IsNullOrEmpty(message))
+            {
+                throw new Exception(message);
+            }
+            else return r;
         }
         #endregion
 

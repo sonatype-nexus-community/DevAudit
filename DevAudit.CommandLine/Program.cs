@@ -638,6 +638,10 @@ namespace DevAudit.CommandLine
                     {
                         Source = new BowerPackageSource(audit_options, EnvironmentMessageHandler);
                     }
+                    else if (verb == "yarn")
+                    {
+                        Source = new YarnPackageSource(audit_options, EnvironmentMessageHandler);
+                    }
                     else if (verb == "oneget")
                     {
                         Source = new OneGetPackageSource(audit_options, EnvironmentMessageHandler);

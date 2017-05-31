@@ -12,10 +12,23 @@ namespace DevAudit.AuditLibrary
 {
     public class BowerPackageSource : PackageSource
     {
+        #region Constructors
+        public BowerPackageSource(Dictionary<string, object> package_source_options, EventHandler<EnvironmentEventArgs> message_handler = null) : base(package_source_options, message_handler)
+        {
+            if (string.IsNullOrEmpty(this.PackageManagerConfigurationFile))
+            {
+                this.PackageManagerConfigurationFile = @"bower.json";
+            }
+        }
+        #endregion
+
+        #region Overriden properties
         public override string PackageManagerId { get { return "bower"; } }
 
         public override string PackageManagerLabel { get { return "Bower"; } }
+        #endregion
 
+        #region Overriden methods
         //Get bower packages from reading bower.json
         public override IEnumerable<OSSIndexQueryObject> GetPackages(params string[] o)
         {
@@ -45,13 +58,6 @@ namespace DevAudit.AuditLibrary
             }
             else return r;
         }
-
-        public BowerPackageSource(Dictionary<string, object> package_source_options, EventHandler<EnvironmentEventArgs> message_handler = null) : base(package_source_options, message_handler)
-        {
-            if (string.IsNullOrEmpty(this.PackageManagerConfigurationFile))
-            {
-                this.PackageManagerConfigurationFile = @"bower.json";
-            }
-        }
+        #endregion
     }
 }
