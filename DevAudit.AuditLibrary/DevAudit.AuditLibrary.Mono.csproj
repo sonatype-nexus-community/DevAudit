@@ -246,6 +246,7 @@
     <Compile Include="PackageSource\MSIPackageSource.cs" />
     <Compile Include="PackageSource\NuGetPackageSource.cs" />
     <Compile Include="PackageSource\OneGetPackageSource.cs" />
+    <Compile Include="PackageSources\YarnPackageSource.cs" />    
     <Compile Include="ProjectVulnerabilitiesCacheItem.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Targets\ApplicationServer.cs" />
