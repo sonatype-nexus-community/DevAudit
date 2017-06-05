@@ -226,7 +226,7 @@ namespace DevAudit.AuditLibrary
             }
             else
             {
-                Error("Executing commands as a different operating system user is not supported on local Unix environments. Use the su command to run DevAudit as the required operating system user.");
+                Error("Executing commands as a different operating system user in the local environment is not suppported on *nix. Use the su command to run DevAudit as the required operating system user.");
                 process_error = string.Empty;
                 process_output = string.Empty;
                 process_status = ProcessExecuteStatus.Error;
