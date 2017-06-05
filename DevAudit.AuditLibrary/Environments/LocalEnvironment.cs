@@ -155,6 +155,7 @@ namespace DevAudit.AuditLibrary
                 psi.CreateNoWindow = true;
                 psi.RedirectStandardError = true;
                 psi.RedirectStandardOutput = true;
+                psi.RedirectStandardInput = true;
                 psi.UseShellExecute = false;
                 if (cf.Exists)
                 {
@@ -225,13 +226,20 @@ namespace DevAudit.AuditLibrary
             }
             else
             {
+                Error("Executing commands as a different operating system user is not supported on local Unix environments. Use the su command to run DevAudit as the required operating system user.");
+                process_error = string.Empty;
+                process_output = string.Empty;
+                process_status = ProcessExecuteStatus.Error;
+                return false;
+                /*
                 string args = string.Format("-c \"echo CMD_START && {0} {1} && echo CMD_SUCCESS || echo CMD_ERROR\" {2} || echo CMD_ERROR", command, arguments, user);
                 ProcessStartInfo psi = new ProcessStartInfo("su");
                 psi.Arguments = args;
                 psi.CreateNoWindow = true;
-                psi.RedirectStandardError = false;
-                psi.RedirectStandardOutput = false;
-                psi.UseShellExecute = true;
+                psi.RedirectStandardError = true;
+                psi.RedirectStandardOutput = true;
+                psi.RedirectStandardInput = true;
+                psi.UseShellExecute = false;
                 Process p = new Process();
                 p.EnableRaisingEvents = false;
                 p.StartInfo = psi;
@@ -271,35 +279,35 @@ namespace DevAudit.AuditLibrary
                     process_error = string.Empty;
                     return false;
                 }
-            }
-            /*
-            CallerInformation caller = new CallerInformation(memberName, fileName, lineNumber);
-            List<string> args = arguments.Split('\t').ToList();
-            string cmd = command;
-            foreach (string a in args)
-            {
-                cmd += " \"" + a + "\"";
-            }
-            cmd = "\"" + cmd + "\"";
-            string shell_uri = "http://schemas.microsoft.com/powershell/Microsoft.PowerShell";
-            ICollection<PSObject> result = null;
-            PSCredential credential = new PSCredential(user, pass);
-            WSManConnectionInfo ci = new WSManConnectionInfo() { Credential = credential };
-            using (Runspace r = RunspaceFactory.CreateRunspace(ci))
-            {
-                r.Open();
-                using (PowerShell ps = PowerShell.Create())
+            }*/
+                /*
+                CallerInformation caller = new CallerInformation(memberName, fileName, lineNumber);
+                List<string> args = arguments.Split('\t').ToList();
+                string cmd = command;
+                foreach (string a in args)
                 {
-                    ps.Runspace = r;
-                    ps.AddCommand("cmd.exe");
-                    ps.AddParameter("/c", cmd);
-                    result = ps.Invoke();
-
+                    cmd += " \"" + a + "\"";
                 }
+                cmd = "\"" + cmd + "\"";
+                string shell_uri = "http://schemas.microsoft.com/powershell/Microsoft.PowerShell";
+                ICollection<PSObject> result = null;
+                PSCredential credential = new PSCredential(user, pass);
+                WSManConnectionInfo ci = new WSManConnectionInfo() { Credential = credential };
+                using (Runspace r = RunspaceFactory.CreateRunspace(ci))
+                {
+                    r.Open();
+                    using (PowerShell ps = PowerShell.Create())
+                    {
+                        ps.Runspace = r;
+                        ps.AddCommand("cmd.exe");
+                        ps.AddParameter("/c", cmd);
+                        result = ps.Invoke();
+
+                    }
+                }
+                */
+
             }
-            */
-
-
 
         }
         public override Dictionary<AuditFileInfo, string> ReadFilesAsText(List<AuditFileInfo> files)
