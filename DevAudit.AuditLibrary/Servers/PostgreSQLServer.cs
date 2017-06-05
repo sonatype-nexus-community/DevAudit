@@ -2,8 +2,10 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Net;
 using System.Text;
 using System.Threading.Tasks;
+using System.Xml;
 using System.Xml.XPath;
 using System.Xml.Linq;
 
@@ -144,7 +146,97 @@ namespace DevAudit.AuditLibrary
 
         public XPathNodeIterator ExecuteDbQueryToXml(object[] args)
         {
-            throw new NotImplementedException();
+            CallerInformation caller = this.AuditEnvironment.Here();
+            XmlDocument queryXml = new XmlDocument();
+            bool execute_as_os_user = !string.IsNullOrEmpty(this.OSUser);
+            bool execute_as_app_user = !string.IsNullOrEmpty(this.AppUser);
+            string pgsql_query;
+            string pgsql_db = string.Empty;
+            if (args.Count() == 1)
+            {
+                pgsql_query = (string)args[0];
+            }
+            else
+            {
+                pgsql_db = (string)args[0];
+                pgsql_query = (string)args[1];
+            }
+            AuditEnvironment.ProcessExecuteStatus status = AuditEnvironment.ProcessExecuteStatus.Unknown;
+            string output = string.Empty, error = string.Empty;
+            string pgsql_cmd, pgsql_args;
+            if (!execute_as_app_user)
+            {
+                pgsql_cmd = "psql";
+                if (string.IsNullOrEmpty(pgsql_db))
+                {
+                    pgsql_args = string.Format("-H -c '{0}'", pgsql_query);
+                }
+                else
+                {
+                    pgsql_args = string.Format("-H -d {0} -c '{1}'", pgsql_db, pgsql_query);
+                }
+            }
+            else
+            {
+                pgsql_cmd = string.Format("PGPASS={0} psql", this.AppUser);
+                if (string.IsNullOrEmpty(pgsql_db))
+                {
+                    pgsql_args = string.Format("-U {0} -w -H -c '{1}'", this.AppUser, pgsql_query);
+                }
+                else
+                {
+                    pgsql_args = string.Format("-U {0} -w -H -d {1} -c '{2}'", this.AppUser, pgsql_db, pgsql_query);
+                }
+
+            }
+
+            bool result = execute_as_os_user ? this.AuditEnvironment.ExecuteAsUser(pgsql_cmd, pgsql_args, out status, out output, out error, this.OSUser, this.OSPass) 
+                : this.AuditEnvironment.Execute(pgsql_cmd, pgsql_args, out status, out output, out error);
+
+            if (result)
+            {
+                if (!output.StartsWith("ERROR"))
+                {
+                    this.AuditEnvironment.Debug(caller, "PGSQL query \"{0}\" returned: {1}", pgsql_query, output);
+                    return ConvertPGSQLHtml("<root>" + output + "</root>").CreateNavigator().Select("/");
+                }
+                else
+                {
+                    this.AuditEnvironment.Error(caller, "Could not execute database query \"{0}\" on PGSQL server. Server returned: {1}", pgsql_query, output);
+                    queryXml.LoadXml(string.Format("<error><![CDATA[{0}]]><error>", output));
+                    return queryXml.CreateNavigator().Select("/");
+                }
+            }
+            else
+            {
+                this.AuditEnvironment.Error(caller, "Could not execute command {0} {1}. Error: {2} {3}", pgsql_cmd, pgsql_query, error, output);
+                queryXml.LoadXml(string.Format("<error><![CDATA[{0}\n{1]]]><error>", error, output));
+
+                return queryXml.CreateNavigator().Select("/");
+            }
+        }
+
+        protected XDocument ConvertPGSQLHtml(string html)
+        {
+            XDocument h = XDocument.Parse(WebUtility.HtmlDecode(html));
+            XDocument x = XDocument.Parse("<resultSet></resultSet>");
+            List<string> field_names = h.Root.Element("table").Elements("tr").First()
+                .Elements("th").Select(e => e.Value).ToList();
+            foreach (XElement e in h.Root.Element("table").Elements("tr").Skip(1))
+            {
+                XElement row = new XElement("row");
+                List<XElement> field_values = e.Elements("td").ToList();
+                for  (int i = 0; i < field_values.Count; i++)
+                {
+                    XElement field = new XElement("field", field_values[i].Value);
+                    field.Add(new XAttribute("name", field_names[i]));
+                    row.Add(field);
+                }
+
+                x.Root.Add(row);
+            }
+                
+            return x;
         }
         #endregion
     }

@@ -3,7 +3,9 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using System.Linq;
+using System.Security;
 using System.Security.AccessControl;
 using System.Text;
 using System.Threading.Tasks;
@@ -103,6 +105,8 @@ namespace DevAudit.AuditLibrary
         public abstract bool DirectoryExists(string dir_path);
         public abstract bool Execute(string command, string arguments,
             out ProcessExecuteStatus process_status, out string process_output, out string process_error, Action<string> OutputDataReceived = null, Action<string> OutputErrorReceived = null, [CallerMemberName] string memberName = "", [CallerFilePath] string fileName = "", [CallerLineNumber] int lineNumber = 0);
+        public abstract bool ExecuteAsUser(string command, string arguments,
+            out ProcessExecuteStatus process_status, out string process_output, out string process_error, string user, SecureString password, Action<string> OutputDataReceived = null, Action<string> OutputErrorReceived = null, [CallerMemberName] string memberName = "", [CallerFilePath] string fileName = "", [CallerLineNumber] int lineNumber = 0);
         public abstract AuditFileInfo ConstructFile(string file_path);
         public abstract AuditDirectoryInfo ConstructDirectory(string dir_path);
         public abstract Dictionary<AuditFileInfo, string> ReadFilesAsText(List<AuditFileInfo> files);
@@ -176,6 +180,34 @@ namespace DevAudit.AuditLibrary
         public string GetTimestamp ()
         {
             return (DateTime.UtcNow.Subtract(new DateTime(1970, 1, 1))).TotalSeconds.ToString();
+        }
+
+        public SecureString ToSecureString(string s)
+        {
+            SecureString r = new SecureString();
+            foreach (char c in s)
+            {
+                r.AppendChar(c);
+            }
+            r.MakeReadOnly();
+            return r;
+        }
+
+        public string ToInsecureString(object o)
+        {
+            SecureString s = o as SecureString;
+            if (s == null) throw new ArgumentException("Object is not of type SecureString.", "o");
+            string r = string.Empty;
+            IntPtr ptr = Marshal.SecureStringToBSTR(s);
+            try
+            {
+                r = Marshal.PtrToStringBSTR(ptr);
+            }
+            finally
+            {
+                Marshal.ZeroFreeBSTR(ptr);
+            }
+            return r;
         }
 
         internal void Message(EventMessageType message_type, string message_format, params object[] message)

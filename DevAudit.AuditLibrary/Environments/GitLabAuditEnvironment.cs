@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using System.Security;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -14,6 +15,7 @@ namespace DevAudit.AuditLibrary
 {
     public class GitLabAuditEnvironment : AuditEnvironment
     {
+        #region Constructors
         public GitLabAuditEnvironment(EventHandler<EnvironmentEventArgs> message_handler, string api_token, string host_url, string project_name, string repository_branch, LocalEnvironment host_environment) 
             : base(message_handler, new OperatingSystem(PlatformID.Unix, new Version(0, 0)), host_environment)
         {
@@ -68,6 +70,7 @@ namespace DevAudit.AuditLibrary
             
             this.RepositoryInitialised = true;
         }
+        #endregion
 
         #region Overriden properties
         protected override TraceSource TraceSource { get; set; } = new TraceSource("SshAuditEnvironment");
@@ -75,6 +78,11 @@ namespace DevAudit.AuditLibrary
 
         #region Overriden methods
         public override bool Execute(string command, string arguments, out ProcessExecuteStatus process_status, out string process_output, out string process_error, Action<string> OutputDataReceived = null, Action<string> OutputErrorReceived = null, [CallerMemberName] string memberName = "", [CallerFilePath] string fileName = "", [CallerLineNumber] int lineNumber = 0)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override bool ExecuteAsUser(string command, string arguments, out ProcessExecuteStatus process_status, out string process_output, out string process_error, string user, SecureString password, Action<string> OutputDataReceived = null, Action<string> OutputErrorReceived = null, [CallerMemberName] string memberName = "", [CallerFilePath] string fileName = "", [CallerLineNumber] int lineNumber = 0)
         {
             throw new NotImplementedException();
         }

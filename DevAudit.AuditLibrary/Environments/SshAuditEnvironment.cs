@@ -78,7 +78,7 @@ namespace DevAudit.AuditLibrary
             }
             else
             {
-                Warning("Could not value of temporary directory from environment. The work directory wll be created in the DevAudit root directory.");
+                Warning("Could not get value of temporary directory from environment. The work directory wll be created in the DevAudit root directory.");
                 this.WorkDirectory = new DirectoryInfo(Path.Combine("work",  this.GetTimestamp()));
             }
             if (!this.WorkDirectory.Exists)
@@ -150,7 +150,7 @@ namespace DevAudit.AuditLibrary
             if (!this.IsConnected) throw new InvalidOperationException("The SSH session is not connected.");
             process_status = ProcessExecuteStatus.Unknown;
             process_output = "";
-            process_error = "";
+            process_error = ""; 
             SshCommand ssh_command = this.SshClient.RunCommand(command + " " + arguments);
             process_output = ssh_command.Result.Trim();
             process_error = ssh_command.Error.Trim();
@@ -165,6 +165,59 @@ namespace DevAudit.AuditLibrary
                 process_status = ProcessExecuteStatus.Error;
                 Debug(caller, "Send command {0} did not complete successfully, output: {1}", command + " " + arguments, process_error);
                 return false;
+            }
+        }
+
+        public override bool ExecuteAsUser(string command, string arguments, out ProcessExecuteStatus process_status, out string process_output, out string process_error, string user, SecureString password, Action<string> OutputDataReceived = null, Action<string> OutputErrorReceived = null, [CallerMemberName] string memberName = "", [CallerFilePath] string fileName = "", [CallerLineNumber] int lineNumber = 0)
+        {
+            CallerInformation caller = new CallerInformation(memberName, fileName, lineNumber);
+            if (!this.IsConnected) throw new InvalidOperationException("The SSH session is not connected.");
+            process_status = ProcessExecuteStatus.Unknown;
+            process_output = "";
+            process_error = "";
+            StringBuilder shell_data = new StringBuilder();
+            ShellStream stream = this.SshClient.CreateShellStream("dumb", 0, 0, 800, 600, 1024, new Dictionary<TerminalModes, uint> { { TerminalModes.ECHO, 0 } });
+            stream.DataReceived += (s, d) => shell_data.Append(Encoding.UTF8.GetString(d.Data));
+            string c = string.Format("PAGER=cat su -c \"echo CMD_START && {0} {1} && echo CMD_SUCCESS || echo CMD_ERROR\" {2} || echo CMD_ERROR", command, arguments, user);
+            stream.WriteLine(c);
+            process_output = stream.Expect("Password:", new TimeSpan(0, 0, 5));
+            if (process_output.Contains("Password:"))
+            {
+                stream.WriteLine(ToInsecureString(password));
+            }
+            else
+            {
+                process_status = ProcessExecuteStatus.Error;
+                Error(caller, "Unexpected response from server attempting to execute {0}: {1}", c, shell_data);
+                return false;
+            }
+            bool cmd_success = false;
+            string cmd_output = string.Empty;
+            ExpectAction[] cmd_actions =
+            {
+               new ExpectAction("CMD_ERROR", (o) =>
+               {
+                   cmd_output = o.Replace("CMD_ERROR", string.Empty);
+                   cmd_success = false;
+               }),
+               new ExpectAction("CMD_SUCCESS", (o) =>
+               {
+                   cmd_output = o.Replace("CMD_SUCCESS", string.Empty).Replace("CMD_START", string.Empty);
+                   cmd_success = true;
+               }),
+            };
+            stream.Expect(new TimeSpan(0, 0, 5), cmd_actions);
+            if (!cmd_success)
+            {
+                process_status = ProcessExecuteStatus.Error;
+                Error(caller, "Error attempting to execute {0} {1}: {2}.", command, arguments, cmd_output);
+                return false;
+            }
+            else
+            {
+                process_status = ProcessExecuteStatus.Completed;
+                process_output = cmd_output.Trim('\r', '\n');
+                return true;
             }
         }
 
@@ -257,7 +310,7 @@ namespace DevAudit.AuditLibrary
         public string HostKey { get; private set; }
         public bool IsConnected { get; private set; }
         public string LastEvent { get; set; }
-        public int NetworkConnectTimeout { get; private set; } = 3000;
+        public TimeSpan NetworkConnectTimeout { get; private set; } = new TimeSpan(0, 0, 5);
         #endregion
 
         #region Methods
@@ -366,23 +419,6 @@ namespace DevAudit.AuditLibrary
             {
                 if (sw != null && sw.IsRunning) sw.Stop();
             }
-        }
-
-        public string ToInsecureString(object o)
-        {
-            SecureString s = o as SecureString;
-            if (s == null) throw new ArgumentException("Object is not of type SecureString.", "o");
-            string r = string.Empty;
-            IntPtr ptr = Marshal.SecureStringToBSTR(s);
-            try
-            {
-                r = Marshal.PtrToStringBSTR(ptr);
-            }
-            finally
-            {
-                Marshal.ZeroFreeBSTR(ptr);
-            }
-            return r;
         }
        
         internal ScpClient CreateScpClient([CallerMemberName] string memberName = "", [CallerFilePath] string fileName = "", [CallerLineNumber] int lineNumber = 0)

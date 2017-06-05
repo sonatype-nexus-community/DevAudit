@@ -89,7 +89,12 @@ namespace DevAudit.AuditLibrary
             }
 		}
 
-		public override bool DirectoryExists (string dir_path)
+        public override bool ExecuteAsUser(string command, string arguments, out ProcessExecuteStatus process_status, out string process_output, out string process_error, string user, SecureString password, Action<string> OutputDataReceived = null, Action<string> OutputErrorReceived = null, [CallerMemberName] string memberName = "", [CallerFilePath] string fileName = "", [CallerLineNumber] int lineNumber = 0)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override bool DirectoryExists (string dir_path)
 		{
 			if (!this.ContainerRunning) throw new InvalidOperationException("The Docker container does not exist or is not running.");
 			Stopwatch sw = new Stopwatch();

@@ -169,7 +169,7 @@ namespace DevAudit.AuditLibrary
 
             if ((this.ApplicationOptions.ContainsKey("OSPass")))
             {
-                this.OSPass = (string)this.ApplicationOptions["OSPass"];
+                this.OSPass = this.AuditEnvironment.ToSecureString((string)this.ApplicationOptions["OSPass"]);
             }
 
             if ((this.ApplicationOptions.ContainsKey("AppUser")))
@@ -179,7 +179,7 @@ namespace DevAudit.AuditLibrary
 
             if ((this.ApplicationOptions.ContainsKey("AppPass")))
             {
-                this.AppPass = (string)this.ApplicationOptions["AppPass"];
+                this.AppPass = this.AuditEnvironment.ToSecureString((string)this.ApplicationOptions["AppPass"]);
             }
 
         }
@@ -354,11 +354,11 @@ namespace DevAudit.AuditLibrary
 
         public string OSUser { get; protected set; }
 
-        public string OSPass { get; protected set; }
+        public SecureString OSPass { get; protected set; }
 
         public string AppUser { get; protected set; }
 
-        public string AppPass { get; protected set; }
+        public SecureString AppPass { get; protected set; }
 
         #endregion
 
