@@ -255,83 +255,126 @@ namespace DevAudit.AuditLibrary
                     process_output = string.Empty;
                     process_status = ProcessExecuteStatus.Error;
                     return false;
-                }
-                /*
-                string args = string.Format("-c \"echo CMD_START && {0} {1} && echo CMD_SUCCESS || echo CMD_ERROR\" {2} || echo CMD_ERROR", command, arguments, user);
-                ProcessStartInfo psi = new ProcessStartInfo("su");
-                psi.Arguments = args;
-                psi.CreateNoWindow = true;
-                psi.RedirectStandardError = true;
-                psi.RedirectStandardOutput = true;
-                psi.RedirectStandardInput = true;
-                psi.UseShellExecute = false;
-                Process p = new Process();
-                p.EnableRaisingEvents = false;
-                p.StartInfo = psi;
-                ProcessSpawnable s = new ProcessSpawnable(p);
-                Session cmd_session = Expect.Spawn(s, this.LineTerminator);
-                IResult r = cmd_session.Expect.Contains("Password:", null);
-                if (r.IsMatch)
-                {
-                    s.Write(ToInsecureString(password) + this.LineTerminator);
-                }
-                else
-                {
+
+                    /*
+                    string c = string.Format("-n -u {0} -s {1} {2}", user, command, arguments);
+                    return this.Execute("sudo", c, out process_status, out process_output, out process_error);
+                    
+                        Error("Executing commands as a different operating system user with a required password in the local environment is not suppported on *nix. Use the su or sudo commands to run DevAudit as the required operating system user.");
+                    process_error = string.Empty;
+                    process_output = string.Empty;
+                    process_status = ProcessExecuteStatus.Error;
+                    return false;
+                    
+
+
+                    //string args = string.Format("-c \"echo CMD_START && {0} {1} && echo CMD_SUCCESS || echo CMD_ERROR\" {2} || echo CMD_ERROR", command, arguments, user);
+
+                    string args = string.Format("-S -u {0} -s {1} {2} && echo CMD_SUCCESS || echo CMD_ERROR", user, command, arguments);
+                    ProcessStartInfo psi = new ProcessStartInfo("sudo");
+                    psi.Arguments = args;
+                    psi.CreateNoWindow = true;
+                    psi.RedirectStandardError = true;
+                    psi.RedirectStandardOutput = true;
+                    psi.RedirectStandardInput = true;
+                    psi.UseShellExecute = false;
+                    Process p = new Process();
+                    p.EnableRaisingEvents = false;
+                    p.StartInfo = psi;
+                    Debug("Executing command sudo {0}.", args);
+                    ProcessSpawnable s = new ProcessSpawnable(p);
+                    Session cmd_session = Expect.Spawn(s, this.LineTerminator);
+                    IResult r = cmd_session.Expect.Contains("password for", null);
+                    if (r.IsMatch)
+                    {
+                        s.Write(ToInsecureString(password) + this.LineTerminator);
+                    }
+                    else
+                    {
+                        if (!p.HasExited) p.Close();
+                        p.Dispose();
+                        process_status = ProcessExecuteStatus.Error;
+                        process_output = r.Text;
+                        process_error = string.Empty;
+                        Error(caller, "Unexpected response from server attempting to execute sudo {0}: {1}", args, process_output);
+                        return false;
+                    }
+                    List<IResult> cmd_result = cmd_session.Expect.ContainsEither("CMD_SUCCESS", null, "CMD_ERROR", null);
                     if (!p.HasExited) p.Close();
                     p.Dispose();
-                    process_status = ProcessExecuteStatus.Error;
-                    process_output = r.Text;
-                    process_error = string.Empty;
-                    Error(caller, "Unexpected response from server attempting to execute su {0}: {1}", args, process_output);
-                    return false;
-                }
-                List<IResult> cmd_result = cmd_session.Expect.ContainsEither("CMD_SUCCESS", null, "CMD_ERROR", null);
-                if (!p.HasExited) p.Close();
-                p.Dispose();
-                if (cmd_result.First().IsMatch)
-                {
-                    process_status = ProcessExecuteStatus.Completed;
-                    string o = (string)cmd_result.First().Result;
-                    process_output = o.Replace("CMD_START", string.Empty).Replace("CMD_SUCCESS", string.Empty);
-                    process_error = string.Empty;
-                    return true;
-                }
-                else
-                {
-                    process_status = ProcessExecuteStatus.Error;
-                    string o = (string)cmd_result.Last().Result;
-                    process_output = o.Replace("CMD_ERROR", string.Empty);
-                    process_error = string.Empty;
-                    return false;
-                }
-            }*/
-                /*
-                CallerInformation caller = new CallerInformation(memberName, fileName, lineNumber);
-                List<string> args = arguments.Split('\t').ToList();
-                string cmd = command;
-                foreach (string a in args)
-                {
-                    cmd += " \"" + a + "\"";
-                }
-                cmd = "\"" + cmd + "\"";
-                string shell_uri = "http://schemas.microsoft.com/powershell/Microsoft.PowerShell";
-                ICollection<PSObject> result = null;
-                PSCredential credential = new PSCredential(user, pass);
-                WSManConnectionInfo ci = new WSManConnectionInfo() { Credential = credential };
-                using (Runspace r = RunspaceFactory.CreateRunspace(ci))
-                {
-                    r.Open();
-                    using (PowerShell ps = PowerShell.Create())
+                    if (cmd_result.First().IsMatch)
                     {
-                        ps.Runspace = r;
-                        ps.AddCommand("cmd.exe");
-                        ps.AddParameter("/c", cmd);
-                        result = ps.Invoke();
-
+                        process_status = ProcessExecuteStatus.Completed;
+                        string o = (string)cmd_result.First().Result;
+                        process_output = o.Replace("CMD_START", string.Empty).Replace("CMD_SUCCESS", string.Empty);
+                        Debug("Execute command sudo {0} returned: {1}", args, process_output);
+                        process_error = string.Empty;
+                        return true;
                     }
-                }
-                */
+                    else
+                    {
+                        process_status = ProcessExecuteStatus.Error;
+                        string o = (string)cmd_result.Last().Result;
+                        process_error = o.Replace("CMD_ERROR", string.Empty);
+                        Error("Could not execute command sudo {0}. Error: {1}", args, process_error);
+                        process_output = string.Empty;
+                        return false;
+                    }
+                    */
+                    /*
+                    CallerInformation caller = new CallerInformation(memberName, fileName, lineNumber);
+                    List<string> args = arguments.Split('\t').ToList();
+                    string cmd = command;
+                    foreach (string a in args)
+                    {
+                        cmd += " \"" + a + "\"";
+                    }
+                    cmd = "\"" + cmd + "\"";
+                    string shell_uri = "http://schemas.microsoft.com/powershell/Microsoft.PowerShell";
+                    ICollection<PSObject> result = null;
+                    PSCredential credential = new PSCredential(user, pass);
+                    WSManConnectionInfo ci = new WSManConnectionInfo() { Credential = credential };
+                    using (Runspace r = RunspaceFactory.CreateRunspace(ci))
+                    {
+                        r.Open();
+                        using (PowerShell ps = PowerShell.Create())
+                        {
+                            ps.Runspace = r;
+                            ps.AddCommand("cmd.exe");
+                            ps.AddParameter("/c", cmd);
+                            result = ps.Invoke();
 
+                        }
+                    }
+                    */
+                    /*
+                    CallerInformation caller = new CallerInformation(memberName, fileName, lineNumber);
+                    List<string> args = arguments.Split('\t').ToList();
+                    string cmd = command;
+                    foreach (string a in args)
+                    {
+                        cmd += " \"" + a + "\"";
+                    }
+                    cmd = "\"" + cmd + "\"";
+                    string shell_uri = "http://schemas.microsoft.com/powershell/Microsoft.PowerShell";
+                    ICollection<PSObject> result = null;
+                    PSCredential credential = new PSCredential(user, pass);
+                    WSManConnectionInfo ci = new WSManConnectionInfo() { Credential = credential };
+                    using (Runspace r = RunspaceFactory.CreateRunspace(ci))
+                    {
+                        r.Open();
+                        using (PowerShell ps = PowerShell.Create())
+                        {
+                            ps.Runspace = r;
+                            ps.AddCommand("cmd.exe");
+                            ps.AddParameter("/c", cmd);
+                            result = ps.Invoke();
+
+                        }
+                    }
+                    */
+
+                }
             }
 
         }
