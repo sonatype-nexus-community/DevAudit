@@ -50,16 +50,29 @@ namespace DevAudit.AuditLibrary
         public override bool Execute(string command, string arguments,
             out ProcessExecuteStatus process_status, out string process_output, out string process_error, Dictionary<string, string> env = null, Action < string> OutputDataReceived = null, Action<string> OutputErrorReceived = null, [CallerMemberName] string memberName = "", [CallerFilePath] string fileName = "", [CallerLineNumber] int lineNumber = 0)
         {
+            string env_vars = string.Empty;
+            StringBuilder env_vars_sb = new StringBuilder();
+            if (env != null && env.Count > 0)
+            {
+                foreach (KeyValuePair<string, string> kv in env)
+                {
+                    env_vars_sb.AppendFormat("export {0}={1} && ", kv.Key, kv.Value);
+                }
+                env_vars = env_vars_sb.ToString();
+            }
+
             if (this.HostRootIsMounted)
             {
-                bool r = this.LocalExecute("chroot", " /hostroot " + command + " " + arguments, out process_status, out process_output, out process_error, env);
-                this.Debug("Execute returned {2} for {0}. Output: {1}. Error:{3}", "chroot /hostroot " + command + " " + arguments, process_output, r, process_error);
+                string chroot_exec_command = string.Format("/hostroot /bin/bash -c \"{2}{0} {1}\"", command, arguments, env_vars);
+                bool r = this.LocalExecute("chroot", chroot_exec_command, out process_status, out process_output, out process_error, env);
+                this.Debug("Execute returned {2} for {0}. Output: {1}. Error:{3}", "chroot /hostroot " + chroot_exec_command, process_output, r, process_error);
                 return r;
             }
             else
             {
-                bool r = this.LocalExecute(command, arguments, out process_status, out process_output, out process_error, env);
-                this.Debug("Execute returned {2} for {0}. Output: {1}. Error {3}.", "chroot /hostroot " + command + " " + arguments, process_output, r, process_error);
+                string command_arguments = string.Format("-c \"{2}{0} {1}\"", command, arguments, env_vars);
+                bool r = this.LocalExecute("/bin/bash", command_arguments, out process_status, out process_output, out process_error, env);
+                this.Debug("Execute returned {2} for {0}. Output: {1}. Error {3}.", "/bin/bash " + command_arguments, process_output, r, process_error);
                 return r;
             }
         }
