@@ -26,7 +26,7 @@ namespace DevAudit.AuditLibrary
             }, 
             new Dictionary<PlatformID, string[]>() {
                 { PlatformID.Unix, new string[] { "find", "@", "var", "lib", "*sql", "*", "data", "postgresql.conf" } },
-                { PlatformID.Win32NT, new string[] { "@", "postgresql.conf" } }
+                { PlatformID.Win32NT, new string[] { "@", "data", "postgresql.conf" } }
             }, 
             new Dictionary<string, string[]>(), new Dictionary<string, string[]>(), message_handler)
         {
@@ -164,34 +164,67 @@ namespace DevAudit.AuditLibrary
             AuditEnvironment.ProcessExecuteStatus status = AuditEnvironment.ProcessExecuteStatus.Unknown;
             string output = string.Empty, error = string.Empty;
             string pgsql_cmd, pgsql_args;
-            if (!execute_as_app_user)
+            if (this.AuditEnvironment.IsWindows)
             {
-                pgsql_cmd = "psql";
-                if (string.IsNullOrEmpty(pgsql_db))
+                pgsql_cmd = CombinePath("@", "bin", "psql.exe");
+                if (!execute_as_app_user)
                 {
-                    pgsql_args = string.Format("-H -c '{0}'", pgsql_query);
+
+                    if (string.IsNullOrEmpty(pgsql_db))
+                    {
+                        pgsql_args = string.Format("-w -H -c \"{0}\"", pgsql_query);
+                    }
+                    else
+                    {
+                        pgsql_args = string.Format("-w -H -d {0} -c \"{1}\"", pgsql_db, pgsql_query);
+                    }
                 }
                 else
                 {
-                    pgsql_args = string.Format("-H -d {0} -c '{1}'", pgsql_db, pgsql_query);
+                    if (string.IsNullOrEmpty(pgsql_db))
+                    {
+                        pgsql_args = string.Format("-U {0} -w -H -c \"{1}\"", this.AppUser, pgsql_query);
+                    }
+                    else
+                    {
+                        pgsql_args = string.Format("-U {0} -w -H -d {1} -c \"{2}\"", this.AppUser, pgsql_db, pgsql_query);
+                    }
+
                 }
             }
             else
             {
-                pgsql_cmd = string.Format("PGPASS={0} psql", this.AppUser);
-                if (string.IsNullOrEmpty(pgsql_db))
+                pgsql_cmd = "psql";
+                if (!execute_as_app_user)
                 {
-                    pgsql_args = string.Format("-U {0} -w -H -c '{1}'", this.AppUser, pgsql_query);
+
+                    if (string.IsNullOrEmpty(pgsql_db))
+                    {
+                        pgsql_args = string.Format("-w -H -c \'{0}\'", pgsql_query);
+                    }
+                    else
+                    {
+                        pgsql_args = string.Format("-w -H -d {0} -c \'{1}\'", pgsql_db, pgsql_query);
+                    }
                 }
                 else
                 {
-                    pgsql_args = string.Format("-U {0} -w -H -d {1} -c '{2}'", this.AppUser, pgsql_db, pgsql_query);
+                    if (string.IsNullOrEmpty(pgsql_db))
+                    {
+                        pgsql_args = string.Format("-U {0} -w -H -c \'{1}\'", this.AppUser, pgsql_query);
+                    }
+                    else
+                    {
+                        pgsql_args = string.Format("-U {0} -w -H -d {1} -c \'{2}\'", this.AppUser, pgsql_db, pgsql_query);
+                    }
+
                 }
 
-            }
 
+            }
             bool result = execute_as_os_user ? this.AuditEnvironment.ExecuteAsUser(pgsql_cmd, pgsql_args, out status, out output, out error, this.OSUser, this.OSPass) 
-                : this.AuditEnvironment.Execute(pgsql_cmd, pgsql_args, out status, out output, out error);
+                : this.AuditEnvironment.Execute(pgsql_cmd, pgsql_args, out status, out output, out error, 
+                this.AppPass != null ? new Dictionary<string, string> { { "PGPASSWORD", this.AuditEnvironment.ToInsecureString(this.AppPass) } } : null);
 
             if (result)
             {

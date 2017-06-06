@@ -51,7 +51,8 @@ namespace DevAudit.AuditLibrary
         }
 
         public override bool Execute(string command, string arguments, 
-            out ProcessExecuteStatus process_status, out string process_output, out string process_error, Action<string> OutputDataReceived = null, Action<string> OutputErrorReceived = null, [CallerMemberName] string memberName = "", [CallerFilePath] string fileName = "", [CallerLineNumber] int lineNumber = 0)
+            out ProcessExecuteStatus process_status, out string process_output, out string process_error, Dictionary<string, string> env = null,
+            Action<string> OutputDataReceived = null, Action<string> OutputErrorReceived = null, [CallerMemberName] string memberName = "", [CallerFilePath] string fileName = "", [CallerLineNumber] int lineNumber = 0)
         {
             CallerInformation caller = new CallerInformation(memberName, fileName, lineNumber);
             FileInfo cf = new FileInfo(command);
@@ -64,6 +65,13 @@ namespace DevAudit.AuditLibrary
             psi.RedirectStandardError = true;
             psi.RedirectStandardOutput = true;
             psi.UseShellExecute = false;
+            if (env != null && env.Count > 0)
+            {
+                foreach(KeyValuePair<string, string> kv in env)
+                {
+                    psi.EnvironmentVariables.Add(kv.Key, kv.Value);
+                }
+            }
             if (cf.Exists)
             {
                 psi.WorkingDirectory = cf.Directory.FullName;
@@ -90,6 +98,7 @@ namespace DevAudit.AuditLibrary
             };
             try
             {
+                Debug("Executing {0} {1}...", command, arguments);
                 p.Start();
                 p.BeginErrorReadLine();
                 p.BeginOutputReadLine();
@@ -183,6 +192,7 @@ namespace DevAudit.AuditLibrary
                 };
                 try
                 {
+                    Debug("Executing {0} {1} as user {2}...", command, arguments, user);
                     p.Start();
                     p.BeginErrorReadLine();
                     p.BeginOutputReadLine();
@@ -192,10 +202,17 @@ namespace DevAudit.AuditLibrary
                 }
                 catch (Win32Exception e)
                 {
+                    Error(e);
                     if (e.Message == "The system cannot find the file specified")
                     {
                         process_status = ProcessExecuteStatus.FileNotFound;
                         process_err_sb.AppendLine(e.Message);
+                        return false;
+                    }
+                    else
+                    {
+                        process_status = ProcessExecuteStatus.Error;
+                        process_error = e.Message;
                         return false;
                     }
                 }

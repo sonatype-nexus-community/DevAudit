@@ -48,17 +48,17 @@ namespace DevAudit.AuditLibrary
         }
 
         public override bool Execute(string command, string arguments,
-            out ProcessExecuteStatus process_status, out string process_output, out string process_error, Action<string> OutputDataReceived = null, Action<string> OutputErrorReceived = null, [CallerMemberName] string memberName = "", [CallerFilePath] string fileName = "", [CallerLineNumber] int lineNumber = 0)
+            out ProcessExecuteStatus process_status, out string process_output, out string process_error, Dictionary<string, string> env = null, Action < string> OutputDataReceived = null, Action<string> OutputErrorReceived = null, [CallerMemberName] string memberName = "", [CallerFilePath] string fileName = "", [CallerLineNumber] int lineNumber = 0)
         {
             if (this.HostRootIsMounted)
             {
-                bool r = this.LocalExecute("chroot", " /hostroot " + command + " " + arguments, out process_status, out process_output, out process_error);
+                bool r = this.LocalExecute("chroot", " /hostroot " + command + " " + arguments, out process_status, out process_output, out process_error, env);
                 this.Debug("Execute returned {2} for {0}. Output: {1}. Error:{3}", "chroot /hostroot " + command + " " + arguments, process_output, r, process_error);
                 return r;
             }
             else
             {
-                bool r = this.LocalExecute(command, arguments, out process_status, out process_output, out process_error);
+                bool r = this.LocalExecute(command, arguments, out process_status, out process_output, out process_error, env);
                 this.Debug("Execute returned {2} for {0}. Output: {1}. Error {3}.", "chroot /hostroot " + command + " " + arguments, process_output, r, process_error);
                 return r;
             }
@@ -168,7 +168,7 @@ namespace DevAudit.AuditLibrary
 
         #region Methods
         public bool LocalExecute(string command, string arguments,
-            out ProcessExecuteStatus process_status, out string process_output, out string process_error, Action<string> OutputDataReceived = null, Action<string> OutputErrorReceived = null, [CallerMemberName] string memberName = "", [CallerFilePath] string fileName = "", [CallerLineNumber] int lineNumber = 0)
+            out ProcessExecuteStatus process_status, out string process_output, out string process_error, Dictionary<string, string> env = null, Action < string> OutputDataReceived = null, Action<string> OutputErrorReceived = null, [CallerMemberName] string memberName = "", [CallerFilePath] string fileName = "", [CallerLineNumber] int lineNumber = 0)
         {
             FileInfo cf = new FileInfo(command);
             int? process_exit_code = null;
@@ -184,6 +184,14 @@ namespace DevAudit.AuditLibrary
             {
                 psi.WorkingDirectory = cf.Directory.FullName;
             }
+            if (env != null && env.Count > 0)
+            {
+                foreach (KeyValuePair<string, string> kv in env)
+                {
+                    psi.EnvironmentVariables.Add(kv.Key, kv.Value);
+                }
+            }
+
             Process p = new Process();
             p.EnableRaisingEvents = true;
             p.StartInfo = psi;

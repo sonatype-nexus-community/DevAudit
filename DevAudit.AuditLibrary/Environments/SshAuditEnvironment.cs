@@ -144,14 +144,25 @@ namespace DevAudit.AuditLibrary
             }            
         }
 
-        public override bool Execute(string command, string arguments, out ProcessExecuteStatus process_status, out string process_output, out string process_error, Action<string> OutputDataReceived = null, Action<string> OutputErrorReceived = null, [CallerMemberName] string memberName = "", [CallerFilePath] string fileName = "", [CallerLineNumber] int lineNumber = 0)
+        public override bool Execute(string command, string arguments, out ProcessExecuteStatus process_status, out string process_output, out string process_error, Dictionary<string, string> env,
+            Action<string> OutputDataReceived = null, Action<string> OutputErrorReceived = null, [CallerMemberName] string memberName = "", [CallerFilePath] string fileName = "", [CallerLineNumber] int lineNumber = 0)
         {
             CallerInformation caller = new CallerInformation(memberName, fileName, lineNumber);
             if (!this.IsConnected) throw new InvalidOperationException("The SSH session is not connected.");
             process_status = ProcessExecuteStatus.Unknown;
             process_output = "";
             process_error = ""; 
+            if (env != null && env.Count > 0)
+            {
+                StringBuilder vars = new StringBuilder();
+                foreach (KeyValuePair<string, string> kv in env)
+                {
+                    vars.AppendFormat("{0}={1} ", kv.Key, kv.Value); 
+                }
+                command = vars.ToString() + command;
+            }
             SshCommand ssh_command = this.SshClient.RunCommand(command + " " + arguments);
+            Debug("Executing command {0} {1}.", command, arguments);
             process_output = ssh_command.Result.Trim();
             process_error = ssh_command.Error.Trim();
             if (!string.IsNullOrEmpty(ssh_command.Result))
@@ -181,7 +192,7 @@ namespace DevAudit.AuditLibrary
             string c = string.Format("PAGER=cat su -c \"echo CMD_START && {0} {1} && echo CMD_SUCCESS || echo CMD_ERROR\" {2} || echo CMD_ERROR", command, arguments, user);
             stream.WriteLine(c);
             process_output = stream.Expect("Password:", new TimeSpan(0, 0, 5));
-            if (process_output.Contains("Password:"))
+            if (!string.IsNullOrEmpty(process_output) && process_output.Contains("Password:"))
             {
                 stream.WriteLine(ToInsecureString(password));
             }
@@ -215,6 +226,7 @@ namespace DevAudit.AuditLibrary
             }
             else
             {
+                Debug(caller, "Command output: {0}.", cmd_output);
                 process_status = ProcessExecuteStatus.Completed;
                 process_output = cmd_output.Trim('\r', '\n');
                 return true;

@@ -67,9 +67,10 @@ namespace DevAudit.AuditLibrary
         protected override TraceSource TraceSource { get; set; } = new TraceSource("WinRmAuditEnvironment");
         public bool IsConnected { get; protected set; }
         #endregion
-
+        
         #region Overriden methods
-        public override bool Execute(string command, string arguments, out ProcessExecuteStatus process_status, out string process_output, out string process_error, Action<string> OutputDataReceived = null, Action<string> OutputErrorReceived = null, [CallerMemberName] string memberName = "", [CallerFilePath] string fileName = "", [CallerLineNumber] int lineNumber = 0)
+        public override bool Execute(string command, string arguments, out ProcessExecuteStatus process_status, out string process_output, out string process_error, 
+            Dictionary<string, string> env = null, Action<string> OutputDataReceived = null, Action<string> OutputErrorReceived = null, [CallerMemberName] string memberName = "", [CallerFilePath] string fileName = "", [CallerLineNumber] int lineNumber = 0)
         {
 
             process_output = string.Empty;
