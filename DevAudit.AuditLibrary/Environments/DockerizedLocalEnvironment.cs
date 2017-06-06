@@ -79,11 +79,19 @@ namespace DevAudit.AuditLibrary
 
         public override bool ExecuteAsUser(string command, string arguments, out ProcessExecuteStatus process_status, out string process_output, out string process_error, string user, SecureString password, Action<string> OutputDataReceived = null, Action<string> OutputErrorReceived = null, [CallerMemberName] string memberName = "", [CallerFilePath] string fileName = "", [CallerLineNumber] int lineNumber = 0)
         {
-            Error("Executing commands as a different operating system user on the Docker host is not supported when running as a Docker container. Use the su command to run the DevAudit container as the required operating system user.");
-            process_error = string.Empty;
-            process_output = string.Empty;
-            process_status = ProcessExecuteStatus.Error;
-            return false;
+            if (password == null)
+            {
+                string c = string.Format("-n -u {0} -s {1} {2}", user, command, arguments);
+                return this.Execute("sudo", c, out process_status, out process_output, out process_error);
+            }
+            else
+            {
+                Error("Executing commands as a different operating system user on the Docker host is not supported when running as a Docker container. Use the su command to run the DevAudit container as the required operating system user.");
+                process_error = string.Empty;
+                process_output = string.Empty;
+                process_status = ProcessExecuteStatus.Error;
+                return false;
+            }
         }
 
         public override bool FileExists(string file_path)

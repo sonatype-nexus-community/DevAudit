@@ -146,13 +146,30 @@ namespace DevAudit.AuditLibrary
                 mysql_query = (string)args[1];
             }
             AuditEnvironment.ProcessExecuteStatus status = AuditEnvironment.ProcessExecuteStatus.Unknown;
-            string output = string.Empty, error = string.Empty;
+            string output = string.Empty, error = string.Empty, mysql_args;
             if (this.AuditEnvironment.IsUnix)
             {
                 mysql_query = mysql_query.Replace("'", "\\'");
+                if (AppPass == null)
+                {
+                    mysql_args = string.Format("--user={0} -X --execute=$\'{1}\'", this.AppUser, mysql_query);
+                }
+                else
+                {
+                    mysql_args = string.Format("--user={0} --password={1} -X --execute=$\'{2}\'", this.AppUser, this.AuditEnvironment.ToInsecureString(this.AppPass), mysql_query);
+                }
             }
-            string mysql_args = this.AuditEnvironment.IsWindows ? string.Format("--user={0}\t--password={1}\t-X\t--execute=\"{2}\"", this.AppUser, this.AuditEnvironment.ToInsecureString(this.AppPass), 
-                mysql_query) : string.Format("--user={0} --password={1} -X --execute=$\'{2}\'", this.AppUser, this.AuditEnvironment.ToInsecureString(this.AppPass), mysql_query);
+            else
+            {
+                if (AppPass == null)
+                {
+                    mysql_args = string.Format("--user={0}\t-X\t--execute=\"{1}\"", this.AppUser, mysql_query);
+                }
+                else
+                {
+                    mysql_args = string.Format("--user={0}\t--password={1}\t-X\t--execute=\"{1}\"", this.AppUser, this.AuditEnvironment.ToInsecureString(this.AppPass), mysql_query);
+                }
+            }
             bool r;
             if (string.IsNullOrEmpty(this.OSUser))
             {

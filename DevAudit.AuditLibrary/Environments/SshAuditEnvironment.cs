@@ -69,7 +69,7 @@ namespace DevAudit.AuditLibrary
             this.IsConnected = true;
             this.User = user;
             this.HostName = host_name;
-            this.pass = pass;
+            this.ssh_client_pass = pass;
             Success("Connected to {0} in {1} ms.", host_name, sw.ElapsedMilliseconds);
             string tmp_dir = Environment.OSVersion.Platform == PlatformID.Win32NT ? Environment.GetEnvironmentVariable("TEMP", EnvironmentVariableTarget.User) : "/tmp";
             if (!string.IsNullOrEmpty(tmp_dir) && Directory.Exists(tmp_dir))
@@ -144,7 +144,7 @@ namespace DevAudit.AuditLibrary
             }            
         }
 
-        public override bool Execute(string command, string arguments, out ProcessExecuteStatus process_status, out string process_output, out string process_error, Dictionary<string, string> env,
+        public override bool Execute(string command, string arguments, out ProcessExecuteStatus process_status, out string process_output, out string process_error, Dictionary<string, string> env = null,
             Action<string> OutputDataReceived = null, Action<string> OutputErrorReceived = null, [CallerMemberName] string memberName = "", [CallerFilePath] string fileName = "", [CallerLineNumber] int lineNumber = 0)
         {
             CallerInformation caller = new CallerInformation(memberName, fileName, lineNumber);
@@ -186,10 +186,16 @@ namespace DevAudit.AuditLibrary
             process_status = ProcessExecuteStatus.Unknown;
             process_output = "";
             process_error = "";
+            string c;
+            if (password == null)
+            {
+                c = string.Format("-n -u {0} -s {1} {2}", user, command, arguments);
+                return this.Execute("sudo", c, out process_status, out process_output, out process_error);
+            }
             StringBuilder shell_data = new StringBuilder();
             ShellStream stream = this.SshClient.CreateShellStream("dumb", 0, 0, 800, 600, 1024, new Dictionary<TerminalModes, uint> { { TerminalModes.ECHO, 0 } });
             stream.DataReceived += (s, d) => shell_data.Append(Encoding.UTF8.GetString(d.Data));
-            string c = string.Format("PAGER=cat su -c \"echo CMD_START && {0} {1} && echo CMD_SUCCESS || echo CMD_ERROR\" {2} || echo CMD_ERROR", command, arguments, user);
+            c = string.Format("PAGER=cat su -c \"echo CMD_START && {0} {1} && echo CMD_SUCCESS || echo CMD_ERROR\" {2} || echo CMD_ERROR", command, arguments, user);
             stream.WriteLine(c);
             process_output = stream.Expect("Password:", new TimeSpan(0, 0, 5));
             if (!string.IsNullOrEmpty(process_output) && process_output.Contains("Password:"))
@@ -436,7 +442,7 @@ namespace DevAudit.AuditLibrary
         internal ScpClient CreateScpClient([CallerMemberName] string memberName = "", [CallerFilePath] string fileName = "", [CallerLineNumber] int lineNumber = 0)
         {
             CallerInformation caller = new CallerInformation(memberName, fileName, lineNumber);
-            ScpClient c = new ScpClient(this.HostName, this.User, ToInsecureString(this.pass));
+            ScpClient c = new ScpClient(this.HostName, this.User, ToInsecureString(this.ssh_client_pass));
             Stopwatch sw = new Stopwatch();
             try
             {
@@ -740,7 +746,7 @@ namespace DevAudit.AuditLibrary
         #region Fields
         ExpectNet.Session SshSession { get; set; }
         SshClient SshClient;
-        object pass;
+        object ssh_client_pass;
         List<ScpClient> scp_clients = new List<ScpClient>();
         Action<IResult> FileFound;
         Action<IResult> FileNotFound;

@@ -243,11 +243,19 @@ namespace DevAudit.AuditLibrary
             }
             else
             {
-                Error("Executing commands as a different operating system user in the local environment is not suppported on *nix. Use the su command to run DevAudit as the required operating system user.");
-                process_error = string.Empty;
-                process_output = string.Empty;
-                process_status = ProcessExecuteStatus.Error;
-                return false;
+                if (password == null)
+                {
+                    string c = string.Format("-n -u {0} -s {1} {2}", user, command, arguments);
+                    return this.Execute("sudo", c, out process_status, out process_output, out process_error);
+                }
+                else
+                {
+                    Error("Executing commands as a different operating system user with a required password in the local environment is not suppported on *nix. Use the su or sudo commands to run DevAudit as the required operating system user.");
+                    process_error = string.Empty;
+                    process_output = string.Empty;
+                    process_status = ProcessExecuteStatus.Error;
+                    return false;
+                }
                 /*
                 string args = string.Format("-c \"echo CMD_START && {0} {1} && echo CMD_SUCCESS || echo CMD_ERROR\" {2} || echo CMD_ERROR", command, arguments, user);
                 ProcessStartInfo psi = new ProcessStartInfo("su");
