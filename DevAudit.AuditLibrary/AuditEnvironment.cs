@@ -178,6 +178,51 @@ namespace DevAudit.AuditLibrary
         #endregion
 
         #region Methods
+        public bool ExecuteCommand(string command, string arguments, out string output, [CallerMemberName] string memberName = "", [CallerFilePath] string fileName = "", [CallerLineNumber] int lineNumber = 0)
+        {
+            CallerInformation caller = new CallerInformation(memberName, fileName, lineNumber);
+            ProcessExecuteStatus process_status = ProcessExecuteStatus.Unknown;
+            string process_output, process_error;
+            bool r = this.Execute(command, arguments, out process_status, out process_output, out process_error);
+            if (r)
+            {
+                output = process_output.Trim();
+                Debug(caller, "The command {0} {1} executed successfully. Output: {2}", command, arguments, output);
+                return true;
+            }
+            else
+            {
+                output = process_output + process_error;
+                Error("The command {0} {1} did not execute successfully. Error: {2}", command, arguments, output);
+                return false;
+            }
+        }
+
+        public virtual string GetUnixFileMode(string path, [CallerMemberName] string memberName = "", [CallerFilePath] string fileName = "", [CallerLineNumber] int lineNumber = 0)
+        {
+            CallerInformation here = Here();
+            if (this.IsWindows)
+            {
+                Error(here, "This method is not implemented in a Windows environment.");
+                return string.Empty;
+            }
+            else
+            {
+                string output;
+                if (this.ExecuteCommand("find", string.Format("{0} -prune -printf '%m'", path), out output))
+                {
+                    Debug(here, "GetUnixFileMode({0}) returned {1}.", path, output);
+                    return output;
+                }
+                else
+                {
+                    Debug(here, "GetUnixFileMode({0}) failed.", path);
+                    return string.Empty;
+                }
+            }
+        }
+
+
         public string GetTimestamp ()
         {
             return (DateTime.UtcNow.Subtract(new DateTime(1970, 1, 1))).TotalSeconds.ToString();

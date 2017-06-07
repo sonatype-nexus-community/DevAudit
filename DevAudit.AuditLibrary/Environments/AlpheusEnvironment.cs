@@ -90,6 +90,7 @@ namespace DevAudit.AuditLibrary
 
         public override IXsltContextFunction ResolveXPathFunction(string prefix, string name, XPathResultType[] ArgTypes)
         {
+            CallerInformation here = this.AuditEnvironment.Here();
             switch (prefix)
             {
                 case "db":
@@ -99,7 +100,7 @@ namespace DevAudit.AuditLibrary
                             Debug("Resolved db:query function.");
                             return new AlpheusXPathFunction(prefix, name, 1, 2, new XPathResultType[] { XPathResultType.String, XPathResultType.String }, XPathResultType.NodeSet);
                         default:
-                            Error("Unrecognized XPath function: {0}:{1}.", prefix, name);
+                            Error("DevAudit coulld not resolve XPath function: {0}:{1}.", prefix, name);
                             return null;
                     }
                 case "os":
@@ -109,14 +110,13 @@ namespace DevAudit.AuditLibrary
                             Debug("Resolved os:exec function.");
                             return new AlpheusXPathFunction(prefix, name, 1, 2, new XPathResultType[] { XPathResultType.String }, XPathResultType.String);
                         default:
-                            Error("Unrecognized XPath function: {0}:{1}.", prefix, name);
+                            Error("DevAudit coulld not resolve XPath function: {0}:{1}.", prefix, name);
                             return null;
                     }
                 case "ver":                   
                     switch (name)
                     {
                         case "gt":
-
                             return new AlpheusXPathFunction(prefix, name, 1, 1, new XPathResultType[] { XPathResultType.String }, XPathResultType.Boolean);
                         case "lt":
                             Debug("Resolved ver:lt function.");
@@ -131,7 +131,7 @@ namespace DevAudit.AuditLibrary
                             Debug("Resolved ver:gt function.");
                             return new AlpheusXPathFunction(prefix, name, 1, 1, new XPathResultType[] { XPathResultType.String }, XPathResultType.Boolean);
                         default:
-                            Error("Unrecognized XPath function: {0}:{1}.", prefix, name);
+                            Error("DevAudit coulld not resolve XPath function: {0}:{1}.", prefix, name);
                             return null;
                     }
                 case "fs":                    
@@ -143,8 +143,11 @@ namespace DevAudit.AuditLibrary
                         case "text":
                             Debug("Resolved fs:text function.");
                             return new AlpheusXPathFunction(prefix, name, 1, 1, new XPathResultType[] { XPathResultType.String }, XPathResultType.String);
+                        case "unix_file_mode":
+                            Debug("Resolved fs:unix_file_mode function.");
+                            return new AlpheusXPathFunction(prefix, name, 1, 1, new XPathResultType[] { XPathResultType.String }, XPathResultType.String);
                         default:
-                            Error("Unrecognized XPath function: {0}:{1}.", prefix, name);
+                            Error("DevAudit coulld not resolve XPath function: {0}:{1}.", prefix, name);
                             return null;
                     }
                 default: return null;
@@ -154,69 +157,97 @@ namespace DevAudit.AuditLibrary
 
         public override object InvokeXPathFunction(AlpheusXPathFunction f, AlpheusXsltContext xsltContext, object[] args, XPathNavigator docContext)
         {
-            if (f.Prefix == "db")
+            switch (f.Prefix)
             {
-                if (f.Name == "query")
-                {
-                    if (this.AuditTarget is IDbAuditTarget)
+                case "db":
+                    switch (f.Name)
                     {
-                        IDbAuditTarget db = this.AuditTarget as IDbAuditTarget;
-                        return db.ExecuteDbQueryToXml(args);
+                        case "query":
+                            if (this.AuditTarget is IDbAuditTarget)
+                            {
+                                IDbAuditTarget db = this.AuditTarget as IDbAuditTarget;
+                                return db.ExecuteDbQueryToXml(args);
+                            }
+                            else
+                            {
+                                this.AuditEnvironment.Error("The current target is not a database server or application and does not support queries.");
+                                XmlDocument doc = new XmlDocument();
+                                doc.LoadXml("<error>No Database</error>");
+                                return doc.CreateNavigator().Select("/");
+                            }
+                        default:
+                            throw new NotImplementedException("The XPath function " + f.Prefix + ":" + f.Name + " is not supported by IDbAuditTarget.");
                     }
-                    else
+                case "os":
+                    switch (f.Name)
                     {
-                        this.AuditEnvironment.Error("The current target is not a database server or application and does not support queries.");
-                        XmlDocument doc = new XmlDocument();
-                        doc.LoadXml("<error>No Database</error>");
-                        return doc.CreateNavigator().Select("/");
+                        case "exec":
+                            string output = string.Empty, command = "", arguments = "";
+                            if (args.Count() == 1)
+                            {
+                                command = (string)args[0];
+                            }
+                            else
+                            {
+                                command = (string)args[0];
+                                arguments = (string)args[1];
+                            }
+                            if (this.AuditEnvironment.ExecuteCommand(command, arguments, out output))
+                            {
+                                this.AuditEnvironment.Debug("os:exec {0} {1} returned {2}", command, arguments, output);
+                                return output;
+                            }
+                            else
+                            {
+                                this.AuditEnvironment.Error("Could not os:exec \"{0} {1}\". Error: {2}", command, arguments, output);
+                                return string.Empty;
+                            }
+                        default:
+                            throw new NotImplementedException("The XPath function " + f.Prefix + ":" + f.Name + " is not supported by IDbAuditTarget.");
                     }
-                }
-                else throw new NotImplementedException("The XPath function " + f.Prefix + ":" + f.Name + " is not supported by IDbAuditTarget.");
+                case "fs":
+                    switch (f.Name)
+                    {
+                        case "unix_file_mode":
+                            return this.AuditEnvironment.GetUnixFileMode((string)args[0]);
+
+                        default:
+                            throw new NotImplementedException("The XPath function " + f.Prefix + ":" + f.Name + " is not supported by any audit target.");
+                    }
+                default:
+                    throw new NotImplementedException("The XPath function prefix" + f.Prefix + " is not supported by any audit targets.");
             }
-            else if (f.Prefix == "os")
-            {
-                if (f.Name == "exec")
-                {
-                    AuditEnvironment.ProcessExecuteStatus status = AuditEnvironment.ProcessExecuteStatus.Unknown;
-                    string output = string.Empty, error = string.Empty;
-                    string command = "", arguments = "";
-                    XmlDocument xml = new XmlDocument();
-                    if (args.Count() == 1)
-                    {
-                        command = (string)args[0];
-                    }
-                    else
-                    {
-                        command = (string)args[0];
-                        arguments = (string)args[1];
-                    }
-                    if (this.AuditEnvironment.Execute(command, arguments, out status, out output, out error))
-                    {
-                        this.AuditEnvironment.Debug("os exec {0} {1} returned {2}", command, arguments, output);
-                        return output;
-                    }
-                    else
-                    {
-                        this.AuditEnvironment.Error("Could not execute \"{0} {1}\" in audit environment. Error: {2} {3}", command, arguments, error, output);
-                        return string.Empty;
-                    }
-                }
-                else throw new NotImplementedException("The XPath function " + f.Prefix + ":" + f.Name + " is not supported by any audit targets.");
-            }
-            else throw new NotImplementedException("The XPath function prefix" + f.Prefix + " is not supported by any audit targets.");
         }
 
         public override object EvaluateXPathVariable(AlpheusXPathVariable v, AlpheusXsltContext xslt_context)
         {
-            if (v.Prefix == "env")
+            switch (v.Prefix)
             {
-                return this.AuditTarget.GetEnvironmentVar((string) v.Name);
+                case "os":
+                    switch(v.Name)
+                    {
+                        case "platform":
+                            if (this.AuditEnvironment.IsWindows)
+                            {
+                                return "Windows";
+                            }
+                            else
+                            {
+                                return "Unix";
+                            }
+                        default:
+                            this.AuditEnvironment.Error("Unknown os variable: {0}", v.Name);
+                            return string.Empty;
+
+                    }
+                case "env":
+                    return this.AuditTarget.GetEnvironmentVar((string) v.Name);
+           
+                default:
+                    this.AuditEnvironment.Error("Unknown variable type: {0}:{1}", v.Prefix, v.Name);
+                    return string.Empty;
             }
-            else
-            {
-                this.AuditEnvironment.Error("Unknown variable type: {0}:{1}", v.Prefix, v.Name);
-                return string.Empty;
-            }
+  
         }
         #endregion
 
