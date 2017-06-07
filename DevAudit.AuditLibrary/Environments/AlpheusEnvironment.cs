@@ -88,6 +88,70 @@ namespace DevAudit.AuditLibrary
             this.AuditEnvironment.Error(message_format, message);
         }
 
+        public override IXsltContextFunction ResolveXPathFunction(string prefix, string name, XPathResultType[] ArgTypes)
+        {
+            switch (prefix)
+            {
+                case "db":
+                    switch (name)
+                    {
+                        case "query":
+                            Debug("Resolved db:query function.");
+                            return new AlpheusXPathFunction(prefix, name, 1, 2, new XPathResultType[] { XPathResultType.String, XPathResultType.String }, XPathResultType.NodeSet);
+                        default:
+                            Error("Unrecognized XPath function: {0}:{1}.", prefix, name);
+                            return null;
+                    }
+                case "os":
+                    switch (name)
+                    {
+                        case "exec":
+                            Debug("Resolved os:exec function.");
+                            return new AlpheusXPathFunction(prefix, name, 1, 2, new XPathResultType[] { XPathResultType.String }, XPathResultType.String);
+                        default:
+                            Error("Unrecognized XPath function: {0}:{1}.", prefix, name);
+                            return null;
+                    }
+                case "ver":                   
+                    switch (name)
+                    {
+                        case "gt":
+
+                            return new AlpheusXPathFunction(prefix, name, 1, 1, new XPathResultType[] { XPathResultType.String }, XPathResultType.Boolean);
+                        case "lt":
+                            Debug("Resolved ver:lt function.");
+                            return new AlpheusXPathFunction(prefix, name, 1, 1, new XPathResultType[] { XPathResultType.String }, XPathResultType.Boolean);
+                        case "eq":
+                            Debug("Resolved ver:eq function.");
+                            return new AlpheusXPathFunction(prefix, name, 1, 1, new XPathResultType[] { XPathResultType.String }, XPathResultType.Boolean);
+                        case "gte":
+                            Debug("Resolved ver:gte function.");
+                            return new AlpheusXPathFunction(prefix, name, 1, 1, new XPathResultType[] { XPathResultType.String }, XPathResultType.Boolean);
+                        case "lte":
+                            Debug("Resolved ver:gt function.");
+                            return new AlpheusXPathFunction(prefix, name, 1, 1, new XPathResultType[] { XPathResultType.String }, XPathResultType.Boolean);
+                        default:
+                            Error("Unrecognized XPath function: {0}:{1}.", prefix, name);
+                            return null;
+                    }
+                case "fs":                    
+                    switch (name)
+                    {
+                        case "exists":
+                            Debug("Resolved fs:exists function.");
+                            return new AlpheusXPathFunction(prefix, name, 1, 1, new XPathResultType[] { XPathResultType.String }, XPathResultType.Boolean);
+                        case "text":
+                            Debug("Resolved fs:text function.");
+                            return new AlpheusXPathFunction(prefix, name, 1, 1, new XPathResultType[] { XPathResultType.String }, XPathResultType.String);
+                        default:
+                            Error("Unrecognized XPath function: {0}:{1}.", prefix, name);
+                            return null;
+                    }
+                default: return null;
+
+            }
+        }
+
         public override object InvokeXPathFunction(AlpheusXPathFunction f, AlpheusXsltContext xsltContext, object[] args, XPathNavigator docContext)
         {
             if (f.Prefix == "db")

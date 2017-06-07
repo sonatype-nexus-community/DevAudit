@@ -41,8 +41,8 @@
     <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Alpheus.Core, Version=0.3.3.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Alpheus.0.3.3-beta\lib\net45\Alpheus.Core.dll</HintPath>
+    <Reference Include="Alpheus.Core, Version=0.3.4.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Alpheus.0.3.4-beta\lib\net45\Alpheus.Core.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="Autofac, Version=4.1.1.0, Culture=neutral, PublicKeyToken=17863af14b0044da, processorArchitecture=MSIL">
@@ -318,6 +318,7 @@
     <Compile Include="Projects\PHPTreeVisitors.cs" />
     <Compile Include="Analyzers\RoslynAnalyzer.cs" />
     <Compile Include="Servers\IIS6Server.cs" />
+    <Compile Include="Servers\MariaDBServer.cs" />
     <Compile Include="Servers\PostgreSQLServer.cs" />
     <Compile Include="Targets\Application.cs" />
     <Compile Include="Applications\Drupal7Application.cs" />
@@ -393,6 +394,9 @@
     <None Include="Examples\package.json.1" />
     <None Include="Examples\yarn.lock.1" />
     <None Include="packages.config" />
+    <Rules Include="Rules\mariadb.yml">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Rules>
     <Rules Include="Rules\iis6.yml">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Rules>

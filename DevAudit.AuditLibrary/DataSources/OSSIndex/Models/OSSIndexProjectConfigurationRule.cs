@@ -54,6 +54,10 @@ namespace DevAudit.AuditLibrary
         [JsonProperty("versions")]
         public List<string> Versions { get; set; }
 
+        [YamlMember(Alias = "platform")]
+        [JsonProperty("platform")]
+        public string Platform { get; set; }
+
         [JsonIgnore]
         public string ProjectId { get; set; }
 

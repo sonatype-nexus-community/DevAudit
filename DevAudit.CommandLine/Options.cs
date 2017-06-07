@@ -57,8 +57,11 @@ namespace DevAudit.CommandLine
         [VerbOption("drupal7", HelpText = "Audit a Drupal 7 application instance. Use the -r option to specify the root directory of the Drupal 7 instance, otherwise the current directory will be used.")]
         public Options AuditDrupal7 { get; set; }
 
-        [VerbOption("mysql", HelpText = "Audit a MySQL application server instance. Use the -r option to specify the root directory of the mysqld server. Use the -b option to specify the path to the mysqld server binary and the -c option to specify the configuration file otherwise default values will be used for these 2 parameters.")]
+        [VerbOption("mysql", HelpText = "Audit a MySQL database server instance. Use the -r option to specify the root directory of the mysqld server. Use the -b option to specify the path to the mysqld server binary and the -c option to specify the configuration file otherwise default values will be used for these 2 parameters.")]
         public Options MySQL { get; set; }
+
+        [VerbOption("mariadb", HelpText = "Audit a MariaDB database server instance. Use the -r option to specify the root directory of the MariaDB server. Use the -b option to specify the path to the mysqld server binary and the -c option to specify the configuration file otherwise default values will be used for these 2 parameters.")]
+        public Options MariaDB { get; set; }
 
         [VerbOption("sshd", HelpText = "Audit an OpenSSH sshd-compatibile application server instance. Use the -r option to specify the root directory of the sshd server. Use the -b option to specify the path to the sshd server binary, and the -c option to specify the configuration file otherwise default values will be used for these 2 parameters.")]
         public Options SSHD { get; set; }
@@ -69,7 +72,7 @@ namespace DevAudit.CommandLine
         [VerbOption("nginx", HelpText = "Audit a Nginx server instance. Use the -r option to specify the root directory of the server. Use the -b option to specify the path to the httpd server binary and the -c option to specify the configuration file otherwise default values will be used for these 2 parameters.")]
         public Options Nginx { get; set; }
 
-        [VerbOption("pgsql", HelpText = "Audit a PostgreSQL server instance. Use the -r option to specify the root directory of the httpd server. The server binary and configuration files will be autodetected; to override use the -b option to specify the path to the postgres server binary and the -c option to specify the configuration file.")]
+        [VerbOption("pgsql", HelpText = "Audit a PostgreSQL database server instance. Use the -r option to specify the root directory of the httpd server. The server binary and configuration files will be autodetected; to override use the -b option to specify the path to the postgres server binary and the -c option to specify the configuration file.")]
         public Options PGSQL { get; set; }
 
         [VerbOption("iis6", HelpText = "Audit an IIS 6 server instance. Use the -r option to specify the root otherwise the default C:\\Window\\system32\\inetsrv is used.")]

@@ -55,8 +55,8 @@
     <Reference Include="Microsoft.Build.Engine" />
     <Reference Include="Microsoft.Build.Framework" />
     <Reference Include="System.ComponentModel.Composition" />
-    <Reference Include="Alpheus.Core, Version=0.3.3.0, Culture=neutral, PublicKeyToken=null">
-      <HintPath>..\packages\Alpheus.0.3.3-beta\lib\net45\Alpheus.Core.dll</HintPath>
+    <Reference Include="Alpheus.Core, Version=0.3.4.0, Culture=neutral, PublicKeyToken=null">
+      <HintPath>..\packages\Alpheus.0.3.4-beta\lib\net45\Alpheus.Core.dll</HintPath>
     </Reference>
     <Reference Include="CSharpTest.Net.BPlusTree, Version=2.14.126.467, Culture=neutral, PublicKeyToken=06aee00cce822474">
       <HintPath>..\packages\CSharpTest.Net.BPlusTree.2.14.126.467\lib\net45\CSharpTest.Net.BPlusTree.dll</HintPath>
@@ -254,6 +254,7 @@
     <Compile Include="Servers\HttpdServer.cs" />
     <Compile Include="Servers\SSHDServer.cs" />
     <Compile Include="Servers\MySQLServer.cs" />
+    <Compile Include="Servers\MariaDBServer.cs" />
     <Compile Include="Environments\SshAuditEnvironment.cs" />
     <Compile Include="EnvironmentEventArgs.cs" />
     <Compile Include="Analyzers\StyleCopAnalyzer.cs" />

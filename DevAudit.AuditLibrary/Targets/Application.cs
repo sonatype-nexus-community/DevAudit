@@ -136,7 +136,7 @@ namespace DevAudit.AuditLibrary
 
             if (this.AuditProfile == null)
             {
-                AuditFileInfo pf = this.AuditEnvironment.ConstructFile(".devaudit");
+                AuditFileInfo pf = this.AuditEnvironment.ConstructFile(this.CombinePath("@devaudit.yaml"));
                 if (pf.Exists)
                 {
                     this.AuditProfile = new AuditProfile(this.AuditEnvironment, pf);
@@ -333,7 +333,7 @@ namespace DevAudit.AuditLibrary
 
         public Task GetAnalyzersResultsTask { get; protected set; }
 
-        public List<OSSIndexProjectConfigurationRule> DisabledForAppDevModeRules { get; }
+        public List<OSSIndexProjectConfigurationRule> DisabledRules { get; }
             = new List<OSSIndexProjectConfigurationRule>();
 
         public ConcurrentDictionary<OSSIndexArtifact, Exception> GetProjectConfigurationRulesExceptions { get; protected set; }
@@ -573,7 +573,7 @@ namespace DevAudit.AuditLibrary
             if (!rules_file.Exists) throw new Exception(string.Format("The default rules file {0} does not exist.", rules_file.FullName));
             Deserializer yaml_deserializer = new Deserializer(namingConvention: new CamelCaseNamingConvention(), ignoreUnmatched: true);
             Dictionary<string, List<OSSIndexProjectConfigurationRule>> rules;
-            rules = yaml_deserializer.Deserialize<Dictionary<string, List<OSSIndexProjectConfigurationRule>>>(new System.IO.StringReader(rules_file.ReadAsText()));
+            rules = yaml_deserializer.Deserialize<Dictionary<string, List<OSSIndexProjectConfigurationRule>>>(new StringReader(rules_file.ReadAsText()));
             if (rules == null)
             {
                 sw.Stop();
@@ -668,10 +668,26 @@ namespace DevAudit.AuditLibrary
             {
                 pr.AsParallel().ForAll(r =>
                 {
-                    if (this.AppDevMode && !r.EnableForAppDevelopment)
+
+                    if (r.Platform == "Windows" && !this.AuditEnvironment.IsWindows)
+                    {
+                        this.AuditEnvironment.Info("Not evaluating rule \"{0}\" for non-Windows platform.", r.Title);
+                        this.DisabledRules.Add(r);
+                    }
+                    else if (r.Platform != "Windows" && this.AuditEnvironment.IsWindows)
+                    {
+                        this.AuditEnvironment.Info("Not evaluating rule \"{0}\" for Windows platform.", r.Title);
+                        this.DisabledRules.Add(r);
+                    }
+                    else if (this.RuleVersionExcludesAppVersion(r))
+                    {
+                        this.AuditEnvironment.Info("Not evaluating rule \"{0}\" for application version {1}.", r.Title, this.Version);
+                        this.DisabledRules.Add(r);
+                    }
+                    else if (this.AppDevMode && !r.EnableForAppDevelopment)
                     {
                         this.AuditEnvironment.Info("Not evaluating rule \"{0}\" for application development mode.", r.Title);
-                        this.DisabledForAppDevModeRules.Add(r);
+                        this.DisabledRules.Add(r);
                     }
                     else if (!string.IsNullOrEmpty(r.XPathTest))
                     {
@@ -690,6 +706,24 @@ namespace DevAudit.AuditLibrary
             return this.ProjectConfigurationRulesEvaluations;
         }
 
+        protected bool RuleVersionExcludesAppVersion(OSSIndexProjectConfigurationRule r)
+        {
+            if (r.Versions == null || r.Versions.Count == 0)
+            {
+                return false;
+            }
+            else
+            {
+                foreach (string v in r.Versions)
+                {
+                    if (this.IsVulnerabilityVersionInPackageVersionRange(v, this.Version))
+                    {
+                        return false;
+                    }
+                }
+                return true;
+            }
+        }
         protected virtual async Task GetAnalyzers()
         {
             Stopwatch sw = new Stopwatch();

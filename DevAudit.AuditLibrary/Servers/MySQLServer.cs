@@ -67,7 +67,8 @@ namespace DevAudit.AuditLibrary
             if (process_status == AuditEnvironment.ProcessExecuteStatus.Completed)
             {
                 string v0 = process_output.Substring(process_output.IndexOf("Ver") + 4);
-                this.Version = v0.Substring(0, v0.IndexOf(" "));
+                string v1 = v0.Substring(0, v0.IndexOf(" "));
+                this.Version = new string(v1.TakeWhile(v => char.IsDigit(v) || v == '.').ToArray());
                 this.VersionInitialised = true;
                 this.AuditEnvironment.Success("Got {0} version {1} in {2} ms.", this.ApplicationLabel, this.Version, sw.ElapsedMilliseconds);
                 return this.Version;

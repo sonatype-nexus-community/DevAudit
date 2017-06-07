@@ -690,6 +690,12 @@ namespace DevAudit.CommandLine
                         Application = Server as Application;
                         Source = Server.PackageSource;
                     }
+                    else if (verb == "mariadb")
+                    {
+                        Server = new MariaDBServer(audit_options, EnvironmentMessageHandler);
+                        Application = Server as Application;
+                        Source = Server.PackageSource;
+                    }
                     else if (verb == "sshd")
                     {
                         Server = new SSHDServer(audit_options, EnvironmentMessageHandler);
@@ -1358,13 +1364,13 @@ namespace DevAudit.CommandLine
             else if (Application.ProjectConfigurationRules.Count() > 0)
             {
                 PrintMessageLine(ConsoleColor.White, "\nApplication Configuration Audit Results\n=======================================");
-                if (Application.AppDevMode && Application.DisabledForAppDevModeRules.Count > 0)
+                if (Application.AppDevMode && Application.DisabledRules.Count > 0)
                 {
-                    PrintMessageLine("{0} rules disabled for application development mode:", Application.DisabledForAppDevModeRules.Count);
+                    PrintMessageLine("{0} rules disabled for application development mode:", Application.DisabledRules.Count);
                     int rdfadm = 0;
-                    foreach(OSSIndexProjectConfigurationRule rule in Application.DisabledForAppDevModeRules)
+                    foreach(OSSIndexProjectConfigurationRule rule in Application.DisabledRules)
                     {
-                        PrintMessageLine(ConsoleColor.DarkGray, "--[{0}/{1}] {2}", ++rdfadm, Application.DisabledForAppDevModeRules.Count, rule.Title);
+                        PrintMessageLine(ConsoleColor.DarkGray, "--[{0}/{1}] {2}", ++rdfadm, Application.DisabledRules.Count, rule.Title);
                     }
                 }
                 PrintMessageLine(ConsoleColor.White, "{0} {3} found in {1} application configuration audit. Total time for audit: {2} ms.\n", 

@@ -1,5 +1,5 @@
 ﻿---
-mysql:
+mariadb:
     -   id: 1
         title: mysqld runs as the root user
         category: Execution with Unnecessary Privileges
@@ -115,10 +115,10 @@ mysql:
             -   https://www.doag.org/formes/pubfiles/7535404/docs/Konferenz/2015/vortraege/MySQL/2015-K-MySQL-Carsten_Thalheimer-MySQL_Enterprise_-_Haerten_von_MySQL-Instanzen-Praesentation.pdf
 
     -  id: 9
-       title:  Users with blank passwords exist
-       versions:
-            -   '<5.7'
+       title:  Users with blank passwords exist (mysql.user.Password)
        xpathtest: boolean(db:query("SELECT User,Host FROM mysql.user WHERE Password=''")//row)
+       versions:
+            -   '< 5.2'
        summary: |
            Users with blank passwords exist in the MySQL user table.
        resolution: |
@@ -128,12 +128,12 @@ mysql:
             -   https://www.doag.org/formes/pubfiles/7535404/docs/Konferenz/2015/vortraege/MySQL/2015-K-MySQL-Carsten_Thalheimer-MySQL_Enterprise_-_Haerten_von_MySQL-Instanzen-Praesentation.pdf
 
     -  id: 10
-       title:  Users with blank authentication_string exist
+       title:  Users with blank passwords exist (mysql.user.Password and mysql.user.authentication_string)
+       xpathtest: boolean(db:query("SELECT User,Host FROM mysql.user WHERE Password='' AND authentication_string=''")//row)
        versions:
-            -   '>=5.7'
-       xpathtest: boolean(db:query("SELECT User,Host FROM mysql.user WHERE authentication_string=''")//row)
+            -   '>= 5.2'
        summary: |
-           Users with blank authentication_strings exist in the MySQL user table.
+           Users with blank passwords exist in the MySQL user table.
        resolution: |
             Assign passwords to every user that exists in the mysql.user table or remove unused user accounts.
             e.g ALTER USER 'myuser' SET PASSWORD=.... 
