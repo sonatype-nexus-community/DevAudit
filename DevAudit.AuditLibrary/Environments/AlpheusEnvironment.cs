@@ -117,6 +117,7 @@ namespace DevAudit.AuditLibrary
                     switch (name)
                     {
                         case "gt":
+                            Debug("Resolved ver:gt function.");
                             return new AlpheusXPathFunction(prefix, name, 1, 1, new XPathResultType[] { XPathResultType.String }, XPathResultType.Boolean);
                         case "lt":
                             Debug("Resolved ver:lt function.");
@@ -128,7 +129,7 @@ namespace DevAudit.AuditLibrary
                             Debug("Resolved ver:gte function.");
                             return new AlpheusXPathFunction(prefix, name, 1, 1, new XPathResultType[] { XPathResultType.String }, XPathResultType.Boolean);
                         case "lte":
-                            Debug("Resolved ver:gt function.");
+                            Debug("Resolved ver:lte function.");
                             return new AlpheusXPathFunction(prefix, name, 1, 1, new XPathResultType[] { XPathResultType.String }, XPathResultType.Boolean);
                         default:
                             Error("DevAudit coulld not resolve XPath function: {0}:{1}.", prefix, name);
@@ -216,6 +217,25 @@ namespace DevAudit.AuditLibrary
                     }
                 default:
                     throw new NotImplementedException("The XPath function prefix" + f.Prefix + " is not supported by any audit targets.");
+
+                case "ver":
+                    string version = (string)args[0];
+                    switch (f.Name)
+                    {
+                        case "lt":
+                            return this.Application.IsVulnerabilityVersionInPackageVersionRange("<" + version, this.Application.Version);
+                        case "gt":
+                            return this.Application.IsVulnerabilityVersionInPackageVersionRange(">" + version, this.Application.Version);
+                        case "eq":
+                            return this.Application.IsVulnerabilityVersionInPackageVersionRange(version, this.Application.Version);
+                        case "lte":
+                            return this.Application.IsVulnerabilityVersionInPackageVersionRange("<=" + version, this.Application.Version);
+                        case "gte":
+                            return this.Application.IsVulnerabilityVersionInPackageVersionRange(">=" + version, this.Application.Version);
+                        default:
+                            throw new NotImplementedException("The XPath function " + f.Prefix + ":" + f.Name + " is not supported by any audit target.");
+                    }
+
             }
         }
 
@@ -253,6 +273,13 @@ namespace DevAudit.AuditLibrary
 
         #region Properties
         public AuditTarget AuditTarget { get; protected set; }
+        public Application Application
+        {
+            get
+            {
+                return this.AuditTarget as Application;
+            }
+        }
         public AuditEnvironment AuditEnvironment { get; protected set; }
         #endregion
     }

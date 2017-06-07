@@ -20,11 +20,11 @@ postgres:
             -   STIG/V-72843/PostgreSQL must produce audit records containing sufficient information to establish the outcome (success or failure) of the events.
         severity: 2
         xpathtest:  >
-            not(boolean(/PGSQL/Values/pgaudit.log_catalog='on')) or 
-            not(boolean(/PGSQL/Values/pgaudit.log_level='log')) or
-            not(boolean(/PGSQL/Values/pgaudit.log_parameter='on')) or
-            not(boolean(/PGSQL/Values/pgaudit.log_statement_once='off')) or
-            not(boolean(/PGSQL/Values/pgaudit.log='all, -misc'))
+            not(/PGSQL/Values/pgaudit.log_catalog='on') or 
+            not(/PGSQL/Values/pgaudit.log_level='log') or
+            not(/PGSQL/Values/pgaudit.log_parameter='on') or
+            not(/PGSQL/Values/pgaudit.log_statement_once='off') or
+            not(/PGSQL/Values/pgaudit.log='all, -misc')
         summary: |
             Information system auditing capability is critical for accurate forensic analysis. 
             Without information about the outcome of events, security personnel cannot make an accurate assessment as to whether an attack was successful or if changes were made to the security state of the system.
@@ -120,3 +120,20 @@ postgres:
             Set the log_timezone directive in the PGSQL configuration file to the current timezone.
         urls:
             -   https://www.crunchydata.com/postgres-stig/PGSQL-STIG-9.5+.pdf
+
+    -   id: 8
+        title:  Server version is not up-to-date
+        tags:
+            -   STIG/V-72845/ Security-relevant software updates to PostgreSQL must be installed within the time period directed by an authoritative source (e.g., IAVM,CTOs, DTMs, and STIGs)
+        severity: 1
+        xpathtest:  ver:lt('9.6')
+        summary: |
+            Security flaws with software applications, including database management systems, are discovered daily. 
+            Vendors are constantly updating and patching their products to address newly discovered security vulnerabilities. 
+            Organizations (including any contractor to the organization) are required to promptly install security-relevant software updates (e.g., patches, service packs, and hot fixes). 
+            Flaws discovered during security assessments, continuous monitoring, incident response activities, or information system error handling must also be addressed expeditiously.  
+        resolution: |
+            Install the most recent (9.6) version of PostgreSQL available for your operating system or distrbution. 
+        urls:
+            -   https://www.crunchydata.com/postgres-stig/PGSQL-STIG-9.5+.pdf
+
