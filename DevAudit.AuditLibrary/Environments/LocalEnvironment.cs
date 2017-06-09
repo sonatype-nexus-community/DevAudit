@@ -347,33 +347,7 @@ namespace DevAudit.AuditLibrary
                         }
                     }
                     */
-                    /*
-                    CallerInformation caller = new CallerInformation(memberName, fileName, lineNumber);
-                    List<string> args = arguments.Split('\t').ToList();
-                    string cmd = command;
-                    foreach (string a in args)
-                    {
-                        cmd += " \"" + a + "\"";
-                    }
-                    cmd = "\"" + cmd + "\"";
-                    string shell_uri = "http://schemas.microsoft.com/powershell/Microsoft.PowerShell";
-                    ICollection<PSObject> result = null;
-                    PSCredential credential = new PSCredential(user, pass);
-                    WSManConnectionInfo ci = new WSManConnectionInfo() { Credential = credential };
-                    using (Runspace r = RunspaceFactory.CreateRunspace(ci))
-                    {
-                        r.Open();
-                        using (PowerShell ps = PowerShell.Create())
-                        {
-                            ps.Runspace = r;
-                            ps.AddCommand("cmd.exe");
-                            ps.AddParameter("/c", cmd);
-                            result = ps.Invoke();
-
-                        }
-                    }
-                    */
-
+ 
                 }
             }
 

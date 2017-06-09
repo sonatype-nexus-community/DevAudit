@@ -172,22 +172,22 @@ namespace DevAudit.AuditLibrary
 
                     if (string.IsNullOrEmpty(pgsql_db))
                     {
-                        pgsql_args = string.Format("-w -H -c \"{0}\"", pgsql_query);
+                        pgsql_args = string.Format("-w\t-H\t-c\t\'{0}\'", pgsql_query);
                     }
                     else
                     {
-                        pgsql_args = string.Format("-w -H -d {0} -c \"{1}\"", pgsql_db, pgsql_query);
+                        pgsql_args = string.Format("-w\t-H\t-d\t{0}\t-c\t\'{1}\'", pgsql_db, pgsql_query);
                     }
                 }
                 else
                 {
                     if (string.IsNullOrEmpty(pgsql_db))
                     {
-                        pgsql_args = string.Format("-U {0} -w -H -c \"{1}\"", this.AppUser, pgsql_query);
+                        pgsql_args = string.Format("-U\t{0}\t-w\t-H\t-c\t\'{1}\'", this.AppUser, pgsql_query);
                     }
                     else
                     {
-                        pgsql_args = string.Format("-U {0} -w -H -d {1} -c \"{2}\"", this.AppUser, pgsql_db, pgsql_query);
+                        pgsql_args = string.Format("-U\t{0}\t-w\t-H\t-d\t{1}\t-c\'{2}\'", this.AppUser, pgsql_db, pgsql_query);
                     }
 
                 }

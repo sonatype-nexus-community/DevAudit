@@ -669,12 +669,12 @@ namespace DevAudit.AuditLibrary
                 pr.AsParallel().ForAll(r =>
                 {
 
-                    if (r.Platform == "Windows" && !this.AuditEnvironment.IsWindows)
+                    if (!string.IsNullOrEmpty(r.Platform) && r.Platform == "Windows" && !this.AuditEnvironment.IsWindows)
                     {
                         this.AuditEnvironment.Info("Not evaluating rule \"{0}\" for non-Windows platform.", r.Title);
                         this.DisabledRules.Add(r);
                     }
-                    else if (r.Platform != "Windows" && this.AuditEnvironment.IsWindows)
+                    else if (!string.IsNullOrEmpty(r.Platform) && r.Platform != "Windows" && this.AuditEnvironment.IsWindows)
                     {
                         this.AuditEnvironment.Info("Not evaluating rule \"{0}\" for Windows platform.", r.Title);
                         this.DisabledRules.Add(r);

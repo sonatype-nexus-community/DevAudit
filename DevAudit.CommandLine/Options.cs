@@ -217,6 +217,10 @@ namespace DevAudit.CommandLine
                 {                    
                     audit_options.Add("_ERROR_", s);
                 }
+                else if (audit_options.ContainsKey(m.Groups[1].Value))
+                {
+                    audit_options[m.Groups[1].Value] = m.Groups[2].Value;
+                }
                 else
                 {
                     audit_options.Add(m.Groups[1].Value, m.Groups[2].Value);

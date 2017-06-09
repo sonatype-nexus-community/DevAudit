@@ -2,13 +2,14 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Management.Automation;
+using System.Management.Automation.Runspaces;
 using System.Net;
 using System.IO;
 using System.Runtime.CompilerServices;
 using System.Security;
 using System.Text;
 using System.Threading.Tasks;
-using System.Management.Automation;
 
 using Naos.WinRM;
 
@@ -38,6 +39,8 @@ namespace DevAudit.AuditLibrary
                     PSObject name = r.Last();
                     this.OSCaption = (string)os.Properties["Caption"].Value;
                     this.ComputerName = (string)name.Properties["Name"].Value;
+                    this.User = user;
+                    this.Pass = pass;
                     this.IsConnected = true;
                     this.HostEnvironment.Success("Connected to Windows host address {0}. Computer name: {1}. Windows version: {2}.", this.Manager.IpAddress, this.ComputerName, this.OSCaption);
                     
@@ -72,18 +75,20 @@ namespace DevAudit.AuditLibrary
         public override bool Execute(string command, string arguments, out ProcessExecuteStatus process_status, out string process_output, out string process_error, 
             Dictionary<string, string> env = null, Action<string> OutputDataReceived = null, Action<string> OutputErrorReceived = null, [CallerMemberName] string memberName = "", [CallerFilePath] string fileName = "", [CallerLineNumber] int lineNumber = 0)
         {
-
+            this.Debug("Executing command on Windows host {2} {0} {1}...", command, arguments.Replace('\t', ' '), this.ComputerName);
             process_output = string.Empty;
             process_error = string.Empty;
             try
             {
                 process_output = this.Manager.RunCmd(command, arguments.Split('\t').ToList());
                 process_status = ProcessExecuteStatus.Completed;
+                Info("Execute command {0} {1} returned {2}.", command, arguments.Replace('\t', ' '), process_output);
                 return true;
             }
             catch (Exception e)
             {
                 process_error = e.Message;
+                Error(e, "Execute command {0} {1} on Windows host {2} failed", command, arguments.Replace('\t', ' '), this.ComputerName);
                 process_status = ProcessExecuteStatus.Error;
                 return false;
             }
@@ -91,6 +96,86 @@ namespace DevAudit.AuditLibrary
 
         public override bool ExecuteAsUser(string command, string arguments, out ProcessExecuteStatus process_status, out string process_output, out string process_error, string user, SecureString password, Action<string> OutputDataReceived = null, Action<string> OutputErrorReceived = null, [CallerMemberName] string memberName = "", [CallerFilePath] string fileName = "", [CallerLineNumber] int lineNumber = 0)
         {
+            CallerInformation caller = new CallerInformation(memberName, fileName, lineNumber);
+            this.Debug("Executing command {0} {1} on Windows host {2} as user {3}...", command, arguments.Replace('\t', ' '), this.ComputerName, user);
+            List<string> args = arguments.Split('\t').ToList();
+            string cmd = command;
+            foreach (string a in args)
+            {
+                cmd += " \"" + a + "\"";
+            }
+            //cmd = "\"" + cmd + "\"";
+            //string shell_uri = "http://schemas.microsoft.com/powershell/Microsoft.PowerShell";
+            ICollection<PSObject> result = null;
+            PSCredential machine_credential = new PSCredential(this.User, this.Pass);
+            WSManConnectionInfo ci = new WSManConnectionInfo()
+            {
+                Credential = machine_credential,
+                ComputerName = this.Manager.IpAddress,
+                AuthenticationMechanism = AuthenticationMechanism.Default
+            };
+            using (Runspace r = RunspaceFactory.CreateRunspace(ci))
+            {
+                try
+                {
+                    r.Open();
+                }
+                catch (Exception e)
+                {
+                    Error(e, "There was an error connecting to Windows host {0} as user {1}.", ci.ComputerName, user);
+                    process_status = ProcessExecuteStatus.Error;
+                    process_output = string.Empty;
+                    process_error = e.Message;
+                    return false;
+                }
+                using (PowerShell ps = PowerShell.Create())
+                {
+                    ps.Runspace = r;
+                    PSCredential program_credential = new PSCredential(user.Contains("\\") ? user : this.ComputerName + "\\" + user, password);
+                    r.SessionStateProxy.SetVariable("Credential", program_credential);
+                    ps.AddScript("$session = New-PSSession -Credential $Credential -ComputerName localhost" + Environment.NewLine + "Invoke-Command -Session $session -ScriptBlock {&" + cmd + "}");
+                    result = ps.Invoke();
+                    if (result != null && result.Count > 0)
+                    {
+                        process_output = (string) result.First().BaseObject;
+                        process_error = string.Empty;
+                        process_status = ProcessExecuteStatus.Completed;
+                        return true;
+                    }
+                    else if (ps.HadErrors)
+                    {
+                        this.Error("Executing command {0} failed.", cmd);
+                        StringBuilder errors = new StringBuilder();
+                        foreach (ErrorRecord e in ps.Streams.Error)
+                        {
+                            if (e.Exception != null)
+                            {
+                                this.Error(e.Exception);
+                                errors.AppendLine(e.Exception.Message);
+                            }
+                            if (e.ErrorDetails != null)
+                            {
+                                this.Error(e.ErrorDetails.Message);
+                                errors.AppendLine(e.ErrorDetails.Message);
+                            }
+                            
+                        }
+                        process_output = string.Empty;
+                        process_error = errors.ToString();
+                        process_status = ProcessExecuteStatus.Error;
+                        return false;
+                    }
+                    else
+                    {
+                        this.Error("Executing command {0} returned unknown status.", cmd);
+                        process_output = result != null && result.Count > 0 ? process_output = (string)result.First().BaseObject : string.Empty;
+                        process_error = string.Empty;
+                        process_status = ProcessExecuteStatus.Unknown;
+                        return false;
+ 
+                    }
+                }
+            }
             throw new NotImplementedException();
         }
 
@@ -164,6 +249,8 @@ namespace DevAudit.AuditLibrary
         public MachineManager Manager { get; protected set; }
         public string ComputerName { get; protected set; }
         public string OSCaption { get; protected set; }
+        protected string User { get; set; }
+        protected SecureString Pass { get; set; }
         #endregion
 
         #region Methods
