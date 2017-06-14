@@ -292,7 +292,7 @@
     <Compile Include="Environments\WinRmAuditDirectoryInfo.cs" />
     <Compile Include="Environments\WinRmAuditFileInfo.cs" />
     <Compile Include="Environments\WinRmAuditEnvironment.cs" />
-    <Compile Include="HttpDataSource.cs" />
+    <Compile Include="DataSources\HttpDataSource.cs" />
     <Compile Include="IDbAuditTarget.cs" />
     <Compile Include="IArtifact.cs" />
     <Compile Include="IDataSource.cs" />
@@ -312,7 +312,7 @@
     <Compile Include="DataSources\OSSIndex\Models\OSSIndexApiv2Vulnerability.cs" />
     <Compile Include="IPackage.cs" />
     <Compile Include="IVulnerability.cs" />
-    <Compile Include="LocalDataSource.cs" />
+    <Compile Include="DataSources\LocalDataSource.cs" />
     <Compile Include="PackageSources\YarnPackageSource.cs" />
     <Compile Include="Projects\Drupal8ModuleCodeProject.cs" />
     <Compile Include="Projects\PHPAuditCodeSourceUnit.cs" />
@@ -350,7 +350,6 @@
     <Compile Include="AuditDirectoryInfo.cs" />
     <Compile Include="AuditFileInfo.cs" />
     <Compile Include="AuditTargetEventArgs.cs" />
-    <Compile Include="BsonSerializer.cs" />
     <Compile Include="AuditTarget.cs" />
     <Compile Include="Environments\LocalEnvironment.cs" />
     <Compile Include="DataSources\OSSIndex\Models\OSSIndexArtifact.cs" />
@@ -388,7 +387,6 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Examples\Drupal\core\modules\" />
-    <Folder Include="Models\" />
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />
