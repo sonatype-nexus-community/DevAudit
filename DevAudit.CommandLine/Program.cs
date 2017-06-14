@@ -542,20 +542,6 @@ namespace DevAudit.CommandLine
                 audit_options.Add("File", ProgramOptions.File);
             }
 
-            #region Cache stuff
-            /*
-            if (ProgramOptions.Cache)
-            {
-                audit_options.Add("Cache", true);
-            }
-            
-            if (!string.IsNullOrEmpty(ProgramOptions.CacheTTL))
-            {
-                audit_options.Add("CacheTTL", ProgramOptions.CacheTTL);
-            }
-            */
-            #endregion
-
             if (!string.IsNullOrEmpty(ProgramOptions.RootDirectory))
             {
                 audit_options.Add("RootDirectory", ProgramOptions.RootDirectory);
@@ -625,6 +611,13 @@ namespace DevAudit.CommandLine
             }
             #endregion
 
+            #region Environment options
+            if (!string.IsNullOrEmpty(ProgramOptions.OSName))
+            {
+                audit_options.Add("OSName", ProgramOptions.OSName);
+            }
+            #endregion
+            
             #endregion
 
             PrintBanner();
@@ -815,7 +808,7 @@ namespace DevAudit.CommandLine
             #endregion
 
             #region Print audit results
-            if (CodeProject == null && Application == null && Source != null) //Auditing a package source
+            if (CodeProject == null && Application == null && Server == null && Source != null) //Auditing a package source
             {
                 AuditTarget.AuditResult ar = Source.Audit(CTS.Token);
                 if (Stopwatch.IsRunning) Stopwatch.Stop();
@@ -855,7 +848,7 @@ namespace DevAudit.CommandLine
             }
             else if (CodeProject == null && Server != null) //Auditing server
             {
-                AuditTarget.AuditResult aar = Application.Audit(CTS.Token);
+                AuditTarget.AuditResult aar = Server.Audit(CTS.Token);
                 if (Stopwatch.IsRunning) Stopwatch.Stop();
                 if (aar != AuditTarget.AuditResult.SUCCESS)
                 {
@@ -867,7 +860,6 @@ namespace DevAudit.CommandLine
                     {
                         PrintPackageSourceAuditResults(aar, out Exit);
                     }
-
                     PrintApplicationAuditResults(aar, out Exit);
                 }
                 if (Source != null)
@@ -1361,17 +1353,22 @@ namespace DevAudit.CommandLine
 
         static void PrintErrorMessage(Exception e)
         {
-            if (e is OSSIndexHttpException)
+            if (e is HttpException)
             {
-                HandleOSSIndexHttpException(e as OSSIndexHttpException);
+                HandleHttpException(e as HttpException);
             }
             else
             {
-                PrintMessageLine(ConsoleColor.DarkRed, "Exception: {0}", e.Message);
-                PrintMessageLine(ConsoleColor.DarkRed, "Stack trace: {0}", e.StackTrace);
+                PrintMessage(ConsoleColor.DarkRed, "Exception: {0}.", e.Message);
                 if (e.InnerException != null)
                 {
-                    PrintErrorMessage(e.InnerException);
+                    PrintMessageLine(ConsoleColor.DarkRed, " Inner Exception: {0}.", e.InnerException.Message);
+                }
+                else PrintMessageLine("");
+                if (ProgramOptions.EnableDebug)
+                {
+                    PrintMessageLine(ConsoleColor.DarkRed, "Stack trace: {0}", e.StackTrace);
+ 
                 }
             }
         }
@@ -1445,11 +1442,11 @@ namespace DevAudit.CommandLine
             return percent_done;
         }
 
-        static void HandleOSSIndexHttpException(Exception e)
+        static void HandleHttpException(Exception e)
         {
-            if (e is OSSIndexHttpException)
+            if (e is HttpException)
             {
-                OSSIndexHttpException oe = (OSSIndexHttpException) e;
+                HttpException oe = (HttpException) e;
                 PrintErrorMessage("HTTP status: {0} {1} \nReason: {2}\nRequest:\n{3}", (int) oe.StatusCode, oe.StatusCode, oe.ReasonPhrase, oe.Request);
             }
 

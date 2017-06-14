@@ -44,6 +44,8 @@ namespace DevAudit.AuditLibrary
         #endregion
 
         #region Abstract properties
+        public abstract string Name { get; }
+        public abstract string Description { get; }
         public abstract int MaxConcurrentSearches { get; }
         #endregion
 
@@ -54,6 +56,7 @@ namespace DevAudit.AuditLibrary
         public bool DataSourceInitialised { get; protected set; } = false;
         public Uri ApiUrl { get; protected set; }
         public Uri HttpsProxy { get; protected set; }
+        public bool Initialised { get; protected set; }
         #endregion
 
         #region Methods

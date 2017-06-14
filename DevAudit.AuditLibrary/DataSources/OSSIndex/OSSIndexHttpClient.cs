@@ -63,7 +63,7 @@ namespace DevAudit.AuditLibrary
                 }
                 else
                 {
-                    throw new OSSIndexHttpException(package_manager, response.StatusCode, response.ReasonPhrase, response.RequestMessage);
+                    throw new HttpException(package_manager, response.StatusCode, response.ReasonPhrase, response.RequestMessage);
                 }
             }
         }
@@ -91,7 +91,7 @@ namespace DevAudit.AuditLibrary
                 }
                 else
                 {
-                    throw new OSSIndexHttpException(package_manager, response.StatusCode, response.ReasonPhrase, response.RequestMessage);
+                    throw new HttpException(package_manager, response.StatusCode, response.ReasonPhrase, response.RequestMessage);
                 }
             }
         }
@@ -110,7 +110,7 @@ namespace DevAudit.AuditLibrary
                 }
                 else
                 {
-                    throw new OSSIndexHttpException(id, response.StatusCode, response.ReasonPhrase, response.RequestMessage);
+                    throw new HttpException(id, response.StatusCode, response.ReasonPhrase, response.RequestMessage);
                 }
             }
         }
@@ -130,7 +130,7 @@ namespace DevAudit.AuditLibrary
                 }
                 else
                 {
-                    throw new OSSIndexHttpException(id, response.StatusCode, response.ReasonPhrase, response.RequestMessage);
+                    throw new HttpException(id, response.StatusCode, response.ReasonPhrase, response.RequestMessage);
                 }
             }
 
@@ -157,7 +157,7 @@ namespace DevAudit.AuditLibrary
                 }
                 else
                 {
-                    throw new OSSIndexHttpException(id, response.StatusCode, response.ReasonPhrase, response.RequestMessage);
+                    throw new HttpException(id, response.StatusCode, response.ReasonPhrase, response.RequestMessage);
                 }
             }
         }
@@ -183,7 +183,7 @@ namespace DevAudit.AuditLibrary
                 }
                 else
                 {
-                    throw new OSSIndexHttpException(id, response.StatusCode, response.ReasonPhrase, response.RequestMessage);
+                    throw new HttpException(id, response.StatusCode, response.ReasonPhrase, response.RequestMessage);
                 }
             }
         }
@@ -213,7 +213,7 @@ namespace DevAudit.AuditLibrary
                 }
                 else
                 {
-                    throw new OSSIndexHttpException("packages", response.StatusCode, response.ReasonPhrase, response.RequestMessage);
+                    throw new HttpException("packages", response.StatusCode, response.ReasonPhrase, response.RequestMessage);
                 }
             }
         }

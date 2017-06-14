@@ -23,6 +23,8 @@ namespace DevAudit.AuditLibrary
             if (Directory.Exists("/hostroot"))
             {
                 this.HostRootIsMounted = true;
+                this.GetOSName();
+                this.GetOSVersion();
                 //throw new Exception(string.Format("The host root directory is not mounted on the DevAudit Docker image at {0}.", "/hostroot"));
             }
             else

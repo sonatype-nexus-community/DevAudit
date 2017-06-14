@@ -235,7 +235,27 @@ namespace DevAudit.AuditLibrary
                     this.AuditEnvironment.Warning("The profile file {0} does not exist. No audit profile will be used.", pf.FullName);
                 }
             }
+
             this.AlpheusEnvironment = new AlEnvironment(this);
+
+            if (this.AuditOptions.ContainsKey("OSName"))
+            {
+                this.AuditEnvironment.OSName = (string)this.AuditOptions["OSName"];
+                this.AuditEnvironment.Info("Overriding audit environment OS name to {0}.", this.AuditEnvironment.OSVersion);
+            }
+            if (this.AuditOptions.ContainsKey("OSVersion"))
+            {
+                this.AuditEnvironment.OSVersion = (string)this.AuditOptions["OSVersion"];
+                this.AuditEnvironment.Info("Overriding audit environment OS version to {0}.", this.AuditEnvironment.OSVersion);
+            }
+            if (this.AuditOptions.ContainsKey("WithOSSI")) 
+            {
+                this.DataSources.Add(new OSSIndexDataSource(this, this.HostEnvironment, DataSourceOptions));
+            }
+            if (this.AuditOptions.ContainsKey("WithVulners"))
+            {
+                this.DataSources.Add(new VulnersdotcomDataSource(this, this.HostEnvironment, DataSourceOptions));
+            }
         }
 
         private void AuditTarget_HostEnvironmentMessageHandler(object sender, EnvironmentEventArgs e)
@@ -265,15 +285,27 @@ namespace DevAudit.AuditLibrary
         
         #region Properties
         public string DevAuditDirectory = Path.GetDirectoryName(Assembly.GetEntryAssembly().Location);
+
         public Dictionary<string, object> AuditOptions { get; set; } = new Dictionary<string, object>();
+
+        public Dictionary<string, object> DataSourceOptions { get; set; } = new Dictionary<string, object>();
+
         public AuditProfile AuditProfile { get; set; }
+
         public bool IsDockerized { get; protected set; }
+
         public LocalEnvironment HostEnvironment { get; protected set; }
+
         public AuditEnvironment AuditEnvironment { get; protected set; }
+
         public AlEnvironment AlpheusEnvironment { get; protected set; }
+
         public bool HostEnvironmentInitialised { get; private set; } = false;
+
         public bool AuditEnvironmentIntialised { get; private set; } = false;
-        public List<IDataSource> DataSources { get; } = new List<IDataSource>(); 
+
+        public List<IDataSource> DataSources { get; } = new List<IDataSource>();
+
         public bool UseAsyncMethods { get; private set; } = false;                
         #endregion
 

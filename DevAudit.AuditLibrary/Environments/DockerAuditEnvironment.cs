@@ -51,6 +51,8 @@ namespace DevAudit.AuditLibrary
                     this.Container = container;
                     this.ContainerRunning = container_running;
                     this.HostEnvironment.Success ("Found Docker container with id or name {0}.", this.Container);
+                    this.GetOSName();
+                    this.GetOSVersion();
                 }
                 else this.HostEnvironment.Error ("The Docker container with name or id {0} does not exist.", container); 
             } 

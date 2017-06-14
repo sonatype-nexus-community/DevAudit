@@ -36,21 +36,15 @@ namespace DevAudit.CommandLine
         [VerbOption("composer", HelpText = "Audit PHP Composer packages. Use the --file option to specify a particular composer.json file otherwise the one in the current directory will be used.")]
         public Options AuditComposer { get; set; }
 
-        /* Disabled -- insufficient server support
-         * [VerbOption("dpkg", HelpText = "Audit dpkg packages on Linux. The packages are scanned from the system dpkg repository.")]
-         * public Options AuditDpkg { get; set; }
-         */
+        [VerbOption("dpkg", HelpText = "Audit dpkg packages on Linux. The packages are scanned from the system dpkg repository.")]
+        public Options AuditDpkg { get; set; }
+         
+        [VerbOption("rpm", HelpText = "Audit rpm packages on Linux. The packages are scanned from the system rpm repository.")]
+        public Options AuditRpm { get; set; }
 
-        /* Disabled -- insufficient server support
-         * [VerbOption("rpm", HelpText = "Audit rpm packages on Linux. The packages are scanned from the system rpm repository.")]
-         * public Options AuditRpm { get; set; }
-         */
-
-        /* Disabled -- insufficient server support
-         * [VerbOption("yum", HelpText = "Audit yum packages on Linux. The packages are scanned from the system rpm repository.")]
-         * public Options AuditYum { get; set; }
-         */
-        
+        [VerbOption("yum", HelpText = "Audit yum packages on Linux. The packages are scanned from the system rpm repository.")]
+        public Options AuditYum { get; set; }
+         
         [VerbOption("drupal8", HelpText = "Audit a Drupal 8 application instance. Use the -r option to specify the root directory of the Drupal 8 instance, otherwise the current directory will be used.")]
         public Options AuditDrupal8 { get; set; }
 
@@ -205,7 +199,7 @@ namespace DevAudit.CommandLine
         [Option("profile", Required = false, HelpText = "Use the specified file as the audit profile for this audit run.")]
         public string Profile { get; set; }
 
-        [Option("with-ossi", Required = false, HelpText = "Use vulnerability data from the OSS Index API.")]
+        [Option("with-ossi", Required = false, HelpText = "Use vulnerability data from the OSS Index API. This data source is used by default when no other data source is specified.")]
         public bool WithOSSI { get; set; }
 
         [Option("with-vulners", Required = false, HelpText = "Use vulnerability data from the vulners.com API and/or data files.")]
@@ -213,6 +207,9 @@ namespace DevAudit.CommandLine
 
         [Option("with-libio", Required = false, HelpText = "Use artifact data from the libraries.io API.")]
         public bool WithLibIO { get; set; }
+
+        [Option("os", Required = false, HelpText = "Specify the operating system name of the system where the audit will be performed.")]
+        public string OSName { get; set; }
 
         public static Dictionary<string, object> Parse(string o)
         {

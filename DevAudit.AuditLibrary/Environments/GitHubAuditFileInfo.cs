@@ -82,7 +82,7 @@ namespace DevAudit.AuditLibrary
                 if (this._Directory == null)
                 {
                     string[] components = this.GetPathComponents();
-                    string fn = components.Length > 1 ? components[Length - 2] : this.GitHubAuditEnvironment.PathSeparator;
+                    string fn = components.Length > 1 ? components[components.Length - 2] : this.GitHubAuditEnvironment.PathSeparator;
                     AuditDirectoryInfo d = this.GitHubAuditEnvironment.ConstructDirectory(fn);
                     if (d.Exists)
                     {

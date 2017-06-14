@@ -56,8 +56,6 @@ namespace DevAudit.AuditLibrary
                 this.SkipPackagesAudit = true;
             }
 
-            
-
             if (this.PackageSourceOptions.ContainsKey("WithPackageInfo"))
             {
                 this.WithPackageInfo = true;
@@ -70,19 +68,13 @@ namespace DevAudit.AuditLibrary
                     DataSourceOptions.Add("HttpsProxy", (Uri)this.PackageSourceOptions["HttpsProxy"]);
                 }
             }
-            
-            if (this.PackageSourceOptions.ContainsKey("WithOSSI"))
-            {
-                this.DataSources.Add(new OSSIndexDataSource(this, this.HostEnvironment, DataSourceOptions));
-            }
 
-            if (this.DataSources.Count == 0)
+            string[] ossi_pms = { "bower", "composer", "choco", "msi", "nuget", "oneget", "yarn" };
+            if (this.DataSources.Count == 0 && ossi_pms.Contains(this.PackageManagerId))
             {
-                this.DataSources.Add(new OSSIndexDataSource(this, this.HostEnvironment, DataSourceOptions));
-                this.HostEnvironment.Info("Using default vulnerabilities data source OSS Index.");
+                this.HostEnvironment.Info("Using OSS Index as default data source for {0} package source.", this.PackageManagerLabel);
+                this.DataSources.Add(new OSSIndexDataSource(this, this.HostEnvironment, this.DataSourceOptions));
             }
-            				           
- 
         }
         #endregion
 
@@ -98,8 +90,6 @@ namespace DevAudit.AuditLibrary
 
         #region Properties
         public Dictionary<string, object> PackageSourceOptions { get; set; } = new Dictionary<string, object>();
-
-        public Dictionary<string, object> DataSourceOptions { get; set; } = new Dictionary<string, object>();
 
         public bool ListPackages { get; protected set; } = false;
 
@@ -234,7 +224,7 @@ namespace DevAudit.AuditLibrary
             else
             {
                 List<Task> tasks = new List<Task>();
-                foreach (IDataSource ds in this.DataSources)
+                foreach (IDataSource ds in this.DataSources.Where(d => d.IsEligibleForTarget(this) && d.Initialised))
                 {
                     Task t = Task.Factory.StartNew(async () =>
                     {
@@ -262,22 +252,42 @@ namespace DevAudit.AuditLibrary
                 return this.VulnerabilitiesTask;
             }
             List<Task> tasks = new List<Task>();
-            foreach (IDataSource ds in this.DataSources)
+            IEnumerable<IDataSource> eligible_datasources = this.DataSources.Where(d => d.IsEligibleForTarget(this));
+            if (eligible_datasources.Count() == 0)
             {
-                Task t = Task.Factory.StartNew(async () =>
-                {
-                    Dictionary<IPackage, List<IVulnerability>> vulnerabilities = await ds.SearchVulnerabilities(this.Packages.ToList());
-                    lock (vulnerabilities_lock)
-                    {
-                        foreach (KeyValuePair<IPackage, List<IVulnerability>> kv in vulnerabilities)
-                        {
-                            this.Vulnerabilities.Add(kv.Key, kv.Value);
-                        }
-                    }
-                }, CancellationToken.None, TaskCreationOptions.DenyChildAttach, TaskScheduler.Default).Unwrap();
-                tasks.Add(t);
+                this.HostEnvironment.Warning("No eligible vulnerabilities data sources found for audit target {0}.", this.PackageManagerLabel);
+                this.VulnerabilitiesTask = Task.CompletedTask;
+                return this.VulnerabilitiesTask;
             }
-            this.VulnerabilitiesTask = Task.WhenAll(tasks);
+            else
+            {
+                foreach (IDataSource ds in eligible_datasources)
+                {
+                    Task t = Task.Factory.StartNew(async () =>
+                    {
+                        Dictionary<IPackage, List<IVulnerability>> vulnerabilities = await ds.SearchVulnerabilities(this.Packages.ToList());
+                        lock (vulnerabilities_lock)
+                        {
+                            foreach (KeyValuePair<IPackage, List<IVulnerability>> kv in vulnerabilities)
+                            {
+                                this.Vulnerabilities.Add(kv.Key, kv.Value);
+                            }
+                            if (this.Vulnerabilities.Sum(v => v.Value.Count()) > 0)
+                            {
+                                this.HostEnvironment.Success("Got {0} total vulnerabilities for {1} packages from data source {2}.",
+                                    vulnerabilities.Values.Sum(vu => vu.Count), vulnerabilities.Keys.Count, ds.Name);
+                            }
+                            else
+                            {
+                                this.HostEnvironment.Warning("Got {0} total vulnerabilities for none of {1} packages from data source {2}.", 
+                                    vulnerabilities.Values.Sum(vu => vu.Count), this.Packages.Count(), ds.Name);
+                            }
+                        }
+                    }, CancellationToken.None, TaskCreationOptions.DenyChildAttach, TaskScheduler.Default).Unwrap();
+                    tasks.Add(t);
+                }
+                this.VulnerabilitiesTask = Task.WhenAll(tasks);
+            }
             return this.VulnerabilitiesTask;
         }
 

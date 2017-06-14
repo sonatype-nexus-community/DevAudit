@@ -8,13 +8,13 @@ using System.Threading.Tasks;
 
 namespace DevAudit.AuditLibrary
 {
-    public class OSSIndexHttpException : Exception
+    public class HttpException : Exception
     {
         public string RequestParameter { get; set; }
         public HttpStatusCode StatusCode { get; set; }
         public string ReasonPhrase { get; set; }
         public HttpRequestMessage Request { get; set; }
-        public OSSIndexHttpException(string request_parameter, HttpStatusCode status_code, string reason_phrase, HttpRequestMessage request) 
+        public HttpException(string request_parameter, HttpStatusCode status_code, string reason_phrase, HttpRequestMessage request) 
             : base("HTTP error code was received or did not receieve expected HTTP response.")
         {
             this.RequestParameter = request_parameter;

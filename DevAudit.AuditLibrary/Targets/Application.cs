@@ -181,6 +181,13 @@ namespace DevAudit.AuditLibrary
                 this.AppPass = this.AuditEnvironment.ToSecureString((string)this.ApplicationOptions["AppPass"]);
             }
 
+            string[] ossi_apps = { "drupal", "ossi" };
+            if (this.DataSources.Count == 0 && ossi_apps.Contains(this.PackageManagerId))
+            {
+                this.HostEnvironment.Info("Using OSS Index as default data source for {0} application.", this.PackageManagerLabel);
+                this.DataSources.Add(new OSSIndexDataSource(this, this.HostEnvironment, this.DataSourceOptions));
+            }
+
         }
 
         public Application(Dictionary<string, object> application_options, Dictionary<string, string[]> RequiredFileLocationPaths, Dictionary<string, string[]> RequiredDirectoryLocationPaths, string analyzer_type, EventHandler<EnvironmentEventArgs> message_handler) : 
@@ -222,9 +229,7 @@ namespace DevAudit.AuditLibrary
             }
             return this.PackagesTask;
         }
-        #endregion
 
-        #region Methods
         public override AuditResult Audit(CancellationToken ct)
         {
             CallerInformation here = this.AuditEnvironment.Here();
@@ -423,6 +428,21 @@ namespace DevAudit.AuditLibrary
 
         }
 
+        protected override Task GetVulnerabilitiesTask(CancellationToken ct)
+        {
+            if (!this.PackageSourceInitialized || this.SkipPackagesAudit || this.ListPackages || this.PrintConfiguration || this.Packages.Count() == 0 || this.ListArtifacts || this.ListConfigurationRules)
+            {
+                this.VulnerabilitiesTask = Task.CompletedTask;
+            }
+            else
+            {
+                base.GetVulnerabilitiesTask(ct);
+            }
+            return this.VulnerabilitiesTask;
+        }
+        #endregion
+
+        #region Methods
         protected Task GetConfigurationTask(CancellationToken ct)
         {
             if (this.ListPackages || this.ListArtifacts)
@@ -434,36 +454,6 @@ namespace DevAudit.AuditLibrary
                 this.ConfigurationTask = Task.Run(() => this.GetConfiguration(), ct);
             }
             return this.ConfigurationTask;
-        }
-
-        protected override Task GetVulnerabilitiesTask(CancellationToken ct)
-        {
-            if (!this.PackageSourceInitialized || this.SkipPackagesAudit || this.ListPackages || this.PrintConfiguration || this.Packages.Count() == 0 || this.ListArtifacts || this.ListConfigurationRules)
-            {
-                this.VulnerabilitiesTask = Task.CompletedTask;
-            }
-            else
-            {
-                List<Task> tasks = new List<Task>();
-                foreach (IDataSource ds in this.DataSources)
-                {
-                    Task t = Task.Factory.StartNew(async () =>
-                    {
-                        Dictionary<IPackage, List<IVulnerability>> vulnerabilities = await ds.SearchVulnerabilities(this.Packages.ToList());
-                        lock (vulnerabilities_lock)
-                        {
-                            foreach (KeyValuePair<IPackage, List<IVulnerability>> kv in vulnerabilities)
-                            {
-                                this.Vulnerabilities.Add(kv.Key, kv.Value);
-                            }
-                        }
-                    }, CancellationToken.None, TaskCreationOptions.DenyChildAttach, TaskScheduler.Default).Unwrap();
-                    tasks.Add(t);
-                }
-                this.VulnerabilitiesTask = Task.WhenAll(tasks);
-            }
-            return this.VulnerabilitiesTask;
-
         }
 
         protected virtual Task GetConfigurationRulesTask(CancellationToken ct)
@@ -479,6 +469,7 @@ namespace DevAudit.AuditLibrary
             }
             return this.ConfigurationRulesTask;
         }
+
         protected int GetDefaultConfigurationRules()
         {
             this.AuditEnvironment.Info("Loading default configuration rules for {0} application.", this.ApplicationLabel);

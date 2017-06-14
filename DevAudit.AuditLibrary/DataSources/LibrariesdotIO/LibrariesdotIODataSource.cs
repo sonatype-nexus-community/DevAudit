@@ -49,6 +49,22 @@ namespace DevAudit.AuditLibrary
         #endregion
 
         #region Overriden properties
+        public override string Name
+        {
+            get
+            {
+                return "Libraries.io";
+            }
+        }
+
+        public override string Description
+        {
+            get
+            {
+                return "https://libraries.io - Vulners.com is the security database containing descriptions for large amount of software vulnerabilities in machine-readable format. Cross-references between bulletins and continuously updating of database keeps you abreast of the latest information security threats.";
+            }
+        }
+
         public override int MaxConcurrentSearches
         {
             get

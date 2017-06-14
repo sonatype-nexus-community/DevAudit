@@ -15,6 +15,9 @@ namespace DevAudit.AuditLibrary
         #endregion
 
         #region Public properties
+        bool Initialised { get; }
+        string Name { get; }
+        string Description { get; }
         int MaxConcurrentSearches { get; }
         #endregion
     }

@@ -25,13 +25,17 @@ namespace DevAudit.AuditLibrary
         [JsonProperty("vendor")]
         public string Vendor { get; set; }
 
-        public Package(string package_manager, string application_name, string version, string vendor = null, string group = null)
+        [JsonIgnore]
+        public string Architecture { get; set; }
+
+        public Package(string package_manager, string application_name, string version, string vendor = null, string group = null, string architecture = null)
         {
             this.PackageManager = package_manager;
             this.Name = application_name;
             this.Version = version;
             if (!string.IsNullOrEmpty(vendor)) this.Vendor = vendor;
             if (!string.IsNullOrEmpty(group)) this.Group = group;
+            if (!string.IsNullOrEmpty(architecture)) this.Architecture = architecture;
         }
     }
 }

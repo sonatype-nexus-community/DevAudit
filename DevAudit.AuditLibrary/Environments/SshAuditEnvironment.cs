@@ -39,10 +39,10 @@ namespace DevAudit.AuditLibrary
             {
                 ci = new ConnectionInfo(host_name, port, user, new PrivateKeyAuthenticationMethod(user));
             }
-            ci.AuthenticationBanner += Ci_AuthenticationBanner;
             SshClient = new SshClient(ci);
             SshClient.ErrorOccurred += SshClient_ErrorOccurred;
             SshClient.HostKeyReceived += SshClient_HostKeyReceived;
+            SshClient.ConnectionInfo.AuthenticationBanner += Ci_AuthenticationBanner;
             Stopwatch sw = new Stopwatch();
             sw.Start();
             try
@@ -78,6 +78,8 @@ namespace DevAudit.AuditLibrary
             this.HostName = host_name;
             this.ssh_client_pass = pass;
             Success("Connected to {0} in {1} ms.", host_name, sw.ElapsedMilliseconds);
+            this.GetOSName();
+            this.GetOSVersion();
             string tmp_dir = Environment.OSVersion.Platform == PlatformID.Win32NT ? Environment.GetEnvironmentVariable("TEMP", EnvironmentVariableTarget.User) : "/tmp";
             if (!string.IsNullOrEmpty(tmp_dir) && Directory.Exists(tmp_dir))
             {
@@ -96,26 +98,6 @@ namespace DevAudit.AuditLibrary
             }
             Info("Using work directory: {0}.", this.WorkDirectory.FullName);
             
-        }
-
-        private void Ci_AuthenticationBanner(object sender, AuthenticationBannerEventArgs e)
-        {
-            if (e.BannerMessage.ToLower().Contains("ubuntu"))
-            {
-                this.OSName = "ubuntu";
-            }
-            else if (e.BannerMessage.ToLower().Contains("debian"))
-            {
-                this.OSName = "debian";
-            }
-            else if (e.BannerMessage.ToLower().Contains("redhat"))
-            {
-                this.OSName = "redhat";
-            }
-            else if (e.BannerMessage.ToLower().Contains("centos"))
-            {
-                this.OSName = "centos";
-            }
         }
         #endregion
 
@@ -750,6 +732,26 @@ namespace DevAudit.AuditLibrary
         private void SshClient_HostKeyReceived(object sender, Renci.SshNet.Common.HostKeyEventArgs e)
         {
             Info("Host key fingerprint is: {0} {1}.", e.HostKeyName, BitConverter.ToString(e.FingerPrint).Replace('-', ':').ToLower());
+        }
+
+        private void Ci_AuthenticationBanner(object sender, AuthenticationBannerEventArgs e)
+        {
+            if (e.BannerMessage.ToLower().Contains("ubuntu"))
+            {
+                this.OSName = "ubuntu";
+            }
+            else if (e.BannerMessage.ToLower().Contains("debian"))
+            {
+                this.OSName = "debian";
+            }
+            else if (e.BannerMessage.ToLower().Contains("redhat"))
+            {
+                this.OSName = "redhat";
+            }
+            else if (e.BannerMessage.ToLower().Contains("centos"))
+            {
+                this.OSName = "centos";
+            }
         }
 
         private void ReadFilesAsText_ErrorOccurred(object sender, ExceptionEventArgs e)

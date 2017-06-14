@@ -14,6 +14,7 @@ namespace DevAudit.AuditLibrary
         public OSSIndexDataSource(AuditTarget target, AuditEnvironment host_env, Dictionary<string, object> options) : base(target, host_env, options)
         {
             this.PackageSource = target as PackageSource;
+            this.Initialised = true;
         }
         #endregion
 
@@ -37,11 +38,46 @@ namespace DevAudit.AuditLibrary
 
         public override bool IsEligibleForTarget(AuditTarget target)
         {
-            throw new NotImplementedException();
+            if (target is ApplicationServer)
+            {
+                ApplicationServer server = target as ApplicationServer;
+                string[] eligible_servers = { "ossi" };
+                return eligible_servers.Contains(server.PackageManagerId);
+            }
+            else if (target is Application)
+            {
+                Application application = target as Application;
+                string[] eligible_applications = { "drupal" };
+                return eligible_applications.Contains(application.PackageManagerId);
+            }
+            else if (target is PackageSource)
+            {
+                PackageSource source = target as PackageSource;
+                string[] eligible_sources = { "nuget", "bower", "choco", "choco", "msi", "yarn", "oneget" };
+                return eligible_sources.Contains(source.PackageManagerId);
+            }
+ 
+
+            else return false;
         }
         #endregion
 
         #region Overriden properties
+        public override string Name
+        {
+            get
+            {
+                return "OSS Index";
+            }
+        }
+
+        public override string Description
+        {
+            get
+            {
+                return "https://ossindex.net";
+            }
+        }
         public override int MaxConcurrentSearches
         {
             get
@@ -156,7 +192,7 @@ namespace DevAudit.AuditLibrary
                     }
                     catch (Exception e)
                     {
-                        if (e is OSSIndexHttpException)
+                        if (e is HttpException)
                         {
                             this.HostEnvironment.Error(caller, e, "An HTTP error occured attempting to query the OSS Index API for the following {1} packages: {0}.",
                                 q.Select(query => query.Name).Aggregate((q1, q2) => q1 + "," + q2), this.PackageSource.PackageManagerLabel);
@@ -183,18 +219,7 @@ namespace DevAudit.AuditLibrary
             {
                 sw.Stop();
             }
-            if (this.Vulnerabilities.Sum(pv => pv.Value.Count()) > 0)
-            {
-                this.HostEnvironment.Success("Found {0} vulnerabilities for {1} package(s) on OSS Index in {2} ms.", this.Vulnerabilities
-                    .Sum(pv => pv.Value.Count()), this.Packages.Count(), sw.ElapsedMilliseconds);
-            }
-            else
-            {
-                this.HostEnvironment.Warning("Found 0 vulnerabilities for {0} package(s) on OSS Index in {1} ms.",
-                    this.Packages.Count(), sw.ElapsedMilliseconds);
-            }
             return;
-
         }
 
         #endregion

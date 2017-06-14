@@ -23,7 +23,7 @@ namespace DevAudit.AuditLibrary
                 if (!dir.Exists)
                 {
                     HostEnvironment.Error("The directory {0} does not exist.", dir.FullName);
-                    this.DataSourceInitialised = false;
+                    this.Initialised = false;
                     return;
                 }
                 else
@@ -34,7 +34,7 @@ namespace DevAudit.AuditLibrary
             catch (Exception e)
             {
                 this.HostEnvironment.Error(e, "An error occurred attempting to access the directory {0}.", dir_path);
-                this.DataSourceInitialised = false;
+                this.Initialised = false;
                 return;
             }
         }
@@ -48,6 +48,8 @@ namespace DevAudit.AuditLibrary
         #endregion
 
         #region Abstract properties
+        public abstract string Name { get; }
+        public abstract string Description { get; }
         public abstract int MaxConcurrentSearches { get; }
         #endregion
 
@@ -55,7 +57,7 @@ namespace DevAudit.AuditLibrary
         public AuditTarget Target { get; protected set; }
         public Dictionary<string, object> DataSourceOptions { get; protected set; } 
         public DirectoryInfo Directory { get; protected set; }
-        public bool DataSourceInitialised { get; protected set; } = false;
+        public bool Initialised { get; protected set; } = false;
         protected AuditEnvironment HostEnvironment { get; set; }
         #endregion
     }

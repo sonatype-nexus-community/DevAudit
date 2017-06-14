@@ -16,7 +16,8 @@ namespace DevAudit.AuditLibrary
         #endregion
 
         #region Constructors
-        public ApplicationServer(Dictionary<string, object> server_options, Dictionary<PlatformID, string[]> autodetect_binary_file_path, Dictionary<PlatformID, string[]> default_configuration_file_path, Dictionary<string, string[]> RequiredFilePaths, Dictionary<string, string[]> RequiredDirectoryPaths, EventHandler<EnvironmentEventArgs> message_handler) : base(server_options, RequiredFilePaths, RequiredDirectoryPaths, message_handler)
+        public ApplicationServer(Dictionary<string, object> server_options, Dictionary<PlatformID, string[]> autodetect_binary_file_path, Dictionary<PlatformID, string[]> default_configuration_file_path, Dictionary<string, string[]> RequiredFilePaths, Dictionary<string, string[]> RequiredDirectoryPaths, EventHandler<EnvironmentEventArgs> message_handler) 
+            : base(server_options, RequiredFilePaths, RequiredDirectoryPaths, message_handler)
         {
             this.ServerOptions = server_options;
             if (autodetect_binary_file_path == null) throw new ArgumentNullException("autodetect_binary_file_path");
@@ -29,7 +30,8 @@ namespace DevAudit.AuditLibrary
             }
         }
 
-        public ApplicationServer(Dictionary<string, object> server_options, string[] default_configuration_file_path, Dictionary<string, string[]> RequiredFilePaths, Dictionary<string, string[]> RequiredDirectoryPaths, EventHandler<EnvironmentEventArgs> message_handler = null) : base(server_options, RequiredFilePaths, RequiredDirectoryPaths, message_handler)
+        public ApplicationServer(Dictionary<string, object> server_options, string[] default_configuration_file_path, Dictionary<string, string[]> RequiredFilePaths, Dictionary<string, string[]> RequiredDirectoryPaths, EventHandler<EnvironmentEventArgs> message_handler = null) 
+            : base(server_options, RequiredFilePaths, RequiredDirectoryPaths, message_handler)
         {
             this.ServerOptions = server_options;
             if (default_configuration_file_path == null) throw new ArgumentNullException("default_configuration_file_path");

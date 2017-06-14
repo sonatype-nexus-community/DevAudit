@@ -21,6 +21,8 @@ namespace DevAudit.AuditLibrary
         public LocalEnvironment(EventHandler<EnvironmentEventArgs> message_handler) : base(message_handler, Environment.OSVersion, null)
         {
             this.ScriptEnvironment = new ScriptEnvironment(this);
+            this.GetOSName();
+            this.GetOSVersion();
         }
         public LocalEnvironment() : base(null, Environment.OSVersion, null) { }
         #endregion

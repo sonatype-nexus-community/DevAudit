@@ -68,6 +68,25 @@ namespace DevAudit.AuditLibrary
         }
         #endregion
 
+        #region Constructors
+        public AuditEnvironment(EventHandler<EnvironmentEventArgs> message_handler, OperatingSystem os, LocalEnvironment host_environment)
+        {
+            this.OS = os;
+            if (OS.Platform == PlatformID.Win32NT)
+            {
+                this.LineTerminator = "\r\n";
+                this.PathSeparator = "\\";
+            }
+            else
+            {
+                this.LineTerminator = "\n";
+                this.PathSeparator = "/";
+            }
+            this.MessageHandler = message_handler;
+            this.HostEnvironment = host_environment;
+        }
+        #endregion
+
         #region Events
         public event EventHandler<EnvironmentEventArgs> MessageHandler;
         public event EventHandler<DataReceivedEventArgs> OutputDataReceivedHandler;
@@ -165,7 +184,9 @@ namespace DevAudit.AuditLibrary
 
         public OperatingSystem OS { get; protected set; } 
 
-        public string OSName { get; protected set; }
+        public string OSName { get; set; }
+
+        public string OSVersion { get; set; }
 
         public LocalEnvironment HostEnvironment { get; protected set; }
     
@@ -202,7 +223,96 @@ namespace DevAudit.AuditLibrary
 
         public virtual string GetOSName()
         {
-            throw new NotImplementedException();
+            if (!string.IsNullOrEmpty(this.OSName)) return this.OSName;
+            CallerInformation here = Here();
+            string cmd = "", args = "";
+            if (this.IsUnix)
+            {
+                cmd = "cat";
+                args = "/etc/*release";
+                string output;
+                if (this.ExecuteCommand(cmd, args, out output))
+                {
+                    if (output.ToLower().Contains("ubuntu"))
+                    {
+                        this.OSName = "ubuntu";
+                    }
+                    else if (output.ToLower().Contains("debian"))
+                    {
+                        this.OSName = "debian";
+                    }
+                    else if (output.ToLower().Contains("centos"))
+                    {
+                        this.OSName = "centos";
+                    }
+                    else if (output.ToLower().Contains("suse linux"))
+                    {
+                        this.OSName = "suse";
+                    }
+                    else if (output.ToLower().Contains("red hat enterprise linux"))
+                    {
+                        this.OSName = "rhel";
+                    }
+                    else
+                    {
+                        this.OSName = "unix";
+                    }
+                    Debug(here, "GetOSName() returned {0}.", this.OSName);
+                    this.Info("Detected operating system of audit environment is {0}.", this.OSName);
+                }
+                else
+                {
+                    Error("GetOSName() failed.");
+                }
+                
+            }
+            return this.OSName;
+        }
+
+        public virtual string GetOSVersion()
+        {
+            if (!string.IsNullOrEmpty(this.OSVersion)) return this.OSVersion;
+            CallerInformation here = Here();
+            string cmd = "", args = "", version = "";
+            if (this.IsUnix)
+            {
+                if (this.OSName == "ubuntu")
+                {
+                    cmd = "cat";
+                    args = "/etc/*release | grep -m 1 DISTRIB_RELEASE | cut -d \"=\" -f2";
+                    string output;
+                    if (this.ExecuteCommand(cmd, args, out output))
+                    {
+                        version = output.Replace("Release:\t", string.Empty);
+                        Debug(here, "GetOSVersion() returned {0}.", output);
+                    }
+                    else
+                    {
+                        Error("GetOSVersion() failed.");
+                    }
+                }
+                else if (this.OSName == "debian")
+                {
+                    cmd = "cat";
+                    args = "/etc/debian_version";
+                    string output;
+                    if (this.ExecuteCommand(cmd, args, out output))
+                    {
+                        version = output.Trim();
+                        Debug(here, "GetOSVersion() returned {0}.", version);
+                    }
+                    else
+                    {
+                        Error("GetOSVersion() failed.");
+                    }
+                }
+                if (!string.IsNullOrEmpty(version))
+                {
+                    this.OSVersion = version;
+                    this.Info("Detected operating system version of audit environment is {0}.", this.OSVersion);
+                }
+            }
+            return this.OSVersion;
         }
 
         public virtual string GetEnvironmentVar(string name)
@@ -406,25 +516,6 @@ namespace DevAudit.AuditLibrary
             return c;
         }
 
-        #endregion
-
-        #region Constructors
-        public AuditEnvironment(EventHandler<EnvironmentEventArgs> message_handler, OperatingSystem os, LocalEnvironment host_environment)
-        {
-            this.OS = os;
-            if (OS.Platform == PlatformID.Win32NT)
-            {
-                this.LineTerminator = "\r\n";
-                this.PathSeparator = "\\";
-            }
-            else
-            {
-                this.LineTerminator = "\n";
-                this.PathSeparator = "/";
-            }
-            this.MessageHandler = message_handler;
-            this.HostEnvironment = host_environment;
-        }
         #endregion
 
         #region Fields
