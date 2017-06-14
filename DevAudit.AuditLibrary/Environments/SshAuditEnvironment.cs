@@ -21,7 +21,8 @@ namespace DevAudit.AuditLibrary
     public class SshAuditEnvironment : AuditEnvironment
     {
         #region Constructors
-        public SshAuditEnvironment(EventHandler<EnvironmentEventArgs> message_handler, string client, string host_name, int port, string user, object pass, string keyfile, OperatingSystem os, LocalEnvironment host_environment) : base(message_handler, os, host_environment)
+        public SshAuditEnvironment(EventHandler<EnvironmentEventArgs> message_handler, string client, string host_name, int port, string user, object pass, string keyfile, OperatingSystem os, LocalEnvironment host_environment) 
+            : base(message_handler, os, host_environment)
         {
             ConnectionInfo ci;
             Info("Connecting to {0}:{1}...", host_name, port);
@@ -38,6 +39,7 @@ namespace DevAudit.AuditLibrary
             {
                 ci = new ConnectionInfo(host_name, port, user, new PrivateKeyAuthenticationMethod(user));
             }
+            ci.AuthenticationBanner += Ci_AuthenticationBanner;
             SshClient = new SshClient(ci);
             SshClient.ErrorOccurred += SshClient_ErrorOccurred;
             SshClient.HostKeyReceived += SshClient_HostKeyReceived;
@@ -66,6 +68,11 @@ namespace DevAudit.AuditLibrary
             {
                 sw.Stop();
             }
+            if (!SshClient.IsConnected || !SshClient.ConnectionInfo.IsAuthenticated)
+            {
+                Error("Failed to connect or authenticate to {0}", host_name);
+                return;
+            }
             this.IsConnected = true;
             this.User = user;
             this.HostName = host_name;
@@ -89,6 +96,26 @@ namespace DevAudit.AuditLibrary
             }
             Info("Using work directory: {0}.", this.WorkDirectory.FullName);
             
+        }
+
+        private void Ci_AuthenticationBanner(object sender, AuthenticationBannerEventArgs e)
+        {
+            if (e.BannerMessage.ToLower().Contains("ubuntu"))
+            {
+                this.OSName = "ubuntu";
+            }
+            else if (e.BannerMessage.ToLower().Contains("debian"))
+            {
+                this.OSName = "debian";
+            }
+            else if (e.BannerMessage.ToLower().Contains("redhat"))
+            {
+                this.OSName = "redhat";
+            }
+            else if (e.BannerMessage.ToLower().Contains("centos"))
+            {
+                this.OSName = "centos";
+            }
         }
         #endregion
 

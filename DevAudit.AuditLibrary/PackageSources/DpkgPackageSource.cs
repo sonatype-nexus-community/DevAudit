@@ -13,9 +13,9 @@ namespace DevAudit.AuditLibrary
 
         public override string PackageManagerLabel { get { return "dpkg"; } }
 
-        public override IEnumerable<OSSIndexQueryObject> GetPackages(params string[] o)
+        public override IEnumerable<Package> GetPackages(params string[] o)
         {
-            List<OSSIndexQueryObject> packages = new List<OSSIndexQueryObject>();
+            List<Package> packages = new List<Package>();
             string command = @"dpkg-query";
             string arguments = @"-W -f  '${package} ${version}|'";
             Regex process_output_pattern = new Regex(@"^(\S+)\s(\S+)$", RegexOptions.Compiled);
@@ -37,7 +37,7 @@ namespace DevAudit.AuditLibrary
                     }
                     else
                     {
-                        packages.Add(new OSSIndexQueryObject("dpkg", m.Groups[1].Value, m.Groups[2].Value, ""));
+                        packages.Add(new Package("dpkg", m.Groups[1].Value, m.Groups[2].Value, ""));
                     }
 
                 }
@@ -53,7 +53,18 @@ namespace DevAudit.AuditLibrary
             return packages;            
         }
 
-        public DpkgPackageSource(Dictionary<string, object> package_source_options, EventHandler<EnvironmentEventArgs> message_handler) : base(package_source_options, message_handler) { }
+        public DpkgPackageSource(Dictionary<string, object> package_source_options, EventHandler<EnvironmentEventArgs> message_handler) : base(package_source_options, message_handler)
+        {
+            if (this.AuditOptions.ContainsKey("WithVulners"))
+            {
+                Dictionary<string, object> datasource_options = new Dictionary<string, object>();
+                if (this.AuditEnvironment.GetOSName() != string.Empty)
+                {
+                    datasource_options.Add("OSName", this.AuditEnvironment.OSName);
+                }
+                this.DataSources.Add(new VulnersdotcomAuditDataSource(this, this.HostEnvironment, datasource_options));
+            }
+        }
 
         public override bool IsVulnerabilityVersionInPackageVersionRange(string vulnerability_version, string package_version)
         {

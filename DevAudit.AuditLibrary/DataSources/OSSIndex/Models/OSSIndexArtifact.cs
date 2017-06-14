@@ -8,7 +8,7 @@ using Newtonsoft.Json;
 
 namespace DevAudit.AuditLibrary
 {
-    public class OSSIndexArtifact
+    public class OSSIndexArtifact : IArtifact
     {
         [JsonProperty("name")]
         public string PackageName { get; set; }
@@ -50,6 +50,21 @@ namespace DevAudit.AuditLibrary
         public List<string> Search { get; set; }
 
         [JsonIgnore]
-        public OSSIndexQueryObject Package { get; set; }        
+        public Package Package { get; set; } 
+        
+        [JsonIgnore]
+        public ArtifactVersion LatestStableVersion
+        {
+            get
+            {
+                return !string.IsNullOrEmpty(this.Version) ? new ArtifactVersion(this.Version, DateTime.Now) : null;
+            }
+        }
+
+        [JsonIgnore]
+        public string ArtifactId => ProjectId;       
+
+        [JsonIgnore]
+        public ArtifactVersion[] Versions { get; set; }
     }
 }

@@ -47,11 +47,11 @@ namespace DevAudit.AuditLibrary
             return "6.0";
         }
 
-        protected override Dictionary<string, IEnumerable<OSSIndexQueryObject>> GetModules()
+        protected override Dictionary<string, IEnumerable<Package>> GetModules()
         {
-            Dictionary<string, IEnumerable<OSSIndexQueryObject>> m = new Dictionary<string, IEnumerable<OSSIndexQueryObject>>
+            Dictionary<string, IEnumerable<Package>> m = new Dictionary<string, IEnumerable<Package>>
             {
-                {"iis6", new List<OSSIndexQueryObject> {new OSSIndexQueryObject(this.PackageManagerId, "iis", this.Version) }}
+                {"iis6", new List<Package> {new Package(this.PackageManagerId, "iis", this.Version) }}
             };
             this.ModulePackages = m;
             this.PackageSourceInitialized = this.ModulesInitialised = true;
@@ -83,7 +83,7 @@ namespace DevAudit.AuditLibrary
             return (configuration_rule_version == server_version) || configuration_rule_version == ">0";
         }
 
-        public override IEnumerable<OSSIndexQueryObject> GetPackages(params string[] o)
+        public override IEnumerable<Package> GetPackages(params string[] o)
         {
             if (!this.ModulesInitialised) throw new InvalidOperationException("Modules must be initialised before GetPackages is called.");
             return this.GetModules()["iis6"];

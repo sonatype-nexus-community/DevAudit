@@ -9,8 +9,13 @@ namespace DevAudit.AuditLibrary
     public interface IDataSource
     {
         #region Public methods
-        Task<IArtifact> SearchArtifacts(List<IPackage> packages);
-        Task<List<IVulnerability>> SearchVulnerabilities(List<IPackage> packages);
+        Task<Dictionary<IPackage, List<IArtifact>>> SearchArtifacts(List<Package> packages);
+        Task<Dictionary<IPackage, List<IVulnerability>>> SearchVulnerabilities(List<Package> packages);
+        bool IsEligibleForTarget(AuditTarget target);
+        #endregion
+
+        #region Public properties
+        int MaxConcurrentSearches { get; }
         #endregion
     }
 }

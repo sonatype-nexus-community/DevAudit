@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Net.Http;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace DevAudit.AuditLibrary
@@ -11,14 +12,14 @@ namespace DevAudit.AuditLibrary
     public class LibrariesdotIODataSource : HttpDataSource
     {
         #region Constructors
-        public LibrariesdotIODataSource(AuditEnvironment host_env, Dictionary<string, object> datasource_options) : base(host_env, datasource_options)
+        public LibrariesdotIODataSource(AuditTarget target, AuditEnvironment host_env, Dictionary<string, object> datasource_options) : base(target, host_env, datasource_options)
         {
 
         }
         #endregion
 
         #region Overriden methods
-        public override Task<IArtifact> SearchArtifacts(List<IPackage> packages)
+        public override Task<Dictionary<IPackage, List<IArtifact>>> SearchArtifacts(List<Package> packages)
         {
             /*
             CallerInformation caller = this.HostEnvironment.Here();
@@ -36,13 +37,28 @@ namespace DevAudit.AuditLibrary
             throw new NotImplementedException();
         }
 
-        public override Task<List<IVulnerability>> SearchVulnerabilities(List<IPackage> packages)
+        public override Task<Dictionary<IPackage, List<IVulnerability>>> SearchVulnerabilities(List<Package> packages)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override bool IsEligibleForTarget(AuditTarget target)
         {
             throw new NotImplementedException();
         }
         #endregion
 
-        #region Private methods
+        #region Overriden properties
+        public override int MaxConcurrentSearches
+        {
+            get
+            {
+                return 5;
+            }
+        }
+        #endregion
+
+        #region Methods
         private IArtifact GetArtifact(IPackage package)
         {
             throw new Exception();

@@ -23,7 +23,7 @@ namespace DevAudit.Tests
                 }
                 else
                 {
-                    OSSIndexQueryObject package = new OSSIndexQueryObject(a.Search[0], a.Search[1], a.Search[3], "");
+                    Package package = new Package(a.Search[0], a.Search[1], a.Search[3], "");
                     a.Package = package;
                 }
             }
@@ -33,13 +33,13 @@ namespace DevAudit.Tests
         [Fact]
         public override async Task CanSearch()
         {
-            OSSIndexQueryObject q1 = new OSSIndexQueryObject("msi", "Adobe Reader", "11.0.10", "");
-            OSSIndexQueryObject q2 = new OSSIndexQueryObject("msi", "Adobe Reader", "10.1.1", "");
+            Package q1 = new Package("msi", "Adobe Reader", "11.0.10", "");
+            Package q2 = new Package("msi", "Adobe Reader", "10.1.1", "");
             
             IEnumerable<OSSIndexArtifact> r1 = await http_client.SearchAsync("msi", q1, transform);
             Assert.NotEmpty(r1);
             Assert.True(r1.All(r => r.Package != null && !string.IsNullOrEmpty(r.Package.Name) && !string.IsNullOrEmpty(r.Package.Version)));
-            IEnumerable<OSSIndexArtifact> r2 = await http_client.SearchAsync("msi", new List<OSSIndexQueryObject>() { q1, q2 }, transform);
+            IEnumerable<OSSIndexArtifact> r2 = await http_client.SearchAsync("msi", new List<Package>() { q1, q2 }, transform);
             Assert.NotEmpty(r2);
             Assert.True(r2.All(r => r.Package != null && !string.IsNullOrEmpty(r.Package.Name) && !string.IsNullOrEmpty(r.Package.Version)));
         }
@@ -47,7 +47,7 @@ namespace DevAudit.Tests
         
         public override async Task CanGetProject()
         {
-            OSSIndexQueryObject q1 = new OSSIndexQueryObject("bower", "jquery", "1.6.1", "");
+            Package q1 = new Package("bower", "jquery", "1.6.1", "");
             IEnumerable<OSSIndexArtifact> r1 = await http_client.SearchAsync("bower", q1, transform);
             Assert.True(r1.Count() == 1);
             OSSIndexProject p1 = await http_client.GetProjectForIdAsync(r1.First().ProjectId);
@@ -60,7 +60,7 @@ namespace DevAudit.Tests
         [Fact]
         public async Task CanGetPackageVulnerability()
         {
-            OSSIndexQueryObject q1 = new OSSIndexQueryObject("nuget", "DevAudit", "", "");
+            Package q1 = new Package("nuget", "DevAudit", "", "");
             IEnumerable<OSSIndexArtifact> r1 = await http_client.SearchAsync("nuget", q1, transform);
             Assert.True(r1.Count() > 0);
             List<OSSIndexPackageVulnerability> pv = await http_client.GetPackageVulnerabilitiesAsync(r1.First().PackageId);

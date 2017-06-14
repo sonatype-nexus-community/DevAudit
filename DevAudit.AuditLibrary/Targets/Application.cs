@@ -40,7 +40,6 @@ namespace DevAudit.AuditLibrary
             }
             else
             {
-                //throw new ArgumentException(string.Format("The root application directory was not specified."), "application_options");
                 this.ApplicationFileSystemMap.Add("RootDirectory", this.AuditEnvironment.ConstructDirectory(this.AuditEnvironment.PathSeparator));
             }
 
@@ -202,19 +201,19 @@ namespace DevAudit.AuditLibrary
 
         #region Abstract methods
         protected abstract string GetVersion();
-        protected abstract Dictionary<string, IEnumerable<OSSIndexQueryObject>> GetModules();
+        protected abstract Dictionary<string, IEnumerable<Package>> GetModules();
         protected abstract IConfiguration GetConfiguration();
         public abstract bool IsConfigurationRuleVersionInServerVersionRange(string configuration_rule_version, string server_version);
         #endregion
 
         #region Overriden methods
-        public override Task GetPackagesTask(CancellationToken ct)
+        internal override Task GetPackagesTask(CancellationToken ct)
         {
             CallerInformation caller = this.AuditEnvironment.Here();
             if (this.SkipPackagesAudit || this.PrintConfiguration || this.ListConfigurationRules)
             {
                 this.PackagesTask = this.ArtifactsTask = this.VulnerabilitiesTask = this.EvaluateVulnerabilitiesTask = Task.CompletedTask;
-                this.Packages = new List<OSSIndexQueryObject>();
+                this.Packages = new List<Package>();
             }
             else
             {
@@ -225,147 +224,10 @@ namespace DevAudit.AuditLibrary
         }
         #endregion
 
-        #region Properties
-        public Dictionary<string, AuditFileSystemInfo> ApplicationFileSystemMap { get; } = new Dictionary<string, AuditFileSystemInfo>();
-
-        public AuditDirectoryInfo RootDirectory
-        {
-            get
-            {
-                return (AuditDirectoryInfo)this.ApplicationFileSystemMap["RootDirectory"];
-            }
-        }
-
-        public Dictionary<string, string> RequiredFileLocations { get; protected set; }
-
-        public Dictionary<string, string> RequiredDirectoryLocations { get; protected set; }
-
-        public AuditFileInfo ApplicationBinary { get; protected set; }
-
-        public object Modules { get; protected set; }
-
-        public Dictionary<string, IEnumerable<OSSIndexQueryObject>> ModulePackages { get; protected set; }
-
-        public string AnalyzerType { get; protected set; }
-
-        public List<FileInfo> AnalyzerScripts { get; protected set; } = new List<FileInfo>();
-
-        public List<ByteCodeAnalyzer> Analyzers { get; protected set; } = new List<ByteCodeAnalyzer>();
-
-        public bool AnalyzersInitialized { get; protected set; } = false;
-
-        public List<ByteCodeAnalyzerResult> AnalyzerResults { get; protected set; }
-
-        public bool ModulesInitialised { get; protected set; } = false;
-
-        public string Version { get; protected set; }
-
-        public bool VersionInitialised { get; protected set; } = false;
-
-        public IConfiguration Configuration { get; protected set; } = null;
-
-        public string ConfigurationStatistics
-        {
-            get
-            {
-                if (this.Configuration == null)
-                {
-                    throw new InvalidOperationException("Configuration has not been read.");
-                }
-                else
-                {
-                    StringBuilder sb = new StringBuilder();
-                    IConfigurationStatistics cs = this.Configuration as IConfigurationStatistics;
-                    
-                    if (this.Configuration.IncludeFilesStatus != null)
-                    {
-                        foreach (Tuple<string, bool, IConfigurationStatistics> status in this.Configuration.IncludeFilesStatus)
-                        {
-                            if (status.Item2)
-                            {
-                                IConfigurationStatistics include_statistics = status.Item3;
-                                sb.AppendLine(string.Format("Included {0}. File path: {1}. First line parsed {2}. Last line parsed: {3}. Parsed {4} top-level configuration nodes. Parsed {5} comments.", status.Item1, include_statistics.FullFilePath, include_statistics.FirstLineParsed, include_statistics.LastLineParsed, include_statistics.TotalFileTopLevelNodes, include_statistics.TotalFileComments));
-                            }
-                            else sb.AppendLine(string.Format("Failed to include {0}.", status.Item1));
-                        }
-                    }
-                    sb.Append(string.Format("Parsed configuration from {0}. Successfully included {5} out of {6} include files. First line parsed {1}. Last line parsed: {2}. Parsed {3} total configuration nodes. Parsed {4} total comments.", cs.FullFilePath, cs.FirstLineParsed, cs.LastLineParsed, cs.TotalFileTopLevelNodes, cs.TotalFileComments, cs.IncludeFilesParsed.HasValue ? cs.IncludeFilesParsed : 0, cs.TotalIncludeFiles.HasValue ? cs.TotalIncludeFiles.Value : 0));
-                    return sb.ToString();
-                }
-            }
-        }
-
-        public bool ConfigurationInitialised { get; protected set; } = false;
-
-        public XDocument XmlConfiguration
-        {
-            get
-            {
-                if (this.Configuration != null)
-                {
-                    return this.Configuration.XmlConfiguration;
-                }
-                else return null;
-            }
-        }
-
-        public Task GetVersionTask { get; protected set; }
-
-        public Task GetModulesTask { get; protected set; }
-
-        public Task GetConfigurationTask { get; protected set; }
-
-        public Task GetDefaultConfigurationRulesTask { get; protected set; }
-
-        public Task GetConfigurationRulesTask { get; protected set; }
-
-        public Task EvaluateConfigurationRulesTask { get; protected set; }
-
-        public Dictionary<OSSIndexProject, IEnumerable<OSSIndexProjectConfigurationRule>> ProjectConfigurationRules
-        {
-            get
-            {
-                return _ConfigurationRulesForProject;
-            }
-        }
-
-        public Task GetAnalyzersTask { get; protected set; }
-
-        public Task GetAnalyzersResultsTask { get; protected set; }
-
-        public List<OSSIndexProjectConfigurationRule> DisabledRules { get; }
-            = new List<OSSIndexProjectConfigurationRule>();
-
-        public ConcurrentDictionary<OSSIndexArtifact, Exception> GetProjectConfigurationRulesExceptions { get; protected set; }
-
-        public bool PackageSourceInitialized { get; protected set; }
-
-        public Dictionary<OSSIndexProjectConfigurationRule, Tuple<bool, List<string>, string>> ProjectConfigurationRulesEvaluations = new Dictionary<OSSIndexProjectConfigurationRule, Tuple<bool, List<string>, string>>();
-
-        public Dictionary<string, object> ApplicationOptions { get; set; } = new Dictionary<string, object>();
-
-        public bool PrintConfiguration { get; protected set; } = false;
-
-        public bool ListConfigurationRules { get; protected set; } = false;
-
-        public bool OnlyLocalRules { get; protected set; } = false;
-
-        public bool AppDevMode { get; protected set; }
-
-        public string OSUser { get; protected set; }
-
-        public SecureString OSPass { get; protected set; }
-
-        public string AppUser { get; protected set; }
-
-        public SecureString AppPass { get; protected set; }
-
-        #endregion
-
         #region Methods
         public override AuditResult Audit(CancellationToken ct)
         {
-            CallerInformation caller = this.AuditEnvironment.Here();
+            CallerInformation here = this.AuditEnvironment.Here();
             try
             {
                 this.GetModules();
@@ -390,18 +252,10 @@ namespace DevAudit.AuditLibrary
             }
 
             this.GetPackagesTask(ct);
-            
-            if (this.ListPackages || this.ListArtifacts)
-            {
-                this.GetConfigurationTask = Task.CompletedTask;
-            }
-            else
-            {
-                this.GetConfigurationTask = Task.Run(() => this.GetConfiguration(), ct);
-            }
+            this.GetConfigurationTask(ct);
             try
             {
-                Task.WaitAll(this.PackagesTask, this.GetConfigurationTask);
+                Task.WaitAll(this.PackagesTask, this.ConfigurationTask);
                 if (!this.SkipPackagesAudit && !this.PrintConfiguration && this.PackageSourceInitialized && this.PackagesTask.Status == TaskStatus.RanToCompletion)
                 {
                     AuditEnvironment.Success("Scanned {0} {1} packages.", this.Packages.Count(), this.PackageManagerLabel);
@@ -415,7 +269,7 @@ namespace DevAudit.AuditLibrary
                 }
                 else
                 {
-                    this.AuditEnvironment.Error(caller, ae, "Exception thrown in {0} task.", ae.InnerException.TargetSite.Name);
+                    this.AuditEnvironment.Error(here, ae, "Error occurred in {0} task.", ae.InnerException.TargetSite.Name);
                     if (ae.TargetSite.Name == "GetPackages")
                     {
                         return AuditResult.ERROR_SCANNING_PACKAGES;
@@ -426,17 +280,7 @@ namespace DevAudit.AuditLibrary
                     }
                 }
             }
-
-            if (!this.PackageSourceInitialized || this.ListPackages || this.PrintConfiguration || this.Packages.Count() == 0 || (this.SkipPackagesAudit && this.OnlyLocalRules))
-            {
-                this.ArtifactsTask = this.VulnerabilitiesTask = this.EvaluateVulnerabilitiesTask = Task.CompletedTask;
-            }
-            else if (this.ListArtifacts)
-            {
-                this.ArtifactsTask = Task.Run(() => this.GetArtifacts(), ct);
-            }
-            else this.ArtifactsTask = Task.CompletedTask;
-
+            this.GetArtifactsTask(ct);
             try
             {
                 this.ArtifactsTask.Wait();
@@ -446,33 +290,16 @@ namespace DevAudit.AuditLibrary
                 this.AuditEnvironment.Error("Exception thrown in GetArtifacts task.", ae.InnerException);
                 return AuditResult.ERROR_SEARCHING_ARTIFACTS;
             }
-
-            if (!this.PackageSourceInitialized || this.ListPackages || this.PrintConfiguration || this.Packages.Count() == 0 || this.ListArtifacts || this.ListConfigurationRules)
-            {
-                this.VulnerabilitiesTask = this.EvaluateVulnerabilitiesTask = Task.CompletedTask; ;
-            }
-            else
-            {
-                this.VulnerabilitiesTask = Task.Run(() => this.GetVulnerabiltiesApiv2(), ct);
-            }
-
-            if (!this.PackageSourceInitialized || this.PrintConfiguration || this.ListPackages || this.Packages.Count() == 0 || this.ListArtifacts || this.SkipPackagesAudit
-                || this.OnlyLocalRules || this.ArtifactsWithProjects == null || this.ArtifactsWithProjects.Count() == 0 || !this.ConfigurationInitialised)
-            {
-                this.GetConfigurationRulesTask = Task.CompletedTask;
-            }
-            else
-            {
-                this.GetConfigurationRulesTask = Task.Run(() => this.GetConfigurationRules(), ct);
-            }
+            this.GetVulnerabilitiesTask(ct);
+            this.GetConfigurationRulesTask(ct);
 
             if (this.ListPackages || this.ListArtifacts || !this.ConfigurationInitialised || this.PrintConfiguration)
             {
-                this.GetDefaultConfigurationRulesTask = Task.CompletedTask;
+                this.DefaultConfigurationRulesTask = Task.CompletedTask;
             }
             else
             {
-                this.GetDefaultConfigurationRulesTask = Task.Run(() => this.GetDefaultConfigurationRules());
+                this.DefaultConfigurationRulesTask = Task.Run(() => this.GetDefaultConfigurationRules());
             }
 
             if (this.ListPackages || this.ListArtifacts || this.PrintConfiguration)
@@ -490,39 +317,39 @@ namespace DevAudit.AuditLibrary
 
             try
             {
-                Task.WaitAll(this.VulnerabilitiesTask, this.GetConfigurationRulesTask, this.GetDefaultConfigurationRulesTask, this.GetAnalyzersTask);
+                Task.WaitAll(this.VulnerabilitiesTask, this.ConfigurationRulesTask, this.DefaultConfigurationRulesTask, this.GetAnalyzersTask);
             }
             catch (AggregateException ae)
             {
                 if (ae.InnerException.TargetSite.Name == "GetVulnerabilities")
                 {
-                    this.AuditEnvironment.Error(caller, ae.InnerException, "Exception thrown in GetVulnerabilities task.");
+                    this.AuditEnvironment.Error(here, ae.InnerException, "Exception thrown in GetVulnerabilities task.");
                     return AuditResult.ERROR_SEARCHING_VULNERABILITIES;
                 }
                 else if (ae.InnerException.TargetSite.Name == "GetConfigurationRules")
                 {
-                    this.AuditEnvironment.Error(caller, ae.InnerException, "Exception thrown in GetConfigurationRules task.");
+                    this.AuditEnvironment.Error(here, ae.InnerException, "Exception thrown in GetConfigurationRules task.");
                     return AuditResult.ERROR_SEARCHING_CONFIGURATION_RULES;
                 }
                 else if (ae.InnerException.TargetSite.Name == "GetConfigurationRules")
-                {  
-                    this.AuditEnvironment.Error(caller, ae.InnerException, "Exception thrown in GetDefaultConfigurationRules task.");
+                {
+                    this.AuditEnvironment.Error(here, ae.InnerException, "Exception thrown in GetDefaultConfigurationRules task.");
                     return AuditResult.ERROR_SCANNING_DEFAULT_CONFIGURATION_RULES;
                 }
                 else if (ae.InnerException.TargetSite.Name == "GetAnalyzers")
-                {  
-                    this.AuditEnvironment.Error(caller, ae.InnerException, "Exception thrown in GetAnalyzers task.");
-                    return AuditResult.ERROR_SCANNING_ANALYZERS;                    
+                {
+                    this.AuditEnvironment.Error(here, ae.InnerException, "Exception thrown in GetAnalyzers task.");
+                    return AuditResult.ERROR_SCANNING_ANALYZERS;
                 }
                 else
                 {
-                    this.AuditEnvironment.Error(caller, ae.InnerException);
+                    this.AuditEnvironment.Error(here, ae.InnerException);
                     return AuditResult.ERROR_SEARCHING_VULNERABILITIES;
                 }
             }
 
             if (this.ListPackages || this.ListArtifacts || this.ListConfigurationRules || this.Vulnerabilities.Count == 0 || this.PrintConfiguration)
-            { 
+            {
                 this.EvaluateVulnerabilitiesTask = Task.CompletedTask;
             }
             else
@@ -558,12 +385,100 @@ namespace DevAudit.AuditLibrary
             }
             catch (AggregateException ae)
             {
-                this.AuditEnvironment.Error(caller, ae.InnerException, "Exception thrown in {0} task.", ae.InnerException.TargetSite.Name);
+                this.AuditEnvironment.Error(here, ae.InnerException, "Exception thrown in {0} task.", ae.InnerException.TargetSite.Name);
                 return AuditResult.ERROR_EVALUATING_CONFIGURATION_RULES;
             }
             return AuditResult.SUCCESS;
         }
-     
+
+        protected override Task GetArtifactsTask(CancellationToken ct)
+        {
+            if (!this.PackageSourceInitialized || this.ListPackages || this.PrintConfiguration || this.Packages.Count() == 0 || (this.SkipPackagesAudit && this.OnlyLocalRules))
+            {
+                this.ArtifactsTask = this.VulnerabilitiesTask = this.EvaluateVulnerabilitiesTask = Task.CompletedTask;
+            }
+            else if (this.ListArtifacts)
+            {
+                List<Task> tasks = new List<Task>();
+                foreach (IDataSource ds in this.DataSources)
+                {
+                    Task t = Task.Factory.StartNew(async () =>
+                    {
+                        Dictionary<IPackage, List<IArtifact>> artifacts = await ds.SearchArtifacts(this.Packages.ToList());
+                        lock (artifacts_lock)
+                        {
+                            foreach (KeyValuePair<IPackage, List<IArtifact>> kv in artifacts)
+                            {
+                                this.Artifacts.Add(kv.Key, kv.Value);
+                            }
+                        }
+                    }, CancellationToken.None, TaskCreationOptions.DenyChildAttach, TaskScheduler.Default).Unwrap();
+                    tasks.Add(t);
+                }
+                this.ArtifactsTask = Task.WhenAll(tasks);
+
+            }
+            else this.ArtifactsTask = Task.CompletedTask;
+            return this.ArtifactsTask;
+
+        }
+
+        protected Task GetConfigurationTask(CancellationToken ct)
+        {
+            if (this.ListPackages || this.ListArtifacts)
+            {
+                this.ConfigurationTask = Task.CompletedTask;
+            }
+            else
+            {
+                this.ConfigurationTask = Task.Run(() => this.GetConfiguration(), ct);
+            }
+            return this.ConfigurationTask;
+        }
+
+        protected override Task GetVulnerabilitiesTask(CancellationToken ct)
+        {
+            if (!this.PackageSourceInitialized || this.SkipPackagesAudit || this.ListPackages || this.PrintConfiguration || this.Packages.Count() == 0 || this.ListArtifacts || this.ListConfigurationRules)
+            {
+                this.VulnerabilitiesTask = Task.CompletedTask;
+            }
+            else
+            {
+                List<Task> tasks = new List<Task>();
+                foreach (IDataSource ds in this.DataSources)
+                {
+                    Task t = Task.Factory.StartNew(async () =>
+                    {
+                        Dictionary<IPackage, List<IVulnerability>> vulnerabilities = await ds.SearchVulnerabilities(this.Packages.ToList());
+                        lock (vulnerabilities_lock)
+                        {
+                            foreach (KeyValuePair<IPackage, List<IVulnerability>> kv in vulnerabilities)
+                            {
+                                this.Vulnerabilities.Add(kv.Key, kv.Value);
+                            }
+                        }
+                    }, CancellationToken.None, TaskCreationOptions.DenyChildAttach, TaskScheduler.Default).Unwrap();
+                    tasks.Add(t);
+                }
+                this.VulnerabilitiesTask = Task.WhenAll(tasks);
+            }
+            return this.VulnerabilitiesTask;
+
+        }
+
+        protected virtual Task GetConfigurationRulesTask(CancellationToken ct)
+        {
+            if (!this.PackageSourceInitialized || this.PrintConfiguration || this.ListPackages || this.Packages.Count() == 0 || this.ListArtifacts || this.SkipPackagesAudit
+            || this.OnlyLocalRules || this.ConfigurationInitialised)
+            {
+                this.ConfigurationRulesTask = Task.CompletedTask;
+            }
+            else
+            {
+                this.ConfigurationRulesTask = Task.CompletedTask; // Task.Run(() => this.GetConfigurationRules(), ct);
+            }
+            return this.ConfigurationRulesTask;
+        }
         protected int GetDefaultConfigurationRules()
         {
             this.AuditEnvironment.Info("Loading default configuration rules for {0} application.", this.ApplicationLabel);
@@ -572,15 +487,15 @@ namespace DevAudit.AuditLibrary
             AuditFileInfo rules_file = this.HostEnvironment.ConstructFile(Path.Combine(this.DevAuditDirectory, "Rules", this.ApplicationId + "." + "yml"));
             if (!rules_file.Exists) throw new Exception(string.Format("The default rules file {0} does not exist.", rules_file.FullName));
             Deserializer yaml_deserializer = new Deserializer(namingConvention: new CamelCaseNamingConvention(), ignoreUnmatched: true);
-            Dictionary<string, List<OSSIndexProjectConfigurationRule>> rules;
-            rules = yaml_deserializer.Deserialize<Dictionary<string, List<OSSIndexProjectConfigurationRule>>>(new StringReader(rules_file.ReadAsText()));
+            Dictionary<string, List<ConfigurationRule>> rules;
+            rules = yaml_deserializer.Deserialize<Dictionary<string, List<ConfigurationRule>>>(new StringReader(rules_file.ReadAsText()));
             if (rules == null)
             {
                 sw.Stop();
                 throw new Exception(string.Format("Parsing the default rules file {0} returned null.", rules_file.FullName));
             }
             if (rules.ContainsKey(this.ApplicationId + "_default")) rules.Remove(this.ApplicationId + "_default");
-            foreach (KeyValuePair<string, List<OSSIndexProjectConfigurationRule>> kv in rules)
+            foreach (KeyValuePair<string, List<ConfigurationRule>> kv in rules)
             {
                 this.AddConfigurationRules(kv.Key, kv.Value);
             }
@@ -591,6 +506,7 @@ namespace DevAudit.AuditLibrary
 
         protected void GetConfigurationRules()
         {
+            /*
             this.AuditEnvironment.Info("Searching OSS Index for configuration rules for {0} artifact(s).", this.ArtifactsWithProjects.Count);
             Stopwatch sw = new Stopwatch();
             List<Task> tasks = new List<Task>();
@@ -598,12 +514,12 @@ namespace DevAudit.AuditLibrary
             this.ProjectConfigurationRulesEvaluations = new Dictionary<OSSIndexProjectConfigurationRule, Tuple<bool, List<string>, string>>();
             Int32 i = new Int32();
             sw.Start();
-            foreach(OSSIndexArtifact a in this.ArtifactsWithProjects) 
+            foreach (OSSIndexArtifact a in this.ArtifactsWithProjects)
             {
                 Task t = Task.Factory.StartNew(async (o) =>
                 {
                     OSSIndexProject project = null;
-                    
+
                     lock (artifact_project_lock)
                     {
                         if (ArtifactProject.Values.Any(p => p.Id.ToString() == a.ProjectId))
@@ -651,20 +567,22 @@ namespace DevAudit.AuditLibrary
             sw.Stop();
             this.AuditEnvironment.Info("Found {0} configuration rule(s) on OSS Index in {1} ms.", i, sw.ElapsedMilliseconds);
             return;
+            */
         }
 
-        protected Dictionary<OSSIndexProjectConfigurationRule, Tuple<bool, List<string>, string>> EvaluateProjectConfigurationRules()
+        protected Dictionary<ConfigurationRule, Tuple<bool, List<string>, string>> EvaluateProjectConfigurationRules()
         {
-            Dictionary<OSSIndexProjectConfigurationRule, Tuple<bool, List<string>, string>> results = new Dictionary<OSSIndexProjectConfigurationRule, Tuple<bool, List<string>, string>>(this.ProjectConfigurationRules.Count());
-            if (this.ProjectConfigurationRules.Count == 0)
+            Dictionary<ConfigurationRule, Tuple<bool, List<string>, string>> results = 
+                new Dictionary<ConfigurationRule, Tuple<bool, List<string>, string>>(this.ConfigurationRules.Count());
+            if (this.ConfigurationRules.Count == 0)
             {
                 return results;
             }
-            this.AuditEnvironment.Status("Evaluating {0} configuration rule(s).", this.ProjectConfigurationRules.Sum(kv => kv.Value.Count()));
+            this.AuditEnvironment.Status("Evaluating {0} configuration rule(s).", this.ConfigurationRules.Sum(kv => kv.Value.Count()));
             Stopwatch sw = new Stopwatch();
             sw.Start();
             object evaluate_rules = new object();
-            this.ProjectConfigurationRules.Values.AsParallel().ForAll(pr =>
+            this.ConfigurationRules.Values.AsParallel().ForAll(pr =>
             {
                 pr.AsParallel().ForAll(r =>
                 {
@@ -691,22 +609,22 @@ namespace DevAudit.AuditLibrary
                     }
                     else if (!string.IsNullOrEmpty(r.XPathTest))
                     {
-                       List<string> result;
-                       string message;
-                       lock (evaluate_rules)
-                       {
-                           results.Add(r, new Tuple<bool, List<string>, string>(this.Configuration.XPathEvaluate(r.XPathTest, out result, out message), result, message));
-                       }
+                        List<string> result;
+                        string message;
+                        lock (evaluate_rules)
+                        {
+                            results.Add(r, new Tuple<bool, List<string>, string>(this.Configuration.XPathEvaluate(r.XPathTest, out result, out message), result, message));
+                        }
                     }
                 });
             });
-            this.ProjectConfigurationRulesEvaluations = results;
+            this.ConfigurationRulesEvaluations = results;
             sw.Stop();
-            this.AuditEnvironment.Success("Evaluated {0} configuration rule(s) in {1} ms.", this.ProjectConfigurationRulesEvaluations.Keys.Count, sw.ElapsedMilliseconds);
-            return this.ProjectConfigurationRulesEvaluations;
+            this.AuditEnvironment.Success("Evaluated {0} configuration rule(s) in {1} ms.", this.ConfigurationRulesEvaluations.Keys.Count, sw.ElapsedMilliseconds);
+            return this.ConfigurationRulesEvaluations;
         }
 
-        protected bool RuleVersionExcludesAppVersion(OSSIndexProjectConfigurationRule r)
+        protected bool RuleVersionExcludesAppVersion(ConfigurationRule r)
         {
             if (r.Versions == null || r.Versions.Count == 0)
             {
@@ -878,79 +796,152 @@ namespace DevAudit.AuditLibrary
             }
 
         }
-        
-        private KeyValuePair<OSSIndexQueryObject, IEnumerable<OSSIndexPackageVulnerability>>
-          AddPackageVulnerability(OSSIndexQueryObject package, IEnumerable<OSSIndexPackageVulnerability> vulnerability)
+
+        private void AddConfigurationRules(string module_name, IEnumerable<ConfigurationRule> rules)
         {
-            lock (package_vulnerabilities_lock)
+            foreach(ConfigurationRule r in rules)
             {
-                this._VulnerabilitiesForPackage.Add(package, vulnerability);
-                return new KeyValuePair<OSSIndexQueryObject, IEnumerable<OSSIndexPackageVulnerability>>(package, vulnerability);
+                r.ModuleName = module_name;
             }
-        }
-
-        private KeyValuePair<OSSIndexProject, IEnumerable<OSSIndexProjectVulnerability>>
-            AddProjectVulnerability(OSSIndexProject project, IEnumerable<OSSIndexProjectVulnerability> vulnerability)
-        {
-            lock (project_vulnerabilities_lock)
-            {
-                this._VulnerabilitiesForProject.Add(project, vulnerability);
-
-                return new KeyValuePair<OSSIndexProject, IEnumerable<OSSIndexProjectVulnerability>>(project, vulnerability);
-            }
-        }
-
-        private KeyValuePair<IEnumerable<OSSIndexQueryObject>, IEnumerable<OSSIndexArtifact>> AddArtifiact(IEnumerable<OSSIndexQueryObject> query, IEnumerable<OSSIndexArtifact> artifact)
-        {
-            lock (artifacts_lock)
-            {
-                this._ArtifactsForQuery.Add(query, artifact);
-                return new KeyValuePair<IEnumerable<OSSIndexQueryObject>, IEnumerable<OSSIndexArtifact>>(query, artifact);
-            }
-        }
-
-
-        private void AddConfigurationRules(OSSIndexProject project, IEnumerable<OSSIndexProjectConfigurationRule> rules)
-        {
             lock (configuration_rules_lock)
             {
-                this._ConfigurationRulesForProject.Add(project, rules);
-            }
-        }
-
-        private void AddConfigurationRules(string project_name, IEnumerable<OSSIndexProjectConfigurationRule> rules)
-        {
-            lock (configuration_rules_lock)
-            {
-                OSSIndexProject project = ArtifactProject.Values.Where(p => p.Name == project_name).FirstOrDefault();
-                if (project == null)
-                {
-                    project = new OSSIndexProject() { Name = project_name };
-                }
-                foreach (OSSIndexProjectConfigurationRule r in rules)
-                {
-                    r.Project = project;
-                }
-                this._ConfigurationRulesForProject.Add(project, rules);
+                this.ConfigurationRules.Add(module_name, rules);
             }
         }
         #endregion
 
+        #region Properties
+        public Dictionary<string, AuditFileSystemInfo> ApplicationFileSystemMap { get; } = new Dictionary<string, AuditFileSystemInfo>();
+
+        public AuditDirectoryInfo RootDirectory
+        {
+            get
+            {
+                return (AuditDirectoryInfo)this.ApplicationFileSystemMap["RootDirectory"];
+            }
+        }
+
+        public Dictionary<string, string> RequiredFileLocations { get; protected set; }
+
+        public Dictionary<string, string> RequiredDirectoryLocations { get; protected set; }
+
+        public AuditFileInfo ApplicationBinary { get; protected set; }
+
+        public object Modules { get; protected set; }
+
+        public Dictionary<string, IEnumerable<Package>> ModulePackages { get; protected set; }
+
+        public string AnalyzerType { get; protected set; }
+
+        public List<FileInfo> AnalyzerScripts { get; protected set; } = new List<FileInfo>();
+
+        public List<ByteCodeAnalyzer> Analyzers { get; protected set; } = new List<ByteCodeAnalyzer>();
+
+        public bool AnalyzersInitialized { get; protected set; } = false;
+
+        public List<ByteCodeAnalyzerResult> AnalyzerResults { get; protected set; }
+
+        public bool ModulesInitialised { get; protected set; } = false;
+
+        public string Version { get; protected set; }
+
+        public bool VersionInitialised { get; protected set; } = false;
+
+        public IConfiguration Configuration { get; protected set; } = null;
+
+        public string ConfigurationStatistics
+        {
+            get
+            {
+                if (this.Configuration == null)
+                {
+                    throw new InvalidOperationException("Configuration has not been read.");
+                }
+                else
+                {
+                    StringBuilder sb = new StringBuilder();
+                    IConfigurationStatistics cs = this.Configuration as IConfigurationStatistics;
+                    
+                    if (this.Configuration.IncludeFilesStatus != null)
+                    {
+                        foreach (Tuple<string, bool, IConfigurationStatistics> status in this.Configuration.IncludeFilesStatus)
+                        {
+                            if (status.Item2)
+                            {
+                                IConfigurationStatistics include_statistics = status.Item3;
+                                sb.AppendLine(string.Format("Included {0}. File path: {1}. First line parsed {2}. Last line parsed: {3}. Parsed {4} top-level configuration nodes. Parsed {5} comments.", status.Item1, include_statistics.FullFilePath, include_statistics.FirstLineParsed, include_statistics.LastLineParsed, include_statistics.TotalFileTopLevelNodes, include_statistics.TotalFileComments));
+                            }
+                            else sb.AppendLine(string.Format("Failed to include {0}.", status.Item1));
+                        }
+                    }
+                    sb.Append(string.Format("Parsed configuration from {0}. Successfully included {5} out of {6} include files. First line parsed {1}. Last line parsed: {2}. Parsed {3} total configuration nodes. Parsed {4} total comments.", cs.FullFilePath, cs.FirstLineParsed, cs.LastLineParsed, cs.TotalFileTopLevelNodes, cs.TotalFileComments, cs.IncludeFilesParsed.HasValue ? cs.IncludeFilesParsed : 0, cs.TotalIncludeFiles.HasValue ? cs.TotalIncludeFiles.Value : 0));
+                    return sb.ToString();
+                }
+            }
+        }
+
+        public bool ConfigurationInitialised { get; protected set; } = false;
+
+        public XDocument XmlConfiguration
+        {
+            get
+            {
+                if (this.Configuration != null)
+                {
+                    return this.Configuration.XmlConfiguration;
+                }
+                else return null;
+            }
+        }
+
+        public Task VersionTask { get; protected set; }
+
+        public Task ModulesTask { get; protected set; }
+
+        public Task ConfigurationTask { get; protected set; }
+
+        public Task DefaultConfigurationRulesTask { get; protected set; }
+
+        public Task ConfigurationRulesTask { get; protected set; }
+
+        public Task EvaluateConfigurationRulesTask { get; protected set; }
+
+        public Dictionary<string, IEnumerable<ConfigurationRule>> ConfigurationRules { get; } = new Dictionary<string, IEnumerable<ConfigurationRule>>();
+        
+        public Task GetAnalyzersTask { get; protected set; }
+
+        public Task GetAnalyzersResultsTask { get; protected set; }
+
+        public List<ConfigurationRule> DisabledRules { get; }
+            = new List<ConfigurationRule>();
+
+        public ConcurrentDictionary<OSSIndexArtifact, Exception> GetProjectConfigurationRulesExceptions { get; protected set; }
+
+        public bool PackageSourceInitialized { get; protected set; }
+
+        public Dictionary<ConfigurationRule, Tuple<bool, List<string>, string>> ConfigurationRulesEvaluations = new Dictionary<ConfigurationRule, Tuple<bool, List<string>, string>>();
+
+        public Dictionary<string, object> ApplicationOptions { get; set; } = new Dictionary<string, object>();
+
+        public bool PrintConfiguration { get; protected set; } = false;
+
+        public bool ListConfigurationRules { get; protected set; } = false;
+
+        public bool OnlyLocalRules { get; protected set; } = false;
+
+        public bool AppDevMode { get; protected set; }
+
+        public string OSUser { get; protected set; }
+
+        public SecureString OSPass { get; protected set; }
+
+        public string AppUser { get; protected set; }
+
+        public SecureString AppPass { get; protected set; }
+
+        #endregion
+
         #region Fields
-        private readonly object artifacts_lock = new object(), package_vulnerabilities_lock = new object(), project_vulnerabilities_lock = new object(), artifact_project_lock = new object();
-        private Dictionary<IEnumerable<OSSIndexQueryObject>, IEnumerable<OSSIndexArtifact>> _ArtifactsForQuery =
-            new Dictionary<IEnumerable<OSSIndexQueryObject>, IEnumerable<OSSIndexArtifact>>();
-        private Dictionary<OSSIndexArtifact, OSSIndexProject> _ArtifactProject = new Dictionary<OSSIndexArtifact, OSSIndexProject>();
-        private Task<Tuple<int, int>> _ArtifactsTask;
-        private Dictionary<OSSIndexQueryObject, IEnumerable<OSSIndexPackageVulnerability>> _VulnerabilitiesForPackage =
-            new Dictionary<OSSIndexQueryObject, IEnumerable<OSSIndexPackageVulnerability>>();
-        private Dictionary<OSSIndexProject, IEnumerable<OSSIndexProjectVulnerability>> _VulnerabilitiesForProject =
-            new Dictionary<OSSIndexProject, IEnumerable<OSSIndexProjectVulnerability>>();
-        protected Dictionary<OSSIndexProject, IEnumerable<OSSIndexProjectConfigurationRule>> _ConfigurationRulesForProject = new Dictionary<OSSIndexProject, IEnumerable<OSSIndexProjectConfigurationRule>>();
-        private List<Task<KeyValuePair<OSSIndexProject, IEnumerable<OSSIndexProjectVulnerability>>>> _VulnerabilitiesTask;
-        private Task<Dictionary<string, IEnumerable<OSSIndexQueryObject>>> _ModulesTask;
-        private Task _ConfigurationTask;
-        private List<Task<KeyValuePair<OSSIndexProject, IEnumerable<OSSIndexProjectConfigurationRule>>>> _ConfigurationRulesTask;
         private object configuration_rules_lock = new object();
         #endregion
     }

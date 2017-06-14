@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Collections.Concurrent;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
@@ -25,29 +24,12 @@ namespace DevAudit.AuditLibrary
 {
     public abstract class HttpDataSource : IDataSource
     {
-        #region Abstract methods
-        public abstract Task<IArtifact> SearchArtifacts(List<IPackage> packages);
-        public abstract Task<List<IVulnerability>> SearchVulnerabilities(List<IPackage> packages);
-        #endregion
-
         #region Constructors
-        public HttpDataSource(AuditEnvironment host_env, Dictionary<string, object> datasource_options)
+        public HttpDataSource(AuditTarget target, AuditEnvironment host_env, Dictionary<string, object> datasource_options)
         {
-            if (!datasource_options.ContainsKey("ApiUrl")) throw new ArgumentException("The ApiUrl option is not specified.");
             this.DataSourceOptions = datasource_options;
             this.HostEnvironment = host_env;
-            string api_url_s = (string)this.DataSourceOptions["ApiUrl"];
-            Uri api_url = null;
-            if (!Uri.TryCreate(api_url_s, UriKind.Absolute, out api_url))
-            {
-                this.HostEnvironment.Error("Could not create Uri from {0}.", api_url_s);
-                this.DataSourceInitialised = false;
-                return;
-            }
-            else
-            {
-                this.ApiUrl = api_url;
-            }
+            this.Target = target;
             if (this.DataSourceOptions.ContainsKey("HttpsProxy"))
             {
                 HttpsProxy = (Uri)this.DataSourceOptions["HttpsProxy"];
@@ -55,13 +37,23 @@ namespace DevAudit.AuditLibrary
         }
         #endregion
 
+        #region Abstract methods
+        public abstract Task<Dictionary<IPackage, List<IArtifact>>> SearchArtifacts(List<Package> packages);
+        public abstract Task<Dictionary<IPackage, List<IVulnerability>>> SearchVulnerabilities(List<Package> packages);
+        public abstract bool IsEligibleForTarget(AuditTarget target);
+        #endregion
+
+        #region Abstract properties
+        public abstract int MaxConcurrentSearches { get; }
+        #endregion
+
         #region Properties
+        public AuditTarget Target { get; }
         public Dictionary<string, object> DataSourceOptions { get; protected set; }
         protected AuditEnvironment HostEnvironment { get; set; }
         public bool DataSourceInitialised { get; protected set; } = false;
         public Uri ApiUrl { get; protected set; }
         public Uri HttpsProxy { get; protected set; }
-        public ConcurrentDictionary<IPackage, Exception> SearchArtifactsExceptions = new ConcurrentDictionary<IPackage, Exception>();
         #endregion
 
         #region Methods

@@ -285,6 +285,9 @@
     <Compile Include="Codecs.cs" />
     <Compile Include="DataSources\LibrariesdotIO\LibrariesdotIODataSource.cs" />
     <Compile Include="DataSources\LibrariesdotIO\Models\LibdotIOArtifact.cs" />
+    <Compile Include="DataSources\OSSIndex\OSSIndexDataSource.cs" />
+    <Compile Include="DataSources\Vulnersdotcom\Models\VulnersdotcomSearchResult.cs" />
+    <Compile Include="DataSources\Vulnersdotcom\VulnersdotcomAuditDataSource.cs" />
     <Compile Include="Environments\AlpheusEnvironment.cs" />
     <Compile Include="Environments\WinRmAuditDirectoryInfo.cs" />
     <Compile Include="Environments\WinRmAuditFileInfo.cs" />
@@ -351,7 +354,7 @@
     <Compile Include="AuditTarget.cs" />
     <Compile Include="Environments\LocalEnvironment.cs" />
     <Compile Include="DataSources\OSSIndex\Models\OSSIndexArtifact.cs" />
-    <Compile Include="DataSources\OSSIndex\Models\OSSIndexProjectConfigurationRule.cs" />
+    <Compile Include="ConfigurationRule.cs" />
     <Compile Include="DataSources\OSSIndex\OSSIndexHttpClient.cs" />
     <Compile Include="DataSources\OSSIndex\OSSIndexHttpException.cs" />
     <Compile Include="DataSources\OSSIndex\Models\OSSIndexPackageVulnerability.cs" />
@@ -368,7 +371,6 @@
     <Compile Include="PackageSources\MSIPackageSource.cs" />
     <Compile Include="PackageSources\NuGetPackageSource.cs" />
     <Compile Include="PackageSources\OneGetPackageSource.cs" />
-    <Compile Include="ProjectVulnerabilitiesCacheItem.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Targets\ApplicationServer.cs" />
     <Compile Include="Servers\NginxServer.cs" />
@@ -385,7 +387,6 @@
     </Examples>
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="DataSources\Vulnersdotcom\" />
     <Folder Include="Examples\Drupal\core\modules\" />
     <Folder Include="Models\" />
   </ItemGroup>

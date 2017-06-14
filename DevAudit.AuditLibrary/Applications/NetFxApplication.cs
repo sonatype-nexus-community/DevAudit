@@ -135,7 +135,7 @@ namespace DevAudit.AuditLibrary
         #endregion
 
         #region Overriden methods
-        public override Task GetPackagesTask(CancellationToken ct)
+        internal override Task GetPackagesTask(CancellationToken ct)
         {
             CallerInformation caller = this.AuditEnvironment.Here();
             if (this.SkipPackagesAudit || this.PrintConfiguration || this.ListConfigurationRules)
@@ -153,16 +153,16 @@ namespace DevAudit.AuditLibrary
             {
                 this.AuditEnvironment.Status("Scanning {0} packages.", this.PackageManagerLabel);
                 this.NugetPackageSource.GetPackagesTask(ct);
-                this.PackagesTask = this.NugetPackageSource.GetPackagesTask(ct).ContinueWith((t) => this.Packages = this.NugetPackageSource.Packages, TaskContinuationOptions.OnlyOnRanToCompletion);
+                this.PackagesTask = this.NugetPackageSource.PackagesTask.ContinueWith((t) => this.Packages = this.NugetPackageSource.Packages, TaskContinuationOptions.OnlyOnRanToCompletion);
             }
             return this.PackagesTask;
         }
 
-        public override IEnumerable<OSSIndexQueryObject> GetPackages(params string[] o)
+        public override IEnumerable<Package> GetPackages(params string[] o)
         {
             if (this.PackageSourceInitialized)
             {
-                return this.Packages = this.NugetPackageSource.GetPackages(o);
+                return this.NugetPackageSource.GetPackages(o); 
             }
             else
             {
@@ -197,7 +197,7 @@ namespace DevAudit.AuditLibrary
             else return string.Empty;
         }
 
-        protected override Dictionary<string, IEnumerable<OSSIndexQueryObject>> GetModules()
+        protected override Dictionary<string, IEnumerable<Package>> GetModules()
         {
             Stopwatch sw = new Stopwatch();
             if (this.ApplicationBinary == null)
@@ -223,8 +223,8 @@ namespace DevAudit.AuditLibrary
             references.RemoveAll(r => r.Name =="mscorlib" || r.Name.StartsWith("System"));
             sw.Stop();
             this.AuditEnvironment.Info("Got {0} referenced assemblies in {1} ms", references.Count(), sw.ElapsedMilliseconds);
-            IEnumerable<OSSIndexQueryObject> modules = references.Select(r => new OSSIndexQueryObject("netfx", r.Name, r.Version.ToString()));
-            this.ModulePackages = new Dictionary<string, IEnumerable<OSSIndexQueryObject>>
+            IEnumerable<Package> modules = references.Select(r => new Package("netfx", r.Name, r.Version.ToString()));
+            this.ModulePackages = new Dictionary<string, IEnumerable<Package>>
             {
                 {"references", modules }
             };

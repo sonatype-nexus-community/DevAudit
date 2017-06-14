@@ -30,7 +30,7 @@ namespace DevAudit.AuditLibrary
 
         #region Overriden methods
         //Get bower packages from reading bower.json
-        public override IEnumerable<OSSIndexQueryObject> GetPackages(params string[] o)
+        public override IEnumerable<Package> GetPackages(params string[] o)
         {
             AuditFileInfo config_file = this.AuditEnvironment.ConstructFile(this.PackageManagerConfigurationFile);
             JObject json = (JObject)JToken.Parse(config_file.ReadAsText());
@@ -38,12 +38,12 @@ namespace DevAudit.AuditLibrary
             JObject dev_dependencies = (JObject)json["devDependencies"];
             if (dev_dependencies != null)
             {
-                return dependencies.Properties().Select(d => new OSSIndexQueryObject("bower", d.Name, d.Value.ToString(), ""))
-                    .Concat(dev_dependencies.Properties().Select(d => new OSSIndexQueryObject("bower", d.Name, d.Value.ToString(), "")));
+                return dependencies.Properties().Select(d => new Package("bower", d.Name, d.Value.ToString(), ""))
+                    .Concat(dev_dependencies.Properties().Select(d => new Package("bower", d.Name, d.Value.ToString(), "")));
             }
             else
             {
-                return dependencies.Properties().Select(d => new OSSIndexQueryObject("bower", d.Name, d.Value.ToString(), ""));
+                return dependencies.Properties().Select(d => new Package("bower", d.Name, d.Value.ToString(), ""));
             }
             
         }

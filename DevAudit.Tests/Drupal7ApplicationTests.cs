@@ -25,7 +25,7 @@ namespace DevAudit.Tests
         {
             Assert.True(d.ApplicationFileSystemMap.ContainsKey("RootDirectory"));
             Assert.NotNull(d.CoreModulesDirectory);
-            Dictionary<string, IEnumerable<OSSIndexQueryObject>> modules = d.ModulesTask.Result;
+            Dictionary<string, IEnumerable<Package>> modules = d.ModulesTask.Result;
             Assert.NotEmpty(modules["core"]);
             Assert.NotEmpty(modules["contrib"]);
             Assert.NotEmpty(modules["sites_all_contrib"]);

@@ -44,7 +44,7 @@ namespace DevAudit.AuditLibrary
         protected override string GetVersion()
         {
             if (!this.ModulesInitialised) throw new InvalidOperationException("Modules must be initialized before GetVersion is called.");
-            OSSIndexQueryObject core_module = this.ModulePackages["core"].Where(m => m.Name == "drupal_core").First();
+            Package core_module = this.ModulePackages["core"].Where(m => m.Name == "drupal_core").First();
             if (!string.IsNullOrEmpty(core_module.Version))
             {
                 this.AuditEnvironment.Success("Got Drupal 7 version {0}.", core_module.Version);
@@ -58,15 +58,15 @@ namespace DevAudit.AuditLibrary
             
         }
 
-        protected override Dictionary<string, IEnumerable<OSSIndexQueryObject>> GetModules()
+        protected override Dictionary<string, IEnumerable<Package>> GetModules()
         {
             object modules_lock = new object();
-            Dictionary<string, IEnumerable<OSSIndexQueryObject>> modules = new Dictionary<string, IEnumerable<OSSIndexQueryObject>>();
+            Dictionary<string, IEnumerable<Package>> modules = new Dictionary<string, IEnumerable<Package>>();
             List<AuditFileInfo> core_module_files = this.CoreModulesDirectory.GetFiles("*.info").Where(f => !f.Name.Contains("_test") && !f.Name.Contains("test_")).Select(f => f as AuditFileInfo).ToList();
             List<AuditFileInfo> contrib_module_files = this.ContribModulesDirectory.GetFiles("*.info")?.Where(f => !f.Name.Contains("_test") && !f.Name.Contains("test_")).Select(f => f as AuditFileInfo).ToList();
-            List<OSSIndexQueryObject> core_modules = new List<OSSIndexQueryObject>(core_module_files.Count + 1);
-            List<OSSIndexQueryObject> contrib_modules = contrib_module_files != null ? new List<OSSIndexQueryObject>(contrib_module_files.Count) : new List<OSSIndexQueryObject>(0);
-            List<OSSIndexQueryObject> all_modules = new List<OSSIndexQueryObject>(core_module_files.Count + 1);
+            List<Package> core_modules = new List<Package>(core_module_files.Count + 1);
+            List<Package> contrib_modules = contrib_module_files != null ? new List<Package>(contrib_module_files.Count) : new List<Package>(0);
+            List<Package> all_modules = new List<Package>(core_module_files.Count + 1);
             IniParserConfiguration ini_parser_cfg = new IniParserConfiguration();
             ini_parser_cfg.CommentString = ";";
             ini_parser_cfg.AllowDuplicateKeys = true;
@@ -93,10 +93,10 @@ namespace DevAudit.AuditLibrary
                 };
                 lock (modules_lock)
                 {
-                    core_modules.Add(new OSSIndexQueryObject("drupal", m.Name, m.Version == "VERSION" ? m.Core : m.Version, "", string.Empty));
+                    core_modules.Add(new Package("drupal", m.Name, m.Version == "VERSION" ? m.Core : m.Version, "", string.Empty));
                 }
             });
-            core_modules.Add(new OSSIndexQueryObject("drupal", "drupal_core", core_modules.First().Version));
+            core_modules.Add(new Package("drupal", "drupal_core", core_modules.First().Version));
             modules.Add("core", core_modules);
             all_modules.AddRange(core_modules);
             if (contrib_module_files != null)
@@ -123,7 +123,7 @@ namespace DevAudit.AuditLibrary
                     };
                     lock(modules_lock)
                     { 
-                        contrib_modules.Add(new OSSIndexQueryObject("drupal", m.Name, m.Version == "VERSION" ? m.Core : m.Version, "", string.Empty));
+                        contrib_modules.Add(new Package("drupal", m.Name, m.Version == "VERSION" ? m.Core : m.Version, "", string.Empty));
                     }
                 });
                 
@@ -133,14 +133,14 @@ namespace DevAudit.AuditLibrary
                 modules.Add("contrib", contrib_modules);
                 all_modules.AddRange(contrib_modules);
             }
-            List<OSSIndexQueryObject> sites_all_contrib_modules = null;
+            List<Package> sites_all_contrib_modules = null;
             if (this.SitesAllModulesDirectory != null)
             {
                 List<AuditFileInfo> sites_all_contrib_modules_files = this.SitesAllModulesDirectory.GetFiles("*.info")?.Where(f => !f.Name.Contains("_test") && !f.Name.Contains("test_")).Select(f => f as AuditFileInfo).ToList();
                 if (sites_all_contrib_modules_files != null && sites_all_contrib_modules_files.Count > 0)
                 {
                     Dictionary<AuditFileInfo, string> sites_all_contrib_modules_files_text = this.SitesAllModulesDirectory.ReadFilesAsText(sites_all_contrib_modules_files);
-                    sites_all_contrib_modules = new List<OSSIndexQueryObject>(sites_all_contrib_modules_files.Count);
+                    sites_all_contrib_modules = new List<Package>(sites_all_contrib_modules_files.Count);
                     Parallel.ForEach(sites_all_contrib_modules_files_text, new ParallelOptions() { MaxDegreeOfParallelism = 20 }, _kv =>
                     {
                         IniDataParser ini_parser = new IniDataParser(ini_parser_cfg);
@@ -160,7 +160,7 @@ namespace DevAudit.AuditLibrary
                         };
                         lock (modules_lock)
                         {
-                            sites_all_contrib_modules.Add(new OSSIndexQueryObject("drupal", m.Name, m.Version == "VERSION" ? m.Core : m.Version, "", string.Empty));
+                            sites_all_contrib_modules.Add(new Package("drupal", m.Name, m.Version == "VERSION" ? m.Core : m.Version, "", string.Empty));
                         }
                     });
                 }
@@ -177,7 +177,7 @@ namespace DevAudit.AuditLibrary
             return this.ModulePackages;
         }
 
-        public override IEnumerable<OSSIndexQueryObject> GetPackages(params string[] o)
+        public override IEnumerable<Package> GetPackages(params string[] o)
         {
             if(!this.ModulesInitialised) throw new InvalidOperationException("Modules must be initialized before GetVersion is called.");
             return this.ModulePackages["all"];

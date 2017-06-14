@@ -40,21 +40,21 @@ namespace DevAudit.AuditLibrary
         #region Methods
         protected void BuildPackageSourceAuditReport()
         {
-            int total_vulnerabilities = Source.Vulnerabilities.Sum(v => v.Value != null ? v.Value.Count(pv => pv.CurrentPackageVersionIsInRange) : 0);
+            int total_vulnerabilities = Source.Vulnerabilities.Sum(v => v.Value != null ? v.Value.Count(pv => pv.PackageVersionIsInRange) : 0);
             PrintMessageLine(ConsoleColor.White, "\nPackage Source Audit Results\n============================");
             PrintMessageLine(ConsoleColor.White, "{0} total vulnerabilit{2} found in {1} package source audit.\n", total_vulnerabilities, Source.PackageManagerLabel, total_vulnerabilities == 0 || total_vulnerabilities > 1 ? "ies" : "y");
             int packages_count = Source.Vulnerabilities.Count;
             int packages_processed = 0;
-            foreach (var pv in Source.Vulnerabilities.OrderByDescending(sv => sv.Value.Count(v => v.CurrentPackageVersionIsInRange)))
+            foreach (var pv in Source.Vulnerabilities.OrderByDescending(sv => sv.Value.Count(v => v.PackageVersionIsInRange)))
             {
-                OSSIndexQueryObject package = pv.Key;
-                List<OSSIndexApiv2Vulnerability> package_vulnerabilities = pv.Value;
+                IPackage package = pv.Key;
+                List<IVulnerability> package_vulnerabilities = pv.Value;
                 PrintMessage(ConsoleColor.White, "[{0}/{1}] {2}", ++packages_processed, packages_count, package.Name);
                 if (package_vulnerabilities.Count() == 0)
                 {
                     PrintMessage(" no known vulnerabilities.");
                 }
-                else if (package_vulnerabilities.Count(v => v.CurrentPackageVersionIsInRange) == 0)
+                else if (package_vulnerabilities.Count(v => v.PackageVersionIsInRange) == 0)
                 {
                     PrintMessage(" {0} known vulnerabilit{1}, 0 affecting installed package version(s).", package_vulnerabilities.Count(), package_vulnerabilities.Count() > 1 ? "ies" : "y");
                 }
@@ -62,8 +62,8 @@ namespace DevAudit.AuditLibrary
                 {
                     PrintMessage(ConsoleColor.Red, " [VULNERABLE] ");
                     PrintMessage(" {0} known vulnerabilities, ", package_vulnerabilities.Count());
-                    PrintMessageLine(ConsoleColor.Magenta, " {0} affecting installed package version(s): [{1}]", package_vulnerabilities.Count(v => v.CurrentPackageVersionIsInRange), package_vulnerabilities.Where(v => v.CurrentPackageVersionIsInRange).Select(v => v.Package.Version).Distinct().Aggregate((s1, s2) => s1 + "," + s2));
-                    var matched_vulnerabilities = package_vulnerabilities.Where(v => v.CurrentPackageVersionIsInRange).ToList();
+                    PrintMessageLine(ConsoleColor.Magenta, " {0} affecting installed package version(s): [{1}]", package_vulnerabilities.Count(v => v.PackageVersionIsInRange), package_vulnerabilities.Where(v => v.PackageVersionIsInRange).Select(v => v.Package.Version).Distinct().Aggregate((s1, s2) => s1 + "," + s2));
+                    var matched_vulnerabilities = package_vulnerabilities.Where(v => v.PackageVersionIsInRange).ToList();
                     int matched_vulnerabilities_count = matched_vulnerabilities.Count;
                     int c = 0;
                     matched_vulnerabilities.ForEach(v =>

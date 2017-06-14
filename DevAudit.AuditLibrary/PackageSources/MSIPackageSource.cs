@@ -20,7 +20,7 @@ namespace DevAudit.AuditLibrary
         public override string PackageManagerLabel { get { return "MSI"; } }
 
         //Get list of installed programs from 3 registry locations.
-        public override IEnumerable<OSSIndexQueryObject> GetPackages(params string[] o)
+        public override IEnumerable<Package> GetPackages(params string[] o)
         {
             RegistryKey k = null;
             try
@@ -28,21 +28,21 @@ namespace DevAudit.AuditLibrary
                 RegistryPermission perm = new RegistryPermission(RegistryPermissionAccess.Read, @"HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall");
                 perm.Demand();
                 k = Registry.LocalMachine.OpenSubKey(@"SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall");
-                IEnumerable<OSSIndexQueryObject> packages_query =
+                IEnumerable<Package> packages_query =
                     from sn in k.GetSubKeyNames()
-                    select new OSSIndexQueryObject("msi", (string)k.OpenSubKey(sn).GetValue("DisplayName"),
+                    select new Package("msi", (string)k.OpenSubKey(sn).GetValue("DisplayName"),
                         (string)k.OpenSubKey(sn).GetValue("DisplayVersion"),
                         (string)k.OpenSubKey(sn).GetValue("Publisher"));
-                List<OSSIndexQueryObject> packages = packages_query
+                List<Package> packages = packages_query
                     .Where(p => !string.IsNullOrEmpty(p.Name))
-                    .ToList<OSSIndexQueryObject>();
+                    .ToList<Package>();
 
                 perm = new RegistryPermission(RegistryPermissionAccess.Read, @"HKEY_LOCAL_MACHINE\SOFTWARE\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall");
                 perm.Demand();
                 k = Registry.LocalMachine.OpenSubKey(@"SOFTWARE\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall");
                 packages_query =
                     from sn in k.GetSubKeyNames()
-                    select new OSSIndexQueryObject("msi", (string)k.OpenSubKey(sn).GetValue("DisplayName"),
+                    select new Package("msi", (string)k.OpenSubKey(sn).GetValue("DisplayName"),
                         (string)k.OpenSubKey(sn).GetValue("DisplayVersion"), (string)k.OpenSubKey(sn).GetValue("Publisher"));
                 packages.AddRange(packages_query.Where(p => !string.IsNullOrEmpty(p.Name)));
 
@@ -51,7 +51,7 @@ namespace DevAudit.AuditLibrary
                 k = Registry.CurrentUser.OpenSubKey(@"SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall");
                 packages_query =
                     from sn in k.GetSubKeyNames()
-                    select new OSSIndexQueryObject("msi", (string)k.OpenSubKey(sn).GetValue("DisplayName"),
+                    select new Package("msi", (string)k.OpenSubKey(sn).GetValue("DisplayName"),
                         (string)k.OpenSubKey(sn).GetValue("DisplayVersion"), (string)k.OpenSubKey(sn).GetValue("Publisher"));
                 packages.AddRange(packages_query.Where(p => !string.IsNullOrEmpty(p.Name)));
                 return packages.GroupBy(p => new { p.Name, p.Version, p.Vendor }).Select(p => p.First()).ToList();

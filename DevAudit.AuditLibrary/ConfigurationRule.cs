@@ -11,7 +11,7 @@ using YamlDotNet.Serialization;
 
 namespace DevAudit.AuditLibrary
 {
-    public class OSSIndexProjectConfigurationRule
+    public class ConfigurationRule
     {
 
         [YamlMember(Alias = "tags")]
@@ -62,7 +62,7 @@ namespace DevAudit.AuditLibrary
         public string ProjectId { get; set; }
 
         [JsonIgnore]
-        public OSSIndexProject Project { get; set; }
+        public string ModuleName { get; set; }
 
         [YamlMember(Alias = "xpathtest")]
         [JsonProperty]

@@ -46,6 +46,15 @@ namespace DevAudit.AuditLibrary.DataSources
 
         [JsonIgnore]
         public ArtifactVersion LatestStableVersion { get; set; }
+
+        [JsonIgnore]
+        public string ArtifactId { get; set; }
+
+        [JsonIgnore]
+        public string PackageId { get; set; }
+
+        [JsonIgnore]
+        public string Version { get; set; }
     }
 
     public class LibdotIO_Latest_Stable_Release

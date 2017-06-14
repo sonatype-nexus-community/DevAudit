@@ -8,7 +8,7 @@ using Newtonsoft.Json;
 
 namespace DevAudit.AuditLibrary
 {
-    public class OSSIndexQueryObject
+    public class Package : IPackage
     {
         [JsonProperty("pm")]
         public string PackageManager { get; set; }
@@ -25,7 +25,7 @@ namespace DevAudit.AuditLibrary
         [JsonProperty("vendor")]
         public string Vendor { get; set; }
 
-        public OSSIndexQueryObject(string package_manager, string application_name, string version, string vendor = null, string group = null)
+        public Package(string package_manager, string application_name, string version, string vendor = null, string group = null)
         {
             this.PackageManager = package_manager;
             this.Name = application_name;

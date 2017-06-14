@@ -42,11 +42,11 @@ namespace DevAudit.AuditLibrary
         #endregion
 
         #region Overriden methods
-        protected override Dictionary<string, IEnumerable<OSSIndexQueryObject>> GetModules()
+        protected override Dictionary<string, IEnumerable<Package>> GetModules()
         {
-            Dictionary<string, IEnumerable<OSSIndexQueryObject>> m = new Dictionary<string, IEnumerable<OSSIndexQueryObject>>
+            Dictionary<string, IEnumerable<Package>> m = new Dictionary<string, IEnumerable<Package>>
             {
-                {"httpd", new List<OSSIndexQueryObject> {new OSSIndexQueryObject(this.PackageManagerId, "httpd", this.Version) }}
+                {"httpd", new List<Package> {new Package(this.PackageManagerId, "httpd", this.Version) }}
             };
             this.ModulePackages = m;
             this.PackageSourceInitialized =  this.ModulesInitialised = true;
@@ -102,7 +102,7 @@ namespace DevAudit.AuditLibrary
             return (configuration_rule_version == server_version) || configuration_rule_version == ">0";
         }
         
-        public override IEnumerable<OSSIndexQueryObject> GetPackages(params string[] o)
+        public override IEnumerable<Package> GetPackages(params string[] o)
         {
             return this.ModulePackages["httpd"];
         }

@@ -41,7 +41,7 @@ namespace DevAudit.AuditLibrary
         #endregion
 
         #region Methods                     
-        public async Task<IEnumerable<OSSIndexArtifact>> SearchAsync(string package_manager, OSSIndexQueryObject package, Func<List<OSSIndexArtifact>, List<OSSIndexArtifact>> transform)
+        public async Task<IEnumerable<OSSIndexArtifact>> SearchAsync(string package_manager, Package package, Func<List<OSSIndexArtifact>, List<OSSIndexArtifact>> transform)
         {
             string api_version = "1.1";
             using (HttpClient client = CreateHttpClient())
@@ -68,7 +68,7 @@ namespace DevAudit.AuditLibrary
             }
         }
 
-        public async Task<IEnumerable<OSSIndexArtifact>> SearchAsync(string package_manager, IEnumerable<OSSIndexQueryObject> packages, 
+        public async Task<IEnumerable<OSSIndexArtifact>> SearchAsync(string package_manager, IEnumerable<Package> packages, 
             Func<List<OSSIndexArtifact>, List<OSSIndexArtifact>> transform)
         {
             string api_version = "1.1";
@@ -162,7 +162,7 @@ namespace DevAudit.AuditLibrary
             }
         }
 
-        public async Task<IEnumerable<OSSIndexProjectConfigurationRule>> GetConfigurationRulesForIdAsync(string id)
+        public async Task<IEnumerable<ConfigurationRule>> GetConfigurationRulesForIdAsync(string id)
         {
             string api_version = "1.1";
             using (HttpClient client = CreateHttpClient())
@@ -171,7 +171,7 @@ namespace DevAudit.AuditLibrary
                 if (response.IsSuccessStatusCode)
                 {
                     string r = await response.Content.ReadAsStringAsync();
-                    List<OSSIndexProjectConfigurationRule> result = JsonConvert.DeserializeObject<List<OSSIndexProjectConfigurationRule>>(r);
+                    List<ConfigurationRule> result = JsonConvert.DeserializeObject<List<ConfigurationRule>>(r);
                     result.ForEach(v =>
                     {
                         v.ProjectId = id;
@@ -188,11 +188,11 @@ namespace DevAudit.AuditLibrary
             }
         }
 
-        public async Task<List<OSSIndexApiv2Result>> SearchVulnerabilitiesAsync(IEnumerable<OSSIndexQueryObject> packages, 
+        public async Task<List<OSSIndexApiv2Result>> SearchVulnerabilitiesAsync(IEnumerable<Package> packages, 
             Func<List<OSSIndexApiv2Result>, List<OSSIndexApiv2Result>> transform)
         {
             string server_api_version = this.ApiVersion;
-            IEnumerable<OSSIndexQueryObject> packages_for_query = packages.Select(p => new OSSIndexQueryObject(p.PackageManager, p.Name, "*", string.Empty, p.Group));
+            IEnumerable<Package> packages_for_query = packages.Select(p => new Package(p.PackageManager, p.Name, "*", string.Empty, p.Group));
 
             using (HttpClient client = CreateHttpClient())
             {

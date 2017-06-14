@@ -16,7 +16,7 @@ namespace DevAudit.Tests
         [Fact]
         public void CanGetOneGetPackages()
         {
-            Task<IEnumerable<OSSIndexQueryObject>> packages_task = chocolatey.PackagesTask;
+            Task<IEnumerable<Package>> packages_task = chocolatey.PackagesTask;
             Assert.NotEmpty(packages_task.Result);
             Assert.NotEmpty(packages_task.Result.Where(p => p.PackageManager == "chocolatey"));
         }

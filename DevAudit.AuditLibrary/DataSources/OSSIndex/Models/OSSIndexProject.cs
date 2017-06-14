@@ -32,7 +32,7 @@ namespace DevAudit.AuditLibrary
         public OSSIndexArtifact Artifact { get; set; }
 
         [JsonIgnore]
-        public OSSIndexQueryObject Package { get; set; }
+        public Package Package { get; set; }
     }
 
 }

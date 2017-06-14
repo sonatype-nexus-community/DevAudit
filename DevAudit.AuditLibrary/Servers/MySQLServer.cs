@@ -44,11 +44,11 @@ namespace DevAudit.AuditLibrary
         #endregion
 
         #region Overriden methods
-        protected override Dictionary<string, IEnumerable<OSSIndexQueryObject>> GetModules()
+        protected override Dictionary<string, IEnumerable<Package>> GetModules()
         {
-            Dictionary<string, IEnumerable<OSSIndexQueryObject>> m = new Dictionary<string, IEnumerable<OSSIndexQueryObject>>
+            Dictionary<string, IEnumerable<Package>> m = new Dictionary<string, IEnumerable<Package>>
             {
-                {"mysqld", new List<OSSIndexQueryObject> {new OSSIndexQueryObject(this.PackageManagerId, "mysqld", this.Version) }}
+                {"mysqld", new List<Package> {new Package(this.PackageManagerId, "mysqld", this.Version) }}
             };
             this.ModulePackages = m;
             this.PackageSourceInitialized =  this.ModulesInitialised = true;
@@ -100,7 +100,7 @@ namespace DevAudit.AuditLibrary
         }
 
 
-        public override IEnumerable<OSSIndexQueryObject> GetPackages(params string[] o)
+        public override IEnumerable<Package> GetPackages(params string[] o)
         {
             if (!this.ModulesInitialised) throw new InvalidOperationException("Modules must be initialised before GetPackages is called.");
             return this.ModulePackages["mysqld"];

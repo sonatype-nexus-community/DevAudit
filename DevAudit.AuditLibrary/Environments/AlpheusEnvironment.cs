@@ -261,7 +261,7 @@ namespace DevAudit.AuditLibrary
 
                     }
                 case "env":
-                    return this.AuditTarget.GetEnvironmentVar((string) v.Name);
+                    return this.AuditEnvironment.GetEnvironmentVar((string) v.Name);
            
                 default:
                     this.AuditEnvironment.Error("Unknown variable type: {0}:{1}", v.Prefix, v.Name);

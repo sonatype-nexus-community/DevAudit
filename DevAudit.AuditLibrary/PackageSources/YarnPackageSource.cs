@@ -29,9 +29,9 @@ namespace DevAudit.AuditLibrary
         #endregion
 
         #region Overriden methods
-        public override IEnumerable<OSSIndexQueryObject> GetPackages(params string[] o)
+        public override IEnumerable<Package> GetPackages(params string[] o)
         {
-            List<OSSIndexQueryObject> packages = new List<OSSIndexQueryObject>();
+            List<Package> packages = new List<Package>();
             AuditFileInfo config_file = this.AuditEnvironment.ConstructFile(this.PackageManagerConfigurationFile);
             JObject json = (JObject)JToken.Parse(config_file.ReadAsText());
             JObject dependencies = (JObject)json["dependencies"];
@@ -41,23 +41,23 @@ namespace DevAudit.AuditLibrary
             JObject bundled_dependencies = (JObject)json["bundledDependencies"];
             if (dependencies != null)
             {
-                packages.AddRange(dependencies.Properties().Select(d => new OSSIndexQueryObject("npm", d.Name, d.Value.ToString(), "")));
+                packages.AddRange(dependencies.Properties().Select(d => new Package("npm", d.Name, d.Value.ToString(), "")));
             }
             if (dev_dependencies != null)
             {
-                packages.AddRange(dev_dependencies.Properties().Select(d => new OSSIndexQueryObject("npm", d.Name, d.Value.ToString(), "")));
+                packages.AddRange(dev_dependencies.Properties().Select(d => new Package("npm", d.Name, d.Value.ToString(), "")));
             }
             if (peer_dependencies != null)
             {
-                packages.AddRange(peer_dependencies.Properties().Select(d => new OSSIndexQueryObject("npm", d.Name, d.Value.ToString(), "")));
+                packages.AddRange(peer_dependencies.Properties().Select(d => new Package("npm", d.Name, d.Value.ToString(), "")));
             }
             if (optional_dependencies != null)
             {
-                packages.AddRange(optional_dependencies.Properties().Select(d => new OSSIndexQueryObject("npm", d.Name, d.Value.ToString(), "")));
+                packages.AddRange(optional_dependencies.Properties().Select(d => new Package("npm", d.Name, d.Value.ToString(), "")));
             }
             if (bundled_dependencies != null)
             {
-                packages.AddRange(bundled_dependencies.Properties().Select(d => new OSSIndexQueryObject("npm", d.Name, d.Value.ToString(), "")));
+                packages.AddRange(bundled_dependencies.Properties().Select(d => new Package("npm", d.Name, d.Value.ToString(), "")));
             }
             return packages;
         }

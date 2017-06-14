@@ -69,11 +69,11 @@ namespace DevAudit.AuditLibrary
             }
         }
 
-        protected override Dictionary<string, IEnumerable<OSSIndexQueryObject>> GetModules()
+        protected override Dictionary<string, IEnumerable<Package>> GetModules()
         {
-            Dictionary<string, IEnumerable<OSSIndexQueryObject>> m = new Dictionary<string, IEnumerable<OSSIndexQueryObject>>
+            Dictionary<string, IEnumerable<Package>> m = new Dictionary<string, IEnumerable<Package>>
             {
-                {"postgres", new List<OSSIndexQueryObject> {new OSSIndexQueryObject(this.PackageManagerId, "postgres", this.Version) }}
+                {"postgres", new List<Package> {new Package(this.PackageManagerId, "postgres", this.Version) }}
             };
             this.ModulePackages = m;
             this.PackageSourceInitialized = this.ModulesInitialised = true;
@@ -121,7 +121,7 @@ namespace DevAudit.AuditLibrary
             return (configuration_rule_version == server_version) || configuration_rule_version == ">0";
         }
         
-        public override IEnumerable<OSSIndexQueryObject> GetPackages(params string[] o)
+        public override IEnumerable<Package> GetPackages(params string[] o)
         {
             if (!this.ModulesInitialised)
             {
@@ -243,7 +243,7 @@ namespace DevAudit.AuditLibrary
             else
             {
                 this.AuditEnvironment.Error(caller, "Could not execute command {0} {1}. Error: {2} {3}", pgsql_cmd, pgsql_query, error, output);
-                queryXml.LoadXml(string.Format("<error><![CDATA[{0}\n{1]]]><error>", error, output));
+                queryXml.LoadXml(string.Format("<error><![CDATA[{0}\n{1}]]></error>", error, output));
 
                 return queryXml.CreateNavigator().Select("/");
             }

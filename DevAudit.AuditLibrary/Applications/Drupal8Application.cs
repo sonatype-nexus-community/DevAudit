@@ -65,24 +65,24 @@ namespace DevAudit.AuditLibrary
             sw.Stop();
             this.VersionInitialised = true;
             this.AuditEnvironment.Success("Got Drupal 8 version {0} in {1} ms.", this.Version, sw.ElapsedMilliseconds);
-            OSSIndexQueryObject core = this.ModulePackages["core"].Where(p => p.Name == "drupal_core").First();
+            Package core = this.ModulePackages["core"].Where(p => p.Name == "drupal_core").First();
             core.Version = this.Version;
             return this.Version;
         }
 
-        protected override Dictionary<string, IEnumerable<OSSIndexQueryObject>> GetModules()
+        protected override Dictionary<string, IEnumerable<Package>> GetModules()
         {
             Stopwatch sw = new Stopwatch();
             sw.Start();
-            var M = this.ModulePackages = new Dictionary<string, IEnumerable<OSSIndexQueryObject>>();
+            var M = this.ModulePackages = new Dictionary<string, IEnumerable<Package>>();
             object modules_lock = new object();
             string core_version = this.Version;
             List<AuditFileInfo> core_module_files = this.CoreModulesDirectory.GetFiles("*.info.yml")?.Where(f => !f.Name.Contains("_test") && !f.Name.Contains("test_")).Select(f => f as AuditFileInfo).ToList();
             List<AuditFileInfo> contrib_module_files = this.ContribModulesDirectory.GetFiles("*.info.yml")?.Where(f => !f.Name.Contains("_test") && !f.Name.Contains("test_")).Select(f => f as AuditFileInfo).ToList();
-            List<OSSIndexQueryObject> all_modules = new List<OSSIndexQueryObject>(100);
+            List<Package> all_modules = new List<Package>(100);
             if (core_module_files != null && core_module_files.Count > 0)
             {
-                List<OSSIndexQueryObject> core_modules = new List<OSSIndexQueryObject>(core_module_files.Count + 1);
+                List<Package> core_modules = new List<Package>(core_module_files.Count + 1);
                 this.AuditEnvironment.Status("Reading Drupal 8 core module files from environment...", core_module_files.Count);
                 Dictionary<AuditFileInfo, string> core_modules_files_text = this.CoreModulesDirectory.ReadFilesAsText(core_module_files);
                 Parallel.ForEach(core_modules_files_text, new ParallelOptions() { MaxDegreeOfParallelism = 20 }, kv =>
@@ -94,18 +94,18 @@ namespace DevAudit.AuditLibrary
                         m.ShortName = kv.Key.Name.Split('.')[0];
                         lock (modules_lock)
                         {
-                            core_modules.Add(new OSSIndexQueryObject("drupal", m.ShortName, m.Version == "VERSION" ? core_version : m.Version, "", string.Empty));
+                            core_modules.Add(new Package("drupal", m.ShortName, m.Version == "VERSION" ? core_version : m.Version, "", string.Empty));
                         }
                         this.AuditEnvironment.Debug("Added Drupal 8 core module {0}: {1}.", m.ShortName, m.Version);
                     }
                 });
                 M.Add("core", core_modules);
-                core_modules.Add(new OSSIndexQueryObject("drupal", "drupal_core", string.Empty));
+                core_modules.Add(new Package("drupal", "drupal_core", string.Empty));
                 all_modules.AddRange(core_modules);
             }
             if (contrib_module_files != null && contrib_module_files.Count > 0)
             {
-                List<OSSIndexQueryObject> contrib_modules = new List<OSSIndexQueryObject>(contrib_module_files.Count);
+                List<Package> contrib_modules = new List<Package>(contrib_module_files.Count);
                 this.AuditEnvironment.Info("Reading Drupal 8 contrib module files from environment...", core_module_files.Count);
                 Dictionary<AuditFileInfo, string> contrib_modules_files_text = this.ContribModulesDirectory.ReadFilesAsText(contrib_module_files);
                 Parallel.ForEach(contrib_modules_files_text, new ParallelOptions() { MaxDegreeOfParallelism = 20 }, kv =>
@@ -117,7 +117,7 @@ namespace DevAudit.AuditLibrary
                         m.ShortName = kv.Key.Name.Split('.')[0];
                         lock (modules_lock)
                         {
-                            contrib_modules.Add(new OSSIndexQueryObject(this.PackageManagerId, m.ShortName, m.Version));
+                            contrib_modules.Add(new Package(this.PackageManagerId, m.ShortName, m.Version));
                         }
                         this.AuditEnvironment.Debug("Added Drupal 8 contrib module {0}: {1}.", m.ShortName, m.Version);
                     }
@@ -135,7 +135,7 @@ namespace DevAudit.AuditLibrary
                 if (sites_all_contrib_modules_files != null && sites_all_contrib_modules_files.Count > 0)
                 {
                     Dictionary<AuditFileInfo, string> sites_all_contrib_modules_files_text = this.SitesAllModulesDirectory.ReadFilesAsText(sites_all_contrib_modules_files);
-                    List<OSSIndexQueryObject> sites_all_contrib_modules = new List<OSSIndexQueryObject>(sites_all_contrib_modules_files.Count + 1);
+                    List<Package> sites_all_contrib_modules = new List<Package>(sites_all_contrib_modules_files.Count + 1);
                     Parallel.ForEach(sites_all_contrib_modules_files_text, new ParallelOptions() { MaxDegreeOfParallelism = 20 }, kv =>
                     {
                         if (!string.IsNullOrEmpty(kv.Value))
@@ -145,7 +145,7 @@ namespace DevAudit.AuditLibrary
                             m.ShortName = kv.Key.Name.Split('.')[0];
                             lock (modules_lock)
                             {
-                                sites_all_contrib_modules.Add(new OSSIndexQueryObject("drupal", m.ShortName, m.Version, "", string.Empty));
+                                sites_all_contrib_modules.Add(new Package("drupal", m.ShortName, m.Version, "", string.Empty));
                             }
                             this.AuditEnvironment.Debug("Added Drupal 8 contrib module {0}: {1}.", m.ShortName, m.Version);
                         }
@@ -166,7 +166,7 @@ namespace DevAudit.AuditLibrary
             return this.ModulePackages;
         }
 
-        public override IEnumerable<OSSIndexQueryObject> GetPackages(params string[] o)
+        public override IEnumerable<Package> GetPackages(params string[] o)
         {
             if(!this.ModulesInitialised) throw new InvalidOperationException("Modules must be initialized before GetVersion is called.");
             return this.ModulePackages["all"];

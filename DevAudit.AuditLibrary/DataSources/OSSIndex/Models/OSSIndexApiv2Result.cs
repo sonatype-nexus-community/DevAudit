@@ -35,7 +35,7 @@ namespace DevAudit.AuditLibrary
         public string PackageId { get; set; }
 
         [JsonIgnore]
-        public OSSIndexQueryObject Package { get; set; }
+        public Package Package { get; set; }
 
         [JsonIgnore]
         public bool CurrentPackageVersionIsInRange { get; set; }

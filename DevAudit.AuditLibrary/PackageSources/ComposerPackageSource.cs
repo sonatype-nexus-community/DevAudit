@@ -20,7 +20,7 @@ namespace DevAudit.AuditLibrary
         public override string PackageManagerLabel { get { return "Composer"; } }
 
         //Get  packages from reading composer.json
-        public override IEnumerable<OSSIndexQueryObject> GetPackages(params string[] o)
+        public override IEnumerable<Package> GetPackages(params string[] o)
         {
             AuditFileInfo config_file = this.AuditEnvironment.ConstructFile(this.PackageManagerConfigurationFile);
             JObject json = (JObject)JToken.Parse(config_file.ReadAsText());
@@ -30,22 +30,22 @@ namespace DevAudit.AuditLibrary
             {
                 if (require_dev != null)
                 {
-                    return require.Properties().Select(d => new OSSIndexQueryObject("composer", d.Name.Split('/').Last(), d.Value.ToString(), "", d.Name.Split('/').First()))
-                        .Concat(require_dev.Properties().Select(d => new OSSIndexQueryObject("composer", d.Name.Split('/').Last(), d.Value.ToString(), "", d.Name.Split('/').First())));
+                    return require.Properties().Select(d => new Package("composer", d.Name.Split('/').Last(), d.Value.ToString(), "", d.Name.Split('/').First()))
+                        .Concat(require_dev.Properties().Select(d => new Package("composer", d.Name.Split('/').Last(), d.Value.ToString(), "", d.Name.Split('/').First())));
                 }
                 else
                 {
-                    return require.Properties().Select(d => new OSSIndexQueryObject("composer", d.Name.Split('/').Last(), d.Value.ToString(), "", d.Name.Split('/').First()));
+                    return require.Properties().Select(d => new Package("composer", d.Name.Split('/').Last(), d.Value.ToString(), "", d.Name.Split('/').First()));
                 }
             }
             else if (require_dev != null)
             {
-                return require_dev.Properties().Select(d => new OSSIndexQueryObject("composer", d.Name.Split('/').Last(), d.Value.ToString(), "", d.Name.Split('/').First()));
+                return require_dev.Properties().Select(d => new Package("composer", d.Name.Split('/').Last(), d.Value.ToString(), "", d.Name.Split('/').First()));
             }
             else
             {
                 this.AuditEnvironment.Warning("{0} file does not contain a require or require_dev element.", config_file.FullName);
-                return new List<OSSIndexQueryObject>();
+                return new List<Package>();
             }
         }
 

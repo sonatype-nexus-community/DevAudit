@@ -21,7 +21,7 @@ namespace DevAudit.AuditLibrary
         public override string PackageManagerLabel { get { return "Chocolatey"; } }
 
         //run and parse output from choco list -lo command.
-        public override IEnumerable<OSSIndexQueryObject> GetPackages(params string[] o)
+        public override IEnumerable<Package> GetPackages(params string[] o)
         {
             string choco_command = @"C:\ProgramData\chocolatey\choco.exe";
             string process_output = "", process_error = "";
@@ -34,7 +34,7 @@ namespace DevAudit.AuditLibrary
             Process p = new Process();
             p.EnableRaisingEvents = true;
             p.StartInfo = psi;
-            List<OSSIndexQueryObject> packages = new List<OSSIndexQueryObject>();
+            List<Package> packages = new List<Package>();
             p.OutputDataReceived += (object sender, DataReceivedEventArgs e) =>
             {
                 string first = @"(\d+)\s+packages installed";
@@ -55,7 +55,7 @@ namespace DevAudit.AuditLibrary
                         }
                         else
                         {
-                            packages.Add(new OSSIndexQueryObject("chocolatey", output[0], output[1], ""));
+                            packages.Add(new Package("chocolatey", output[0], output[1], ""));
                         }
                     }
 

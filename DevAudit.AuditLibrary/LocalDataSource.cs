@@ -9,17 +9,12 @@ namespace DevAudit.AuditLibrary
 {
     public abstract class LocalDataSource : IDataSource
     {
-        #region Abstract methods
-        public abstract Task<IArtifact> SearchArtifacts(List<IPackage> packages);
-        public abstract Task<List<IVulnerability>> SearchVulnerabilities(List<IPackage> packages);
-        public abstract Task<List<IVulnerability>> UpdateVulnerabilities();
-        #endregion
-
         #region Constructors
-        public LocalDataSource(AuditEnvironment host_env, Dictionary<string, object> datasource_options)
+        public LocalDataSource(AuditTarget target, AuditEnvironment host_env, Dictionary<string, object> datasource_options)
         {
             if (!datasource_options.ContainsKey("DirectoryPath")) throw new ArgumentException("The datasource options does not contain the DirectoryPath");
             this.DataSourceOptions = datasource_options;
+            this.Target = target;
             this.HostEnvironment = host_env;
             string dir_path = (string)this.DataSourceOptions["DirectoryPath"];
             try
@@ -45,8 +40,19 @@ namespace DevAudit.AuditLibrary
         }
         #endregion
 
+        #region Abstract methods
+        public abstract Task<Dictionary<IPackage, List<IArtifact>>> SearchArtifacts(List<Package> packages);
+        public abstract Task<Dictionary<IPackage, List<IVulnerability>>> SearchVulnerabilities(List<Package> packages);
+        public abstract Task<List<IVulnerability>> UpdateVulnerabilities();
+        public abstract bool IsEligibleForTarget(AuditTarget target);
+        #endregion
+
+        #region Abstract properties
+        public abstract int MaxConcurrentSearches { get; }
+        #endregion
+
         #region Properties
-        
+        public AuditTarget Target { get; protected set; }
         public Dictionary<string, object> DataSourceOptions { get; protected set; } 
         public DirectoryInfo Directory { get; protected set; }
         public bool DataSourceInitialised { get; protected set; } = false;

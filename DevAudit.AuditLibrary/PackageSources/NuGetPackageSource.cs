@@ -24,7 +24,7 @@ namespace DevAudit.AuditLibrary
             }      
         }
 
-        public override IEnumerable<OSSIndexQueryObject> GetPackages(params string[] o) ////Get NuGet packages from reading packages.config
+        public override IEnumerable<Package> GetPackages(params string[] o) ////Get NuGet packages from reading packages.config
         {
             try
             {
@@ -37,9 +37,9 @@ namespace DevAudit.AuditLibrary
                     xml = xml.Remove(0, lastIndexOfUtf8);
                 }
                 XElement root = XElement.Parse(xml);
-                IEnumerable<OSSIndexQueryObject> packages =
+                IEnumerable<Package> packages =
                     from el in root.Elements("package")
-                    select new OSSIndexQueryObject("nuget", el.Attribute("id").Value, el.Attribute("version").Value, "");
+                    select new Package("nuget", el.Attribute("id").Value, el.Attribute("version").Value, "");
                 return packages;
             }
             catch (XmlException e)

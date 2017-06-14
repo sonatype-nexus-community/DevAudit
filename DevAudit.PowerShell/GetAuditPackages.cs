@@ -11,7 +11,7 @@ using DevAudit.AuditLibrary;
 namespace DevAudit.PowerShell
 {
     [Cmdlet(VerbsCommon.Get, "AuditPackages")]
-    [OutputType(typeof(OSSIndexQueryObject))]
+    [OutputType(typeof(Package))]
     public class GetAuditPackages : DevAuditCmdlet
     {
 
@@ -36,7 +36,7 @@ namespace DevAudit.PowerShell
         protected override void ProcessRecord()
         {
             int i = 1;
-            foreach (OSSIndexQueryObject package in this.PackageSource.Packages)
+            foreach (Package package in this.PackageSource.Packages)
             {          
                 WriteInformation(string.Format("[{0}/{1}] {2} {3} {4}", i++, this.PackageSource.Packages.Count(), package.Name,
                         package.Version, package.Vendor), new string[] {"Audit", "Package"});

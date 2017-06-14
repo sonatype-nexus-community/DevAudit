@@ -21,9 +21,9 @@ namespace DevAudit.AuditLibrary
 		#endregion
 
 		#region Overriden methods
-		public override IEnumerable<OSSIndexQueryObject> GetPackages(params string[] o)
+		public override IEnumerable<Package> GetPackages(params string[] o)
 		{
-			List<OSSIndexQueryObject> packages = new List<OSSIndexQueryObject> ();
+			List<Package> packages = new List<Package> ();
 			string command = @"yum";
 			string arguments = @"list installed";
 			Regex process_output_pattern = new Regex (@"^(\S+)\s+(\S+)", RegexOptions.Compiled);
@@ -39,7 +39,7 @@ namespace DevAudit.AuditLibrary
 						throw new Exception ("Could not parse yum command output row: " + i.ToString ()
 						+ "\n" + p [i]);
 					} else {
-						packages.Add (new OSSIndexQueryObject ("rpm", m.Groups [1].Value, m.Groups [2].Value, ""));
+						packages.Add (new Package ("rpm", m.Groups [1].Value, m.Groups [2].Value, ""));
 					}
 
 				}

@@ -16,7 +16,7 @@ namespace DevAudit.Tests
         [Fact]
         public override async Task CanSearch()
         {
-            OSSIndexQueryObject q1 = new OSSIndexQueryObject("nuget", "AjaxControlToolkit", "7.1213.0", "");
+            Package q1 = new Package("nuget", "AjaxControlToolkit", "7.1213.0", "");
             Func<List<OSSIndexArtifact>, List<OSSIndexArtifact>> transform = (artifacts) =>
             {
                 artifacts.Where(a => !string.IsNullOrEmpty(a.SCMId)).ToList().ForEach(a =>
@@ -25,9 +25,9 @@ namespace DevAudit.Tests
                     {
                         //throw new Exception("Did not receive expected Search field properties for artifact name: " + a.PackageName + " id: " +
                         //    a.PackageId + " project id: " + a.ProjectId + ".");
-                        a.Package = new OSSIndexQueryObject(a.PackageManager, a.PackageName, "", "");
+                        a.Package = new Package(a.PackageManager, a.PackageName, "", "");
                     }
-                    else a.Package = new OSSIndexQueryObject(a.Search[0], a.Search[1], a.Search[3], "");
+                    else a.Package = new Package(a.Search[0], a.Search[1], a.Search[3], "");
                 });
                 return artifacts;
             };

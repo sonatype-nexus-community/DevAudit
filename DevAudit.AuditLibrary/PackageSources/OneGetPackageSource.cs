@@ -20,7 +20,7 @@ namespace DevAudit.AuditLibrary
 
         public override string PackageManagerLabel { get { return "OneGet"; } }
 
-        public override IEnumerable<OSSIndexQueryObject> GetPackages(params string[] o)
+        public override IEnumerable<Package> GetPackages(params string[] o)
         {
             string ps_command = @"powershell";
             string process_output = "", process_error = "";
@@ -34,7 +34,7 @@ namespace DevAudit.AuditLibrary
             Process p = new Process();
             p.EnableRaisingEvents = true;
             p.StartInfo = psi;
-            List<OSSIndexQueryObject> packages = new List<OSSIndexQueryObject>();
+            List<Package> packages = new List<Package>();
             bool init_columns = false;
             string columns_header_pattern = @"(Name\s*)(Version\s*)(ProviderName\s*)";
             string columns_format = @"^(.{n})(.{v})(.*)$";
@@ -83,7 +83,7 @@ namespace DevAudit.AuditLibrary
                         }
                         else
                         {
-                            packages.Add(new OSSIndexQueryObject(m.Groups[3].Value.Trim(), m.Groups[1].Value.Trim(), m.Groups[2].Value.Trim(), ""));
+                            packages.Add(new Package(m.Groups[3].Value.Trim(), m.Groups[1].Value.Trim(), m.Groups[2].Value.Trim(), ""));
                         }
                     }
                 };

@@ -82,11 +82,11 @@ namespace DevAudit.AuditLibrary
             }
         }
 
-        protected override Dictionary<string, IEnumerable<OSSIndexQueryObject>> GetModules()
+        protected override Dictionary<string, IEnumerable<Package>> GetModules()
         {
-            Dictionary<string, IEnumerable<OSSIndexQueryObject>> m = new Dictionary<string, IEnumerable<OSSIndexQueryObject>>
+            Dictionary<string, IEnumerable<Package>> m = new Dictionary<string, IEnumerable<Package>>
             {
-                {"sshd", new List<OSSIndexQueryObject> {new OSSIndexQueryObject(this.PackageManagerId, "sshd", this.Version) }}
+                {"sshd", new List<Package> {new Package(this.PackageManagerId, "sshd", this.Version) }}
             };
             this.ModulePackages = m;
             this.PackageSourceInitialized = this.ModulesInitialised = true;
@@ -123,7 +123,7 @@ namespace DevAudit.AuditLibrary
         }
 
 
-        public override IEnumerable<OSSIndexQueryObject> GetPackages(params string[] o)
+        public override IEnumerable<Package> GetPackages(params string[] o)
         {
             if (!this.ModulesInitialised) throw new InvalidOperationException("Modules must be initialised before GetPackages is called.");
             return this.ModulePackages["sshd"];

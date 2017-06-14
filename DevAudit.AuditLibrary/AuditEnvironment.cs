@@ -165,6 +165,8 @@ namespace DevAudit.AuditLibrary
 
         public OperatingSystem OS { get; protected set; } 
 
+        public string OSName { get; protected set; }
+
         public LocalEnvironment HostEnvironment { get; protected set; }
     
         public DirectoryInfo WorkDirectory { get; protected set; }
@@ -197,6 +199,41 @@ namespace DevAudit.AuditLibrary
                 return false;
             }
         }
+
+        public virtual string GetOSName()
+        {
+            throw new NotImplementedException();
+        }
+
+        public virtual string GetEnvironmentVar(string name)
+        {
+            CallerInformation here = Here();
+            string var = "", cmd = "", args = "";
+            if (this.IsWindows)
+            {
+                var = "%" + name + "%";
+                cmd = "powershell";
+                args = "(Get-Childitem env:" + name + ").Value";
+            }
+            else
+            {
+                var = "$" + name;
+                cmd = "echo";
+                args = var;
+            }
+            string output;
+            if (this.ExecuteCommand(cmd, args, out output))
+            {
+                Debug(here, "GetEnvironmentVar({0}) returned {1}.", name, output);
+                return output;
+            }
+            else
+            {
+                Error("GetEnvironmentVar({0}) failed.", var);
+                return string.Empty;
+            }
+        }
+
 
         public virtual string GetUnixFileMode(string path, [CallerMemberName] string memberName = "", [CallerFilePath] string fileName = "", [CallerLineNumber] int lineNumber = 0)
         {
