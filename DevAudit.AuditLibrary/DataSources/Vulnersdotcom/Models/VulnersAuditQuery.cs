@@ -6,13 +6,13 @@ using System.Threading.Tasks;
 
 namespace DevAudit.AuditLibrary
 { 
-    public class VulnersdotcomAuditQuery
+    public class VulnersAuditQuery
     {
-        public VulnersdotcomAuditQuery(string os, string version, List<Package> packages)
+        public VulnersAuditQuery(string os, string version, List<Package> packages)
         {
             this.os = os;
-            this.version = "16.10";
-            package = packages.Select(p => p.Name + " " + p.Version + " " + p.Architecture/*(p.Architecture.Contains("64") ? "x86_64" : "x86_32")*/).ToArray();
+            this.version = version;
+            package = packages.Select(p => p.Name + " " + p.Version + " " + p.Architecture).ToArray();
         }
         public string os { get; set; }
         public string[] package { get; set; }

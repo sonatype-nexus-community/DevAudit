@@ -1359,10 +1359,10 @@ namespace DevAudit.CommandLine
             }
             else
             {
-                PrintMessage(ConsoleColor.DarkRed, "Exception: {0}.", e.Message);
+                PrintMessage(ConsoleColor.DarkRed, "Exception: {0}", e.Message);
                 if (e.InnerException != null)
                 {
-                    PrintMessageLine(ConsoleColor.DarkRed, " Inner Exception: {0}.", e.InnerException.Message);
+                    PrintMessageLine(ConsoleColor.DarkRed, " Inner Exception: {0}", e.InnerException.Message);
                 }
                 else PrintMessageLine("");
                 if (ProgramOptions.EnableDebug)

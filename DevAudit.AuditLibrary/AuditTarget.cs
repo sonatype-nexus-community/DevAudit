@@ -254,7 +254,7 @@ namespace DevAudit.AuditLibrary
             }
             if (this.AuditOptions.ContainsKey("WithVulners"))
             {
-                this.DataSources.Add(new VulnersdotcomDataSource(this, this.HostEnvironment, DataSourceOptions));
+                this.DataSources.Add(new VulnersDataSource(this, this.HostEnvironment, DataSourceOptions));
             }
         }
 

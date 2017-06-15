@@ -17,11 +17,11 @@ namespace DevAudit.AuditLibrary
             {
                 if (this.DataSources.Count == 0)
                 {
-                    this.HostEnvironment.Info("Using default vulnerabilities data source Vulners.com for Dpkg package source.");
+                    this.HostEnvironment.Info("Using default vulnerabilities data source Vulners for Dpkg package source.");
                 }
                 this.DataSourceOptions.Add("OSName", this.AuditEnvironment.OSName);
                 this.DataSourceOptions.Add("OSVersion", this.AuditEnvironment.OSVersion);
-                this.DataSources.Add(new VulnersdotcomDataSource(this, this.HostEnvironment, DataSourceOptions));
+                this.DataSources.Add(new VulnersDataSource(this, this.HostEnvironment, DataSourceOptions));
             }
         }
         #endregion
@@ -74,7 +74,7 @@ namespace DevAudit.AuditLibrary
  
         public override bool IsVulnerabilityVersionInPackageVersionRange(string vulnerability_version, string package_version)
         {
-            return vulnerability_version == package_version;
+            return true;
         }
         #endregion
     }

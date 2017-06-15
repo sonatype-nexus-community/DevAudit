@@ -4,6 +4,8 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
+using Newtonsoft.Json;
+
 namespace DevAudit.AuditLibrary
 {
 
@@ -65,6 +67,8 @@ namespace DevAudit.AuditLibrary
     {
         public string name { get; set; }
         public string version { get; set; }
+
+        [JsonProperty("operator")]
         public string _operator { get; set; }
     }
 

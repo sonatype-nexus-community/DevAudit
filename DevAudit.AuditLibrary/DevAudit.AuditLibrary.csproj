@@ -286,11 +286,13 @@
     <Compile Include="DataSources\LibrariesdotIO\LibrariesdotIODataSource.cs" />
     <Compile Include="DataSources\LibrariesdotIO\Models\LibdotIOArtifact.cs" />
     <Compile Include="DataSources\OSSIndex\OSSIndexDataSource.cs" />
-    <Compile Include="DataSources\Vulnersdotcom\Models\VulnersdotcomAuditQuery.cs" />
-    <Compile Include="DataSources\Vulnersdotcom\Models\VulnersdotcomAuditResult.cs" />
-    <Compile Include="DataSources\Vulnersdotcom\Models\VulnersdotcomSearchResult.cs" />
+    <Compile Include="DataSources\Vulnersdotcom\Models\VulnersAuditQuery.cs" />
+    <Compile Include="DataSources\Vulnersdotcom\Models\VulnersAuditResult.cs" />
+    <Compile Include="DataSources\Vulnersdotcom\Models\VulnersIdSearchResult.cs" />
+    <Compile Include="DataSources\Vulnersdotcom\Models\VulnersSearchQuery.cs" />
+    <Compile Include="DataSources\Vulnersdotcom\Models\VulnersSearchResult.cs" />
     <Compile Include="DataSources\HttpException.cs" />
-    <Compile Include="DataSources\Vulnersdotcom\VulnersdotcomDataSource.cs" />
+    <Compile Include="DataSources\Vulnersdotcom\VulnersDataSource.cs" />
     <Compile Include="Environments\AlpheusEnvironment.cs" />
     <Compile Include="Environments\WinRmAuditDirectoryInfo.cs" />
     <Compile Include="Environments\WinRmAuditFileInfo.cs" />
@@ -316,6 +318,7 @@
     <Compile Include="IPackage.cs" />
     <Compile Include="IVulnerability.cs" />
     <Compile Include="DataSources\LocalDataSource.cs" />
+    <Compile Include="Vulnerability.cs" />
     <Compile Include="PackageSources\YarnPackageSource.cs" />
     <Compile Include="Projects\Drupal8ModuleCodeProject.cs" />
     <Compile Include="Projects\PHPAuditCodeSourceUnit.cs" />
