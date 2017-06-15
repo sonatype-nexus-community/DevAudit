@@ -6,6 +6,7 @@ using System.IO;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
+using System.Reflection;
 using System.Web;
 using System.Xml;
 using System.Xml.Linq;
@@ -44,8 +45,6 @@ namespace DevAudit.AuditLibrary
         #endregion
 
         #region Abstract properties
-        public abstract string Name { get; }
-        public abstract string Description { get; }
         public abstract int MaxConcurrentSearches { get; }
         #endregion
 
@@ -57,6 +56,8 @@ namespace DevAudit.AuditLibrary
         public Uri ApiUrl { get; protected set; }
         public Uri HttpsProxy { get; protected set; }
         public bool Initialised { get; protected set; }
+        public DataSourceInfo Info { get; set; } = new DataSourceInfo();
+        protected Version LibraryVersion { get; set; } = Assembly.GetExecutingAssembly().GetName().Version;
         #endregion
 
         #region Methods
@@ -80,7 +81,7 @@ namespace DevAudit.AuditLibrary
             client.BaseAddress = ApiUrl;
             client.DefaultRequestHeaders.Accept.Clear();
             client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-            client.DefaultRequestHeaders.Add("user-agent", "DevAudit");
+            client.DefaultRequestHeaders.Add("user-agent", string.Format("DevAudit/{0}.{1} (+https://github.com/OSSIndex/DevAudit)", LibraryVersion.Major, LibraryVersion.Minor));
             return client;
         }
         #endregion

@@ -34,6 +34,7 @@ namespace DevAudit.AuditLibrary
                 this.HostEnvironment.Error("The audit environment OS version was not specified. Data source cannot be initialised.");
                 return;
             }
+            this.Info = new DataSourceInfo("Vulners", "https://vulners.com", "Vulners.com is the security database containing descriptions for large amount of software vulnerabilities in machine-readable format. Cross-references between bulletins and continuously updating of database keeps you abreast of the latest information security threats.");
         }
         #endregion
 
@@ -112,6 +113,7 @@ namespace DevAudit.AuditLibrary
                     {
                         Id = kv2.Key,
                         Package = vulnerable_package,
+                        DataSource = this.Info
                     };
                     package_vulnerabilities.Add(v);
                 }
@@ -124,9 +126,10 @@ namespace DevAudit.AuditLibrary
             }
             else
             {
-                this.HostEnvironment.Success("Got {0} vulnerability records for {1} packages from Vulners.", vulnerabilities.Values.Sum(v => v.Count), vulnerabilities.Keys.Count);
+                this.HostEnvironment.Success("Got {0} distinct and {2} total vulnerability records for {1} packages from Vulners.", vulnerabilities.Values.SelectMany(v => v)
+                    .Select(v => v.Id).Distinct().Count(), vulnerabilities.Keys.Count, vulnerabilities.Values.Sum(v => v.Count));
             }
-            string[] vids = vulnerabilities.Values.SelectMany(v => v).Select(v => v.Id).ToArray();
+            string[] vids = vulnerabilities.Values.SelectMany(v => v).Select(v => v.Id).Distinct().ToArray();
             VulnersSearchQuery q2 = new VulnersSearchQuery(vids, false);
             VulnersIdSearchResult search_result;
             this.HostEnvironment.Status("Searching Vulners for details for {0} vulnerabilities.", vids.Count());
@@ -197,21 +200,6 @@ namespace DevAudit.AuditLibrary
         #endregion
 
         #region Overriden properties
-        public override string Name
-        {
-            get
-            {
-                return "Vulners";
-            }
-        }
-
-        public override string Description
-        {
-            get
-            {
-                return "https://vulners.com Vulners is the security database containing descriptions for large amount of software vulnerabilities in machine-readable format. Cross-references between bulletins and continuously updating of database keeps you abreast of the latest information security threats.";
-            }
-        }
         public override int MaxConcurrentSearches
         {
             get

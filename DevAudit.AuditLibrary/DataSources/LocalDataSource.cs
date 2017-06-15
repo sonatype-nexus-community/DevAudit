@@ -48,8 +48,6 @@ namespace DevAudit.AuditLibrary
         #endregion
 
         #region Abstract properties
-        public abstract string Name { get; }
-        public abstract string Description { get; }
         public abstract int MaxConcurrentSearches { get; }
         #endregion
 
@@ -59,6 +57,7 @@ namespace DevAudit.AuditLibrary
         public DirectoryInfo Directory { get; protected set; }
         public bool Initialised { get; protected set; } = false;
         protected AuditEnvironment HostEnvironment { get; set; }
+        public DataSourceInfo Info { get; set; }
         #endregion
     }
 }

@@ -15,6 +15,7 @@ namespace DevAudit.AuditLibrary
         {
             this.PackageSource = target as PackageSource;
             this.Initialised = true;
+            this.Info = new DataSourceInfo("OSS Index", "https://ossindex.net", "The data has been made available to the community through a REST API as well as several open source tools (with more in development!). Particular focus is being made on software packages, both those used for development libraries as well as installation packages.");
         }
         #endregion
 
@@ -63,21 +64,6 @@ namespace DevAudit.AuditLibrary
         #endregion
 
         #region Overriden properties
-        public override string Name
-        {
-            get
-            {
-                return "OSS Index";
-            }
-        }
-
-        public override string Description
-        {
-            get
-            {
-                return "https://ossindex.net";
-            }
-        }
         public override int MaxConcurrentSearches
         {
             get
@@ -159,6 +145,10 @@ namespace DevAudit.AuditLibrary
 
         private void AddVulnerability(Package package, List<OSSIndexApiv2Vulnerability> vulnerabilities)
         {
+            foreach(OSSIndexApiv2Vulnerability v in vulnerabilities)
+            {
+                v.DataSource = this.Info;
+            }
             lock (vulnerabilities_lock)
             {
                 this._Vulnerabilities.Add(package, vulnerabilities);

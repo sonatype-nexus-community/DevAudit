@@ -283,6 +283,7 @@
     <Compile Include="AuditProfileRule.cs" />
     <Compile Include="AuditReporter.cs" />
     <Compile Include="Codecs.cs" />
+    <Compile Include="DataSourceInfo.cs" />
     <Compile Include="DataSources\LibrariesdotIO\LibrariesdotIODataSource.cs" />
     <Compile Include="DataSources\LibrariesdotIO\Models\LibdotIOArtifact.cs" />
     <Compile Include="DataSources\OSSIndex\OSSIndexDataSource.cs" />

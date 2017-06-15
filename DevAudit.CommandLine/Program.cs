@@ -978,6 +978,7 @@ namespace DevAudit.CommandLine
             PrintMessageLine(ConsoleColor.White, "{0} total vulnerabilit{3} found in {1} package source audit. Total time for audit: {2} ms.\n", total_vulnerabilities, Source.PackageManagerLabel, Stopwatch.ElapsedMilliseconds, total_vulnerabilities == 0 || total_vulnerabilities > 1 ? "ies" : "y");
             int packages_count = Source.Vulnerabilities.Count;
             int packages_processed = 0;
+            List<DataSourceInfo> vuln_ds = new List<DataSourceInfo>();
             foreach (var pv in Source.Vulnerabilities.OrderByDescending(sv => sv.Value.Count(v => v.PackageVersionIsInRange)))
             {
                 IPackage package = pv.Key;
@@ -1008,8 +1009,27 @@ namespace DevAudit.CommandLine
                         PrintMessage(ConsoleColor.White, "  --Affected versions: ");
                         PrintMessageLine(ConsoleColor.Red, "{0}", string.Join(", ", v.Versions.ToArray()));
                     });
+                    string[] dsn = matched_vulnerabilities.Select(v => v.DataSource.Name).Distinct().ToArray();
+                    foreach (string d in dsn)
+                    {
+                        if (!vuln_ds.Any(ds => ds.Name == d))
+                        {
+                            vuln_ds.Add(Source.DataSources.Single(ds => ds.Info.Name == d).Info);
+                        }
+                    }
                 }
                 PrintMessageLine("");
+            }
+            if (vuln_ds.Count > 0)
+            {
+                PrintMessageLine("Vulnerabilities data provided by:");
+                foreach (DataSourceInfo dsi in vuln_ds)
+                {
+                    PrintMessageLine("");
+                    PrintMessage(ConsoleColor.White, "{0} ", dsi.Name);
+                    PrintMessage(ConsoleColor.Green, "{0} ", dsi.Url);
+                    PrintMessageLine(dsi.Description);
+                }
             }
             Source.Dispose();
             return;
