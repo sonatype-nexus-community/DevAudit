@@ -15,7 +15,7 @@ namespace DevAudit.AuditLibrary
         {
             this.PackageSource = target as PackageSource;
             this.Initialised = true;
-            this.Info = new DataSourceInfo("OSS Index", "https://ossindex.net", "The data has been made available to the community through a REST API as well as several open source tools (with more in development!). Particular focus is being made on software packages, both those used for development libraries as well as installation packages.");
+            this.Info = new DataSourceInfo("OSS Index", "https://ossindex.net", "OSS Index is a free index of software information, focusing on vulnerabilities. The data has been made available to the community through a REST API as well as several open source tools (with more in development!). Particular focus is being made on software packages, both those used for development libraries as well as installation packages.");
         }
         #endregion
 

@@ -269,8 +269,8 @@ namespace DevAudit.AuditLibrary
                 }
                 else 
                 {
-                    cmd = "lsb_release";
-                    args = "-a";
+                    cmd = "bash";
+                    args = "-c \"lsb_release -a\"";
                     if (this.ExecuteCommand(cmd, args, out output, false))
                     {
                         if (output.ToLower().Contains("ubuntu"))
@@ -330,8 +330,8 @@ namespace DevAudit.AuditLibrary
                     }
                     else
                     {
-                        cmd = "cat";
-                        args = "/etc/*release | grep -m 1 DISTRIB_RELEASE | cut -d \"=\" -f2";
+                        cmd = "bash";
+                        args = "-c \"/etc/*release | grep -m 1 DISTRIB_RELEASE | cut -d \"=\" -f2\"";
                         if (this.ExecuteCommand(cmd, args, out output, false))
                         {
                             version = output.Replace("Release:\t", string.Empty);

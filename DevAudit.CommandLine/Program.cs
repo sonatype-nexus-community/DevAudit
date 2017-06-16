@@ -1027,7 +1027,7 @@ namespace DevAudit.CommandLine
                         }
                         if (v.Published != DateTime.MinValue)
                         {
-                            PrintMessageLine("  --Date published: {0}", v.Published);
+                            PrintMessageLine("  --Date published: {0}", v.Published.ToShortDateString());
                         }
                         if (!string.IsNullOrEmpty(v.Id))
                         {
