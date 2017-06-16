@@ -594,6 +594,7 @@ namespace DevAudit.CommandLine
             {
                 audit_options.Add("Profile", ProgramOptions.Profile);
             }
+
             #endregion
 
             #region Data sources
@@ -608,6 +609,10 @@ namespace DevAudit.CommandLine
             if (ProgramOptions.WithLibIO)
             {
                 audit_options.Add("WithLibIO", true);
+            }
+            if (ProgramOptions.IgnoreHttpsCertErrors)
+            {
+                audit_options.Add("IgnoreHttpsCertErrors", true);
             }
             #endregion
 

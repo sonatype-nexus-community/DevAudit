@@ -248,6 +248,10 @@ namespace DevAudit.AuditLibrary
                 this.AuditEnvironment.OSVersion = (string)this.AuditOptions["OSVersion"];
                 this.AuditEnvironment.Info("Overriding audit environment OS version to {0}.", this.AuditEnvironment.OSVersion);
             }
+            if (this.AuditOptions.ContainsKey("IgnoreHttpsCertErrors"))
+            {
+                this.DataSourceOptions.Add("IgnoreHttpsCertErrors", true);
+            }
             if (this.AuditOptions.ContainsKey("WithOSSI")) 
             {
                 this.DataSources.Add(new OSSIndexDataSource(this, this.HostEnvironment, DataSourceOptions));
@@ -352,6 +356,14 @@ namespace DevAudit.AuditLibrary
                         // If this is a WinForm/UI control, uncomment this code 
                         //if (components != null) //{ // components.Dispose(); //} } 
 
+                        foreach(IDataSource ds in DataSources)
+                        {
+                            if (ds is HttpDataSource)
+                            {
+                                HttpDataSource hs = ds as HttpDataSource;
+                                hs.Dispose();
+                            }
+                        }
                         foreach (Delegate d in this.AuditEnvironmentMessage.GetInvocationList())
                         {
                             this.AuditEnvironmentMessage -= (EventHandler<EnvironmentEventArgs>)d;

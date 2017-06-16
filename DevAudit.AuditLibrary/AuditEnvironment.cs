@@ -201,7 +201,7 @@ namespace DevAudit.AuditLibrary
         #endregion
 
         #region Methods
-        public bool ExecuteCommand(string command, string arguments, out string output, [CallerMemberName] string memberName = "", [CallerFilePath] string fileName = "", [CallerLineNumber] int lineNumber = 0)
+        public bool ExecuteCommand(string command, string arguments, out string output, bool report_errors = true, [CallerMemberName] string memberName = "", [CallerFilePath] string fileName = "", [CallerLineNumber] int lineNumber = 0)
         {
             CallerInformation caller = new CallerInformation(memberName, fileName, lineNumber);
             ProcessExecuteStatus process_status = ProcessExecuteStatus.Unknown;
@@ -216,7 +216,14 @@ namespace DevAudit.AuditLibrary
             else
             {
                 output = process_output + process_error;
-                Error("The command {0} {1} did not execute successfully. Error: {2}", command, arguments, output);
+                if (report_errors)
+                {
+                    Error("The command {0} {1} did not execute successfully. Error: {2}", command, arguments, output);
+                }
+                else
+                {
+                    Debug("The command {0} {1} did not execute successfully. Error: {2}", command, arguments, output);
+                }
                 return false;
             }
         }
@@ -231,7 +238,7 @@ namespace DevAudit.AuditLibrary
                 cmd = "cat";
                 args = "/etc/*release";
                 string output;
-                if (this.ExecuteCommand(cmd, args, out output))
+                if (this.ExecuteCommand(cmd, args, out output, false))
                 {
                     if (output.ToLower().Contains("ubuntu"))
                     {
@@ -264,7 +271,7 @@ namespace DevAudit.AuditLibrary
                 {
                     cmd = "lsb_release";
                     args = "-a";
-                    if (this.ExecuteCommand(cmd, args, out output))
+                    if (this.ExecuteCommand(cmd, args, out output, false))
                     {
                         if (output.ToLower().Contains("ubuntu"))
                         {
@@ -316,7 +323,7 @@ namespace DevAudit.AuditLibrary
                     cmd = "cat";
                     args = "/etc/*release | grep -m 1 DISTRIB_RELEASE | cut -d \"=\" -f2";
                     string output;
-                    if (this.ExecuteCommand(cmd, args, out output))
+                    if (this.ExecuteCommand(cmd, args, out output, false))
                     {
                         version = output.Replace("Release:\t", string.Empty);
                         Debug(here, "GetOSVersion() returned {0}.", output);
