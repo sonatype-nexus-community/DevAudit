@@ -37,7 +37,7 @@ namespace DevAudit.AuditLibrary
             {
                 HttpsProxy = (Uri)this.DataSourceOptions["HttpsProxy"];
             }
-            ServicePointManager.ServerCertificateValidationCallback += RemoteCertificateValidationCallback;
+            
         }
         #endregion
 
@@ -67,20 +67,14 @@ namespace DevAudit.AuditLibrary
         protected virtual HttpClient CreateHttpClient()
         {
             if (ApiUrl == null) throw new InvalidOperationException("The ApiUrl property is not initialised.");
-            HttpClient client;
-            if (this.HttpsProxy == null)
+            WebRequestHandler handler = new WebRequestHandler();
+            handler.ServerCertificateValidationCallback += RemoteCertificateValidationCallback;
+            if (this.HttpsProxy != null)
             {
-                client = new HttpClient();
+                handler.Proxy = new WebProxy(this.HttpsProxy, false);
+                handler.UseProxy = true;
             }
-            else
-            {
-                HttpClientHandler handler = new HttpClientHandler
-                {
-                    Proxy = new WebProxy(this.HttpsProxy, false),
-                    UseProxy = true,
-                };
-                client = new HttpClient(handler);
-            }
+            HttpClient client = new HttpClient(handler);
             client.BaseAddress = ApiUrl;
             client.DefaultRequestHeaders.Accept.Clear();
             client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
@@ -95,7 +89,7 @@ namespace DevAudit.AuditLibrary
             if (sslPolicyErrors == SslPolicyErrors.None) return true;
 
             //The server did not present a certificate
-            if (sslPolicyErrors == SslPolicyErrors.RemoteCertificateNotAvailable)
+            else if (sslPolicyErrors == SslPolicyErrors.RemoteCertificateNotAvailable)
             {
                 this.HostEnvironment.Error("The remote HTTPS server did not present a certificate.");
                 return false;
@@ -194,7 +188,6 @@ namespace DevAudit.AuditLibrary
                         //someDisposableObjectWithAnEventHandler = null; } 
                         // If this is a WinForm/UI control, uncomment this code 
                         //if (components != null) //{ // components.Dispose(); //} } 
-                        ServicePointManager.ServerCertificateValidationCallback -= RemoteCertificateValidationCallback;
 
                     }
                     // Release all unmanaged resources here 
