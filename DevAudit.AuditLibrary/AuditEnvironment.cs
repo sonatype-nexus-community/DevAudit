@@ -260,9 +260,44 @@ namespace DevAudit.AuditLibrary
                     Debug(here, "GetOSName() returned {0}.", this.OSName);
                     this.Info("Detected operating system of audit environment is {0}.", this.OSName);
                 }
-                else
+                else 
                 {
-                    Error("GetOSName() failed.");
+                    cmd = "lsb_release";
+                    args = "-a";
+                    if (this.ExecuteCommand(cmd, args, out output))
+                    {
+                        if (output.ToLower().Contains("ubuntu"))
+                        {
+                            this.OSName = "ubuntu";
+                        }
+                        else if (output.ToLower().Contains("debian"))
+                        {
+                            this.OSName = "debian";
+                        }
+                        else if (output.ToLower().Contains("centos"))
+                        {
+                            this.OSName = "centos";
+                        }
+                        else if (output.ToLower().Contains("suse linux"))
+                        {
+                            this.OSName = "suse";
+                        }
+                        else if (output.ToLower().Contains("red hat enterprise linux"))
+                        {
+                            this.OSName = "rhel";
+                        }
+                        else
+                        {
+                            this.OSName = "unix";
+                        }
+                        Debug(here, "GetOSName() returned {0}.", this.OSName);
+                        this.Info("Detected operating system of audit environment is {0}.", this.OSName);
+                    }
+                    else
+                    {
+                        Error("GetOSName() failed.");
+                    }
+                    
                 }
                 
             }
