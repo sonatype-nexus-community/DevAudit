@@ -18,7 +18,7 @@
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
     <OutputPath>bin\Debug\</OutputPath>
-    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <DefineConstants>TRACE;DEBUG</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
@@ -41,20 +41,6 @@
     <Optimize>false</Optimize>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="System" />
-    <Reference Include="System.Core" />
-    <Reference Include="System.Reflection" />
-    <Reference Include="System.Web" />
-    <Reference Include="System.Xml.Linq" />
-    <Reference Include="System.Data.DataSetExtensions" />
-    <Reference Include="System.Data" />
-    <Reference Include="System.Net.Http" />
-    <Reference Include="System.Xml" />
-    <Reference Include="Microsoft.CSharp" />
-    <Reference Include="Microsoft.Build" />
-    <Reference Include="Microsoft.Build.Engine" />
-    <Reference Include="Microsoft.Build.Framework" />
-    <Reference Include="System.ComponentModel.Composition" />
     <Reference Include="Alpheus.Core, Version=0.3.4.0, Culture=neutral, PublicKeyToken=null">
       <HintPath>..\packages\Alpheus.0.3.4-beta\lib\net45\Alpheus.Core.dll</HintPath>
     </Reference>
@@ -147,6 +133,20 @@
     <Reference Include="Sprache, Version=2.0.0.51, Culture=neutral, PublicKeyToken=null">
       <HintPath>..\packages\Sprache.2.0.0.51\lib\portable-net4+netcore45+win8+wp8+sl5+MonoAndroid+Xamarin.iOS10+MonoTouch\Sprache.dll</HintPath>
     </Reference>
+<Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Reflection" />
+    <Reference Include="System.Web" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Net.Http" />
+    <Reference Include="System.Xml" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="Microsoft.Build" />
+    <Reference Include="Microsoft.Build.Engine" />
+    <Reference Include="Microsoft.Build.Framework" />
+    <Reference Include="System.ComponentModel.Composition" />
     <Reference Include="System.Collections.Immutable, Version=1.2.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
       <HintPath>..\packages\System.Collections.Immutable.1.2.0\lib\portable-net45+win8+wp8+wpa81\System.Collections.Immutable.dll</HintPath>
     </Reference>
@@ -165,8 +165,8 @@
     <Reference Include="System.Composition.TypedParts, Version=1.0.27.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
       <HintPath>..\packages\Microsoft.Composition.1.0.27\lib\portable-net45+win8+wp8+wpa81\System.Composition.TypedParts.dll</HintPath>
     </Reference>
-    <Reference Include="Versatile.Core, Version=0.2.1.0, Culture=neutral, PublicKeyToken=null">
-      <HintPath>..\packages\Versatile.0.2.1.0\lib\net45\Versatile.Core.dll</HintPath>
+    <Reference Include="Versatile.Core, Version=0.2.2.0, Culture=neutral, PublicKeyToken=null">
+      <HintPath>..\packages\Versatile.0.2.2.0\lib\net45\Versatile.Core.dll</HintPath>
     </Reference>
     <Reference Include="YamlDotNet, Version=3.9.0.0, Culture=neutral, PublicKeyToken=null">
       <HintPath>..\packages\YamlDotNet.3.9.0\lib\net35\YamlDotNet.dll</HintPath>
@@ -185,6 +185,23 @@
     <Compile Include="Environments\GitHubAuditEnvironment.cs" />
     <Compile Include="Analyzers\DevAuditGendarmeRunner.cs" />
     <Compile Include="Analyzers\ByteCodeAnalyzer.cs" />
+    <Compile Include="DataSourceInfo.cs" />
+    <Compile Include="DataSources\LibrariesdotIO\LibrariesdotIODataSource.cs" />
+    <Compile Include="DataSources\LibrariesdotIO\Models\LibdotIOArtifact.cs" />
+    <Compile Include="DataSources\OSSIndex\OSSIndexDataSource.cs" />
+    <Compile Include="DataSources\OSSIndex\Models\OSSIndexArtifact.cs" />
+    <Compile Include="ConfigurationRule.cs" />
+    <Compile Include="DataSources\OSSIndex\OSSIndexHttpClient.cs" />
+    <Compile Include="DataSources\OSSIndex\Models\OSSIndexPackageVulnerability.cs" />
+    <Compile Include="DataSources\OSSIndex\Models\OSSIndexProject.cs" />
+    <Compile Include="DataSources\OSSIndex\Models\OSSIndexProjectVulnerability.cs" />
+    <Compile Include="DataSources\Vulnersdotcom\Models\VulnersAuditQuery.cs" />
+    <Compile Include="DataSources\Vulnersdotcom\Models\VulnersAuditResult.cs" />
+    <Compile Include="DataSources\Vulnersdotcom\Models\VulnersIdSearchResult.cs" />
+    <Compile Include="DataSources\Vulnersdotcom\Models\VulnersSearchQuery.cs" />
+    <Compile Include="DataSources\Vulnersdotcom\Models\VulnersSearchResult.cs" />
+    <Compile Include="DataSources\HttpException.cs" />
+    <Compile Include="DataSources\Vulnersdotcom\VulnersDataSource.cs" />
     <Compile Include="Environments\AlpheusEnvironment.cs" />
     <Compile Include="IDbAuditTarget.cs" />
     <Compile Include="IArtifact.cs" />
@@ -222,20 +239,8 @@
     <Compile Include="AuditEnvironment.cs" />
     <Compile Include="AuditDirectoryInfo.cs" />
     <Compile Include="AuditFileInfo.cs" />
-    <Compile Include="AuditTargetEventArgs.cs" />
-    <Compile Include="BsonSerializer.cs" />
     <Compile Include="AuditTarget.cs" />
     <Compile Include="Environments\LocalEnvironment.cs" />
-    <Compile Include="DataSources\OSSIndex\Models\OSSIndexArtifact.cs" />
-    <Compile Include="DataSources\OSSIndex\Models\OSSIndexProjectConfigurationRule.cs" />
-    <Compile Include="DataSources\OSSIndex\OSSIndexHttpClient.cs" />
-    <Compile Include="DataSources\OSSIndex\OSSIndexHttpException.cs" />
-    <Compile Include="DataSources\OSSIndex\Models\OSSIndexPackageVulnerability.cs" />
-    <Compile Include="DataSources\OSSIndex\Models\OSSIndexProject.cs" />
-    <Compile Include="DataSources\OSSIndex\Models\OSSIndexProjectVulnerability.cs" />
-    <Compile Include="DataSources\OSSIndex\Models\OSSIndexQueryObject.cs" />
-    <Compile Include="DataSources\OSSIndex\Models\OSSIndexApiv2Result.cs" />
-    <Compile Include="DataSources\OSSIndex\Models\OSSIndexApiv2Vulnerability.cs" />
     <Compile Include="Targets\PackageSource.cs" />
     <Compile Include="PackageSources\BowerPackageSource.cs" />
     <Compile Include="PackageSources\ChocolateyPackageSource.cs" />
@@ -247,7 +252,6 @@
     <Compile Include="PackageSources\NuGetPackageSource.cs" />
     <Compile Include="PackageSources\OneGetPackageSource.cs" />
     <Compile Include="PackageSources\YarnPackageSource.cs" />    
-    <Compile Include="ProjectVulnerabilitiesCacheItem.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Targets\ApplicationServer.cs" />
     <Compile Include="Servers\NginxServer.cs" />
@@ -264,11 +268,16 @@
     <Compile Include="Environments\DockerizedLocalEnvironment.cs" />
     <Compile Include="Environments\DockerizedLocalAuditFileInfo.cs" />
     <Compile Include="Environments\DockerizedLocalAuditDirectoryInfo.cs" />
-<Compile Include="Environments\WinRmAuditDirectoryInfo.cs" />
+    <Compile Include="Environments\WinRmAuditDirectoryInfo.cs" />
     <Compile Include="Environments\WinRmAuditFileInfo.cs" />
     <Compile Include="Environments\WinRmAuditEnvironment.cs" />
     <Compile Include="Servers\PostgreSQLServer.cs" />
-<Compile Include="Servers\IIS6Server.cs" />
+    <Compile Include="Servers\IIS6Server.cs" />
+    <Compile Include="IArtifact.cs" />
+    <Compile Include="IPackage.cs" />
+    <Compile Include="Package.cs" />
+    <Compile Include="Vulnerability.cs" />
+    <Compile Include="IDataSource.cs" />
   </ItemGroup>
   <ItemGroup>
     

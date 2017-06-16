@@ -1005,9 +1005,25 @@ namespace DevAudit.CommandLine
                     {
                         PrintMessage(ConsoleColor.White, "--[{0}/{1}] ", ++c, matched_vulnerabilities_count);
                         PrintMessageLine(ConsoleColor.Red, "{0} ", v.Title.Trim());
-                        PrintMessageLine(ConsoleColor.White, "  --Description: {0}", v.Description.Trim());
+                        PrintAuditResultMultiLineField(ConsoleColor.White, 2, "Description", v.Description.Trim().Replace("\n", "").Replace(". ", "." + Environment.NewLine));
                         PrintMessage(ConsoleColor.White, "  --Affected versions: ");
                         PrintMessageLine(ConsoleColor.Red, "{0}", string.Join(", ", v.Versions.ToArray()));
+                        if (v.CVE != null && v.CVE.Count() > 0)
+                        {
+                            PrintMessageLine(ConsoleColor.White, "  --CVEs: {0}", string.Join(", ", v.CVE.ToArray()));
+                        }
+                        if (!string.IsNullOrEmpty(v.Reporter))
+                        {
+                            PrintMessageLine(ConsoleColor.White, "{0} ", v.Reporter.Trim());
+                        }
+                        if (!string.IsNullOrEmpty(v.CVSS.Score))
+                        {
+                            PrintMessageLine("  --CVSS Score: {0}. Vector: {1}", v.CVSS.Score, v.CVSS.Vector);
+                        }
+                        if (v.Published != DateTime.MinValue)
+                        {
+                            PrintMessageLine("  --Date published: {0}", v.Published);
+                        }
                     });
                     string[] dsn = matched_vulnerabilities.Select(v => v.DataSource.Name).Distinct().ToArray();
                     foreach (string d in dsn)
@@ -1131,14 +1147,14 @@ namespace DevAudit.CommandLine
                         PrintMessageLine(vulnerable ? ConsoleColor.Red : ConsoleColor.DarkGreen, "{0}.", vulnerable);
                         if (vulnerable)
                         {
-                            PrintProjectConfigurationRuleMultiLineField(ConsoleColor.White, 2, "Summary", _rule.Summary);
+                            PrintAuditResultMultiLineField(ConsoleColor.White, 2, "Summary", _rule.Summary);
                             if (e.Value.Item2 != null && e.Value.Item2.Count > 0)
                             {
-                                PrintProjectConfigurationRuleMultiLineField(ConsoleColor.White, 2, "Results", e.Value.Item2);
+                                PrintAuditResultMultiLineField(ConsoleColor.White, 2, "Results", e.Value.Item2);
                             }
                             if (_rule.Tags != null && _rule.Tags.Count > 0)
                             {
-                                PrintProjectConfigurationRuleMultiLineField(ConsoleColor.White, 2, "Tags", _rule.Tags);
+                                PrintAuditResultMultiLineField(ConsoleColor.White, 2, "Tags", _rule.Tags);
                             }
                             if (_rule.Severity > 0)
                             {
@@ -1146,8 +1162,8 @@ namespace DevAudit.CommandLine
                                 ConsoleColor severity_color = _rule.Severity == 1 ? ConsoleColor.DarkYellow : _rule.Severity == 2 ? ConsoleColor.DarkRed : ConsoleColor.Red;
                                 PrintMessageLine(severity_color, "{0}", _rule.Severity);
                             }
-                            PrintProjectConfigurationRuleMultiLineField(ConsoleColor.Magenta, 2, "Resolution", _rule.Resolution);
-                            PrintProjectConfigurationRuleMultiLineField(ConsoleColor.White, 2, "Urls", _rule.Urls);
+                            PrintAuditResultMultiLineField(ConsoleColor.Magenta, 2, "Resolution", _rule.Resolution);
+                            PrintAuditResultMultiLineField(ConsoleColor.White, 2, "Urls", _rule.Urls);
                             PrintMessageLine(string.Empty);
                         }
                     }
@@ -1323,7 +1339,14 @@ namespace DevAudit.CommandLine
 
         static void PrintMessage(string format, params object[] args)
         {
-            Console.Write(format, args);
+            if (args.Length == 0)
+            {
+                Console.Write(format);
+            }
+            else
+            {
+                Console.Write(format, args);
+            }
         }
 
         static void PrintMessage(ConsoleColor color, string format, params object[] args)
@@ -1393,12 +1416,12 @@ namespace DevAudit.CommandLine
             }
         }
 
-        static void PrintProjectConfigurationRuleMultiLineField(int indent, string field, string value)
+        static void PrintAuditResultMultiLineField(int indent, string field, string value)
         {
-            PrintProjectConfigurationRuleMultiLineField(ConsoleColor.White, indent, field, value);
+            PrintAuditResultMultiLineField(ConsoleColor.White, indent, field, value);
         }
 
-        static void PrintProjectConfigurationRuleMultiLineField(ConsoleColor color, int indent, string field, string value)
+        static void PrintAuditResultMultiLineField(ConsoleColor color, int indent, string field, string value)
         {
             StringBuilder sb = new StringBuilder(value.Length);
             sb.Append(' ', indent);
@@ -1406,34 +1429,56 @@ namespace DevAudit.CommandLine
             sb.Append(field);
             sb.AppendLine(":");
             string[] lines = value.Split(Environment.NewLine.ToCharArray());
-            foreach (string l in lines.TakeWhile(s => !string.IsNullOrEmpty(s)))
+            string last = null;
+            foreach (string l in lines)
             {
+                string line = l.Trim();
+                if (string.IsNullOrEmpty(line)) continue;
                 sb.Append(' ', indent * 2);
-                sb.Append("--");
-                sb.AppendLine(l);
+                if (string.IsNullOrEmpty(last))
+                {
+                    sb.Append("--");
+                }
+                else
+                {
+                    sb.Append("  ");
+                }
+                sb.AppendLine(line);
+                last = line;
             }
             PrintMessage(color, sb.ToString());
         }
 
-        static void PrintProjectConfigurationRuleMultiLineField(ConsoleColor color, int indent, string field, List<string> values)
+        static void PrintAuditResultMultiLineField(ConsoleColor color, int indent, string field, List<string> values)
         {
             StringBuilder sb = new StringBuilder();
             sb.Append(' ', indent);
             sb.Append("--");
             sb.Append(field);
             sb.AppendLine(":");
-            foreach (string l in values.TakeWhile(s => !string.IsNullOrEmpty(s)))
+            string last = null;
+            foreach (string l in values)
             {
+                string line = l.Trim();
+                if (string.IsNullOrEmpty(line)) continue;
                 sb.Append(' ', indent * 2);
-                sb.Append("--");
-                sb.AppendLine(l);
+                if (string.IsNullOrEmpty(last))
+                {
+                    sb.Append("--");
+                }
+                else
+                {
+                    sb.Append("  ");
+                }
+                sb.AppendLine(line);
+                last = line;
             }
             PrintMessage(color, sb.ToString());
         }
 
-        static void PrintProjectConfigurationRuleMultiLineField(int indent, string field, List<string> values)
+        static void PrintAuditResultMultiLineField(int indent, string field, List<string> values)
         {
-            PrintProjectConfigurationRuleMultiLineField(ConsoleColor.White, indent, field, values);
+            PrintAuditResultMultiLineField(ConsoleColor.White, indent, field, values);
         }
 
         static void PrintBanner()

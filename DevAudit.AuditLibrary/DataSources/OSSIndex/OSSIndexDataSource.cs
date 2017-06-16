@@ -157,7 +157,7 @@ namespace DevAudit.AuditLibrary
 
         protected void GetVulnerabiltiesApiv2()
         {
-            CallerInformation caller = this.HostEnvironment.Here();
+            CallerInformation here = this.HostEnvironment.Here();
             this.HostEnvironment.Status("Searching OSS Index for vulnerabilities for {0} packages.", this.Packages.Count());
             Stopwatch sw = new Stopwatch();
             sw.Start();
@@ -184,12 +184,12 @@ namespace DevAudit.AuditLibrary
                     {
                         if (e is HttpException)
                         {
-                            this.HostEnvironment.Error(caller, e, "An HTTP error occured attempting to query the OSS Index API for the following {1} packages: {0}.",
+                            this.HostEnvironment.Error(here, e, "An HTTP error occured attempting to query the OSS Index API for the following {1} packages: {0}.",
                                 q.Select(query => query.Name).Aggregate((q1, q2) => q1 + "," + q2), this.PackageSource.PackageManagerLabel);
                         }
                         else
                         {
-                            this.HostEnvironment.Error(caller, e, "An error occurred attempting to query the OSS Index API for the following {1} packages: {0}.",
+                            this.HostEnvironment.Error(here, e, "An error occurred attempting to query the OSS Index API for the following {1} packages: {0}.",
                                 q.Select(query => query.Name).Aggregate((q1, q2) => q1 + "," + q2), this.PackageSource.PackageManagerLabel);
 
                         }
@@ -203,7 +203,7 @@ namespace DevAudit.AuditLibrary
             }
             catch (AggregateException ae)
             {
-                this.HostEnvironment.Error(caller, ae, "An error occurred waiting for SearchVulnerabilitiesAsync task to complete in {0}.", ae.InnerException.TargetSite.Name);
+                this.HostEnvironment.Error(here, ae, "An error occurred waiting for SearchVulnerabilitiesAsync task to complete in {0}.", ae.InnerException.TargetSite.Name);
             }
             finally
             {
