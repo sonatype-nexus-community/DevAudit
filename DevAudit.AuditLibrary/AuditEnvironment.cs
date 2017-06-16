@@ -320,7 +320,7 @@ namespace DevAudit.AuditLibrary
             {
                 if (this.OSName == "ubuntu")
                 {
-                    cmd = " lsb_release";
+                    cmd = "lsb_release";
                     args = "--release | cut -f2";
                     string output;
                     if (this.ExecuteCommand(cmd, args, out output, false))

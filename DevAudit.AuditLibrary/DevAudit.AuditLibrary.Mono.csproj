@@ -205,7 +205,6 @@
     <Compile Include="DataSources\Vulnersdotcom\VulnersDataSource.cs" />
     <Compile Include="Environments\AlpheusEnvironment.cs" />
     <Compile Include="IDbAuditTarget.cs" />
-    <Compile Include="IArtifact.cs" />
   <Compile Include="DataSources\OSSIndex\Models\OSSIndexApiv2Result.cs" />
     <Compile Include="DataSources\OSSIndex\Models\OSSIndexApiv2Vulnerability.cs" />
     <Compile Include="IPackage.cs" />
