@@ -205,6 +205,12 @@
     <Compile Include="Environments\AlpheusEnvironment.cs" />
     <Compile Include="IDbAuditTarget.cs" />
     <Compile Include="IArtifact.cs" />
+  <Compile Include="DataSources\OSSIndex\Models\OSSIndexApiv2Result.cs" />
+    <Compile Include="DataSources\OSSIndex\Models\OSSIndexApiv2Vulnerability.cs" />
+    <Compile Include="IPackage.cs" />
+    <Compile Include="IVulnerability.cs" />
+    <Compile Include="DataSources\LocalDataSource.cs" />
+    <Compile Include="DataSources\HttpDataSource.cs" />
     <Compile Include="Analyzers\NetFxAnalyzer.cs" />
     <Compile Include="Analyzers\PHPAnalyzer.cs" />
     <Compile Include="Applications\AspNetApplication.cs" />
@@ -274,7 +280,6 @@
     <Compile Include="Servers\PostgreSQLServer.cs" />
     <Compile Include="Servers\IIS6Server.cs" />
     <Compile Include="IArtifact.cs" />
-    <Compile Include="IPackage.cs" />
     <Compile Include="Package.cs" />
     <Compile Include="Vulnerability.cs" />
     <Compile Include="IDataSource.cs" />
