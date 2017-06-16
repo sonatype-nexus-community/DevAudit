@@ -320,7 +320,7 @@ namespace DevAudit.AuditLibrary
             {
                 if (this.OSName == "ubuntu")
                 {
-                    cmd = "lsb";
+                    cmd = "lsb_release";
                     args = "-sr ";
                     string output;
                     if (this.ExecuteCommand(cmd, args, out output, false))
@@ -332,7 +332,7 @@ namespace DevAudit.AuditLibrary
                     {
                         cmd = "bash";
                         args = "-c \"/etc/*release | grep -m 1 DISTRIB_RELEASE | cut -d \"=\" -f2\"";
-                        if (this.ExecuteCommand(cmd, args, out output, false))
+                        if (this.ExecuteCommand(cmd, args, out output, false) && !string.IsNullOrEmpty(output))
                         {
                             version = output.Replace("Release:\t", string.Empty);
                             Debug(here, "GetOSVersion() returned {0}.", version);
