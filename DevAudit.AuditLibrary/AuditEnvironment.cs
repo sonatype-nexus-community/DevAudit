@@ -265,7 +265,7 @@ namespace DevAudit.AuditLibrary
                         this.OSName = "unix";
                     }
                     Debug(here, "GetOSName() returned {0}.", this.OSName);
-                    this.Info("Detected operating system of audit environment is {0}.", this.OSName);
+                    this.Info("Detected operating system of environment is {0}.", this.OSName);
                 }
                 else 
                 {
@@ -298,7 +298,7 @@ namespace DevAudit.AuditLibrary
                             this.OSName = "unix";
                         }
                         Debug(here, "GetOSName() returned {0}.", this.OSName);
-                        this.Info("Detected operating system of audit environment is {0}.", this.OSName);
+                        this.Info("Detected operating system of environment is {0}.", this.OSName);
                     }
                     else
                     {
@@ -320,8 +320,8 @@ namespace DevAudit.AuditLibrary
             {
                 if (this.OSName == "ubuntu")
                 {
-                    cmd = "lsb_release";
-                    args = "--release | cut -f2";
+                    cmd = "lsb";
+                    args = "-sr ";
                     string output;
                     if (this.ExecuteCommand(cmd, args, out output, false))
                     {

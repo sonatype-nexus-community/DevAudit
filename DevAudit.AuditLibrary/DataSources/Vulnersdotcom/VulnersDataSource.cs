@@ -188,6 +188,9 @@ namespace DevAudit.AuditLibrary
                     v.Title = d.Value.title;
                     v.Versions = d.Value.affectedPackage
                         .Select(ap => MapVulnersOperatorToSymbol(ap._operator) + ap.packageVersion).ToArray();
+                    v.Published = d.Value.published;
+                    v.CVSS = new VulnerabilityCVSS() { Score = d.Value.cvss.score.ToString(), Vector = d.Value.cvss.vector };
+
                 }
             }
             return vulnerabilities;

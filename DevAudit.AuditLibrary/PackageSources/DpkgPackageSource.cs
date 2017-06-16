@@ -33,13 +33,14 @@ namespace DevAudit.AuditLibrary
 
         public override IEnumerable<Package> GetPackages(params string[] o)
         {
+            Stopwatch sw = new Stopwatch();
             List<Package> packages = new List<Package>();
             string command = @"dpkg-query";
             string arguments = @"-W -f  '${package} ${version} ${architecture}|'";
             Regex process_output_pattern = new Regex(@"^(\S+)\s(\S+)\s(\S+)$", RegexOptions.Compiled);
             AuditEnvironment.ProcessExecuteStatus process_status;
                 string process_output, process_error;
-            Stopwatch sw = new Stopwatch();
+            sw.Start();
             if (AuditEnvironment.Execute(command, arguments, out process_status, out process_output, out process_error))
             {
                 string[] p = process_output.Split("|".ToCharArray(), StringSplitOptions.RemoveEmptyEntries);

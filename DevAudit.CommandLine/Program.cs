@@ -1015,11 +1015,11 @@ namespace DevAudit.CommandLine
                         PrintMessageLine(ConsoleColor.Red, "{0}", string.Join(", ", v.Versions.ToArray()));
                         if (v.CVE != null && v.CVE.Count() > 0)
                         {
-                            PrintMessageLine(ConsoleColor.White, "  --CVEs: {0}", string.Join(", ", v.CVE.ToArray()));
+                            PrintMessageLine(ConsoleColor.White, "  --CVE(s): {0}", string.Join(", ", v.CVE.ToArray()));
                         }
                         if (!string.IsNullOrEmpty(v.Reporter))
                         {
-                            PrintMessageLine(ConsoleColor.White, "{0} ", v.Reporter.Trim());
+                            PrintMessageLine(ConsoleColor.White, "  --Reporter: {0} ", v.Reporter.Trim());
                         }
                         if (!string.IsNullOrEmpty(v.CVSS.Score))
                         {
@@ -1028,6 +1028,14 @@ namespace DevAudit.CommandLine
                         if (v.Published != DateTime.MinValue)
                         {
                             PrintMessageLine("  --Date published: {0}", v.Published);
+                        }
+                        if (!string.IsNullOrEmpty(v.Id))
+                        {
+                            PrintMessageLine("  --Id: {0}", v.Id);
+                        }
+                        if (!string.IsNullOrEmpty(v.DataSource.Name))
+                        {
+                            PrintMessageLine("  --Provided by: {0}", v.DataSource.Name);
                         }
                     });
                     string[] dsn = matched_vulnerabilities.Select(v => v.DataSource.Name).Distinct().ToArray();
@@ -1038,8 +1046,8 @@ namespace DevAudit.CommandLine
                             vuln_ds.Add(Source.DataSources.Single(ds => ds.Info.Name == d).Info);
                         }
                     }
+                    PrintMessageLine("");
                 }
-                PrintMessageLine("");
             }
             if (vuln_ds.Count > 0)
             {
