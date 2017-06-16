@@ -320,18 +320,29 @@ namespace DevAudit.AuditLibrary
             {
                 if (this.OSName == "ubuntu")
                 {
-                    cmd = "cat";
-                    args = "/etc/*release | grep -m 1 DISTRIB_RELEASE | cut -d \"=\" -f2";
+                    cmd = " lsb_release";
+                    args = "--release | cut -f2";
                     string output;
                     if (this.ExecuteCommand(cmd, args, out output, false))
                     {
-                        version = output.Replace("Release:\t", string.Empty);
-                        Debug(here, "GetOSVersion() returned {0}.", output);
+                        version = output;
+                        Debug(here, "GetOSVersion() returned {0}.", version);
                     }
                     else
                     {
-                        Error("GetOSVersion() failed.");
+                        cmd = "cat";
+                        args = "/etc/*release | grep -m 1 DISTRIB_RELEASE | cut -d \"=\" -f2";
+                        if (this.ExecuteCommand(cmd, args, out output, false))
+                        {
+                            version = output.Replace("Release:\t", string.Empty);
+                            Debug(here, "GetOSVersion() returned {0}.", version);
+                        }
+                        else
+                        {
+                            Error("GetOSVersion() failed.");
+                        }
                     }
+
                 }
                 else if (this.OSName == "debian")
                 {

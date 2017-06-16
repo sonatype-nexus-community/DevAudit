@@ -83,7 +83,7 @@ namespace DevAudit.AuditLibrary
         }
 
         #region Event handlers
-        protected bool RemoteCertificateValidationCallback(object sender, X509Certificate certificate, X509Chain chain, SslPolicyErrors sslPolicyErrors)
+        public bool RemoteCertificateValidationCallback(object sender, X509Certificate certificate, X509Chain chain, SslPolicyErrors sslPolicyErrors)
         {
             //Return true if the server certificate is ok
             if (sslPolicyErrors == SslPolicyErrors.None) return true;
@@ -144,6 +144,7 @@ namespace DevAudit.AuditLibrary
 
         }
         #endregion
+
         #endregion
 
         #region Disposer and Finalizer
