@@ -72,8 +72,8 @@ namespace DevAudit.AuditLibrary
             string[] ossi_pms = { "bower", "composer", "choco", "msi", "nuget", "oneget", "yarn" };
             if (this.DataSources.Count == 0 && ossi_pms.Contains(this.PackageManagerId))
             {
-                this.HostEnvironment.Info("Using OSS Index as default data source for {0} package source.", this.PackageManagerLabel);
-                this.DataSources.Add(new OSSIndexDataSource(this, this.HostEnvironment, this.DataSourceOptions));
+                this.HostEnvironment.Info("Using OSS Index as default package vulnerabilities data source for {0} package source.", this.PackageManagerLabel);
+                this.DataSources.Add(new OSSIndexDataSource(this, this.DataSourceOptions));
             }
         }
         #endregion

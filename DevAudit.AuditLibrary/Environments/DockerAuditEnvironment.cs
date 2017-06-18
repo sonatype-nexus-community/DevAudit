@@ -16,9 +16,9 @@ namespace DevAudit.AuditLibrary
     public class DockerAuditEnvironment : AuditEnvironment
     {
         #region Constructors
-        public DockerAuditEnvironment(EventHandler<EnvironmentEventArgs> message_handler, string container, OperatingSystem os, LocalEnvironment host_environment) : 
+        public DockerAuditEnvironment(EventHandler<EnvironmentEventArgs> message_handler, string container, OperatingSystem os, LocalEnvironment host_environment) :
         base(message_handler, os, host_environment)
-        {									
+        {
             ProcessExecuteStatus process_status;
             string process_output, process_error;
             bool container_exists = false;
@@ -35,35 +35,36 @@ namespace DevAudit.AuditLibrary
             }
             if (r)
             {
-                string[] p = process_output.Split (this.HostEnvironment.LineTerminator.ToCharArray (), StringSplitOptions.RemoveEmptyEntries);
-                for (int i = 1; i < p.Count (); i++) {
-                    if (string.IsNullOrEmpty (p [i]) || string.IsNullOrWhiteSpace (p [i]))
-                        continue;	
+                string[] p = process_output.Split(this.HostEnvironment.LineTerminator.ToCharArray(), StringSplitOptions.RemoveEmptyEntries);
+                for (int i = 1; i < p.Count(); i++) {
+                    if (string.IsNullOrEmpty(p[i]) || string.IsNullOrWhiteSpace(p[i]))
+                        continue;
                     if (p[i].Trim().StartsWith(container) || p[i].Trim().EndsWith(container)) {
-                        container_exists = true;					
-                        if (p [i].Contains ("Up ")) {
+                        container_exists = true;
+                        if (p[i].Contains("Up ")) {
                             container_running = true;
                         }
                         break;
-                    } 
+                    }
                 }
                 if (container_exists) {
                     this.Container = container;
                     this.ContainerRunning = container_running;
-                    this.HostEnvironment.Success ("Found Docker container with id or name {0}.", this.Container);
+                    this.HostEnvironment.Success("Found Docker container with id or name {0}.", this.Container);
                     this.GetOSName();
                     this.GetOSVersion();
                 }
-                else this.HostEnvironment.Error ("The Docker container with name or id {0} does not exist.", container); 
-            } 
+                else this.HostEnvironment.Error("The Docker container with name or id {0} does not exist.", container);
+            }
             else {
-                this.HostEnvironment.Error ("Error executing command docker ps -a: {0}.", process_error); 
+                this.HostEnvironment.Error("Error executing command docker ps -a: {0}.", process_error);
             }
         }
         #endregion
 
         #region Overriden properties
         protected override TraceSource TraceSource { get; set; } = new TraceSource("DockerAuditEnvironment");
+        public override int MaxConcurrentExecutions { get; } = 0;
         #endregion
 
         #region Overriden methods

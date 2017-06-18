@@ -12,29 +12,38 @@ namespace DevAudit.AuditLibrary
     public class VulnersDataSource : HttpDataSource
     {
         #region Constructors
-        public VulnersDataSource(AuditTarget target, AuditEnvironment host_env, Dictionary<string, object> options) : base(target, host_env, options)
+        public VulnersDataSource(AuditTarget target, Dictionary<string, object> options) : base(target, options)
         {
             this.ApiUrl = new Uri("https://vulners.com");
             if (this.DataSourceOptions.ContainsKey("OSName"))
             {
                 this.OSName = (string)this.DataSourceOptions["OSName"];
             }
+            else if (!string.IsNullOrEmpty(this.AuditEnvironment.GetOSName()))
+            {
+                this.OSName = this.AuditEnvironment.OSName;
+            }
             else
             {
-                this.HostEnvironment.Error("The audit environment OS name was not specified. Data source cannot be initialised.");
+                this.HostEnvironment.Error("The audit environment OS name could not be determined. Data source cannot be initialised.");
                 return;
             }
+
             if (this.DataSourceOptions.ContainsKey("OSVersion"))
             {
                 this.OSVersion = (string)this.DataSourceOptions["OSVersion"];
-                this.Initialised = true;
+            }
+            else if (!string.IsNullOrEmpty(this.AuditEnvironment.GetOSVersion()))
+            {
+                this.OSVersion = this.AuditEnvironment.OSVersion;
             }
             else
             {
-                this.HostEnvironment.Error("The audit environment OS version was not specified. Data source cannot be initialised.");
+                this.HostEnvironment.Error("The audit environment OS version could not be determined. Data source cannot be initialised.");
                 return;
             }
             this.Info = new DataSourceInfo("Vulners", "https://vulners.com", "Vulners.com is the security database containing descriptions for large amount of software vulnerabilities in machine-readable format. Cross-references between bulletins and continuously updating of database keeps you abreast of the latest information security threats.");
+            this.Initialised = true;
         }
         #endregion
 

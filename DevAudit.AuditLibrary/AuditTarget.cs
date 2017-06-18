@@ -237,7 +237,8 @@ namespace DevAudit.AuditLibrary
             }
 
             this.AlpheusEnvironment = new AlEnvironment(this);
-
+            this.AuditEnvironment.GetOSName();
+            this.AuditEnvironment.GetOSVersion();
             if (this.AuditOptions.ContainsKey("OSName"))
             {
                 this.AuditEnvironment.OSName = (string)this.AuditOptions["OSName"];
@@ -254,11 +255,11 @@ namespace DevAudit.AuditLibrary
             }
             if (this.AuditOptions.ContainsKey("WithOSSI")) 
             {
-                this.DataSources.Add(new OSSIndexDataSource(this, this.HostEnvironment, DataSourceOptions));
+                this.DataSources.Add(new OSSIndexDataSource(this, this.DataSourceOptions));
             }
             if (this.AuditOptions.ContainsKey("WithVulners"))
             {
-                this.DataSources.Add(new VulnersDataSource(this, this.HostEnvironment, DataSourceOptions));
+                this.DataSources.Add(new VulnersDataSource(this, DataSourceOptions));
             }
         }
 

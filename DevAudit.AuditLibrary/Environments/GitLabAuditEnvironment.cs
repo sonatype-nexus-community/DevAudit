@@ -73,7 +73,14 @@ namespace DevAudit.AuditLibrary
         #endregion
 
         #region Overriden properties
-        protected override TraceSource TraceSource { get; set; } = new TraceSource("SshAuditEnvironment");
+        protected override TraceSource TraceSource { get; set; } = new TraceSource("GitLabAuditEnvironment");
+        public override int MaxConcurrentExecutions
+        {
+            get
+            {
+                throw new NotSupportedException();
+            }
+        }
         #endregion
 
         #region Overriden methods

@@ -1038,6 +1038,7 @@ namespace DevAudit.CommandLine
                             PrintMessageLine("  --Provided by: {0}", v.DataSource.Name);
                         }
                     });
+                    PrintMessageLine("");
                     string[] dsn = matched_vulnerabilities.Select(v => v.DataSource.Name).Distinct().ToArray();
                     foreach (string d in dsn)
                     {
@@ -1046,12 +1047,12 @@ namespace DevAudit.CommandLine
                             vuln_ds.Add(Source.DataSources.Single(ds => ds.Info.Name == d).Info);
                         }
                     }
-                    PrintMessageLine("");
                 }
             }
+
             if (vuln_ds.Count > 0)
             {
-                PrintMessageLine("Vulnerabilities data provided by:");
+                PrintMessageLine("Vulnerabilities Data Providers\n==============================");
                 foreach (DataSourceInfo dsi in vuln_ds)
                 {
                     PrintMessageLine("");
@@ -1059,6 +1060,10 @@ namespace DevAudit.CommandLine
                     PrintMessage(ConsoleColor.Green, "{0} ", dsi.Url);
                     PrintMessageLine(dsi.Description);
                 }
+            }
+            else
+            {
+                PrintMessageLine("");
             }
             Source.Dispose();
             return;

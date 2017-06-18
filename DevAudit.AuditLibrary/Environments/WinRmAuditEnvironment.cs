@@ -68,7 +68,7 @@ namespace DevAudit.AuditLibrary
 
         #region Overriden properties
         protected override TraceSource TraceSource { get; set; } = new TraceSource("WinRmAuditEnvironment");
-        public bool IsConnected { get; protected set; }
+        public override int MaxConcurrentExecutions { get; } = 4;
         #endregion
         
         #region Overriden methods
@@ -176,7 +176,6 @@ namespace DevAudit.AuditLibrary
                     }
                 }
             }
-            throw new NotImplementedException();
         }
 
         public override bool FileExists(string file_path)
@@ -251,6 +250,7 @@ namespace DevAudit.AuditLibrary
         public string OSCaption { get; protected set; }
         protected string User { get; set; }
         protected SecureString Pass { get; set; }
+        public bool IsConnected { get; protected set; }
         #endregion
 
         #region Methods

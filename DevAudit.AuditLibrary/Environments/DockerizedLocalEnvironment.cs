@@ -36,6 +36,7 @@ namespace DevAudit.AuditLibrary
 
         #region Overriden properties
         protected override TraceSource TraceSource { get; set; } = new TraceSource("LocalEnvironment");
+        public override int MaxConcurrentExecutions { get; } = 0;
         #endregion
 
         #region Overriden methods

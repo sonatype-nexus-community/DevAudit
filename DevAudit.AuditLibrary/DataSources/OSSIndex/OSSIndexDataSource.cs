@@ -11,7 +11,7 @@ namespace DevAudit.AuditLibrary
     public class OSSIndexDataSource : HttpDataSource
     {
         #region Constructors
-        public OSSIndexDataSource(AuditTarget target, AuditEnvironment host_env, Dictionary<string, object> options) : base(target, host_env, options)
+        public OSSIndexDataSource(AuditTarget target, Dictionary<string, object> options) : base(target, options)
         {
             this.PackageSource = target as PackageSource;
             this.Initialised = true;

@@ -12,7 +12,7 @@ namespace DevAudit.AuditLibrary
     public class LibrariesdotIODataSource : HttpDataSource
     {
         #region Constructors
-        public LibrariesdotIODataSource(AuditTarget target, AuditEnvironment host_env, Dictionary<string, object> datasource_options) : base(target, host_env, datasource_options)
+        public LibrariesdotIODataSource(AuditTarget target, Dictionary<string, object> datasource_options) : base(target, datasource_options)
         {
 
         }

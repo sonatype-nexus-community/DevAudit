@@ -130,6 +130,7 @@ namespace DevAudit.AuditLibrary
         public abstract AuditFileInfo ConstructFile(string file_path);
         public abstract AuditDirectoryInfo ConstructDirectory(string dir_path);
         public abstract Dictionary<AuditFileInfo, string> ReadFilesAsText(List<AuditFileInfo> files);
+        public abstract int MaxConcurrentExecutions { get; }
         protected abstract TraceSource TraceSource { get; set; }
         #endregion
 
@@ -362,7 +363,7 @@ namespace DevAudit.AuditLibrary
                 if (!string.IsNullOrEmpty(version))
                 {
                     this.OSVersion = version;
-                    this.Info("Detected operating system version of audit environment is {0}.", this.OSVersion);
+                    this.Info("Detected operating system version of environment is {0}.", this.OSVersion);
                 }
             }
             return this.OSVersion;
