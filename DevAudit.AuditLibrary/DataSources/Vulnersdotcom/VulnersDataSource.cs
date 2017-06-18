@@ -46,6 +46,7 @@ namespace DevAudit.AuditLibrary
             switch(this.OSName)
             {
                 case "ubuntu":
+                case "debian":
                     PackageToSearchName = (p) =>
                     {
                         return p.Name + " " + p.Version + " " + p.Architecture;

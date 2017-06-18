@@ -11,17 +11,25 @@ namespace DevAudit.AuditLibrary
         public VulnersAuditQuery(string os, string version, string[] p)
         {
             this.os = os;
-            if (this.os == "ubuntu")
+            switch (this.os)
             {
-                this.version = version;
-
-                package = p;
+                
+                case "ubuntu":
+                    this.version = version;
+                    package = p;
+                    break;
+                case "debian":
+                    this.version = version.Split('.').First();
+                    package = p;
+                    break;
+                case "centos":
+                    this.version = version.Split('.').First();
+                    package = p;
+                    break;
+                default:
+                    throw new NotSupportedException("Unknown OS: " + this.os);
             }
-            else if (this.os == "centos")
-            {
-                this.version = version.Split('.').First();
-                package = p;
-            }
+ 
         }
         public string os { get; set; }
         public string[] package { get; set; }
