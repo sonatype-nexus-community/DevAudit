@@ -42,6 +42,24 @@ namespace DevAudit.AuditLibrary
                 this.HostEnvironment.Error("The audit environment OS version could not be determined. Data source cannot be initialised.");
                 return;
             }
+
+            switch(this.OSName)
+            {
+                case "ubuntu":
+                    PackageToSearchName = (p) =>
+                    {
+                        return p.Name + " " + p.Version + " " + p.Architecture;
+                    };
+                    break;
+                case "centos":
+                    PackageToSearchName = (p) =>
+                    {
+                        return p.Name + "-" + p.Version + "." + p.Architecture;
+                    };
+                    break;
+                default:
+                    throw new NotSupportedException("Unknown OS type.");
+            }
             this.Info = new DataSourceInfo("Vulners", "https://vulners.com", "Vulners.com is the security database containing descriptions for large amount of software vulnerabilities in machine-readable format. Cross-references between bulletins and continuously updating of database keeps you abreast of the latest information security threats.");
             this.Initialised = true;
         }
@@ -62,7 +80,10 @@ namespace DevAudit.AuditLibrary
         public override async Task<Dictionary<IPackage, List<IVulnerability>>> SearchVulnerabilities(List<Package> packages)
         {
             CallerInformation here = this.HostEnvironment.Here();
-            VulnersAuditQuery q = new VulnersAuditQuery(this.OSName, this.OSVersion, packages);
+            VulnersAuditQuery q = new VulnersAuditQuery(this.OSName, this.OSVersion, packages.Select(p => this.PackageToSearchName(p)).ToArray());
+            this.HostEnvironment.Debug("Vulners query OS name is set to {0}.", q.os);
+            this.HostEnvironment.Debug("Vulners query OS version is set to {0}.", q.version);
+            this.HostEnvironment.Debug("Vulners query packages are {0}.", q.package.Aggregate((s1, s2) => s1 + "," + s2));
             VulnersAuditResult audit_result;
             this.HostEnvironment.Status("Searching Vulners for vulnerabilities for {0} packages.", packages.Count);
             using (HttpClient client = CreateHttpClient())
@@ -110,11 +131,11 @@ namespace DevAudit.AuditLibrary
                 this.HostEnvironment.Info("Vulners API returned 0 vulnerable packages.");
                 return vulnerabilities;
             }
-            List<Package> vulnerable_packages = packages.Where(p => audit_result.data.packages.Keys.Contains(p.Name + " " + p.Version + " " + p.Architecture)).ToList();
+            List<Package> vulnerable_packages = packages.Where(p => audit_result.data.packages.Keys.Contains(this.PackageToSearchName(p))).ToList();
             Dictionary<IPackage, string> package_vulnerability_map = new Dictionary<IPackage, string>();
             foreach (KeyValuePair<string, Dictionary<string, VulnersAuditResultPackage[]>> kv in audit_result.data.packages)
             {
-                Package vulnerable_package = vulnerable_packages.Where(p => p.Name + " " + p.Version + " " + p.Architecture == kv.Key).Single();
+                Package vulnerable_package = vulnerable_packages.Where(p => this.PackageToSearchName(p) == kv.Key).Single();
                 List<IVulnerability> package_vulnerabilities = new List<IVulnerability>(kv.Value.Count);
                 foreach (KeyValuePair<string, VulnersAuditResultPackage[]> kv2 in kv.Value)
                 {

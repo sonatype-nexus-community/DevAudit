@@ -16,7 +16,7 @@ namespace DevAudit.AuditLibrary
             {
                 if (this.DataSources.Count == 0)
                 {
-                    this.HostEnvironment.Info("Using OSS Index as default package vulnerabilities data source for Dpkg package source.");
+                    this.HostEnvironment.Info("Using Vulners as default package vulnerabilities data source for Dpkg package source.");
                 }
                 if (this.AuditOptions.ContainsKey("OSName"))
                 {

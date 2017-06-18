@@ -991,11 +991,11 @@ namespace DevAudit.CommandLine
                 PrintMessage(ConsoleColor.White, "[{0}/{1}] {2}", ++packages_processed, packages_count, package.Name);
                 if (package_vulnerabilities.Count() == 0)
                 {
-                    PrintMessage(" no known vulnerabilities.");
+                    PrintMessageLine(" no known vulnerabilities.");
                 }
                 else if (package_vulnerabilities.Count(v => v.PackageVersionIsInRange) == 0)
                 {
-                    PrintMessage(" {0} known vulnerabilit{1}, 0 affecting installed package version(s).", package_vulnerabilities.Count(), package_vulnerabilities.Count() > 1 ? "ies" : "y");
+                    PrintMessageLine(" {0} known vulnerabilit{1}, 0 affecting installed package version(s).", package_vulnerabilities.Count(), package_vulnerabilities.Count() > 1 ? "ies" : "y");
                 }
                 else
                 {

@@ -332,7 +332,7 @@ namespace DevAudit.AuditLibrary
                     else
                     {
                         cmd = "bash";
-                        args = "-c \"/etc/*release | grep -m 1 DISTRIB_RELEASE | cut -d \"=\" -f2\"";
+                        args = "-c \"/etc/*release | grep -m 1 DISTRIB_RELEASE | cut -d '=\' -f2 && test \\${PIPESTATUS[0]} -eq 0\"";
                         if (this.ExecuteCommand(cmd, args, out output, false) && !string.IsNullOrEmpty(output))
                         {
                             version = output.Replace("Release:\t", string.Empty);
@@ -360,11 +360,37 @@ namespace DevAudit.AuditLibrary
                         Error("GetOSVersion() failed.");
                     }
                 }
+                else if (this.OSName == "centos")
+                {
+                    cmd = "bash";
+                    args = "-c \"cat /etc/centos-release | cut -d' ' -f4 && test \\${PIPESTATUS[0]} -eq 0\"";
+                    string output;
+                    if (this.ExecuteCommand(cmd, args, out output,false))
+                    {
+                        version = output.Trim();
+                        Debug(here, "GetOSVersion() returned {0}.", version);
+                    }
+                    else
+                    {
+                        cmd = "awk";
+                        args = "'NR==1{print $3}' /etc/issue";
+                        if (this.ExecuteCommand(cmd, args, out output, false))
+                        {
+                            version = output.Trim();
+                            Debug(here, "GetOSVersion() returned {0}.", version);
+                        }
+                        else
+                        {
+                            Error("GetOSVersion() failed.");
+                        }
+                    }
+                }
                 if (!string.IsNullOrEmpty(version))
                 {
                     this.OSVersion = version;
                     this.Info("Detected operating system version of environment is {0}.", this.OSVersion);
                 }
+
             }
             return this.OSVersion;
         }

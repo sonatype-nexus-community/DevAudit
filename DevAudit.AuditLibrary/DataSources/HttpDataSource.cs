@@ -64,6 +64,7 @@ namespace DevAudit.AuditLibrary
         public bool Initialised { get; protected set; }
         public DataSourceInfo Info { get; set; } = new DataSourceInfo();
         protected Version LibraryVersion { get; set; } = Assembly.GetExecutingAssembly().GetName().Version;
+        public Func<Package, string> PackageToSearchName { get; protected set; }
         #endregion
 
         #region Methods

@@ -8,11 +8,20 @@ namespace DevAudit.AuditLibrary
 { 
     public class VulnersAuditQuery
     {
-        public VulnersAuditQuery(string os, string version, List<Package> packages)
+        public VulnersAuditQuery(string os, string version, string[] p)
         {
             this.os = os;
-            this.version = version;
-            package = packages.Select(p => p.Name + " " + p.Version + " " + p.Architecture).ToArray();
+            if (this.os == "ubuntu")
+            {
+                this.version = version;
+
+                package = p;
+            }
+            else if (this.os == "centos")
+            {
+                this.version = version.Split('.').First();
+                package = p;
+            }
         }
         public string os { get; set; }
         public string[] package { get; set; }
