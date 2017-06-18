@@ -252,10 +252,10 @@ namespace DevAudit.AuditLibrary
                 return this.VulnerabilitiesTask;
             }
             List<Task> tasks = new List<Task>();
-            IEnumerable<IDataSource> eligible_datasources = this.DataSources.Where(d => d.IsEligibleForTarget(this));
+            IEnumerable<IDataSource> eligible_datasources = this.DataSources.Where(d => d.Initialised && d.IsEligibleForTarget(this));
             if (eligible_datasources.Count() == 0)
             {
-                this.HostEnvironment.Warning("No eligible vulnerabilities data sources found for audit target {0}.", this.PackageManagerLabel);
+                this.HostEnvironment.Warning("No eligible initialised vulnerabilities data sources found for audit target {0}.", this.PackageManagerLabel);
                 this.VulnerabilitiesTask = Task.CompletedTask;
                 return this.VulnerabilitiesTask;
             }
@@ -266,21 +266,24 @@ namespace DevAudit.AuditLibrary
                     Task t = Task.Factory.StartNew(async () =>
                     {
                         Dictionary<IPackage, List<IVulnerability>> vulnerabilities = await ds.SearchVulnerabilities(this.Packages.ToList());
-                        lock (vulnerabilities_lock)
+                        if (vulnerabilities != null)
                         {
-                            foreach (KeyValuePair<IPackage, List<IVulnerability>> kv in vulnerabilities)
+                            lock (vulnerabilities_lock)
                             {
-                                this.Vulnerabilities.Add(kv.Key, kv.Value);
-                            }
-                            if (this.Vulnerabilities.Sum(v => v.Value.Count()) > 0)
-                            {
-                                this.HostEnvironment.Success("Got {0} total vulnerabilities for {1} packages from data source {2}.",
-                                    vulnerabilities.Values.Sum(vu => vu.Count), vulnerabilities.Keys.Count, ds.Info.Name);
-                            }
-                            else
-                            {
-                                this.HostEnvironment.Warning("Got {0} total vulnerabilities for none of {1} packages from data source {2}.", 
-                                    vulnerabilities.Values.Sum(vu => vu.Count), this.Packages.Count(), ds.Info.Name);
+                                foreach (KeyValuePair<IPackage, List<IVulnerability>> kv in vulnerabilities)
+                                {
+                                    this.Vulnerabilities.Add(kv.Key, kv.Value);
+                                }
+                                if (this.Vulnerabilities.Sum(v => v.Value.Count()) > 0)
+                                {
+                                    this.HostEnvironment.Success("Got {0} total vulnerabilities for {1} packages from data source {2}.",
+                                        vulnerabilities.Values.Sum(vu => vu.Count), vulnerabilities.Keys.Count, ds.Info.Name);
+                                }
+                                else
+                                {
+                                    this.HostEnvironment.Warning("Got {0} total vulnerabilities for none of {1} packages from data source {2}.",
+                                        vulnerabilities.Values.Sum(vu => vu.Count), this.Packages.Count(), ds.Info.Name);
+                                }
                             }
                         }
                     }, CancellationToken.None, TaskCreationOptions.DenyChildAttach, TaskScheduler.Default).Unwrap();

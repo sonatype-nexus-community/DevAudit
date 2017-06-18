@@ -66,7 +66,7 @@ namespace DevAudit.AuditLibrary
 
             if (this.HostRootIsMounted)
             {
-                string chroot_exec_command = string.Format("/hostroot /bin/bash -c \"{2}{0} {1}\"", command, arguments, env_vars);
+                string chroot_exec_command = string.Format("/hostroot {2}{0} {1}", command, arguments, env_vars);
                 bool r = this.LocalExecute("chroot", chroot_exec_command, out process_status, out process_output, out process_error, env);
                 this.Debug("Execute returned {2} for {0}. Output: {1}. Error:{3}", "chroot /hostroot " + chroot_exec_command, process_output, r, process_error);
                 return r;

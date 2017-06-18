@@ -94,12 +94,12 @@ namespace DevAudit.AuditLibrary
 
             if (this.HostEnvironment.IsDockerContainer)
             {
-                string docker_exec_command = string.Format("/hostroot docker exec {0} /bin/bash -c \"{3}{1} {2}\"", this.Container, command, arguments, env_vars);
+                string docker_exec_command = string.Format("/hostroot docker exec {0} {3} {1} {2}", this.Container, command, arguments, env_vars);
                 return this.HostEnvironment.Execute("chroot", docker_exec_command, out process_status, out process_output, out process_error, env);
             }
             else
             {
-                string docker_exec_command = string.Format("exec {0} /bin/bash -c \"{3}{1} {2}\"", this.Container, command, arguments, env_vars);
+                string docker_exec_command = string.Format("exec {0} {3}{1} {2}", this.Container, command, arguments, env_vars);
                 return this.HostEnvironment.Execute("docker", docker_exec_command, out process_status, out process_output, out process_error, env);
             }
         }

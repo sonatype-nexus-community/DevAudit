@@ -270,8 +270,8 @@ namespace DevAudit.AuditLibrary
                 }
                 else 
                 {
-                    cmd = "bash";
-                    args = "-c \"lsb_release -a\"";
+                    cmd = "lsb_release";
+                    args = "-a";
                     if (this.ExecuteCommand(cmd, args, out output, false))
                     {
                         if (output.ToLower().Contains("ubuntu"))
@@ -303,7 +303,16 @@ namespace DevAudit.AuditLibrary
                     }
                     else
                     {
-                        Error("GetOSName() failed.");
+                        cmd = "cat";
+                        args = "/etc/redhat-release";
+                        if (this.ExecuteCommand(cmd, args, out output, false))
+                        {
+                            this.OSName = "centos";
+                        }
+                        else
+                        {
+                            Error("GetOSName() failed.");
+                        }
                     }
                     
                 }
