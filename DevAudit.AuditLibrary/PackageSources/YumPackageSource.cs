@@ -78,7 +78,7 @@ namespace DevAudit.AuditLibrary
 
         public override bool IsVulnerabilityVersionInPackageVersionRange(string vulnerability_version, string package_version)
         {
-            return false; //Vulners provides package version-matching.
+            return true; //Vulners provides package version-matching.
         }
         #endregion
     }
