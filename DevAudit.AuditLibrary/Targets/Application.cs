@@ -184,8 +184,8 @@ namespace DevAudit.AuditLibrary
             string[] ossi_apps = { "drupal", "ossi" };
             if (this.DataSources.Count == 0 && ossi_apps.Contains(this.PackageManagerId))
             {
-                this.HostEnvironment.Info("Using OSS Index as default data source for {0} application.", this.PackageManagerLabel);
-                this.DataSources.Add(new OSSIndexDataSource(this, this.HostEnvironment, this.DataSourceOptions));
+                this.HostEnvironment.Info("Using OSS Index as default package vulnerabilities data source for {0} application.", this.PackageManagerLabel);
+                this.DataSources.Add(new OSSIndexDataSource(this, this.DataSourceOptions));
             }
 
         }

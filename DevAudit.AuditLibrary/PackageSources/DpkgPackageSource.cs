@@ -12,16 +12,21 @@ namespace DevAudit.AuditLibrary
         #region Constructors
         public DpkgPackageSource(Dictionary<string, object> package_source_options, EventHandler<EnvironmentEventArgs> message_handler) : base(package_source_options, message_handler)
         {
-            if (this.AuditOptions.ContainsKey("WithVulners") || this.DataSources.Count == 0 && !string.IsNullOrEmpty(this.AuditEnvironment.OSName) &&
-                !string.IsNullOrEmpty(this.AuditEnvironment.OSVersion))
+            if (this.AuditOptions.ContainsKey("WithVulners") || this.DataSources.Count == 0)
             {
                 if (this.DataSources.Count == 0)
                 {
-                    this.HostEnvironment.Info("Using default vulnerabilities data source Vulners for Dpkg package source.");
+                    this.HostEnvironment.Info("Using OSS Index as default package vulnerabilities data source for Dpkg package source.");
                 }
-                this.DataSourceOptions.Add("OSName", this.AuditEnvironment.OSName);
-                this.DataSourceOptions.Add("OSVersion", this.AuditEnvironment.OSVersion);
-                this.DataSources.Add(new VulnersDataSource(this, this.HostEnvironment, DataSourceOptions));
+                if (this.AuditOptions.ContainsKey("OSName"))
+                {
+                    this.DataSourceOptions.Add("OSName", this.AuditOptions["OSName"]);
+                }
+                if (this.AuditOptions.ContainsKey("OSVersion"))
+                {
+                    this.DataSourceOptions.Add("OSVersion", this.AuditOptions["OSVersion"]);
+                }
+                this.DataSources.Add(new VulnersDataSource(this, DataSourceOptions));
             }
         }
         #endregion
@@ -75,7 +80,7 @@ namespace DevAudit.AuditLibrary
  
         public override bool IsVulnerabilityVersionInPackageVersionRange(string vulnerability_version, string package_version)
         {
-            return true;
+            return true; //Vulners data source version matching done on server
         }
         #endregion
     }

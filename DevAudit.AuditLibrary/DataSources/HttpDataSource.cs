@@ -28,14 +28,16 @@ namespace DevAudit.AuditLibrary
     public abstract class HttpDataSource : IDataSource, IDisposable
     {
         #region Constructors
-        public HttpDataSource(AuditTarget target, AuditEnvironment host_env, Dictionary<string, object> datasource_options)
+        public HttpDataSource(AuditTarget target, Dictionary<string, object> datasource_options)
         {
             this.DataSourceOptions = datasource_options;
-            this.HostEnvironment = host_env;
+            this.HostEnvironment = target.HostEnvironment;
+            this.AuditEnvironment = target.AuditEnvironment;
             this.Target = target;
-            if (this.DataSourceOptions.ContainsKey("HttpsProxy"))
+            if (this.Target.AuditOptions.ContainsKey("HttpsProxy"))
             {
-                HttpsProxy = (Uri)this.DataSourceOptions["HttpsProxy"];
+                this.DataSourceOptions.Add("HttpsProxy", (Uri)this.Target.AuditOptions["HttpsProxy"]);
+                HttpsProxy = (Uri) this.Target.AuditOptions["HttpsProxy"];
             }
             
         }
@@ -55,6 +57,7 @@ namespace DevAudit.AuditLibrary
         public AuditTarget Target { get; }
         public Dictionary<string, object> DataSourceOptions { get; protected set; }
         protected AuditEnvironment HostEnvironment { get; set; }
+        protected AuditEnvironment AuditEnvironment { get; set; }
         public bool DataSourceInitialised { get; protected set; } = false;
         public Uri ApiUrl { get; protected set; }
         public Uri HttpsProxy { get; protected set; }
