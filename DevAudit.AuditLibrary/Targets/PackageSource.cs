@@ -37,7 +37,10 @@ namespace DevAudit.AuditLibrary
                     this.AuditEnvironment.Info("Using default {0} package manager configuration file {1}", this.PackageManagerLabel, this.DefaultPackageManagerConfigurationFile);
                     this.PackageManagerConfigurationFile = this.DefaultPackageManagerConfigurationFile;
                 }
-                this.PackageManagerConfigurationFile = "";
+                else
+                {
+                    throw new ArgumentException(string.Format("No file option was specified and the default {0} package manager configuration file {1} was not found.", this.PackageManagerLabel, this.DefaultPackageManagerConfigurationFile));
+                }
             }
 
             if (!string.IsNullOrEmpty(this.PackageManagerConfigurationFile))
