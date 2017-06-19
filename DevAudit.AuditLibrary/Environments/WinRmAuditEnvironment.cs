@@ -15,7 +15,7 @@ using Naos.WinRM;
 
 namespace DevAudit.AuditLibrary
 {
-    public class WinRmAuditEnvironment : AuditEnvironment
+    public class WinRmAuditEnvironment : AuditEnvironment, IOperatingSystemEnvironment
     {
         #region Constructors
         public WinRmAuditEnvironment(EventHandler<EnvironmentEventArgs> message_handler, IPAddress address, string user, SecureString pass, LocalEnvironment host_environment) : base(message_handler, new OperatingSystem(PlatformID.Win32NT, new Version(0, 0)), host_environment)

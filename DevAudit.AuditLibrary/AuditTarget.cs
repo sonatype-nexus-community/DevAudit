@@ -237,17 +237,20 @@ namespace DevAudit.AuditLibrary
             }
 
             this.AlpheusEnvironment = new AlEnvironment(this);
-            this.AuditEnvironment.GetOSName();
-            this.AuditEnvironment.GetOSVersion();
-            if (this.AuditOptions.ContainsKey("OSName"))
+            if (this.AuditEnvironment is IOperatingSystemEnvironment)
             {
-                this.AuditEnvironment.OSName = (string)this.AuditOptions["OSName"];
-                this.AuditEnvironment.Info("Overriding audit environment OS name to {0}.", this.AuditEnvironment.OSVersion);
-            }
-            if (this.AuditOptions.ContainsKey("OSVersion"))
-            {
-                this.AuditEnvironment.OSVersion = (string)this.AuditOptions["OSVersion"];
-                this.AuditEnvironment.Info("Overriding audit environment OS version to {0}.", this.AuditEnvironment.OSVersion);
+                this.AuditEnvironment.GetOSName();
+                this.AuditEnvironment.GetOSVersion();
+                if (this.AuditOptions.ContainsKey("OSName"))
+                {
+                    this.AuditEnvironment.OSName = (string)this.AuditOptions["OSName"];
+                    this.AuditEnvironment.Info("Overriding audit environment OS name to {0}.", this.AuditEnvironment.OSVersion);
+                }
+                if (this.AuditOptions.ContainsKey("OSVersion"))
+                {
+                    this.AuditEnvironment.OSVersion = (string)this.AuditOptions["OSVersion"];
+                    this.AuditEnvironment.Info("Overriding audit environment OS version to {0}.", this.AuditEnvironment.OSVersion);
+                }
             }
             if (this.AuditOptions.ContainsKey("IgnoreHttpsCertErrors"))
             {

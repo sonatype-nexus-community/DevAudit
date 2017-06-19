@@ -18,7 +18,7 @@ using SharpCompress.Readers;
 
 namespace DevAudit.AuditLibrary
 {
-    public class SshAuditEnvironment : AuditEnvironment
+    public class SshAuditEnvironment : AuditEnvironment, IOperatingSystemEnvironment
     {
         #region Constructors
         public SshAuditEnvironment(EventHandler<EnvironmentEventArgs> message_handler, string client, string host_name, int port, string user, object pass, string keyfile, OperatingSystem os, LocalEnvironment host_environment) 

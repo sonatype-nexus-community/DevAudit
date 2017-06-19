@@ -13,7 +13,7 @@ using System.Threading.Tasks;
 
 namespace DevAudit.AuditLibrary
 {
-    public class DockerAuditEnvironment : AuditEnvironment
+    public class DockerAuditEnvironment : AuditEnvironment, IOperatingSystemEnvironment
     {
         #region Constructors
         public DockerAuditEnvironment(EventHandler<EnvironmentEventArgs> message_handler, string container, OperatingSystem os, LocalEnvironment host_environment) :

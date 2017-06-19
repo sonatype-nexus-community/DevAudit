@@ -15,7 +15,7 @@ using System.Threading.Tasks;
 
 namespace DevAudit.AuditLibrary
 {
-    public class DockerizedLocalEnvironment : AuditEnvironment
+    public class DockerizedLocalEnvironment : AuditEnvironment, IOperatingSystemEnvironment
     {
         #region Constructors
         public DockerizedLocalEnvironment(EventHandler<EnvironmentEventArgs> message_handler) : base(message_handler, Environment.OSVersion, null)

@@ -15,7 +15,7 @@ using System.Threading.Tasks;
 using ExpectNet;
 namespace DevAudit.AuditLibrary
 {
-    public class LocalEnvironment : AuditEnvironment
+    public class LocalEnvironment : AuditEnvironment, IOperatingSystemEnvironment
     {
         #region Constructors
         public LocalEnvironment(EventHandler<EnvironmentEventArgs> message_handler) : base(message_handler, Environment.OSVersion, null)

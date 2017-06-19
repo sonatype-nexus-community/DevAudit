@@ -317,6 +317,7 @@
     <Compile Include="Environments\GitHubAuditEnvironment.cs" />
     <Compile Include="DataSources\OSSIndex\Models\OSSIndexApiv2Result.cs" />
     <Compile Include="DataSources\OSSIndex\Models\OSSIndexApiv2Vulnerability.cs" />
+    <Compile Include="IOperatingSystemEnvironment.cs" />
     <Compile Include="IPackage.cs" />
     <Compile Include="IVulnerability.cs" />
     <Compile Include="DataSources\LocalDataSource.cs" />
