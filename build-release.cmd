@@ -43,9 +43,9 @@ cd %BUILD_DIR%
 call build.cmd "VersionAssembly=%MAJOR%.%MINOR%.%PATCH%.%BUILD%"
 cd %DIR%
 if not %ERRORLEVEL%==0 goto BuildError
-if not exist ".\Analyzers" goto AnalyzersDirError
-if not exist ".\Rules" goto RulesDirError
-if not exist ".\Examples" goto ExamplesDirError
+if not exist "%BUILD_DIR%\Analyzers" goto AnalyzersDirError
+if not exist "%BUILD_DIR%\Rules" goto RulesDirError
+if not exist "%BUILD_DIR%\Examples" goto ExamplesDirError
 xcopy /E /Y %BUILD_DIR%\DevAudit.AuditLibrary\bin\Debug\Gendarme.Rules.*  %BUILD_DIR%\DevAudit.CommandLine\bin\Debug\
 xcopy /E /Y %BUILD_DIR%\DevAudit.CommandLine\bin\Debug\* %RELEASE_DIR%
 mkdir %RELEASE_DIR%\Examples & xcopy /E /Y %BUILD_DIR%\Examples %RELEASE_DIR%\Examples
@@ -88,16 +88,16 @@ set ERROR_CODE=6
 goto Error
 
 :AnalyzersDirError
-echo The .\Analyzers directory could not be found. An error may have occurred during build.
+echo The %BUILD_DIR%\Analyzers directory could not be found. An error may have occurred during build.
 set ERROR_CODE=7
 goto Error
 
 :RulesDirError
-echo The .\Rules directory could not be found. An error may have occurred during build.
+echo The %BUILD_DIR%\Rules directory could not be found. An error may have occurred during build.
 goto Error
 
 :ExamplesDirError
-echo The .\Examples directory could not be found. An error may have occurred during build.
+echo The %BUILD_DIR%\Examples directory could not be found. An error may have occurred during build.
 set ERROR_CODE=7
 goto Error
 
