@@ -27,7 +27,7 @@ namespace DevAudit.CommandLine
         [VerbOption("bower", HelpText = "Audit Bower packages. Use the --file option to specify a particular bower.json file otherwise the one in the current directory will be used.")]
         public Options AuditBower { get; set; }
 
-        [VerbOption("yarn", HelpText = "Audit Yarn packages. Use the --file option to specify a particular package.json file otherwise the one in the current directory will be used.")]
+        [VerbOption("yarn", HelpText = "Audit Yarn or NPM packages. Use the --file option to specify a particular package.json file otherwise the one in the current directory will be used.")]
         public Options AuditYarn { get; set; }
 
         [VerbOption("oneget", HelpText = "Audit OneGet packages on Windows. Packages are scanned from the system OneGet repository.")]
@@ -167,17 +167,17 @@ namespace DevAudit.CommandLine
         [Option("bitbucket-report", Required = false, HelpText = "Specify a set of comma delimited, key=value options for the BitBucket audit reporter. You can specify 3 options: Account=<account>,Name=<repo>,Title=<title> for the BitBucket5th account, repository name and issue title respectively. Omitting the Title value will result in the default issue title being used.")]
         public string BitBucketReporter { get; set; }
 
-        [Option('m', "project-name", Required = false, HelpText = "The name of the code project to audit.")]
+        //[Option('m', "project-name", Required = false, HelpText = "The name of the code project to audit.")]
         public string ProjectName { get; set; }
 
         [Option("list-packages", Required = false, HelpText = "Only list the local packages that will be audited.", MutuallyExclusiveSet ="audit-action")]
         public bool ListPackages { get; set; }
 
-        [Option("list-artifacts", Required = false, HelpText = "Only list the artifacts corresponding to local packages found on OSS Index.", MutuallyExclusiveSet = "audit-action")]
+        //[Option("list-artifacts", Required = false, HelpText = "Only list the artifacts corresponding to local packages found on OSS Index.", MutuallyExclusiveSet = "audit-action")]
         public bool ListArtifacts { get; set; }
 
-        [Option("package-info", Required = false, HelpText = "Retrieve and print detailed package info for each package scanned from the package source.")]
-        public bool PackageInfo { get; set; }
+        //[Option("package-info", Required = false, HelpText = "Retrieve and print detailed package info for each package scanned from the package source.")]
+        //public bool PackageInfo { get; set; }
         //[Option("list-rules", Required = false, HelpText = "Only list the configuration rules found for the application or application server.", MutuallyExclusiveSet = "audit-action")]
         public bool ListConfigurationRules { get; set; }
 
@@ -190,7 +190,7 @@ namespace DevAudit.CommandLine
         [Option("skip-packages-audit", Required = false, HelpText = "Skip the package audit for the application or application server.")]
         public bool SkipPackagesAudit { get; set; }
 
-        [Option("only-local-rules", Required = false, HelpText = "Only use the configuration rules for the application or application server listed in YAML rules files.")]
+        //[Option("only-local-rules", Required = false, HelpText = "Only use the configuration rules for the application or application server listed in YAML rules files.")]
         public bool OnlyLocalRules { get; set; }
 
         [Option("https-proxy", Required = false, HelpText = "Use the specified Url as the proxy for HTTPS calls made to the OSS Index API.")]
@@ -202,17 +202,14 @@ namespace DevAudit.CommandLine
         [Option("profile", Required = false, HelpText = "Use the specified file as the audit profile for this audit run.")]
         public string Profile { get; set; }
 
-        [Option("with-ossi", Required = false, HelpText = "Use vulnerability data from the OSS Index API. This data source is used by default when no other data source is specified.")]
+        //[Option("with-ossi", Required = false, HelpText = "Use vulnerability data from the OSS Index API. This data source is used by default when no other data source is specified.")]
         public bool WithOSSI { get; set; }
 
-        [Option("with-vulners", Required = false, HelpText = "Use vulnerability data from the vulners.com API and/or data files.")]
+        //[Option("with-vulners", Required = false, HelpText = "Use vulnerability data from the vulners.com API and/or data files.")]
         public bool WithVulners { get; set; }
 
-        [Option("with-libio", Required = false, HelpText = "Use artifact data from the libraries.io API.")]
+        //[Option("with-libio", Required = false, HelpText = "Use artifact data from the libraries.io API.")]
         public bool WithLibIO { get; set; }
-
-        [Option("os", Required = false, HelpText = "Specify the operating system name of the system where the audit will be performed.")]
-        public string OSName { get; set; }
 
         public static Dictionary<string, object> Parse(string o)
         {

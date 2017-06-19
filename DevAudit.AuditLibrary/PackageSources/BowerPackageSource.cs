@@ -15,17 +15,15 @@ namespace DevAudit.AuditLibrary
         #region Constructors
         public BowerPackageSource(Dictionary<string, object> package_source_options, EventHandler<EnvironmentEventArgs> message_handler = null) : base(package_source_options, message_handler)
         {
-            if (string.IsNullOrEmpty(this.PackageManagerConfigurationFile))
-            {
-                this.PackageManagerConfigurationFile = @"bower.json";
-            }
-        }
+        }        
         #endregion
 
         #region Overriden properties
         public override string PackageManagerId { get { return "bower"; } }
 
         public override string PackageManagerLabel { get { return "Bower"; } }
+
+        public override string DefaultPackageManagerConfigurationFile { get { return "bower.json"; } }
         #endregion
 
         #region Overriden methods

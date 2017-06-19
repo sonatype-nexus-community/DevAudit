@@ -19,6 +19,7 @@ namespace DevAudit.AuditLibrary
 
         public override string PackageManagerLabel { get { return "Composer"; } }
 
+        public override string DefaultPackageManagerConfigurationFile { get { return "composer.json"; } }
         //Get  packages from reading composer.json
         public override IEnumerable<Package> GetPackages(params string[] o)
         {
@@ -63,10 +64,7 @@ namespace DevAudit.AuditLibrary
 
         public ComposerPackageSource(Dictionary<string, object> package_source_options, EventHandler<EnvironmentEventArgs> message_handler = null) : base(package_source_options, message_handler)
         {            
-            if (string.IsNullOrEmpty(this.PackageManagerConfigurationFile))
-            {
-                this.PackageManagerConfigurationFile = @"composer.json";
-            }
+           
         }
     }
 }

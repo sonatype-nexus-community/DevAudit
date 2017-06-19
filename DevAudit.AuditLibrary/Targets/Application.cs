@@ -442,6 +442,10 @@ namespace DevAudit.AuditLibrary
         }
         #endregion
 
+        #region Overriden properties
+        public override string DefaultPackageManagerConfigurationFile { get { return string.Empty; } }
+        #endregion
+
         #region Methods
         protected Task GetConfigurationTask(CancellationToken ct)
         {

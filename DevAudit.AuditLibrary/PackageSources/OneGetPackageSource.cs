@@ -20,6 +20,8 @@ namespace DevAudit.AuditLibrary
 
         public override string PackageManagerLabel { get { return "OneGet"; } }
 
+        public override string DefaultPackageManagerConfigurationFile { get { return string.Empty; } }
+
         public override IEnumerable<Package> GetPackages(params string[] o)
         {
             string ps_command = @"powershell";

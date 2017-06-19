@@ -36,6 +36,8 @@ namespace DevAudit.AuditLibrary
 
         public override string PackageManagerLabel { get { return "dpkg"; } }
 
+        public override string DefaultPackageManagerConfigurationFile { get { return string.Empty; } }
+
         public override IEnumerable<Package> GetPackages(params string[] o)
         {
             Stopwatch sw = new Stopwatch();

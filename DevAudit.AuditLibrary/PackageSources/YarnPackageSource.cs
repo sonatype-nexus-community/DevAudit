@@ -15,10 +15,7 @@ namespace DevAudit.AuditLibrary
         #region Constructors
         public YarnPackageSource(Dictionary<string, object> package_source_options, EventHandler<EnvironmentEventArgs> message_handler = null) : base(package_source_options, message_handler)
         {
-            if (string.IsNullOrEmpty(this.PackageManagerConfigurationFile))
-            {
-                this.PackageManagerConfigurationFile = @"package.json";
-            }
+           
         }
         #endregion
 
@@ -26,6 +23,8 @@ namespace DevAudit.AuditLibrary
         public override string PackageManagerId { get { return "yarn"; } }
 
         public override string PackageManagerLabel { get { return "Yarn"; } }
+
+        public override string DefaultPackageManagerConfigurationFile { get { return "package.json"; } }
         #endregion
 
         #region Overriden methods

@@ -32,10 +32,12 @@ namespace DevAudit.AuditLibrary
         }
         #endregion
 
-        #region Public properties
+        #region Overriden properties
         public override string PackageManagerId { get { return "yum"; } }
 
         public override string PackageManagerLabel { get { return "Yum"; } }
+
+        public override string DefaultPackageManagerConfigurationFile { get { return string.Empty; } }
         #endregion
 
         #region Overriden methods

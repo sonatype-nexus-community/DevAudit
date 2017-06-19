@@ -615,14 +615,6 @@ namespace DevAudit.CommandLine
                 audit_options.Add("IgnoreHttpsCertErrors", true);
             }
             #endregion
-
-            #region Environment options
-            if (!string.IsNullOrEmpty(ProgramOptions.OSName))
-            {
-                audit_options.Add("OSName", ProgramOptions.OSName);
-            }
-            #endregion
-            
             #endregion
 
             PrintBanner();

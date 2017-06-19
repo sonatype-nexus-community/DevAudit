@@ -16,12 +16,11 @@ namespace DevAudit.AuditLibrary
 
         public override string PackageManagerLabel { get { return "NuGet"; } }
 
+        public override string DefaultPackageManagerConfigurationFile { get { return "packages.config"; } }
+
         public NuGetPackageSource(Dictionary<string, object> package_source_options, EventHandler<EnvironmentEventArgs> message_handler = null) : base(package_source_options, message_handler)
         {
-            if (string.IsNullOrEmpty(this.PackageManagerConfigurationFile))
-            {
-                this.PackageManagerConfigurationFile = @"packages.config";
-            }      
+              
         }
 
         public override IEnumerable<Package> GetPackages(params string[] o) ////Get NuGet packages from reading packages.config

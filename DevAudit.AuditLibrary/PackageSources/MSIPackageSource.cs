@@ -19,6 +19,8 @@ namespace DevAudit.AuditLibrary
 
         public override string PackageManagerLabel { get { return "MSI"; } }
 
+        public override string DefaultPackageManagerConfigurationFile { get { return string.Empty; } }
+
         //Get list of installed programs from 3 registry locations.
         public override IEnumerable<Package> GetPackages(params string[] o)
         {

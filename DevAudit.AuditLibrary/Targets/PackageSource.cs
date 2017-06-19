@@ -25,10 +25,18 @@ namespace DevAudit.AuditLibrary
             if (this.PackageSourceOptions.ContainsKey("File"))
             {
                 this.PackageManagerConfigurationFile = (string)this.PackageSourceOptions["File"];
-                if (!this.AuditEnvironment.FileExists(this.PackageManagerConfigurationFile)) throw new ArgumentException("Could not find the file " + this.PackageManagerConfigurationFile + ".", "package_source_options");
+                if (!this.AuditEnvironment.FileExists(this.PackageManagerConfigurationFile))
+                {
+                    throw new ArgumentException("Could not find the file " + this.PackageManagerConfigurationFile + ".", "package_source_options");
+                }
             }
-            else
+            else if (!this.PackageSourceOptions.ContainsKey("File") && this.DefaultPackageManagerConfigurationFile != string.Empty)
             {
+                if (this.AuditEnvironment.FileExists(this.DefaultPackageManagerConfigurationFile))
+                {
+                    this.AuditEnvironment.Info("Using default {0} package manager configuration file {1}", this.PackageManagerLabel, this.DefaultPackageManagerConfigurationFile);
+                    this.PackageManagerConfigurationFile = this.DefaultPackageManagerConfigurationFile;
+                }
                 this.PackageManagerConfigurationFile = "";
             }
 
@@ -37,7 +45,7 @@ namespace DevAudit.AuditLibrary
                 AuditFileInfo cf = this.AuditEnvironment.ConstructFile(this.PackageManagerConfigurationFile);
                 AuditDirectoryInfo d = this.AuditEnvironment.ConstructDirectory(cf.DirectoryName);
                 IFileInfo[] pf;
-                if ((pf = d.GetFiles("devaudit.yaml")) != null)
+                if ((pf = d.GetFiles("devaudit.yml")) != null)
                 this.AuditProfile = new AuditProfile(this.AuditEnvironment, this.AuditEnvironment.ConstructFile(pf.First().FullName));
             }
 
@@ -81,6 +89,7 @@ namespace DevAudit.AuditLibrary
         #region Abstract properties
         public abstract string PackageManagerId { get; }
         public abstract string PackageManagerLabel { get; }
+        public abstract string DefaultPackageManagerConfigurationFile { get; }
         #endregion
 
         #region Abstract methods
