@@ -1041,7 +1041,7 @@ namespace DevAudit.CommandLine
                     }
                 }
             }
-
+            PrintMessageLine("");
             if (vuln_ds.Count > 0)
             {
                 PrintMessageLine("Vulnerabilities Data Providers\n==============================");
@@ -1052,10 +1052,6 @@ namespace DevAudit.CommandLine
                     PrintMessage(ConsoleColor.Green, "{0} ", dsi.Url);
                     PrintMessageLine(dsi.Description);
                 }
-            }
-            else
-            {
-                PrintMessageLine("");
             }
             Source.Dispose();
             return;

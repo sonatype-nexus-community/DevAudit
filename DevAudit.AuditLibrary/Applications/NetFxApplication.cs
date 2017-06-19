@@ -102,7 +102,10 @@ namespace DevAudit.AuditLibrary
             {
                 this.AuditEnvironment.Warning("The default .NET application configuration file could not be determined and no AppConfig parameter was specified.");
             }
-
+            if (this.PackageSourceInitialized && this.DataSources.Count == 0)
+            {
+                this.DataSources.Add(new OSSIndexDataSource(this, this.DataSourceOptions));
+            }
         }
 
         public NetFx4Application(Dictionary<string, object> application_options, Dictionary<string, string[]> required_files,
@@ -113,6 +116,11 @@ namespace DevAudit.AuditLibrary
             {
                 this.NugetPackageSource = package_source;
                 this.PackageSourceInitialized = true;
+
+                if (this.DataSources.Count == 0)
+                {
+                    this.DataSources.Add(new OSSIndexDataSource(this, this.DataSourceOptions));
+                }
             }
             else throw new ArgumentException("Package source is null.", "package_source");
         }
@@ -140,9 +148,6 @@ namespace DevAudit.AuditLibrary
             CallerInformation caller = this.AuditEnvironment.Here();
             if (this.SkipPackagesAudit || this.PrintConfiguration || this.ListConfigurationRules)
             {
-                //this.PackagesTask = Task.Run(() => this.Packages = this.ModulePackages["references"]);
-                //this.AuditEnvironment.Warning("No NuGet v2 package manager configuration file specified, using assembly references as packages.");
-                //this.PackageSourceInitialized = true;
                 this.PackagesTask = Task.CompletedTask;
             }
             else if (!this.PackageSourceInitialized)

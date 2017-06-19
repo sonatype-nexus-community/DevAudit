@@ -47,14 +47,20 @@ namespace DevAudit.AuditLibrary
             }
             else if (target is Application)
             {
-                Application application = target as Application;
-                string[] eligible_applications = { "drupal" };
-                return eligible_applications.Contains(application.PackageManagerId);
+                if (target is NetFx4Application || target is Drupal7Application || target is Drupal8Application)
+                {
+                    return true;
+                }
+                else
+                {
+                    return false;
+                }
+
             }
             else if (target is PackageSource)
             {
                 PackageSource source = target as PackageSource;
-                string[] eligible_sources = { "nuget", "bower", "composer", "choco", "msi", "yarn", "oneget" };
+                string[] eligible_sources = {"nuget", "bower", "composer", "choco", "msi", "yarn", "oneget" };
                 return eligible_sources.Contains(source.PackageManagerId);
             }
  
