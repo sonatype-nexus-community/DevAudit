@@ -1,7 +1,7 @@
 @echo off
 @setlocal
 set ERROR_CODE=0
-.\.nuget\NuGet.exe restore DevAudit.sln
+.\.nuget\nuget.exe restore DevAudit.sln
 if not %ERRORLEVEL%==0  (
     echo Error restoring NuGet packages for DevAudit.sln.
     set ERROR_CODE=1
