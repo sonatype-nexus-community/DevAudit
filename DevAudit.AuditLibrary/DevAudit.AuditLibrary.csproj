@@ -387,7 +387,52 @@
     <Compile Include="Analyzers\StyleCopAnalyzer.cs" />
   </ItemGroup>
   <ItemGroup>
-    <Examples Include="Examples\**\*.*">
+    <Examples Include="Examples\bower.json.example">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Examples>
+    <Examples Include="Examples\bower.json.example.2">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Examples>
+    <Examples Include="Examples\composer.json.example.1">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Examples>
+    <Examples Include="Examples\composer.json.example.2">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Examples>
+    <Examples Include="Examples\composer.json.example.3">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Examples>
+    <None Include="Examples\devaudit.yaml">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <Examples Include="Examples\Drupal\core\composer.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Examples>
+    <Examples Include="Examples\Drupal\core\core.services.yml">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Examples>
+    <Examples Include="Examples\Drupal\web.config">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Examples>
+    <Examples Include="Examples\my.cnf">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Examples>
+    <Examples Include="Examples\package.json.1">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Examples>
+    <Examples Include="Examples\packages.config.example">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Examples>
+    <Examples Include="Examples\packages.config.example.2">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Examples>
+    <Examples Include="Examples\packages.config.example.3">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Examples>
+    <Examples Include="Examples\v6a6.packages.config">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Examples>
+    <Examples Include="Examples\yarn.lock.1">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Examples>
   </ItemGroup>

@@ -135,7 +135,7 @@ namespace DevAudit.AuditLibrary
 
             if (this.AuditProfile == null)
             {
-                AuditFileInfo pf = this.AuditEnvironment.ConstructFile(this.CombinePath("@devaudit.yaml"));
+                AuditFileInfo pf = this.AuditEnvironment.ConstructFile(this.CombinePath("@devaudit.yml"));
                 if (pf.Exists)
                 {
                     this.AuditProfile = new AuditProfile(this.AuditEnvironment, pf);

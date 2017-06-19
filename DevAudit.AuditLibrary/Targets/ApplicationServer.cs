@@ -241,7 +241,6 @@ namespace DevAudit.AuditLibrary
         #endregion
 
         #region Fields
-        private Task<Dictionary<string, object>> _ConfigurationTask;
         #endregion
     }
 }
