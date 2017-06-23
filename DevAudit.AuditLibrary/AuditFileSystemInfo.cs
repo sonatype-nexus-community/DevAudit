@@ -24,21 +24,20 @@ namespace DevAudit.AuditLibrary
         #region Protected methods
         protected string EnvironmentExecute(string command, string args, [CallerMemberName] string memberName = "", [CallerFilePath] string fileName = "", [CallerLineNumber] int lineNumber = 0)
         {
+            CallerInformation caller = new CallerInformation(memberName, fileName, lineNumber);
             AuditEnvironment.ProcessExecuteStatus process_status;
             string process_output = "";
             string process_error = "";
             if (this.AuditEnvironment.Execute(command, args, out process_status, out process_output, out process_error))
             {
-                CallerInformation caller = new CallerInformation(memberName, fileName, lineNumber);
-                this.AuditEnvironment.Debug(caller, "Execute returned true for {0}. Output: {1}", command + " " + args, process_output);
-
+                this.AuditEnvironment.Debug(caller, "The command {0} {1} executed successfully. Output: {1}", command, args, process_output);
                 return process_output;
             }
 
             else
             {
-                CallerInformation caller = new CallerInformation(memberName, fileName, lineNumber);
-                this.AuditEnvironment.Debug(caller, "Execute returned false for {0}", command + " " + args);
+
+                this.AuditEnvironment.Debug(caller, "The command {0} {1} did not execute successfully. Output: {1}", command, args, process_output + process_error);
                 return string.Empty;
             }
 

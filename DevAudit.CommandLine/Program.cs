@@ -116,9 +116,70 @@ namespace DevAudit.CommandLine
                 audit_options.Add("Dockerized", true);
             }
 
-            if (!string.IsNullOrEmpty(ProgramOptions.Docker))
+            if (!string.IsNullOrEmpty(ProgramOptions.Docker) && string.IsNullOrEmpty(ProgramOptions.RemoteHost))
             {
                 audit_options.Add("DockerContainer", ProgramOptions.Docker);
+            }
+            else if (!string.IsNullOrEmpty(ProgramOptions.Docker) && !string.IsNullOrEmpty(ProgramOptions.RemoteHost))
+            {
+                audit_options.Add("DockerContainer", ProgramOptions.Docker);
+                if (Uri.CheckHostName(ProgramOptions.RemoteHost) == UriHostNameType.Unknown)
+                {
+                    PrintErrorMessage("Unknown host name type: {0}.", ProgramOptions.RemoteHost);
+                    return (int)Exit;
+                }
+                else
+                {
+                    audit_options.Add("RemoteHost", ProgramOptions.RemoteHost);
+                    if (ProgramOptions.RemoteSshPort < 0 || ProgramOptions.RemoteSshPort > 65535)
+                    {
+                        PrintErrorMessage("Invalid port number: {0}.", ProgramOptions.RemoteSshPort);
+                        return (int)Exit;
+                    }
+                    audit_options.Add("RemoteSshPort", ProgramOptions.RemoteSshPort);
+                }
+
+                #region User and password or key file
+                if (!string.IsNullOrEmpty(ProgramOptions.RemoteUser))
+                {
+                    audit_options.Add("RemoteUser", ProgramOptions.RemoteUser);
+
+                    if (!string.IsNullOrEmpty(ProgramOptions.RemoteKey))
+                    {
+                        if (!File.Exists(ProgramOptions.RemoteKey))
+                        {
+                            PrintErrorMessage("Error in parameter: Could not find file {0}.", ProgramOptions.RemoteKey);
+                            return (int)Exit;
+                        }
+                        audit_options.Add("RemoteKeyFile", ProgramOptions.RemoteKey);
+                        if (ProgramOptions.EnterRemotePassword)
+                        {
+                            SecureString p = ReadPassword('*');
+                            audit_options.Add("RemoteKeyPassPhrase", p);
+                        }
+                        else if (!string.IsNullOrEmpty(ProgramOptions.RemotePasswordText))
+                        {
+                            audit_options.Add("RemoteKeyPassPhrase", ToSecureString(ProgramOptions.RemotePasswordText));
+                        }
+                    }
+                    else if (ProgramOptions.EnterRemotePassword)
+                    {
+                        SecureString p = ReadPassword('*');
+                        audit_options.Add("RemotePass", p);
+                    }
+                    else if (!string.IsNullOrEmpty(ProgramOptions.RemotePasswordText))
+                    {
+                        audit_options.Add("RemotePass", ToSecureString(ProgramOptions.RemotePasswordText));
+                    }
+                    else
+                    {
+                        //audit_options.Add("RemoteUseAgent", true);
+                        PrintErrorMessage("You must specify either a password or private key file and pass phrase to authenticate with the remote host.");
+                        return (int)Exit;
+                    }
+
+                }
+                #endregion
             }
             else if (!string.IsNullOrEmpty(ProgramOptions.RemoteHost) && ProgramOptions.WinRm)
             {
@@ -174,7 +235,7 @@ namespace DevAudit.CommandLine
                 #endregion
 
             }
-            else if (!string.IsNullOrEmpty(ProgramOptions.RemoteHost))
+            else if (!string.IsNullOrEmpty(ProgramOptions.RemoteHost) && string.IsNullOrEmpty(ProgramOptions.Docker))
             {
                 if (Uri.CheckHostName(ProgramOptions.RemoteHost) == UriHostNameType.Unknown)
                 {
@@ -232,8 +293,9 @@ namespace DevAudit.CommandLine
                     }
 
                 }
+                #endregion
             }
-            #endregion
+
 
             #region GitHub
             if (!string.IsNullOrEmpty(ProgramOptions.GitHubToken))

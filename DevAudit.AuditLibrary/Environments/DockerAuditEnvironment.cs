@@ -174,12 +174,12 @@ namespace DevAudit.AuditLibrary
             
         #endregion
 
-        #region Public properties
+        #region Properties
         public string Container { get; protected set; }
         public bool ContainerRunning { get; protected set; }
         #endregion
 
-        #region Public methods
+        #region Methods
         public FileInfo GetFileAsLocal(string container_path, string local_path)
         {
             CallerInformation here = this.Here();

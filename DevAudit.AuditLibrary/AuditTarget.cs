@@ -51,7 +51,7 @@ namespace DevAudit.AuditLibrary
                 this.HostEnvironment.IsDockerContainer = true;
             }
             this.HostEnvironmentInitialised = true;
-            if (this.AuditOptions.Keys.Contains("DockerContainer"))
+            if (this.AuditOptions.Keys.Contains("DockerContainer") && !this.AuditOptions.Keys.Contains("RemoteHost"))
             {
                 DockerAuditEnvironment docker_environment = new DockerAuditEnvironment(this.HostEnvironmentMessage, (string)this.AuditOptions["DockerContainer"], new OperatingSystem(PlatformID.Unix, new Version(0, 0)), this.HostEnvironment);
                 if (string.IsNullOrEmpty(docker_environment.Container))
@@ -72,6 +72,61 @@ namespace DevAudit.AuditLibrary
                     this.AuditEnvironmentMessage = AuditTarget_AuditEnvironmentMessageHandler;
                     this.AuditEnvironment.MessageHandler -= HostEnvironmentMessage;
                     this.AuditEnvironment.MessageHandler += this.AuditEnvironmentMessage;
+                }
+
+            }
+            else if (this.AuditOptions.Keys.Contains("DockerContainer") && this.AuditOptions.Keys.Contains("RemoteHost"))
+            {
+                SshDockerAuditEnvironment ssh_environment = null;
+                if (this.AuditOptions.Keys.Contains("RemoteUser") && this.AuditOptions.Keys.Contains("RemoteKeyFile"))
+                {
+                    if (this.AuditOptions.Keys.Contains("RemoteKeyPassPhrase"))
+                    {
+                        ssh_environment = new SshDockerAuditEnvironment(this.HostEnvironmentMessage, "ssh", (string)this.AuditOptions["RemoteHost"], (int)this.AuditOptions["RemoteSshPort"],
+                            (string)this.AuditOptions["RemoteUser"], this.AuditOptions["RemoteKeyPassPhrase"], (string)this.AuditOptions["RemoteKeyFile"],
+                            (string)this.AuditOptions["DockerContainer"], new OperatingSystem(PlatformID.Unix, new Version(0, 0)), this.HostEnvironment);
+                    }
+                    else
+                    {
+                        ssh_environment = new SshDockerAuditEnvironment(this.HostEnvironmentMessage, "ssh", (string)this.AuditOptions["RemoteHost"], (int)this.AuditOptions["RemoteSshPort"],
+                            (string)this.AuditOptions["RemoteUser"], null, (string)this.AuditOptions["RemoteKeyFile"],
+                            (string)this.AuditOptions["DockerContainer"], new OperatingSystem(PlatformID.Unix, new Version(0, 0)), this.HostEnvironment);
+                    }
+                }
+                else if (this.AuditOptions.Keys.Contains("RemoteUser") && this.AuditOptions.Keys.Contains("RemotePass"))
+                {
+                    ssh_environment = new SshDockerAuditEnvironment(this.HostEnvironmentMessage, "ssh", (string)this.AuditOptions["RemoteHost"], (int)this.AuditOptions["RemoteSshPort"],
+                        (string)this.AuditOptions["RemoteUser"], this.AuditOptions["RemotePass"], (string)this.AuditOptions["DockerContainer"], null, new OperatingSystem(PlatformID.Unix, new Version(0, 0)), this.HostEnvironment);
+                }
+                else throw new Exception("Unknown remote host authentication options.");
+
+                if (ssh_environment.IsConnected)
+                {
+                    if (string.IsNullOrEmpty(ssh_environment.Container))
+                    {
+                        this.AuditEnvironmentIntialised = false;
+                        throw new Exception("Failed to initialise audit environment.");
+                    }
+                    else if (!ssh_environment.ContainerRunning)
+                    {
+                        this.AuditEnvironmentIntialised = false;
+                        throw new Exception("The Docker container is not currently running and DevAudit does not know how to run your container. Ensure your container is running before attempting to" +
+                            "audit it.");
+                    }
+                    else
+                    {
+                        this.AuditEnvironment = ssh_environment;
+                        this.AuditEnvironmentIntialised = true;
+                        this.AuditEnvironmentMessage = AuditTarget_AuditEnvironmentMessageHandler;
+                        this.AuditEnvironment.MessageHandler -= HostEnvironmentMessage;
+                        this.AuditEnvironment.MessageHandler += this.AuditEnvironmentMessage;
+                    }
+                }
+                else
+                {
+                    ssh_environment = null;
+                    this.AuditEnvironmentIntialised = false;
+                    throw new Exception("Failed to initialise SSH Docker audit environment.");
                 }
 
             }

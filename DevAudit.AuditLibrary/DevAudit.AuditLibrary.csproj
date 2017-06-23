@@ -296,6 +296,9 @@
     <Compile Include="DataSources\HttpException.cs" />
     <Compile Include="DataSources\Vulnersdotcom\VulnersDataSource.cs" />
     <Compile Include="Environments\AlpheusEnvironment.cs" />
+    <Compile Include="Environments\DockerAuditFileInfo.cs" />
+    <Compile Include="Environments\SshDockerAuditDirectoryInfo.cs" />
+    <Compile Include="Environments\SshDockerAuditEnvironment.cs" />
     <Compile Include="Environments\WinRmAuditDirectoryInfo.cs" />
     <Compile Include="Environments\WinRmAuditFileInfo.cs" />
     <Compile Include="Environments\WinRmAuditEnvironment.cs" />
@@ -312,7 +315,7 @@
     <Compile Include="Environments\DockerAuditDirectoryInfo.cs" />
     <Compile Include="Environments\DockerizedLocalEnvironment.cs" />
     <Compile Include="Environments\DockerAuditEnvironment.cs" />
-    <Compile Include="Environments\DockerAuditFileInfo.cs" />
+    <Compile Include="Environments\SshDockerAuditFileInfo.cs" />
     <Compile Include="Environments\GitLabAuditEnvironment.cs" />
     <Compile Include="Environments\GitHubAuditEnvironment.cs" />
     <Compile Include="DataSources\OSSIndex\Models\OSSIndexApiv2Result.cs" />

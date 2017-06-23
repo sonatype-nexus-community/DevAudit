@@ -10,7 +10,7 @@ sshd:
             By default you can ssh to the server as root. It is best not to allow root to login directly to the server over SSH. 
             Instead, you should login to the system with your regular account and then do ‘su -‘ to login as root.
         resolution: |
-            Add the directive PermitRootLogin='yes' to the configuration file.
+            Add the directive PermitRootLogin='no' to the configuration file.
         urls:
             -   http://www.thegeekstuff.com/2011/05/openssh-options/
             -   https://www.stigviewer.com/stig/red_hat_enterprise_linux_6/2015-03-06/finding/V-38613

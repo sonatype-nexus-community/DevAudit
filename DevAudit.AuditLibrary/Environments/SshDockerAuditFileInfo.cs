@@ -10,10 +10,10 @@ using Alpheus.IO;
 
 namespace DevAudit.AuditLibrary
 {
-    public class DockerAuditFileInfo : AuditFileInfo
+    public class SshDockerAuditFileInfo : AuditFileInfo
     {
         #region Constructors
-        public DockerAuditFileInfo(DockerAuditEnvironment env, string file_path) : base(env, file_path)
+        public SshDockerAuditFileInfo(SshDockerAuditEnvironment env, string file_path) : base(env, file_path)
         {
             this.DockerAuditEnvironment = env;
         }
@@ -88,7 +88,7 @@ namespace DevAudit.AuditLibrary
                     string o = this.EnvironmentExecute("dirname", this.FullName);
                     if (!string.IsNullOrEmpty(o))
                     {
-                        this._Directory = new DockerAuditDirectoryInfo(this.DockerAuditEnvironment, o);
+                        this._Directory = new SshDockerAuditDirectoryInfo(this.DockerAuditEnvironment, o);
                     }
                     else
                     {
@@ -196,11 +196,11 @@ namespace DevAudit.AuditLibrary
         }
         #endregion
                
-        #region Protected properties
-        protected DockerAuditEnvironment DockerAuditEnvironment { get; set; }
+        #region Properties
+        protected SshDockerAuditEnvironment DockerAuditEnvironment { get; set; }
         #endregion
 
-        #region Private fields
+        #region Fields
         private long? _Length;
         private IDirectoryInfo _Directory;
         #endregion
