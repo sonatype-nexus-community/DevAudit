@@ -1,10 +1,12 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Text;
 
 namespace DevAudit.AuditLibrary
 {
-    public static class Codecs
+    public static class Utility
     {
         static readonly byte[] UUEncMap = new byte[]
         {
@@ -197,6 +199,45 @@ namespace DevAudit.AuditLibrary
             // line terminator
             for (int idx = 0; idx < nl.Length; idx++)
                 output.WriteByte(nl[idx]);
+        }
+
+        public static double CalculateEntropy2(string s)
+        {
+            double cl = 0;
+
+            if (s.Any(c => 'a' <= c && c <= 'z')) cl += 26; // Lowercase
+            if (s.Any(c => 'A' <= c && c <= 'Z')) cl += 26; // Uppercase
+            if (s.Any(c => '0' <= c && c <= '9')) cl += 10; // Numbers
+            if (s.Any(c => c <= '/' || (':' <= c && c <= '@') || ('[' <= c && c <= '`') || ('{' <= c && c <= 0x7F))) cl += 33; // Symbols
+            if (s.Any(c => c > 0x7F)) cl += 100; // 'Unicode' (why 100?)
+
+            return Math.Log(Math.Pow(cl, s.Length), 2);
+        }
+
+        /// <summary>
+        /// returns bits of entropy represented in a given string, per 
+        /// http://en.wikipedia.org/wiki/Entropy_(information_theory) 
+        /// </summary>
+        public static double CalculateEntropy(string s)
+        {
+            Dictionary<char, int> map = new Dictionary<char, int>();
+            foreach (char c in s)
+            {
+                if (!map.ContainsKey(c))
+                    map.Add(c, 1);
+                else
+                    map[c] += 1;
+            }
+
+            double result = 0.0;
+            int len = s.Length;
+            foreach (var item in map)
+            {
+                var frequency = (double)item.Value / len;
+                result -= frequency * (Math.Log(frequency) / Math.Log(2));
+            }
+
+            return result;
         }
     }
 }

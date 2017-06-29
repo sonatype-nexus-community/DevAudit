@@ -239,7 +239,7 @@ namespace DevAudit.AuditLibrary
                 cmd = "cat";
                 args = "/etc/*release";
                 string output;
-                if (this.ExecuteCommand(cmd, args, out output, false))
+                if (this.ExecuteCommand(cmd, args, out output, false) || !string.IsNullOrEmpty(output))
                 {
                     if (output.ToLower().Contains("ubuntu"))
                     {
@@ -261,14 +261,12 @@ namespace DevAudit.AuditLibrary
                     {
                         this.OSName = "rhel";
                     }
-                    else
+                    else if (output.ToLower().Contains("oracle linux server"))
                     {
-                        this.OSName = "unix";
+                        this.OSName = "oraclelinux";
                     }
-                    Debug(here, "GetOSName() returned {0}.", this.OSName);
-                    this.Info("Detected operating system of environment is {0}.", this.OSName);
                 }
-                else 
+                if (string.IsNullOrEmpty(this.OSName))
                 {
                     cmd = "lsb_release";
                     args = "-a";
@@ -290,33 +288,58 @@ namespace DevAudit.AuditLibrary
                         {
                             this.OSName = "suse";
                         }
+                        else if (output.ToLower().Contains("oracle linux"))
+                        {
+                            this.OSName = "oracle";
+                        }
+
                         else if (output.ToLower().Contains("red hat enterprise linux"))
                         {
                             this.OSName = "rhel";
                         }
-                        else
-                        {
-                            this.OSName = "unix";
-                        }
-                        Debug(here, "GetOSName() returned {0}.", this.OSName);
-                        this.Info("Detected operating system of environment is {0}.", this.OSName);
                     }
-                    else
+                    if (string.IsNullOrEmpty(this.OSName))
                     {
-                        cmd = "cat";
-                        args = "/etc/redhat-release";
+                        cmd = "stat";
+                        args = "/etc/oracle-release";
                         if (this.ExecuteCommand(cmd, args, out output, false))
                         {
-                            this.OSName = "centos";
+                            this.OSName = "oraclelinux";
                         }
                         else
                         {
-                            Error("GetOSName() failed.");
+                            cmd = "stat";
+                            args = "/etc/centos-release";
+                            if (this.ExecuteCommand(cmd, args, out output, false))
+                            {
+                                this.OSName = "centos";
+                            }
+                            else
+                            {
+                                cmd = "stat";
+                                args = "/etc/redhat-release";
+                                if (this.ExecuteCommand(cmd, args, out output, false))
+                                {
+                                    this.OSName = "rhel";
+                                }
+                                else
+                                {
+                                    Error("GetOSName() failed.");
+                                }
+                            }
                         }
                     }
-                    
                 }
-                
+                if (!string.IsNullOrEmpty(this.OSName))
+                {
+                    Success("Detected operating system of environment is {0}.", this.OSName);
+                }
+                else
+                {
+                    Warning("GetOSName() failed. Falling back to unix");
+                    this.OSName = "unix";
+                }
+
             }
             return this.OSName;
         }
@@ -341,7 +364,7 @@ namespace DevAudit.AuditLibrary
                     else
                     {
                         cmd = "bash";
-                        args = "-c \"/etc/*release | grep -m 1 DISTRIB_RELEASE | cut -d '=\' -f2 && test \\${PIPESTATUS[0]} -eq 0\"";
+                        args = "-c \"cat /etc/*release | grep -m 1 DISTRIB_RELEASE | cut -d '=\' -f2 && test \\${PIPESTATUS[0]} -eq 0\"";
                         if (this.ExecuteCommand(cmd, args, out output, false) && !string.IsNullOrEmpty(output))
                         {
                             version = output.Replace("Release:\t", string.Empty);
@@ -394,12 +417,25 @@ namespace DevAudit.AuditLibrary
                         }
                     }
                 }
+                else if (this.OSName == "oraclelinux")
+                {
+                    string output;
+                    cmd = "cat";
+                    args = "/etc/oracle-release";
+                    if (this.ExecuteCommand(cmd, args, out output, false) && !string.IsNullOrEmpty(output))
+                    {
+                        version = output.Replace("Oracle Linux Server release ", string.Empty).Split('.').FirstOrDefault();
+                    }
+                    else
+                    {
+                        Error("GetOSVersion() failed.");
+                    }
+                }
                 if (!string.IsNullOrEmpty(version))
                 {
                     this.OSVersion = version;
-                    this.Info("Detected operating system version of environment is {0}.", this.OSVersion);
+                    Success("Detected operating system version of environment is {0}.", this.OSVersion);
                 }
-
             }
             return this.OSVersion;
         }
@@ -492,50 +528,59 @@ namespace DevAudit.AuditLibrary
             return r;
         }
 
+        [DebuggerStepThrough]
         internal void Message(EventMessageType message_type, string message_format, params object[] message)
         {
             OnMessage(new EnvironmentEventArgs(message_type, message_format, message));
         }
 
+        [DebuggerStepThrough]
         internal void Info(string message_format, params object[] message)
         {
             TraceSource.TraceInformation(message_format, message);
             OnMessage(new EnvironmentEventArgs(EventMessageType.INFO, message_format, message));
         }
 
+        [DebuggerStepThrough]
         internal void Error(string message_format, params object[] message)
         {
             TraceSource.TraceEvent(TraceEventType.Error, 0, message_format, message);
             OnMessage(new EnvironmentEventArgs(EventMessageType.ERROR, message_format, message));
         }
 
+        [DebuggerStepThrough]
         internal void Error(CallerInformation caller, string message_format, params object[] message)
         {
             OnMessage(new EnvironmentEventArgs(caller, EventMessageType.ERROR, message_format, message));
         }
 
+        [DebuggerStepThrough]
         internal void Error(Exception e)
         {
             OnMessage(new EnvironmentEventArgs(e));
         }
 
+        [DebuggerStepThrough]
         internal void Error(CallerInformation caller, Exception e)
         {
             OnMessage(new EnvironmentEventArgs(caller, e));
         }
 
+        [DebuggerStepThrough]
         internal void Error(Exception e, string message_format, params object[] message)
         {
             Error(message_format, message);
             Error(e);
         }
 
+        [DebuggerStepThrough]
         internal void Error(CallerInformation caller, Exception e, string message_format, params object[] message)
         {
             Error(message_format, message);
             Error(caller, e);
         }
 
+        [DebuggerStepThrough]
         internal void Error(AggregateException ae)
         {
             if (ae.InnerExceptions != null && ae.InnerExceptions.Count >= 1)
@@ -547,12 +592,14 @@ namespace DevAudit.AuditLibrary
             }
         }
 
+        [DebuggerStepThrough]
         internal void Error(AggregateException ae, string message_format, params object[] message)
         {
             Error(message_format, message);
             Error(ae);
         }
 
+        [DebuggerStepThrough]
         internal void Error(CallerInformation caller, AggregateException ae, string message_format, params object[] message)
         {
             Error(caller, message_format, message);
@@ -565,32 +612,38 @@ namespace DevAudit.AuditLibrary
             }
         }
 
+        [DebuggerStepThrough]
         internal void Success(string message_format, params object[] message)
         {
             TraceSource.TraceEvent(TraceEventType.Information, 0, message_format, message);
             OnMessage(new EnvironmentEventArgs(EventMessageType.SUCCESS, message_format, message));
         }
 
+        [DebuggerStepThrough]
         internal void Warning(string message_format, params object[] message)
         {
             OnMessage(new EnvironmentEventArgs(EventMessageType.WARNING, message_format, message));
         }
 
+        [DebuggerStepThrough]
         internal void Status(string message_format, params object[] message)
         {
             OnMessage(new EnvironmentEventArgs(EventMessageType.STATUS, message_format, message));
         }
 
+        [DebuggerStepThrough]
         internal void Progress(string operation, int total, int complete, TimeSpan? time = null)
         {
             OnMessage(new EnvironmentEventArgs(new OperationProgress(operation, total, complete, time)));
         }
 
+        [DebuggerStepThrough]
         internal void Debug(CallerInformation caller, string message_format, params object[] message)
         {
             OnMessage(new EnvironmentEventArgs(caller, EventMessageType.DEBUG, message_format, message));
         }
 
+        [DebuggerStepThrough]
         internal void Debug(string message_format, params object[] message)
         {
             OnMessage(new EnvironmentEventArgs(EventMessageType.DEBUG, message_format, message));
@@ -604,7 +657,6 @@ namespace DevAudit.AuditLibrary
             c.LineNumber = lineNumber;
             return c;
         }
-
         #endregion
 
         #region Fields

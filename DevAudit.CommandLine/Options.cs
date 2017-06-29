@@ -44,7 +44,10 @@ namespace DevAudit.CommandLine
 
         [VerbOption("yum", HelpText = "Audit yum packages on Linux. The packages are scanned from the system rpm repository.")]
         public Options AuditYum { get; set; }
-         
+
+        [VerbOption("docker", HelpText = "Audit the configuration and operating system, servers, and applications present in a Linux Docker container. Use the -f/--file option to specify a Dockerfile to statically analyze or the -i/--container-id option to specify a running Docker container to perform a runtime analysis.")]
+        public Options AuditDockerContainer { get; set; }
+
         [VerbOption("drupal8", HelpText = "Audit a Drupal 8 application instance. Use the -r option to specify the root directory of the Drupal 8 instance, otherwise the current directory will be used.")]
         public Options AuditDrupal8 { get; set; }
 
@@ -75,6 +78,9 @@ namespace DevAudit.CommandLine
         [VerbOption("netfx", HelpText = "Audit a .NET Framework application. Use the --root option to specify the root directory of the application and the -b option to specify the application .NET assembly.")]
         public Options NetFx { get; set; }
 
+        [VerbOption("aspnet", HelpText = "Audit an ASP.NET application or code project deployed to a web server. Use the --root option to specify the root directory of the application and the -b option to specify the application .NET assembly.")]
+        public Options AspNet { get; set; }
+
         /* Disabled -- code analysis targets, incomplete
          * [VerbOption("netfx-code", HelpText = "Audit a .NET Framework 4 code project. Use the --root option to specify the root directory of the solution, and the --project-name option to specify the name of the project.")]
          * public Options NetFxCode { get; set; }
@@ -85,8 +91,6 @@ namespace DevAudit.CommandLine
          * public Options AspNetCode { get; set; }
          */
 
-        [VerbOption("aspnet", HelpText = "Audit an ASP.NET application or code project deployed to a web server. Use the --root option to specify the root directory of the application and the -b option to specify the application .NET assembly.")]
-        public Options AspNet { get; set; }
 
         /* Disabled -- code analysis targets, incomplete
          * [VerbOption("php", HelpText = "Audit a PHP code project. Use the --root option to specify the root directory of the code project.")]
@@ -97,7 +101,7 @@ namespace DevAudit.CommandLine
          *[VerbOption("drupal8-module", HelpText = "Audit a Drupal 8 module project. Use the --root option to specify the root directory of the code project and the --code-project option to specify the Drupal 8 module name.")]
          *public Options Drupal8Module { get; set; }
          */
-        
+
         [Option('d', "enable-debug", Required = false, HelpText = "Enable printing debug messages and other behavior useful for debugging the program.")]
         public bool EnableDebug { get; set; }
 
@@ -140,8 +144,8 @@ namespace DevAudit.CommandLine
         [Option('b', "application-binary", Required = false, HelpText = "The path to the application or server binary.")]
         public string ApplicationBinary { get; set; }
 
-        [Option('i', "docker", Required = false, HelpText = "Run the audit on a Docker container with this name or id.")]
-        public string Docker { get; set; }
+        [Option('i', "container-id", Required = false, HelpText = "Connect to a Docker container with this name or id.")]
+        public string DockerContainerId { get; set; }
 
         [Option('g', "github", Required = false, HelpText = "Specify a set of comma delimited, key=value options for the GitHub audit environment. You can specify 3 options: Owner=<owner>,Name=<repo>,Branch=<branch> for the GitHub repository owner, name and branch respectively. Omitting the Branch value will specify the master branch by default.")]
         public string GitHubOptions { get; set; }

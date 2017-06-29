@@ -41,8 +41,8 @@
     <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Alpheus.Core, Version=0.3.4.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Alpheus.0.3.4-beta\lib\net45\Alpheus.Core.dll</HintPath>
+    <Reference Include="Alpheus.Core, Version=0.4.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Alpheus.0.4.0-beta\lib\net45\Alpheus.Core.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="Autofac, Version=4.1.1.0, Culture=neutral, PublicKeyToken=17863af14b0044da, processorArchitecture=MSIL">
@@ -133,8 +133,8 @@
       <HintPath>..\packages\Naos.WinRM.1.0.45\lib\net45\Naos.WinRM.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="Newtonsoft.Json, Version=9.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
-      <HintPath>..\packages\Newtonsoft.Json.9.0.1\lib\net45\Newtonsoft.Json.dll</HintPath>
+    <Reference Include="Newtonsoft.Json, Version=10.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+      <HintPath>..\packages\Newtonsoft.Json.10.0.3\lib\net45\Newtonsoft.Json.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="NGitLab, Version=2.0.0.0, Culture=neutral, processorArchitecture=MSIL">
@@ -283,7 +283,7 @@
     <Compile Include="AuditProfile.cs" />
     <Compile Include="AuditProfileRule.cs" />
     <Compile Include="AuditReporter.cs" />
-    <Compile Include="Codecs.cs" />
+    <Compile Include="Utility.cs" />
     <Compile Include="DataSourceInfo.cs" />
     <Compile Include="DataSources\LibrariesdotIO\LibrariesdotIODataSource.cs" />
     <Compile Include="DataSources\LibrariesdotIO\Models\LibdotIOArtifact.cs" />
@@ -297,13 +297,14 @@
     <Compile Include="DataSources\Vulnersdotcom\VulnersDataSource.cs" />
     <Compile Include="Environments\AlpheusEnvironment.cs" />
     <Compile Include="Environments\DockerAuditFileInfo.cs" />
+    <Compile Include="Environments\IContainerEnvironment.cs" />
     <Compile Include="Environments\SshDockerAuditDirectoryInfo.cs" />
     <Compile Include="Environments\SshDockerAuditEnvironment.cs" />
     <Compile Include="Environments\WinRmAuditDirectoryInfo.cs" />
     <Compile Include="Environments\WinRmAuditFileInfo.cs" />
     <Compile Include="Environments\WinRmAuditEnvironment.cs" />
     <Compile Include="DataSources\HttpDataSource.cs" />
-    <Compile Include="IDbAuditTarget.cs" />
+    <Compile Include="Targets\IDbAuditTarget.cs" />
     <Compile Include="IArtifact.cs" />
     <Compile Include="IDataSource.cs" />
     <Compile Include="Analyzers\DevAuditGendarmeRunner.cs" />
@@ -320,10 +321,12 @@
     <Compile Include="Environments\GitHubAuditEnvironment.cs" />
     <Compile Include="DataSources\OSSIndex\Models\OSSIndexApiv2Result.cs" />
     <Compile Include="DataSources\OSSIndex\Models\OSSIndexApiv2Vulnerability.cs" />
-    <Compile Include="IOperatingSystemEnvironment.cs" />
+    <Compile Include="Environments\IOperatingSystemEnvironment.cs" />
     <Compile Include="IPackage.cs" />
     <Compile Include="IVulnerability.cs" />
     <Compile Include="DataSources\LocalDataSource.cs" />
+    <Compile Include="Targets\Container.cs" />
+    <Compile Include="Targets\IVulnerableCredentialStore.cs" />
     <Compile Include="Vulnerability.cs" />
     <Compile Include="PackageSources\YarnPackageSource.cs" />
     <Compile Include="Projects\Drupal8ModuleCodeProject.cs" />
@@ -389,6 +392,7 @@
     <Compile Include="Environments\SshAuditEnvironment.cs" />
     <Compile Include="EnvironmentEventArgs.cs" />
     <Compile Include="Analyzers\StyleCopAnalyzer.cs" />
+    <Compile Include="VulnerableCredentialStorage.cs" />
   </ItemGroup>
   <ItemGroup>
     <Examples Include="Examples\bower.json.example">

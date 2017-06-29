@@ -299,7 +299,7 @@ namespace DevAudit.AuditLibrary
                 if (this.AuditOptions.ContainsKey("OSName"))
                 {
                     this.AuditEnvironment.OSName = (string)this.AuditOptions["OSName"];
-                    this.AuditEnvironment.Info("Overriding audit environment OS name to {0}.", this.AuditEnvironment.OSVersion);
+                    this.AuditEnvironment.Info("Overriding audit environment OS name to {0}.", this.AuditEnvironment.OSName);
                 }
                 if (this.AuditOptions.ContainsKey("OSVersion"))
                 {

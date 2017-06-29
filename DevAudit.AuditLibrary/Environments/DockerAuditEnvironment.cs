@@ -13,52 +13,22 @@ using System.Threading.Tasks;
 
 namespace DevAudit.AuditLibrary
 {
-    public class DockerAuditEnvironment : AuditEnvironment, IOperatingSystemEnvironment
+    public class DockerAuditEnvironment : AuditEnvironment, IOperatingSystemEnvironment, IContainerEnvironment
     {
         #region Constructors
         public DockerAuditEnvironment(EventHandler<EnvironmentEventArgs> message_handler, string container, OperatingSystem os, LocalEnvironment host_environment) :
         base(message_handler, os, host_environment)
         {
-            ProcessExecuteStatus process_status;
-            string process_output, process_error;
-            bool container_exists = false;
-            bool container_running = false;
-            string command = "docker", arguments = "ps -a";
-            bool r;
-            if (this.HostEnvironment.IsDockerContainer)
+            Tuple<bool, bool> container_status = this.GetContainerStatus(container);
+            if (container_status.Item1)
             {
-                r = this.HostEnvironment.Execute("chroot", " /hostroot " + command + " " + arguments, out process_status, out process_output, out process_error);
+                this.Container = container;
+                this.ContainerRunning = container_status.Item2;
+                this.HostEnvironment.Success("Found Docker container with id or name {0}.", this.Container);
+                this.GetOSName();
+                this.GetOSVersion();
             }
-            else
-            {
-                r = this.HostEnvironment.Execute("docker", "ps -a", out process_status, out process_output, out process_error);
-            }
-            if (r)
-            {
-                string[] p = process_output.Split(this.HostEnvironment.LineTerminator.ToCharArray(), StringSplitOptions.RemoveEmptyEntries);
-                for (int i = 1; i < p.Count(); i++) {
-                    if (string.IsNullOrEmpty(p[i]) || string.IsNullOrWhiteSpace(p[i]))
-                        continue;
-                    if (p[i].Trim().StartsWith(container) || p[i].Trim().EndsWith(container)) {
-                        container_exists = true;
-                        if (p[i].Contains("Up ")) {
-                            container_running = true;
-                        }
-                        break;
-                    }
-                }
-                if (container_exists) {
-                    this.Container = container;
-                    this.ContainerRunning = container_running;
-                    this.HostEnvironment.Success("Found Docker container with id or name {0}.", this.Container);
-                    this.GetOSName();
-                    this.GetOSVersion();
-                }
-                else this.HostEnvironment.Error("The Docker container with name or id {0} does not exist.", container);
-            }
-            else {
-                this.HostEnvironment.Error("Error executing command docker ps -a: {0}.", process_error);
-            }
+            else this.HostEnvironment.Error("The Docker container with name or id {0} does not exist.", container);
         }
         #endregion
 
@@ -68,17 +38,17 @@ namespace DevAudit.AuditLibrary
         #endregion
 
         #region Overriden methods
-        public override AuditDirectoryInfo ConstructDirectory (string dir_path)
+        public override AuditDirectoryInfo ConstructDirectory(string dir_path)
         {
             return new DockerAuditDirectoryInfo(this, dir_path);
         }
 
-        public override AuditFileInfo ConstructFile (string file_path)
+        public override AuditFileInfo ConstructFile(string file_path)
         {
             return new DockerAuditFileInfo(this, file_path);
         }
 
-        public override bool Execute (string command, string arguments, out ProcessExecuteStatus process_status, out string process_output, out string process_error, Dictionary<string, string> env = null,
+        public override bool Execute(string command, string arguments, out ProcessExecuteStatus process_status, out string process_output, out string process_error, Dictionary<string, string> env = null,
             Action<string> OutputDataReceived = null, Action<string> OutputErrorReceived = null, [CallerMemberName] string memberName = "", [CallerFilePath] string fileName = "", [CallerLineNumber] int lineNumber = 0)
         {
             string env_vars = string.Empty;
@@ -121,7 +91,7 @@ namespace DevAudit.AuditLibrary
             }
         }
 
-        public override bool DirectoryExists (string dir_path)
+        public override bool DirectoryExists(string dir_path)
         {
             if (!this.ContainerRunning) throw new InvalidOperationException("The Docker container does not exist or is not running.");
             Stopwatch sw = new Stopwatch();
@@ -130,7 +100,7 @@ namespace DevAudit.AuditLibrary
             string process_output;
             string process_error;
             ProcessExecuteStatus process_status;
-            bool r = this.Execute (stat_command, dir_path, out process_status, out process_output, out process_error);
+            bool r = this.Execute(stat_command, dir_path, out process_status, out process_output, out process_error);
             sw.Stop();
             if (r)
             {
@@ -144,7 +114,7 @@ namespace DevAudit.AuditLibrary
             }
         }
 
-        public override bool FileExists (string file_path)
+        public override bool FileExists(string file_path)
         {
             if (!this.ContainerRunning) throw new InvalidOperationException("The Docker container does not exist or is not running.");
             Stopwatch sw = new Stopwatch();
@@ -153,7 +123,7 @@ namespace DevAudit.AuditLibrary
             string process_output;
             string process_error;
             ProcessExecuteStatus process_status;
-            bool r = this.Execute (ls_command, file_path, out process_status, out process_output, out process_error);
+            bool r = this.Execute(ls_command, file_path, out process_status, out process_output, out process_error);
             sw.Stop();
             if (r)
             {
@@ -167,11 +137,11 @@ namespace DevAudit.AuditLibrary
             }
         }
 
-        public override Dictionary<AuditFileInfo, string> ReadFilesAsText (List<AuditFileInfo> files)
+        public override Dictionary<AuditFileInfo, string> ReadFilesAsText(List<AuditFileInfo> files)
         {
-            throw new NotImplementedException ();
+            throw new NotImplementedException();
         }
-            
+
         #endregion
 
         #region Properties
@@ -188,28 +158,87 @@ namespace DevAudit.AuditLibrary
             string process_output = "", process_error = "";
             ProcessExecuteStatus process_status;
             bool r = this.HostEnvironment.Execute("docker", string.Format("cp {0}:{1} {2}", this.Container, container_path, local_path), out process_status, out process_output, out process_error);
-            sw.Stop ();
-            if (r) {
-                FileInfo f = new FileInfo (local_path);
-                if (f.Exists) {
+            sw.Stop();
+            if (r)
+            {
+                FileInfo f = new FileInfo(local_path);
+                if (f.Exists)
+                {
                     return f;
-                } else {
-                    this.Error ("docker cp {0}:{1} {2} executed successfully but the file with path {3} does not exist.", this.Container, container_path, local_path, f.FullName);
+                }
+                else
+                {
+                    this.Error("docker cp {0}:{1} {2} executed successfully but the file with path {3} does not exist.", this.Container, container_path, local_path, f.FullName);
                     return null;
                 }
-            } 
-            else {
-                this.Error ("docker cp {0}:{1} {2} did not execute successfully. Output: {3}.", this.Container, container_path, local_path, process_error);
+            }
+            else
+            {
+                this.Error("docker cp {0}:{1} {2} did not execute successfully. Output: {3}.", this.Container, container_path, local_path, process_error);
                 return null;
-            }				
+            }
         }
 
         public DirectoryInfo GetDirectoryAsLocal(string container_path, string local_path)
         {
-            throw new NotImplementedException ();
+            throw new NotImplementedException();
+        }
+
+        public bool ExecuteCommandInContainer(string command, string arguments, out string process_output)
+        {
+            if (this.HostEnvironment.IsDockerContainer)
+            {
+                return this.HostEnvironment.ExecuteCommand("chroot", "/hostroot " + "docker exec " + arguments, out process_output);
+            }
+            else
+            {
+                return this.HostEnvironment.ExecuteCommand("docker", "exec " + arguments, out process_output);
+            }
+        }
+
+        public Tuple<bool, bool> GetContainerStatus(string container_id)
+        {
+            bool r;
+            string process_output;
+            bool container_exists = false, container_running = false;
+            if (this.HostEnvironment.IsDockerContainer)
+            {
+                r = this.HostEnvironment.ExecuteCommand("chroot", "/hostroot " + "docker ps -a", out process_output);
+            }
+            else
+            {
+                r = this.HostEnvironment.ExecuteCommand("docker", "ps -a", out process_output);
+            }
+            if (r)
+            {
+                string[] p = process_output.Split(this.HostEnvironment.LineTerminator.ToCharArray(), StringSplitOptions.RemoveEmptyEntries);
+                for (int i = 1; i < p.Count(); i++)
+                {
+                    if (string.IsNullOrEmpty(p[i]) || string.IsNullOrWhiteSpace(p[i]))
+                    {
+                        continue;
+                    }
+                    if (p[i].Trim().StartsWith(container_id) || p[i].Trim().EndsWith(container_id))
+                    {
+                        container_exists = true;
+                        if (p[i].Contains("Up "))
+                        {
+                            container_running = true;
+                        }
+                        break;
+                    }
+                }
+                return new Tuple<bool, bool>(container_exists, container_running);
+            }
+            else
+            {
+                this.HostEnvironment.Error("Could not get status of container {0}. Error: {1}", container_id, process_output);
+                return new Tuple<bool, bool>(false, false);
+            }
+
         }
         #endregion
-            
+
     }
 }
 

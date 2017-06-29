@@ -58,8 +58,7 @@ namespace DevAudit.AuditLibrary
                     Match m = process_output_pattern.Match (p [i].TrimStart ());
                     if (!m.Success)
                     {
-                        throw new Exception ("Could not parse yum command output row: " + i.ToString ()
-                        + "\n" + p [i]);
+                        this.AuditEnvironment.Warning("Could not parse yum command output row {0}: {1}", i, p[i]);
                     }
                     else
                     {

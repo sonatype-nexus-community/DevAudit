@@ -23,6 +23,8 @@ namespace DevAudit.AuditLibrary
                     package = p;
                     break;
                 case "centos":
+                case "oraclelinux":
+                case "rhel":
                     this.version = version.Split('.').First();
                     package = p;
                     break;

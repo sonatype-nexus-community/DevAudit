@@ -53,6 +53,8 @@ namespace DevAudit.AuditLibrary
                     };
                     break;
                 case "centos":
+                case "oraclelinux":
+                case "rhel":
                     PackageToSearchName = (p) =>
                     {
                         return p.Name + "-" + p.Version + "." + p.Architecture;
@@ -218,7 +220,7 @@ namespace DevAudit.AuditLibrary
                     v.Description = d.Value.description;
                     v.Title = d.Value.title;
                     v.Versions = d.Value.affectedPackage
-                        .Select(ap => MapVulnersOperatorToSymbol(ap._operator) + ap.packageVersion).ToArray();
+                        .Select(ap => MapVulnersOperatorToSymbol(ap._operator) + ap.packageVersion).Distinct().ToArray();
                     v.Published = d.Value.published;
                     v.CVSS = new VulnerabilityCVSS() { Score = d.Value.cvss.score.ToString(), Vector = d.Value.cvss.vector };
 

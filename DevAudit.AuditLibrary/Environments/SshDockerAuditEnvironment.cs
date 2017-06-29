@@ -18,7 +18,7 @@ using SharpCompress.Readers;
 
 namespace DevAudit.AuditLibrary
 {
-    public class SshDockerAuditEnvironment : SshAuditEnvironment
+    public class SshDockerAuditEnvironment : SshAuditEnvironment, IContainerEnvironment
     {
         #region Constructors
         public SshDockerAuditEnvironment(EventHandler<EnvironmentEventArgs> message_handler, string client, string host_name, int port, string user, object pass, string keyfile, string container, OperatingSystem os, LocalEnvironment host_environment) 
@@ -152,13 +152,51 @@ namespace DevAudit.AuditLibrary
         }
         #endregion
 
-        #region Methods
-        
-        #endregion
-
         #region Properties
         public string Container { get; protected set; }
         public bool ContainerRunning { get; protected set; }
+        #endregion
+
+        #region Methods
+        public bool ExecuteCommandInContainer(string command, string arguments, out string process_output)
+        {
+            return this.ExecuteCommand(command, arguments, out process_output);
+        }
+
+        public Tuple<bool, bool> GetContainerStatus(string container_id)
+        {
+            bool r;
+            string process_output;
+            bool container_exists = false, container_running = false;
+            r = this.ExecuteCommand("docker", "ps -a", out process_output);
+            if (r)
+            {
+                string[] p = process_output.Split(this.HostEnvironment.LineTerminator.ToCharArray(), StringSplitOptions.RemoveEmptyEntries);
+                for (int i = 1; i < p.Count(); i++)
+                {
+                    if (string.IsNullOrEmpty(p[i]) || string.IsNullOrWhiteSpace(p[i]))
+                    {
+                        continue;
+                    }
+                    if (p[i].Trim().StartsWith(container_id) || p[i].Trim().EndsWith(container_id))
+                    {
+                        container_exists = true;
+                        if (p[i].Contains("Up "))
+                        {
+                            container_running = true;
+                        }
+                        break;
+                    }
+                }
+                return new Tuple<bool, bool>(container_exists, container_running);
+            }
+            else
+            {
+                this.HostEnvironment.Error("Could not get status of container {0}. Error: {1}", container_id, process_output);
+                return new Tuple<bool, bool>(false, false);
+            }
+
+        }
         #endregion
 
         #region Disposer and Finalizer

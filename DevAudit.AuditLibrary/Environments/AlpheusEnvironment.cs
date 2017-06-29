@@ -43,51 +43,37 @@ namespace DevAudit.AuditLibrary
             return this.AuditEnvironment.DirectoryExists(dir_path);
         }
 
-        public override void Debug(string message_format, params object[] message)
+        public override void Message(string message_type, string message_format, params object[] message)
         {
-            this.AuditEnvironment.Debug(message_format, message);
-        }
+            switch(message_type)
+            {
+                case "INFO":
+                    this.AuditEnvironment.Message(EventMessageType.INFO, message_format, message);
+                    break;
+                case "DEBUG":
+                    this.AuditEnvironment.Message(EventMessageType.DEBUG, message_format, message);
+                    break;
+                case "ERROR":
+                    this.AuditEnvironment.Message(EventMessageType.ERROR, message_format, message);
+                    break;
+                case "SUCCESS":
+                    this.AuditEnvironment.Message(EventMessageType.SUCCESS, message_format, message);
+                    break;
+                case "WARNING":
+                    this.AuditEnvironment.Message(EventMessageType.WARNING, message_format, message);
+                    break;
+                case "PROGRESS":
+                    this.AuditEnvironment.Message(EventMessageType.PROGRESS, message_format, message);
+                    break;
+                case "STATUS":
+                    this.AuditEnvironment.Message(EventMessageType.STATUS, message_format, message);
+                    break;
+                default:
+                    throw new Exception("Unknown message type: " + message_type);
 
-        public override void Info(string message_format, params object[] message)
-        {
-            this.AuditEnvironment.Info(message_format, message);
+            }
         }
-
-        public override void Status(string message_format, params object[] message)
-        {
-            this.AuditEnvironment.Status(message_format, message);
-        }
-
-        public override void Progress(string message_format, params object[] message)
-        {
-            throw new NotImplementedException();
-        }
-
-        public override void Success(string message_format, params object[] message)
-        {
-            this.AuditEnvironment.Success(message_format, message);
-        }
-
-        public override void Warning(string message_format, params object[] message)
-        {
-            this.AuditEnvironment.Warning(message_format, message);
-        }
-
-        public override void Error(Exception e)
-        {
-            this.AuditEnvironment.Error(e);
-        }
-
-        public override void Error(Exception e, string message_format, params object[] message)
-        {
-            this.AuditEnvironment.Error(e, message_format, message);
-        }
-
-        public override void Error(string message_format, params object[] message)
-        {
-            this.AuditEnvironment.Error(message_format, message);
-        }
-
+   
         public override IXsltContextFunction ResolveXPathFunction(string prefix, string name, XPathResultType[] ArgTypes)
         {
             CallerInformation here = this.AuditEnvironment.Here();

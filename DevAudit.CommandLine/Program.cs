@@ -37,6 +37,8 @@ namespace DevAudit.CommandLine
 
         static CodeProject CodeProject { get; set; }
 
+        static Container Container { get; set; }
+
         static Exception AuditLibraryException { get; set; }
 
         static Spinner Spinner { get; set; }
@@ -116,13 +118,13 @@ namespace DevAudit.CommandLine
                 audit_options.Add("Dockerized", true);
             }
 
-            if (!string.IsNullOrEmpty(ProgramOptions.Docker) && string.IsNullOrEmpty(ProgramOptions.RemoteHost))
+            if (!string.IsNullOrEmpty(ProgramOptions.DockerContainerId) && string.IsNullOrEmpty(ProgramOptions.RemoteHost))
             {
-                audit_options.Add("DockerContainer", ProgramOptions.Docker);
+                audit_options.Add("DockerContainer", ProgramOptions.DockerContainerId);
             }
-            else if (!string.IsNullOrEmpty(ProgramOptions.Docker) && !string.IsNullOrEmpty(ProgramOptions.RemoteHost))
+            else if (!string.IsNullOrEmpty(ProgramOptions.DockerContainerId) && !string.IsNullOrEmpty(ProgramOptions.RemoteHost))
             {
-                audit_options.Add("DockerContainer", ProgramOptions.Docker);
+                audit_options.Add("DockerContainer", ProgramOptions.DockerContainerId);
                 if (Uri.CheckHostName(ProgramOptions.RemoteHost) == UriHostNameType.Unknown)
                 {
                     PrintErrorMessage("Unknown host name type: {0}.", ProgramOptions.RemoteHost);
@@ -235,7 +237,7 @@ namespace DevAudit.CommandLine
                 #endregion
 
             }
-            else if (!string.IsNullOrEmpty(ProgramOptions.RemoteHost) && string.IsNullOrEmpty(ProgramOptions.Docker))
+            else if (!string.IsNullOrEmpty(ProgramOptions.RemoteHost) && string.IsNullOrEmpty(ProgramOptions.DockerContainerId))
             {
                 if (Uri.CheckHostName(ProgramOptions.RemoteHost) == UriHostNameType.Unknown)
                 {
@@ -805,10 +807,13 @@ namespace DevAudit.CommandLine
                         Application = CodeProject.ApplicationInitialised ? CodeProject.Application : null;
                         Source = CodeProject.PackageSource;
                     }
-
                     else if (verb == "drupal8-module")
                     {
                         CodeProject = new Drupal8ModuleCodeProject(audit_options, EnvironmentMessageHandler);                       
+                    }
+                    else if (verb == "container")
+                    {
+                        Container = new Container(audit_options, EnvironmentMessageHandler);
                     }
                 }
                 catch (ArgumentException ae)
@@ -958,6 +963,15 @@ namespace DevAudit.CommandLine
                     Application.Dispose();
                 }
                 CodeProject.Dispose();
+            }
+            else if (Container != null) //auditing container
+            {
+                AuditTarget.AuditResult conar = Container.Audit(CTS.Token);
+                if (Stopwatch.IsRunning) Stopwatch.Stop();
+                if (conar != AuditTarget.AuditResult.SUCCESS)
+                {
+                    Exit = conar;
+                }
             }
             #endregion
 
@@ -1113,6 +1127,20 @@ namespace DevAudit.CommandLine
                     PrintMessage(ConsoleColor.White, "{0} ", dsi.Name);
                     PrintMessage(ConsoleColor.Green, "{0} ", dsi.Url);
                     PrintMessageLine(dsi.Description);
+                }
+            }
+            if (Source.CredentialStorageCandidates != null && Source.CredentialStorageCandidates.Count > 0)
+            {
+                PrintMessageLine("Credential Storage Candidates\n==============================");
+                int cs_processed = 0;
+                int cs_total = Source.CredentialStorageCandidates.Count;
+                foreach (VulnerableCredentialStorage cs in Source.CredentialStorageCandidates)
+                {
+                    PrintMessage(ConsoleColor.White, "[{0}/{1}]", ++cs_processed, cs_total);
+                    PrintMessageLine(ConsoleColor.Blue, " {0}", cs.File);
+                    PrintMessageLine(ConsoleColor.White, "  --Location: {0}", cs.Location);
+                    PrintMessageLine(ConsoleColor.White, "  --Value: {0}", cs.Value);
+                    PrintMessageLine(ConsoleColor.White, "  --Entropy: {0}", cs.Entropy);
                 }
             }
             Source.Dispose();
