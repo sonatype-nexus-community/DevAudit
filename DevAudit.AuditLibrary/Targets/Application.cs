@@ -295,6 +295,8 @@ namespace DevAudit.AuditLibrary
                 this.AuditEnvironment.Error("Exception thrown in GetArtifacts task.", ae.InnerException);
                 return AuditResult.ERROR_SEARCHING_ARTIFACTS;
             }
+
+            this.GetVulnerableCredentialStorageTask(ct);
             this.GetVulnerabilitiesTask(ct);
             this.GetConfigurationRulesTask(ct);
 
@@ -322,7 +324,7 @@ namespace DevAudit.AuditLibrary
 
             try
             {
-                Task.WaitAll(this.VulnerabilitiesTask, this.ConfigurationRulesTask, this.DefaultConfigurationRulesTask, this.GetAnalyzersTask);
+                Task.WaitAll(this.VulnerableCredentialStorageTask, this.VulnerabilitiesTask, this.ConfigurationRulesTask, this.DefaultConfigurationRulesTask, this.GetAnalyzersTask);
             }
             catch (AggregateException ae)
             {
@@ -331,10 +333,10 @@ namespace DevAudit.AuditLibrary
                     this.AuditEnvironment.Error(here, ae.InnerException, "Exception thrown in GetVulnerabilities task.");
                     return AuditResult.ERROR_SEARCHING_VULNERABILITIES;
                 }
-                else if (ae.InnerException.TargetSite.Name == "GetConfigurationRules")
+                else if (ae.InnerException.TargetSite.Name == "GetVulnerableCredentialStorage")
                 {
-                    this.AuditEnvironment.Error(here, ae.InnerException, "Exception thrown in GetConfigurationRules task.");
-                    return AuditResult.ERROR_SEARCHING_CONFIGURATION_RULES;
+                    this.AuditEnvironment.Error(here, ae.InnerException, "Exception thrown in GetVulnerableCredentialStorage task.");
+                    return AuditResult.ERROR_SCANNING_VULNERABLE_CREDENTIAL_STORAGE;
                 }
                 else if (ae.InnerException.TargetSite.Name == "GetConfigurationRules")
                 {
