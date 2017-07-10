@@ -8,6 +8,7 @@ using System.Linq;
 using System.Security;
 using System.Security.AccessControl;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 using Alpheus.IO;
@@ -123,7 +124,7 @@ namespace DevAudit.AuditLibrary
         public abstract bool FileExists(string file_path);
         public abstract bool DirectoryExists(string dir_path);
         public abstract bool Execute(string command, string arguments,
-            out ProcessExecuteStatus process_status, out string process_output, out string process_error, Dictionary<string, string> EnvironmentVariables = null, 
+            out ProcessExecuteStatus process_status, out string process_output, out string process_error, Dictionary<string, string> EnvironmentVariables = null,
             Action<string> OutputDataReceived = null, Action<string> OutputErrorReceived = null, [CallerMemberName] string memberName = "", [CallerFilePath] string fileName = "", [CallerLineNumber] int lineNumber = 0);
         public abstract bool ExecuteAsUser(string command, string arguments,
             out ProcessExecuteStatus process_status, out string process_output, out string process_error, string user, SecureString password, Action<string> OutputDataReceived = null, Action<string> OutputErrorReceived = null, [CallerMemberName] string memberName = "", [CallerFilePath] string fileName = "", [CallerLineNumber] int lineNumber = 0);
@@ -183,14 +184,16 @@ namespace DevAudit.AuditLibrary
             }
         }
 
-        public OperatingSystem OS { get; protected set; } 
+        public OperatingSystem OS { get; protected set; }
 
         public string OSName { get; set; }
 
         public string OSVersion { get; set; }
 
+        public Dictionary<string, string> OSEnvironmentVars { get; protected set; }
+
         public LocalEnvironment HostEnvironment { get; protected set; }
-    
+
         public DirectoryInfo WorkDirectory { get; protected set; }
 
         protected StringBuilder ProcessOutputSB = new StringBuilder();
@@ -217,13 +220,9 @@ namespace DevAudit.AuditLibrary
             else
             {
                 output = process_output + process_error;
-                if (report_errors)
+                if (report_errors && !string.IsNullOrEmpty(output))
                 {
-                    Error("The command {0} {1} did not execute successfully. Error: {2}", command, arguments, output);
-                }
-                else
-                {
-                    Debug("The command {0} {1} did not execute successfully. Error: {2}", command, arguments, output);
+                    Error(caller, "The command {0} {1} did not execute successfully. Error: {2}", command, arguments, output);
                 }
                 return false;
             }
@@ -397,7 +396,7 @@ namespace DevAudit.AuditLibrary
                     cmd = "bash";
                     args = "-c \"cat /etc/centos-release | cut -d' ' -f4 && test \\${PIPESTATUS[0]} -eq 0\"";
                     string output;
-                    if (this.ExecuteCommand(cmd, args, out output,false))
+                    if (this.ExecuteCommand(cmd, args, out output, false))
                     {
                         version = output.Trim();
                         Debug(here, "GetOSVersion() returned {0}.", version);
@@ -438,6 +437,29 @@ namespace DevAudit.AuditLibrary
                 }
             }
             return this.OSVersion;
+        }
+
+        public virtual string OSExec(string command, string args)
+        {
+            CallerInformation here = Here();
+            args = args + " 2>/dev/null";
+            string output;
+            if (this.ExecuteCommand(command, args, out output, false))
+            {
+                Debug("OSExec({0}, {1}) returned zero exit-code with stdout: {2}", command, args, output);
+                return output;
+            }
+            else if (!string.IsNullOrEmpty(output))
+            {
+                Debug("OSExec({0}, {1}) returned non-zero exit-code with stdout: {2}", command, args, output);
+                return output;
+            }
+            else
+            {
+                Debug("OSExec({0}, {1}) returned non-zero exit-code.", command, args);
+                return string.Empty;
+            }
+
         }
 
         public virtual string GetEnvironmentVar(string name)
@@ -488,14 +510,206 @@ namespace DevAudit.AuditLibrary
                 }
                 else
                 {
-                    Debug(here, "GetUnixFileMode({0}) failed.", path);
+                    Debug(here, "Did not successfully execute GetUnixFileMode({0}).", path);
                     return string.Empty;
                 }
             }
         }
 
+        public virtual string FindFiles(string path, string pattern, [CallerMemberName] string memberName = "", [CallerFilePath] string fileName = "", [CallerLineNumber] int lineNumber = 0)
+        {
+            if (this.IsUnix)
+            {
+                CallerInformation here = Here();
+                string output;
+                string cmd = "find";
+                string args = string.Format("{0} -name {1} -type f", path, pattern);
+                if (this.ExecuteCommand(cmd, args, out output, false))
+                {
+                    Debug(here, "FindFiles({0}, {1}) returned {2}.", path, pattern, output);
+                    return output;
+                }
+                else
+                {
+                    string[] error = output.Split(this.LineTerminator.ToCharArray());
+                    if (error.All(e => e.EndsWith("Permission denied")))
+                    {
+                        Debug(here, "FindFiles({0}, {1}) returned empty.", path, pattern);
+                        return string.Empty;
+                    }
+                    else
+                    {
+                        Error(here, "Did not successfully execute FindFiles({0}, {1}). Error: {2}.)", path, pattern, output);
+                        return string.Empty;
+                    }
+                }
+                    
+            }
+            else
+            {
+                throw new NotSupportedException();
+            }
+        }
 
-        public string GetTimestamp ()
+        public virtual string FindDirectories(string path, string pattern, [CallerMemberName] string memberName = "", [CallerFilePath] string fileName = "", [CallerLineNumber] int lineNumber = 0)
+        {
+            if (this.IsUnix)
+            {
+                CallerInformation here = Here();
+                string output;
+                string cmd = "find";
+                string args = string.Format("{0} -name {1} -type d", path, pattern);
+                if (this.ExecuteCommand(cmd, args, out output, false))
+                {
+                    Debug(here, "FindDirectories({0}, {1}) returned {2}", path, pattern, output);
+                    return output;
+                }
+                else
+                {
+                    Error(here, "Did not successfully execute FindDirectories({0}, {1}). Error: {2}.)", path, pattern, output);
+                    return string.Empty;
+                }
+
+            }
+            else
+            {
+                throw new NotSupportedException();
+            }
+        }
+
+        public bool GetIsSymbolicLink(string f)
+        {
+            if (this.IsUnix)
+            {
+                string output;
+                if (this.ExecuteCommand("stat", f, out output))
+                {
+                    if (output.Contains("symbolic link"))
+                    {
+                        return true;
+                    }
+                    else
+                    {
+                        return false;
+                    }
+                }
+                else
+                {
+                    this.Error("Did not successfully execute GetIsSymbolicLink({0}).", f);
+                    return false;
+                }
+            }
+            else
+            {
+                throw new NotSupportedException();
+            }
+        }
+
+        public string GetSymbolicLinkLocation(string f)
+        {
+            if (this.IsUnix)
+            {
+                string output;
+                if (this.ExecuteCommand("ls", "-l " + f, out output))
+                {
+                    if (output.Contains("->"))
+                    {
+                        string l = output.Substring(output.IndexOf("->")).Trim();
+                        Debug("GetSymbolicLinkLocation({0}) returned {1}.", f, l);
+                        return l ;
+                    }
+                    else
+                    {
+                        Debug("GetSymbolicLinkLocation({0}) returned null.", f);
+                        return string.Empty;
+                    }
+                }
+                else
+                {
+                    this.Error("Did not successfully execute GetSymbolicLinkLocation({0}).");
+                    return string.Empty;
+                }
+            }
+            else
+            {
+                throw new NotSupportedException();
+            }
+        }
+        public virtual List<ProcessInfo> GetAllRunningProcesses()
+        {
+            if (this.IsUnix)
+            {
+                string output;
+                if (this.ExecuteCommand("ps", "-eo uname,pid,start_time,args", out output))
+                {
+                    string[] lines = output.Split('\n');
+                    if (!lines[0].StartsWith("USER"))
+                    {
+                        this.Error("Could not parse output of ps command.");
+                        return null;
+                    }
+                    List<ProcessInfo> p = new List<ProcessInfo>(lines.Length - 1);
+                    for (int i = 1; i < lines.Length; i++)
+                    {
+                        string[] ps = Regex.Split(lines[i], @"\s+");
+                        string u = ps[0];
+                        string pid = ps[1];
+                        string t = ps[2];
+                        string c = string.Empty;
+                        for (int j = 3; j < ps.Length; j++)
+                        {
+                            c = c + ps[j] + " ";
+                        }
+                        p.Add(new ProcessInfo(ps[0], int.Parse(ps[1]), ps[2], c.Trim()));
+                    }
+                    return p;
+                }
+                else
+                {
+                    this.Error("Could not get running processes. Error: {0}", output);
+                    return null;
+                }
+            }
+            else
+            {
+                throw new NotSupportedException();
+            }
+        }
+
+        public virtual Dictionary<string, string> GetEnvironmentVars()
+        {
+            if (this.OSEnvironmentVars != null)
+            {
+                return this.OSEnvironmentVars;
+            }
+
+            if (this.IsUnix)
+            {
+                string output;
+                if (this.ExecuteCommand("printenv", string.Empty, out output))
+                {
+                    string[] lines = output.Split('\n');
+                    
+                    Dictionary<string, string> vars = new Dictionary<string, string>(lines.Length);
+                    for (int i = 0; i < lines.Length; i++)
+                    {
+                        string[] var = Regex.Split(lines[i], @"=");
+                        vars.Add(var[0].Trim(), var[1].Trim());
+                    }
+                    return this.OSEnvironmentVars = vars;
+                }
+                else
+                {
+                    this.Error("Could not get environment variables. Error: {0}", output);
+                    return null;
+                }
+            }
+            else
+            {
+                throw new NotSupportedException();
+            }
+        }
+        public string GetTimestamp()
         {
             return (DateTime.UtcNow.Subtract(new DateTime(1970, 1, 1))).TotalSeconds.ToString();
         }
@@ -677,7 +891,7 @@ namespace DevAudit.AuditLibrary
         }
 
         protected virtual void Dispose(bool isDisposing)
-        {         
+        {
             // TODO If you need thread safety, use a lock around these 
             // operations, as well as in your methods that use the resource. 
             try

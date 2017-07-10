@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Xml;
 using System.Xml.XPath;
@@ -44,6 +45,56 @@ namespace DevAudit.AuditLibrary
         #endregion
 
         #region Overriden methods
+        protected override void DetectConfigurationFile(Dictionary<PlatformID, string[]> default_configuration_file_path)
+        {
+            bool set_config_from_process_cmdline = false;
+            bool set_config_from_env = false;
+            if (this.AuditEnvironment.IsUnix)
+            {
+                List<ProcessInfo> processes = this.AuditEnvironment.GetAllRunningProcesses();
+                if (processes != null && processes.Any(p => p.CommandLine.Contains("mysqld") && (p.CommandLine.Contains("--user") || p.CommandLine.Contains("--datadir") || p.CommandLine.Contains("--basedir"))))
+                {
+                    ProcessInfo process = processes.Where(p => p.CommandLine.Contains("mysqld") && (p.CommandLine.Contains("--user") || p.CommandLine.Contains("--datadir") || p.CommandLine.Contains("--basedir"))).First();
+                    Match m = Regex.Match(process.CommandLine, @"--defaults-file=(\S+)");
+                    if (m.Success)
+                    {
+                        string f = m.Groups[1].Value;
+                        AuditFileInfo cf = this.AuditEnvironment.ConstructFile(f);
+                        if (cf.Exists)
+                        {
+                            this.AuditEnvironment.Success("Auto-detected {0} server configuration file at {1}.", this.ApplicationLabel, cf.FullName);
+                            this.ApplicationFileSystemMap.Add("ConfigurationFile", cf);
+                            set_config_from_process_cmdline = true;
+                        }
+                    }
+                }
+                if (!set_config_from_process_cmdline)
+                {
+                    Dictionary<string, string> env = this.AuditEnvironment.GetEnvironmentVars();
+                    if (env != null)
+                    {
+                        if (env.ContainsKey("MY_CNF"))
+                        {
+                            if (!set_config_from_process_cmdline)
+                            {
+                                AuditFileInfo cf = this.AuditEnvironment.ConstructFile(env["MY_CNF"]);
+                                if (cf.Exists)
+                                {
+                                    this.AuditEnvironment.Success("Auto-detected {0} server configuration file at {1}.", this.ApplicationLabel, cf.FullName);
+                                    this.ApplicationFileSystemMap.Add("ConfigurationFile", cf);
+                                    set_config_from_env = true;
+                                }
+                            }
+                        }
+                    }
+                }
+                if (!(set_config_from_process_cmdline || set_config_from_env))
+                {
+                    base.DetectConfigurationFile(default_configuration_file_path);
+                }
+            }
+        }
+
         protected override Dictionary<string, IEnumerable<Package>> GetModules()
         {
             Dictionary<string, IEnumerable<Package>> m = new Dictionary<string, IEnumerable<Package>>
@@ -124,17 +175,64 @@ namespace DevAudit.AuditLibrary
         }
         #endregion
 
+        #region Properties
+        public AuditDirectoryInfo ServerDataDirectory { get; protected set; }
+        #endregion
+
         #region Methods
+        public bool DetectServerDataDirectory()
+        {
+            bool set_data_from_process_cmdline = false;
+            bool set_data_from_config = false;
+            if (this.AuditEnvironment.IsUnix)
+            {
+                List<ProcessInfo> processes = this.AuditEnvironment.GetAllRunningProcesses();
+                if (processes != null && processes.Any(p => p.CommandLine.Contains("mysqld") && p.CommandLine.Contains("--datadir")))
+                {
+                    ProcessInfo process = processes.Where(p => p.CommandLine.Contains("mysqld") && p.CommandLine.Contains("--datadir")).First();
+                    Match m = Regex.Match(process.CommandLine, @"--datadir=(\S+)\s+");
+                    if (m.Success)
+                    {
+                        string d = m.Groups[1].Value;
+                        AuditDirectoryInfo df = this.AuditEnvironment.ConstructDirectory(d);
+                        if (df.Exists)
+                        {
+                            this.AuditEnvironment.Success("Auto-detected {0} server data directory at {1}.", this.ApplicationLabel, df.FullName);
+                            this.ServerDataDirectory = df;
+                            this.ApplicationFileSystemMap.Add("Data", df);
+                            set_data_from_process_cmdline = true;
+                        }
+                    }
+                }
+                if (!set_data_from_process_cmdline)
+                {
+                    string t = this.ConfigurationFile.ReadAsText();
+                    Match m3 = Regex.Match(t, @"[^#]?datadir\s?=\s?(\S+)");
+                    if (m3.Success)
+                    {
+                        AuditDirectoryInfo df = this.AuditEnvironment.ConstructDirectory(m3.Groups[1].Value);
+                        if (df.Exists)
+                        {
+                            this.AuditEnvironment.Success("Auto-detected {0} server data directory at {1}.", this.ApplicationLabel, df.FullName);
+                            this.ServerDataDirectory = df;
+                            this.ApplicationFileSystemMap.Add("Data", df);
+                            set_data_from_config = true;
+                        }
+                    }
+                }
+                return set_data_from_process_cmdline || set_data_from_config;        
+            }
+            else
+            {
+                return false;
+            }
+                
+        }
+
         public XPathNodeIterator ExecuteDbQueryToXml(object[] args)
         {
             CallerInformation caller = this.AuditEnvironment.Here();
             XmlDocument queryXml = new XmlDocument();
-            if (string.IsNullOrEmpty(this.AppUser))
-            {
-                this.AuditEnvironment.Error(caller, "The MySQL user was not specified in the audit options so database queries cannot be executed.");
-                queryXml.LoadXml("<error>No User</error>");
-                return queryXml.CreateNavigator().Select("/");
-            }
             string mysql_query;
             string mysql_db;
             if (args.Count() == 1)
@@ -151,7 +249,11 @@ namespace DevAudit.AuditLibrary
             if (this.AuditEnvironment.IsUnix)
             {
                 mysql_query = mysql_query.Replace("'", "\\'");
-                if (AppPass == null)
+                if (string.IsNullOrEmpty(this.AppUser))
+                {
+                    mysql_args = string.Format("-X --execute=$\'{0}\'", mysql_query);
+                }
+                else if (AppPass == null)
                 {
                     mysql_args = string.Format("--user={0} -X --execute=$\'{1}\'", this.AppUser, mysql_query);
                 }
@@ -160,9 +262,28 @@ namespace DevAudit.AuditLibrary
                     mysql_args = string.Format("--user={0} --password={1} -X --execute=$\'{2}\'", this.AppUser, this.AuditEnvironment.ToInsecureString(this.AppPass), mysql_query);
                 }
             }
+            else if (this.AuditEnvironment is WinRmAuditEnvironment)
+            {
+                if (string.IsNullOrEmpty(this.AppUser))
+                {
+                    mysql_args = string.Format("-X\t--execute={0}", mysql_query);
+                }
+                else if (AppPass == null)
+                {
+                    mysql_args = string.Format("-X\t--user={0}\t--execute={1}", this.AppUser, mysql_query);
+                }
+                else
+                {
+                    mysql_args = string.Format("--user={0}\t--password={1}\t-X\t--execute={1}", this.AppUser, this.AuditEnvironment.ToInsecureString(this.AppPass), mysql_query);
+                }
+            }
             else
             {
-                if (AppPass == null)
+                if (string.IsNullOrEmpty(this.AppUser))
+                {
+                    mysql_args = string.Format("-X\t--execute=\"{0}\"", mysql_query);
+                }
+                else if (AppPass == null)
                 {
                     mysql_args = string.Format("--user={0}\t-X\t--execute=\"{1}\"", this.AppUser, mysql_query);
                 }
@@ -191,14 +312,14 @@ namespace DevAudit.AuditLibrary
                 else
                 {
                     this.AuditEnvironment.Error(caller, "Could not execute database query \"{0}\" on MySQL server. Server returned: {1}", mysql_query, output);
-                    queryXml.LoadXml(string.Format("<error><![CDATA[{0}]]><error>", output));
+                    queryXml.LoadXml(string.Format("<error><![CDATA[{0}]]></error>", output));
                     return queryXml.CreateNavigator().Select("/");
                 }
             }
             else
             {
                 this.AuditEnvironment.Error(caller, "Could not execute database query \"{0}\" on MySQL server. Error: {1} {2}", mysql_query, error, output);
-                queryXml.LoadXml(string.Format("<error><![CDATA[{0}\n{1]]]><error>", error, output));
+                queryXml.LoadXml(string.Format("<error><![CDATA[{0}\n{1}]]></error>", error, output));
                 return queryXml.CreateNavigator().Select("/");
             }
         }

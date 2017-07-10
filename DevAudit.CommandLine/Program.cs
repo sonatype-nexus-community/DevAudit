@@ -811,9 +811,9 @@ namespace DevAudit.CommandLine
                     {
                         CodeProject = new Drupal8ModuleCodeProject(audit_options, EnvironmentMessageHandler);                       
                     }
-                    else if (verb == "container")
+                    else if (verb == "docker")
                     {
-                        Container = new Container(audit_options, EnvironmentMessageHandler);
+                        Container = new DockerContainer(audit_options, EnvironmentMessageHandler);
                     }
                 }
                 catch (ArgumentException ae)

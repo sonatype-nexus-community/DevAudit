@@ -50,7 +50,7 @@ namespace DevAudit.AuditLibrary
             {
                 if (!this._Exists.HasValue)
                 {
-                    string o = this.EnvironmentExecute(string.Format("[ -f {0}] && echo \"Yes\" || echo \"No\"", this.FullName), "");
+                    string o = this.EnvironmentExecute(string.Format("[ -d {0} ] && echo \"Yes\" || echo \"No\"", this.FullName), "");
                     if (!string.IsNullOrEmpty(o) && o == "Yes")
                     {
                         this._Exists =  true;

@@ -115,6 +115,13 @@ namespace DevAudit.AuditLibrary
                     process_err_sb.AppendLine (e.Message);
                     return false;
                 }
+                else
+                {
+                    Debug(caller, "Execute {0} {1} threw exception {2}.", command, arguments, e.Message);
+                    process_status = ProcessExecuteStatus.Error;
+                    process_error = e.Message;
+                    return false;
+                }
             }
             finally
             {
@@ -125,11 +132,13 @@ namespace DevAudit.AuditLibrary
 
             if ((process_exit_code.HasValue && process_exit_code.Value != 0))
             {
+                Debug(caller, "Execute {0} {1} returned exit code {2}.", command, arguments, process_exit_code.Value);
                 process_status = ProcessExecuteStatus.Error;
                 return false;
             }
             else if ((process_exit_code.HasValue && process_exit_code.Value == 0))
             {
+                Debug(caller, "Execute {0} {1} returned exit code {2}.", command, arguments, process_exit_code.Value);
                 process_status = ProcessExecuteStatus.Completed;
                 return true;
             }
@@ -203,7 +212,6 @@ namespace DevAudit.AuditLibrary
                 }
                 catch (Win32Exception e)
                 {
-                    Error(e);
                     if (e.Message == "The system cannot find the file specified")
                     {
                         process_status = ProcessExecuteStatus.FileNotFound;
@@ -212,6 +220,7 @@ namespace DevAudit.AuditLibrary
                     }
                     else
                     {
+                        Debug(caller, "Execute {0} {1} threw exception {2}.", command, arguments, e.Message);
                         process_status = ProcessExecuteStatus.Error;
                         process_error = e.Message;
                         return false;
@@ -226,11 +235,13 @@ namespace DevAudit.AuditLibrary
 
                 if ((process_exit_code.HasValue && process_exit_code.Value != 0))
                 {
+                    Debug(caller, "Execute {0} {1} returned exit code {2}.", command, arguments, process_exit_code.Value);
                     process_status = ProcessExecuteStatus.Error;
                     return false;
                 }
                 else if ((process_exit_code.HasValue && process_exit_code.Value == 0))
                 {
+                    Debug(caller, "Execute {0} {1} returned exit code {2}.", command, arguments, process_exit_code.Value);
                     process_status = ProcessExecuteStatus.Completed;
                     return true;
                 }
@@ -379,7 +390,7 @@ namespace DevAudit.AuditLibrary
         }
         #endregion
 
-        #region Public properties
+        #region Properties
         public ScriptEnvironment ScriptEnvironment { get; protected set; }
         public bool IsDockerContainer { get; internal set; }
         #endregion

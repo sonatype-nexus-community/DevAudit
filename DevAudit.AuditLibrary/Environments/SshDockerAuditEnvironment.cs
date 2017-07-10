@@ -132,8 +132,8 @@ namespace DevAudit.AuditLibrary
         {
             if (password == null)
             {
-                string c = string.Format("-n -u {0} -s {1} {2}", user, command, arguments);
-                return this.Execute("sudo", c, out process_status, out process_output, out process_error);
+                string c = string.Format("-c \"echo CMD_START && {0} {1} && echo CMD_SUCCESS || echo CMD_ERROR\" {2} || echo CMD_ERROR", command, arguments, user);
+                return this.Execute("su", c, out process_status, out process_output, out process_error);
             }
             else
             {

@@ -10,5 +10,7 @@ namespace DevAudit.AuditLibrary
     public interface IDbAuditTarget
     {
         XPathNodeIterator ExecuteDbQueryToXml(object[] args);
+        bool DetectServerDataDirectory();
+        AuditDirectoryInfo ServerDataDirectory { get; }
     }
 }

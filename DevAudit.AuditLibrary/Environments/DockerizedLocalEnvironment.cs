@@ -194,6 +194,7 @@ namespace DevAudit.AuditLibrary
         public bool LocalExecute(string command, string arguments,
             out ProcessExecuteStatus process_status, out string process_output, out string process_error, Dictionary<string, string> env = null, Action < string> OutputDataReceived = null, Action<string> OutputErrorReceived = null, [CallerMemberName] string memberName = "", [CallerFilePath] string fileName = "", [CallerLineNumber] int lineNumber = 0)
         {
+            CallerInformation caller = new CallerInformation(memberName, fileName, lineNumber);
             FileInfo cf = new FileInfo(command);
             int? process_exit_code = null;
             StringBuilder process_out_sb = new StringBuilder();
@@ -253,6 +254,13 @@ namespace DevAudit.AuditLibrary
                     process_err_sb.AppendLine(e.Message);
                     return false;
                 }
+                else
+                {
+                    Debug(caller, "Execute {0} {1} threw exception {2}.", command, arguments, e.Message);
+                    process_status = ProcessExecuteStatus.Error;
+                    process_error = e.Message;
+                    return false;
+                }
             }
             finally
             {
@@ -263,11 +271,13 @@ namespace DevAudit.AuditLibrary
 
             if ((process_exit_code.HasValue && process_exit_code.Value != 0))
             {
+                Debug(caller, "Execute {0} {1} returned exit code {2}.", command, arguments, process_exit_code.Value);
                 process_status = ProcessExecuteStatus.Error;
                 return false;
             }
             else if ((process_exit_code.HasValue && process_exit_code.Value == 0))
             {
+                Debug(caller, "Execute {0} {1} returned exit code {2}.", command, arguments, process_exit_code.Value);
                 process_status = ProcessExecuteStatus.Completed;
                 return true;
             }
@@ -275,7 +285,6 @@ namespace DevAudit.AuditLibrary
             {
                 process_status = ProcessExecuteStatus.Unknown;
                 return false;
-
             }
         }
         #endregion

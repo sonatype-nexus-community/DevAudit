@@ -16,18 +16,48 @@ namespace DevAudit.AuditLibrary
         #endregion
 
         #region Constructors
-        public ApplicationServer(Dictionary<string, object> server_options, Dictionary<PlatformID, string[]> autodetect_binary_file_path, Dictionary<PlatformID, string[]> default_configuration_file_path, Dictionary<string, string[]> RequiredFilePaths, Dictionary<string, string[]> RequiredDirectoryPaths, EventHandler<EnvironmentEventArgs> message_handler) 
+        public ApplicationServer(Dictionary<string, object> server_options, Dictionary<PlatformID, string[]> default_binary_file_path, Dictionary<PlatformID, string[]> default_configuration_file_path, Dictionary<string, string[]> RequiredFilePaths, Dictionary<string, string[]> RequiredDirectoryPaths, EventHandler<EnvironmentEventArgs> message_handler) 
             : base(server_options, RequiredFilePaths, RequiredDirectoryPaths, message_handler)
         {
             this.ServerOptions = server_options;
-            if (autodetect_binary_file_path == null) throw new ArgumentNullException("autodetect_binary_file_path");
+            if (default_binary_file_path == null) throw new ArgumentNullException("default_binary_file_path");
             if (default_configuration_file_path == null) throw new ArgumentNullException("default_configuration_file_path");
-            AutodetectServerBinaryFile(autodetect_binary_file_path);
-            InitialiseConfigurationFile(default_configuration_file_path);
+            if (this.ApplicationBinary == null)
+            {
+                DetectServerBinaryFile(default_binary_file_path);
+            }
+            if (this.ServerOptions.ContainsKey("ConfigurationFile"))
+            {
+                string cf = this.CombinePath((string)this.ServerOptions["ConfigurationFile"]);
+                if (this.AuditEnvironment.FileExists(cf))
+                {
+                    this.ApplicationFileSystemMap.Add("ConfigurationFile", this.AuditEnvironment.ConstructFile(cf));
+                    this.AuditEnvironment.Info("Using {0} configuration file {1}.", this.ApplicationLabel, cf);
+                }
+                else
+                {
+                    throw new ArgumentException(string.Format("The server configuration file {0} was not found.", cf), "server_options");
+                }
+            }
+            else
+            {
+                DetectConfigurationFile(default_configuration_file_path);
+            }
             if (!this.ApplicationFileSystemMap.ContainsKey("ConfigurationFile"))
             {
-                throw new ArgumentException("Could not initialise configuration for {0}.", this.ApplicationLabel);
+                throw new ArgumentException(string.Format("Could not auto-detect configuration file for {0} and the configuration file was not specified.", this.ApplicationLabel));
             }
+            if (this is IDbAuditTarget)
+            {
+                bool d = (this as IDbAuditTarget).DetectServerDataDirectory();
+                {
+                    if (!d)
+                    {
+                        this.AuditEnvironment.Warning("Failed to auto-detect {0} database server data directory.", this.ApplicationLabel);
+                    }
+                }
+            }
+            
         }
 
         public ApplicationServer(Dictionary<string, object> server_options, string[] default_configuration_file_path, Dictionary<string, string[]> RequiredFilePaths, Dictionary<string, string[]> RequiredDirectoryPaths, EventHandler<EnvironmentEventArgs> message_handler = null) 
@@ -35,7 +65,7 @@ namespace DevAudit.AuditLibrary
         {
             this.ServerOptions = server_options;
             if (default_configuration_file_path == null) throw new ArgumentNullException("default_configuration_file_path");
-            InitialiseConfigurationFile(default_configuration_file_path);
+            FindConfigurationFile(default_configuration_file_path);
             if (!this.ApplicationFileSystemMap.ContainsKey("ConfigurationFile"))
             {
                 throw new ArgumentException("Could not initialise configuration for {0}.", this.ApplicationLabel);
@@ -70,7 +100,7 @@ namespace DevAudit.AuditLibrary
         #endregion
 
         #region Methods
-        protected void AutodetectServerBinaryFile(string[] autodetect_binary_file_path)
+        protected void FindServerBinaryFile(string[] autodetect_binary_file_path)
         {
             if (this.ApplicationBinary == null)
             {
@@ -109,15 +139,15 @@ namespace DevAudit.AuditLibrary
             }
         }
 
-        protected void AutodetectServerBinaryFile(Dictionary<PlatformID, string[]> autodetect_binary_file_path)
+        protected virtual void DetectServerBinaryFile(Dictionary<PlatformID, string[]> autodetect_binary_file_path)
         {
             if (autodetect_binary_file_path.Keys.Contains(this.AuditEnvironment.OS.Platform))
             {
-                this.AutodetectServerBinaryFile(autodetect_binary_file_path[this.AuditEnvironment.OS.Platform]);
+                this.FindServerBinaryFile(autodetect_binary_file_path[this.AuditEnvironment.OS.Platform]);
             }
         }
 
-        protected void InitialiseConfigurationFile(string[] default_configuration_file_path)
+        protected void FindConfigurationFile(string[] default_configuration_file_path)
         {
             if (!this.ServerOptions.ContainsKey("ConfigurationFile"))
             {
@@ -158,30 +188,13 @@ namespace DevAudit.AuditLibrary
                     throw new ArgumentException(string.Format("The server configuration file was not specified and the default configuration file {0} could not be found.", this.DefaultConfigurationFilePath), "server_options");
                 }
             }
-            else if (!this.ServerOptions.ContainsKey("ConfigurationFile") && string.IsNullOrEmpty(this.DefaultConfigurationFilePath))
-            {
-                throw new ArgumentException(string.Format("The server configuration file was not specified and the default configuration file could not be constructed."), "server_options");
-            }
-            else
-            {
-                string cf = this.CombinePath((string)this.ServerOptions["ConfigurationFile"]);
-                if (this.AuditEnvironment.FileExists(cf))
-                {
-                    this.ApplicationFileSystemMap.Add("ConfigurationFile", this.AuditEnvironment.ConstructFile(cf));
-                    this.AuditEnvironment.Info("Using {0} configuration file {1}.", this.ApplicationLabel, cf);
-                }
-                else
-                {
-                    throw new ArgumentException(string.Format("The server configuration file {0} was not found.", cf), "server_options");
-                }
-            }
         }
 
-        protected void InitialiseConfigurationFile(Dictionary<PlatformID, string[]> default_configuration_file_path)
+        protected virtual void DetectConfigurationFile(Dictionary<PlatformID, string[]> default_configuration_file_path)
         {
             if (default_configuration_file_path.Keys.Contains(this.AuditEnvironment.OS.Platform))
             {
-                this.InitialiseConfigurationFile(default_configuration_file_path[this.AuditEnvironment.OS.Platform]);
+                this.FindConfigurationFile(default_configuration_file_path[this.AuditEnvironment.OS.Platform]);
             }
         }
 
@@ -205,18 +218,18 @@ namespace DevAudit.AuditLibrary
         {
             if (this.AuditEnvironment.OS.Platform == PlatformID.Win32NT)
             {
-                AuditEnvironment.ProcessExecuteStatus process_status;
                 string process_output;
-                string process_error;
                 string args = string.Format("/ -wholename '{0}'", path);
-                bool r = this.AuditEnvironment.Execute("find", args, out process_status, out process_output, out process_error);
+                bool r = this.AuditEnvironment.ExecuteCommand("find", args, out process_output, false);
                 if (r || (!string.IsNullOrEmpty(process_output)))
                 {
-                    return process_output.Split(this.AuditEnvironment.LineTerminator.ToCharArray());
+                    string[] f = process_output.Split(this.AuditEnvironment.LineTerminator.ToCharArray()).Where(o => !o.Contains("Permission denied")).ToArray();
+                    this.AuditEnvironment.Debug("FindServerFile({0}) returned {1}.", path, f.Aggregate((f1, f2) => f1 + " " + f2));
+                    return f;
                 }
                 else
                 {
-                    this.AuditEnvironment.Debug("Did not successfully execute command 'find {0}'. Process error: {1}.", args, process_error);
+                    this.AuditEnvironment.Debug("FindServerFile({0}) returned null.", path);
                     return new string[] { };
                 }
             }

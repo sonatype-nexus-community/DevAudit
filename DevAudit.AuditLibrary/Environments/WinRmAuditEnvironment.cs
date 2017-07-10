@@ -80,9 +80,9 @@ namespace DevAudit.AuditLibrary
             process_error = string.Empty;
             try
             {
-                process_output = this.Manager.RunCmd(command, arguments.Split('\t').ToList());
+                process_output = this.Manager.RunCmd(command, arguments.Split('\t'));
                 process_status = ProcessExecuteStatus.Completed;
-                Info("Execute command {0} {1} returned {2}.", command, arguments.Replace('\t', ' '), process_output);
+                Debug("Execute command {0} {1} returned {2}.", command, arguments.Replace('\t', ' '), process_output);
                 return true;
             }
             catch (Exception e)

@@ -5,7 +5,7 @@ postgres:
         tags:
             -   STIG/V-72841/PostgreSQL must be configured to prohibit or restrict the use of organization defined functions, ports, protocols, and/or services
         severity: 1
-        xpathtest:  db:query("SHOW port")//field[@name='port']='5432'
+        xpathtest:  db:query("SHOW port")//field[@name='port']='5432' or $env:PGPORT='5432' or /PGSQL/Values/port='5432' 
         summary: |
             By default postgres runs on port 5432. Most attackers will check if a server is listening on port 5432.
             If you change the port # to something different, others need to know exactly what port to use to access the server.  

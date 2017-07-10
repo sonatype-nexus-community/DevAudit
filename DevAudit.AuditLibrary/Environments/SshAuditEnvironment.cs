@@ -207,7 +207,7 @@ namespace DevAudit.AuditLibrary
             process_error = process_output + cmd.Error.Trim();
             if (cmd.ExitStatus == 0)
             {
-                Debug(caller, "Command {0} completed successfully, output: {1}", command + " " + arguments, process_output);
+                Debug(caller, "Execute {0} returned zero exit code. Output: {1}.", command + " " + arguments, process_output);
                 process_status = ProcessExecuteStatus.Completed;
                 cmd.Dispose();
                 return true;
@@ -215,7 +215,7 @@ namespace DevAudit.AuditLibrary
             else
             {
                 process_status = ProcessExecuteStatus.Error;
-                Debug(caller, "Command {0} did not complete successfully. Exit status: {2}. Output: {1}", command + " " + arguments, process_error, cmd.ExitStatus);
+                Debug(caller, "Execute {0} returned non-zero exit code {2}. Error: {1}.", command + " " + arguments, process_error, cmd.ExitStatus);
                 cmd.Dispose();
                 return false;
             }
@@ -283,12 +283,12 @@ namespace DevAudit.AuditLibrary
             if (!cmd_success)
             {
                 process_status = ProcessExecuteStatus.Error;
-                Error(caller, "Error attempting to execute {0} {1}: {2}.", command, arguments, cmd_output);
+                Debug(caller, "Execute {0} {1} returned non-zero exit code. Output: {2}.", command, arguments, cmd_output);
                 return false;
             }
             else
             {
-                Debug(caller, "Command output: {0}.", cmd_output);
+                Debug(caller, "Execute {0} {1} returned zero exit code. Output: {2}.", command, arguments, cmd_output);
                 process_status = ProcessExecuteStatus.Completed;
                 process_output = cmd_output.Trim('\r', '\n');
                 return true;
@@ -330,7 +330,7 @@ namespace DevAudit.AuditLibrary
                     {
                         results.Add(new Tuple<string, ProcessExecuteStatus, string, string>(_c.Item1, ProcessExecuteStatus.Error, process_output, process_error));
                     }
-                    Debug(caller, "Execute {0} did not complete: {1} {2}.", s.Key.Result.Length, cmd.CommandText, process_output, process_error);
+                    Debug(caller, "Execute {0} did not complete successfully: {1} {2}.", s.Key.Result.Length, cmd.CommandText, process_output, process_error);
                 }
             });
             return results;

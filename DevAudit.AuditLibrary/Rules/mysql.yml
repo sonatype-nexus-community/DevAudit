@@ -1,22 +1,23 @@
 ﻿---
 mysql:
-    -   id: 1
-        title: mysqld runs as the root user
-        category: Execution with Unnecessary Privileges
-        tags: 
+    -  id: 1
+       title:  mysqld does not run under dedicated least privileged account  
+       tags: 
             -   CWE/250/Execution with Unnecessary Privileges   
             -   OWASP-Top10-2013/A5/Security Misconfiguration
-        severity: 2
-        xpathtest: not(boolean(/MySQL/mysqld/user)) or boolean(/MySQL/mysqld/user='root')
-        summary: |
-           mysqld can (and should) be run as an ordinary, unprivileged user instead. 
-           You can create a separate Unix account named mysql to make everything even more secure. Use this account only for administering MySQL.           
-        resolution: |
-            Create an ordinary, unnprivileged user account called mysql (or a name of your choice.)
+            -   CIS/Oracle MySQL Enterprise Edition 5.6/Level 1 MySQL RDBMS on Linux
+       platform: Unix
+       xpathtest: boolean(/MySQL/mysqld/user='root') or os:exec("ps", "-ef | grep '^root.*mysqld.*--datadir.*'") != ''
+       summary: |
+           Utilizing a least privilege account for MySQL to execute as may reduce the impact of a MySQL-born vulnerability. 
+           A restricted account will be unable to access resources unrelated to MySQL, such as operating system configurations.
+       resolution: |
+            Create a user which is only used for running MySQL and directly related processes. This user must not have administrative rights to the system.
             Add a user=mysql key value to the [mysqld] section of your configuration file.
-        urls:
+       urls:
+            -   https://www.cisecurity.org/cis-benchmarks/
             -   https://dev.mysql.com/doc/refman/5.7/en/security-against-attack.html
-
+           
     -   id: 2
         title:  mysqld accepts TCP/IP connections on all IPv6 and IPv4 interfaces
         category: Execution with Unnecessary Privileges
@@ -139,3 +140,68 @@ mysql:
             e.g ALTER USER 'myuser' SET PASSWORD=.... 
        urls:
             -   https://www.doag.org/formes/pubfiles/7535404/docs/Konferenz/2015/vortraege/MySQL/2015-K-MySQL-Carsten_Thalheimer-MySQL_Enterprise_-_Haerten_von_MySQL-Instanzen-Praesentation.pdf
+
+    -  id: 11
+       title:  Databases are placed on system partition
+       tags: 
+            -   CIS/Oracle MySQL Enterprise Edition 5.6/Level 1 MySQL RDBMS on Linux
+       platform: Unix
+       xpathtest: >
+            starts-with(db:query("show variables where variable_name = 'datadir'")//row/field[@name='Value'], '/var') or
+            starts-with(db:query("show variables where variable_name = 'datadir'")//row/field[@name='Value'], '/usr') or
+            boolean(db:query("show variables where variable_name = 'datadir'")//row/field[@name='Value']='/')
+       summary: |
+           It is generally accepted that host operating systems should include different filesystem partitions for different purposes. 
+           One set of filesystems are typically called "system partitions", and are generally reserved for host system/application operation. 
+           The other set of filesystems are typically called "non-system partitions", and such locations are generally reserved for storing data.
+       resolution: |
+            Perform the following steps to remediate this setting:
+            1. Choose a non system partition new location for the MySQL data
+            2. Stop mysqld using a command like: service mysql stop
+            3. Copy the data using a command like: cp - rp <datadir Value> <new location>
+            4. Set the datadir location to the new location in the MySQL configuration file
+            5. Start mysqld using a command like: service mysql star
+       urls:
+            -   https://www.cisecurity.org/cis-benchmarks/
+
+    -  id: 12
+       title:  mysqld user command history is not disabled
+       tags: 
+            -   CIS/Oracle MySQL Enterprise Edition 5.6/Level 2 MySQL RDBMS on Linux
+       platform: Unix
+       xpathtest: >
+            boolean(fs:find-files("/home", ".mysql_history")) and not(contains(fs:symbolic-link-location($fs:_1), "/dev/null")) or
+            boolean(fs:find-files("/root", ".mysql_history")) and not(contains(fs:symbolic-link-location($fs:_3), "/dev/null"))
+       summary: |
+            On Linux/UNIX, the MySQL client logs statements executed interactively to a history file. 
+            By default, this file is named .mysql_history in the user's home directory. 
+            Most interactive commands run in the MySQL client application are saved to a history file. 
+            The MySQL command history should be disabled.
+       resolution: |
+            1. Remove .mysql_history if it exists.
+            2. Either:
+                1. Set the MYSQL_HISTFILE environment variable to /dev/null. This will need to be placed in the shell's startup script.
+                2. Create $HOME/.mysql_history as a symbolic to /dev/null.
+       urls:
+            -   https://www.cisecurity.org/cis-benchmarks/
+            -   http://bugs.mysql.com/bug.php?id=72158
+
+    -  id: 13
+       title:  The MYSQL_PWD environment variables is in use 
+       tags: 
+            -   CIS/Oracle MySQL Enterprise Edition 5.6/Level 1 MySQL RDBMS on Linux
+       platform: Unix
+       xpathtest: os:exec("grep", "MYSQL_PWD /proc/*/environ") != ''
+       summary: |
+            MySQL can read a default database password from an environment variable called MYSQL_PWD.
+            The use of the MYSQL_PWD environment variable implies the clear text storage of MySQL credentials. 
+            Avoiding this may increase assurance that the confidentiality of MySQL credentials is preserved
+       resolution: |
+            1. Remove .mysql_history if it exists.
+            2. Either:
+                1. Set the MYSQL_HISTFILE environment variable to /dev/null. This will need to be placed in the shell's startup script.
+                2. Create $HOME/.mysql_history as a symbolic to /dev/null.
+       urls:
+            -   http://dev.mysql.com/doc/refman/5.6/en/environment/variables.html
+            -   https://blogs.oracle.com/myoraclediary/entry/how_to_check_environment_variables
+

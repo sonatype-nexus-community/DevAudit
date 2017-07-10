@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Xml;
 using System.Xml.XPath;
@@ -46,6 +47,53 @@ namespace DevAudit.AuditLibrary
         #endregion
 
         #region Overriden methods
+        protected override void DetectConfigurationFile(Dictionary<PlatformID, string[]> default_configuration_file_path)
+        {
+            bool set_config_from_process_cmdline = false;
+            bool set_config_from_env = false;
+            if (this.AuditEnvironment.IsUnix)
+            {
+                List<ProcessInfo> processes = this.AuditEnvironment.GetAllRunningProcesses();
+                if (processes != null && processes.Any(p=> p.CommandLine.Contains("postgres") && p.CommandLine.Contains("config_file")))
+                {
+                    ProcessInfo process = processes.Where(p => p.CommandLine.Contains("postgres") && p.CommandLine.Contains("config_file")).First();
+                    Match m = Regex.Match(process.CommandLine, @"config_file=(\S+)");
+                    if (m.Success)
+                    {
+                        string f = m.Groups[1].Value;
+                        AuditFileInfo cf = this.AuditEnvironment.ConstructFile(f);
+                        if (cf.Exists)
+                        {
+                            this.AuditEnvironment.Success("Auto-detected {0} server configuration file at {1}.", this.ApplicationLabel, cf.FullName);
+                            this.ApplicationFileSystemMap.Add("ConfigurationFile", cf);
+                            set_config_from_process_cmdline = true;
+                        }
+                    }
+                 }
+                if (!set_config_from_process_cmdline)
+                {
+                    Dictionary<string, string> env = this.AuditEnvironment.GetEnvironmentVars();
+                    if (env != null)
+                    {
+                        if (env.ContainsKey("PGDATA"))
+                        {
+                            AuditFileInfo cf = this.AuditEnvironment.ConstructFile(this.CombinePath(env["PGDATA"], "postgresql.conf"));
+                            if (cf.Exists)
+                            {
+                                this.AuditEnvironment.Success("Auto-detected {0} server configuration file at {1}.", this.ApplicationLabel, cf.FullName);
+                                this.ApplicationFileSystemMap.Add("ConfigurationFile", cf);
+                                set_config_from_env = true;
+                            }
+                        }
+                        if (!(set_config_from_process_cmdline || set_config_from_env))
+                        {
+                            base.DetectConfigurationFile(default_configuration_file_path);
+                        }
+                    }
+                }
+            }
+        }
+
         protected override string GetVersion()
         {
             AuditEnvironment.ProcessExecuteStatus process_status;
@@ -271,6 +319,66 @@ namespace DevAudit.AuditLibrary
                 
             return x;
         }
+
+        public bool DetectServerDataDirectory()
+        {
+            bool set_data_from_process_cmdline = false;
+            bool set_data_from_env = false;
+            bool set_data_from_config = false;
+            if (this.AuditEnvironment.IsUnix)
+            {
+                List<ProcessInfo> processes = this.AuditEnvironment.GetAllRunningProcesses();
+                if (processes != null && processes.Any(p => p.CommandLine.Contains("postgres") && p.CommandLine.Contains("-D")))
+                {
+                    ProcessInfo process = processes.Where(p => p.CommandLine.Contains("postgres") && p.CommandLine.Contains("-D")).First();
+                    Match m = Regex.Match(process.CommandLine, @"-D\s+(\S+)\s+");
+                    if (m.Success)
+                    {
+                        string d = m.Groups[1].Value;
+                        AuditDirectoryInfo df = this.AuditEnvironment.ConstructDirectory(d);
+                        if (df.Exists)
+                        {
+                            this.AuditEnvironment.Success("Auto-detected {0} server data directory at {1}.", this.ApplicationLabel, df.FullName);
+                            this.ServerDataDirectory = df;
+                            this.ApplicationFileSystemMap.Add("Data", df);
+                            set_data_from_process_cmdline = true;
+                        }
+                    }
+                }
+                if (!set_data_from_process_cmdline)
+                {
+                    Dictionary<string, string> env = this.AuditEnvironment.GetEnvironmentVars();
+                    if (env != null)
+                    {
+                        if (env.ContainsKey("PGDATA"))
+                        {
+                            if (!set_data_from_process_cmdline)
+                            {
+                                this.ServerDataDirectory = this.AuditEnvironment.ConstructDirectory(env["PGDATA"]);
+                                this.AuditEnvironment.Success("Auto-detected {0} server data directory at {1}.", this.ApplicationLabel, this.ServerDataDirectory.FullName);
+                                set_data_from_env = true;
+                            }
+
+                        }
+                    }
+                }
+                if (!(set_data_from_process_cmdline || set_data_from_env))
+                {
+                    this.ServerDataDirectory = this.ConfigurationFile.Directory as AuditDirectoryInfo;
+                    this.ApplicationFileSystemMap["Data"] = this.ServerDataDirectory;
+                    set_data_from_config = true;
+                }
+                return (set_data_from_process_cmdline || set_data_from_env || set_data_from_config);
+            }
+            else
+            {
+                return false;
+            }
+        }
+        #endregion
+
+        #region Properties
+        public AuditDirectoryInfo ServerDataDirectory { get; protected set; }
         #endregion
     }
 }
