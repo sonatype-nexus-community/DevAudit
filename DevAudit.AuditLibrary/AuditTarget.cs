@@ -118,7 +118,7 @@ namespace DevAudit.AuditLibrary
                     else if (this.AuditOptions.Keys.Contains("RemoteUser") && this.AuditOptions.Keys.Contains("RemotePass"))
                     {
                         ssh_environment = new SshDockerAuditEnvironment(this.HostEnvironmentMessage, "ssh", (string)this.AuditOptions["RemoteHost"], (int)this.AuditOptions["RemoteSshPort"],
-                            (string)this.AuditOptions["RemoteUser"], this.AuditOptions["RemotePass"], (string)this.AuditOptions["DockerContainer"], null, new OperatingSystem(PlatformID.Unix, new Version(0, 0)), this.HostEnvironment);
+                            (string)this.AuditOptions["RemoteUser"], this.AuditOptions["RemotePass"], null,  (string)this.AuditOptions["DockerContainer"], new OperatingSystem(PlatformID.Unix, new Version(0, 0)), this.HostEnvironment);
                     }
                     else throw new Exception("Unknown remote host authentication options.");
 
