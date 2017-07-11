@@ -288,7 +288,7 @@
     <Compile Include="Environments\IOperatingSystemEnvironment.cs" />
 <Compile Include="Environments\IContainerEnvironment.cs" />
 <Compile Include="Environments\Models\ProcessInfo.cs" />
-<Compile Include="Targets\VulnerableCredentialStore.cs" />
+<Compile Include="Targets\IVulnerableCredentialStore.cs" />
     <Compile Include="Environments\SshDockerAuditDirectoryInfo.cs" />
     <Compile Include="Environments\SshDockerAuditFileInfo.cs" />
 <Compile Include="Environments\SshDockerAuditEnvironment.cs" />
