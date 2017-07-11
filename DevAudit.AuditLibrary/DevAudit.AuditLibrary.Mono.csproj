@@ -292,6 +292,7 @@
     <Compile Include="Environments\SshDockerAuditDirectoryInfo.cs" />
     <Compile Include="Environments\SshDockerAuditFileInfo.cs" />
 <Compile Include="Environments\SshDockerAuditEnvironment.cs" />
+<Compile Include="VulnerableCredentialStorage.cs" />
   </ItemGroup>
   <ItemGroup>
     
