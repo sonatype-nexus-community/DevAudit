@@ -121,9 +121,8 @@ namespace DevAudit.AuditLibrary
             sw.Start();
             string ls_command = "ls";
             string process_output;
-            string process_error;
-            ProcessExecuteStatus process_status;
-            bool r = this.Execute(ls_command, file_path, out process_status, out process_output, out process_error);
+         
+            bool r = this.ExecuteCommand(ls_command, file_path, out process_output, false);
             sw.Stop();
             if (r)
             {
@@ -132,7 +131,7 @@ namespace DevAudit.AuditLibrary
             }
             else
             {
-                Debug("ls {0} returned {1} in {2} ms.", file_path, process_error, sw.ElapsedMilliseconds);
+                Debug("ls {0} returned {1} in {2} ms.", file_path, process_output, sw.ElapsedMilliseconds);
                 return false;
             }
         }

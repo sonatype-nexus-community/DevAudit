@@ -101,17 +101,15 @@ namespace DevAudit.AuditLibrary
         {
             CallerInformation caller = this.Here();
             string process_output = "";
-            string process_error = "";
-            ProcessExecuteStatus process_status;
-            if (this.Execute("stat", file_path, out process_status, out process_output, out process_error))
+            if (this.ExecuteCommand("stat", file_path, out process_output, false) || !string.IsNullOrEmpty(process_output))
             {
-                this.Debug(caller, "Execute returned true for stat {0}. Output: {1}. Error: {2}.", file_path, process_output, process_error);
+                this.Debug(caller, "Execute returned true for stat {0}. Output: {1}.", file_path, process_output);
                 return !process_output.Contains("no such file or directory") && (process_output.Contains("regular file") || process_output.Contains("symbolic link"));
             }
 
             else
             {
-                this.Debug(caller, "Execute returned false for stat {0}. Output: {1}. Error: {2}.", file_path, process_output, process_error);
+                this.Debug(caller, "Execute returned false for stat {0}.", file_path);
                 return false;
             }
 

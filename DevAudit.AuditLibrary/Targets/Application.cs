@@ -243,7 +243,7 @@ namespace DevAudit.AuditLibrary
                 if (e is NotImplementedException && e.TargetSite.Name == "GetVersion")
                 {
                     this.AuditEnvironment.Debug("{0} application does not implement standalone GetVersion method.", this.ApplicationLabel);
-                }
+                }                                                                                                                                                                                                                                                                   
                 else if (e.TargetSite.Name == "GetVersion")
                 {
                     this.AuditEnvironment.Error(e, "There was an error scanning the {0} application version.", this.ApplicationLabel);

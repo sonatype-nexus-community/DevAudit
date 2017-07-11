@@ -25,7 +25,7 @@ namespace DevAudit.AuditLibrary
             },
             new Dictionary<PlatformID, string[]>()
             {
-                { PlatformID.Unix, new string[] { "find", "@", "etc", "*", "mysql", "my.cnf" } },
+                { PlatformID.Unix, new string[] { "find", "@", "etc", "mysql", "my.cnf" } },
                 { PlatformID.Win32NT, new string[] { "@", "my.ini" } }
             }, new Dictionary<string, string[]>(), new Dictionary<string, string[]>(), message_handler)
         {
@@ -49,6 +49,7 @@ namespace DevAudit.AuditLibrary
         {
             bool set_config_from_process_cmdline = false;
             bool set_config_from_env = false;
+            bool set_config_from_my_cnf = false;
             if (this.AuditEnvironment.IsUnix)
             {
                 List<ProcessInfo> processes = this.AuditEnvironment.GetAllRunningProcesses();
@@ -88,7 +89,26 @@ namespace DevAudit.AuditLibrary
                         }
                     }
                 }
-                if (!(set_config_from_process_cmdline || set_config_from_env))
+                if (!set_config_from_env)
+                {
+                    if (this.AuditEnvironment.FileExists(this.CombinePath("@", "etc", "my.cnf")))
+                    {
+                        AuditFileInfo cf = this.AuditEnvironment.ConstructFile(this.CombinePath("@", "etc", "my.cnf"));
+
+                        this.AuditEnvironment.Success("Auto-detected {0} server configuration file at {1}.", this.ApplicationLabel, cf.FullName);
+                        this.ApplicationFileSystemMap.Add("ConfigurationFile", cf);
+                        set_config_from_my_cnf = true;
+                    }
+                    else if (this.AuditEnvironment.FileExists(this.CombinePath("@", "etc", "my", "my.cnf")))
+                    {
+                        AuditFileInfo cf = this.AuditEnvironment.ConstructFile(this.CombinePath("@", "etc", "my", "my.cnf"));
+
+                        this.AuditEnvironment.Success("Auto-detected {0} server configuration file at {1}.", this.ApplicationLabel, cf.FullName);
+                        this.ApplicationFileSystemMap.Add("ConfigurationFile", cf);
+                        set_config_from_my_cnf = true;
+                    }
+                }
+                if (!(set_config_from_process_cmdline || set_config_from_env || set_config_from_my_cnf))
                 {
                     base.DetectConfigurationFile(default_configuration_file_path);
                 }

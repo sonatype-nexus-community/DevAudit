@@ -192,6 +192,8 @@ namespace DevAudit.AuditLibrary
 
         public Dictionary<string, string> OSEnvironmentVars { get; protected set; }
 
+        public List<ProcessInfo> OSProcesses { get; protected set; }
+
         public LocalEnvironment HostEnvironment { get; protected set; }
 
         public DirectoryInfo WorkDirectory { get; protected set; }
@@ -637,10 +639,14 @@ namespace DevAudit.AuditLibrary
         }
         public virtual List<ProcessInfo> GetAllRunningProcesses()
         {
+            if (this.OSProcesses != null)
+            {
+                return this.OSProcesses;
+            }
             if (this.IsUnix)
             {
                 string output;
-                if (this.ExecuteCommand("ps", "-eo uname,pid,start_time,args", out output))
+                if (this.ExecuteCommand("ps", "-eo uname,pid,start_time,args", out output, false))
                 {
                     string[] lines = output.Split('\n');
                     if (!lines[0].StartsWith("USER"))
@@ -662,12 +668,13 @@ namespace DevAudit.AuditLibrary
                         }
                         p.Add(new ProcessInfo(ps[0], int.Parse(ps[1]), ps[2], c.Trim()));
                     }
-                    return p;
+                    return this.OSProcesses = p;
                 }
                 else
                 {
-                    this.Error("Could not get running processes. Error: {0}", output);
-                    return null;
+                    this.Warning("Could not get running processes in environment.");
+                    this.Debug("Could not get running processes. Error: {0}", output);
+                    return this.OSProcesses = new List<ProcessInfo>();
                 }
             }
             else

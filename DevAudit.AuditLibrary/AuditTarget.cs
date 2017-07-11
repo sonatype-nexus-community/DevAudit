@@ -43,72 +43,45 @@ namespace DevAudit.AuditLibrary
         {
             if (ReferenceEquals(audit_options, null)) throw new ArgumentNullException("audit_options");
             this.AuditOptions = audit_options;
-            this.ControllerMessage = controller_message_handler;
-            this.HostEnvironmentMessage = AuditTarget_HostEnvironmentMessageHandler;
-            this.HostEnvironment = new LocalEnvironment(this.HostEnvironmentMessage);
-            this.HostEnvironment.ScriptEnvironment.MessageHandler += this.AuditTarget_ScriptEnvironmentMessageHandler;
-            if (this.AuditOptions.ContainsKey("Dockerized"))
-            {
-                this.HostEnvironment.IsDockerContainer = true;
-            }
-            this.HostEnvironmentInitialised = true;
-            if (this.AuditOptions.Keys.Contains("DockerContainer") && !this.AuditOptions.Keys.Contains("RemoteHost"))
-            {
-                DockerAuditEnvironment docker_environment = new DockerAuditEnvironment(this.HostEnvironmentMessage, (string)this.AuditOptions["DockerContainer"], new OperatingSystem(PlatformID.Unix, new Version(0, 0)), this.HostEnvironment);
-                if (string.IsNullOrEmpty(docker_environment.Container))
-                {
-                    this.AuditEnvironmentIntialised = false;
-                    throw new Exception("Failed to initialise audit environment.");
-                }
-                else if (!docker_environment.ContainerRunning)
-                {
-                    this.AuditEnvironmentIntialised = false;
-                    throw new Exception("The Docker container is not currently running and DevAudit does not know how to run your container. Ensure your container is running before attempting to" +
-                        "audit it.");
-                }
-                else
-                {
-                    this.AuditEnvironment = docker_environment;
-                    this.AuditEnvironmentIntialised = true;
-                    this.AuditEnvironmentMessage = AuditTarget_AuditEnvironmentMessageHandler;
-                    this.AuditEnvironment.MessageHandler -= HostEnvironmentMessage;
-                    this.AuditEnvironment.MessageHandler += this.AuditEnvironmentMessage;
-                }
 
-            }
-            else if (this.AuditOptions.Keys.Contains("DockerContainer") && this.AuditOptions.Keys.Contains("RemoteHost"))
+            #region Initialise host environment
+            if (this.AuditOptions.ContainsKey("HostEnvironment"))
             {
-                SshDockerAuditEnvironment ssh_environment = null;
-                if (this.AuditOptions.Keys.Contains("RemoteUser") && this.AuditOptions.Keys.Contains("RemoteKeyFile"))
+                this.HostEnvironment = (LocalEnvironment)this.AuditOptions["HostEnvironment"];
+                this.HostEnvironmentInitialised = true;
+            }
+            else
+            {
+                this.ControllerMessage = controller_message_handler;
+                this.HostEnvironmentMessage = AuditTarget_HostEnvironmentMessageHandler;
+                this.HostEnvironment = new LocalEnvironment(this.HostEnvironmentMessage);
+                this.HostEnvironment.ScriptEnvironment.MessageHandler += this.AuditTarget_ScriptEnvironmentMessageHandler;
+                if (this.AuditOptions.ContainsKey("Dockerized"))
                 {
-                    if (this.AuditOptions.Keys.Contains("RemoteKeyPassPhrase"))
-                    {
-                        ssh_environment = new SshDockerAuditEnvironment(this.HostEnvironmentMessage, "ssh", (string)this.AuditOptions["RemoteHost"], (int)this.AuditOptions["RemoteSshPort"],
-                            (string)this.AuditOptions["RemoteUser"], this.AuditOptions["RemoteKeyPassPhrase"], (string)this.AuditOptions["RemoteKeyFile"],
-                            (string)this.AuditOptions["DockerContainer"], new OperatingSystem(PlatformID.Unix, new Version(0, 0)), this.HostEnvironment);
-                    }
-                    else
-                    {
-                        ssh_environment = new SshDockerAuditEnvironment(this.HostEnvironmentMessage, "ssh", (string)this.AuditOptions["RemoteHost"], (int)this.AuditOptions["RemoteSshPort"],
-                            (string)this.AuditOptions["RemoteUser"], null, (string)this.AuditOptions["RemoteKeyFile"],
-                            (string)this.AuditOptions["DockerContainer"], new OperatingSystem(PlatformID.Unix, new Version(0, 0)), this.HostEnvironment);
-                    }
+                    this.HostEnvironment.IsDockerContainer = true;
                 }
-                else if (this.AuditOptions.Keys.Contains("RemoteUser") && this.AuditOptions.Keys.Contains("RemotePass"))
-                {
-                    ssh_environment = new SshDockerAuditEnvironment(this.HostEnvironmentMessage, "ssh", (string)this.AuditOptions["RemoteHost"], (int)this.AuditOptions["RemoteSshPort"],
-                        (string)this.AuditOptions["RemoteUser"], this.AuditOptions["RemotePass"], (string)this.AuditOptions["DockerContainer"], null, new OperatingSystem(PlatformID.Unix, new Version(0, 0)), this.HostEnvironment);
-                }
-                else throw new Exception("Unknown remote host authentication options.");
+                this.HostEnvironmentInitialised = true;
+            }
+            #endregion
 
-                if (ssh_environment.IsConnected)
+            #region Initialise audit environment
+            if (this.AuditOptions.ContainsKey("AuditEnvironment"))
+            {
+                this.AuditEnvironment = (AuditEnvironment)this.AuditOptions["AuditEnvironment"];
+                this.AlpheusEnvironment = new AlEnvironment(this);
+                this.AuditEnvironmentIntialised = true;
+            }
+            else
+            {
+                if (this.AuditOptions.Keys.Contains("DockerContainer") && !this.AuditOptions.Keys.Contains("RemoteHost"))
                 {
-                    if (string.IsNullOrEmpty(ssh_environment.Container))
+                    DockerAuditEnvironment docker_environment = new DockerAuditEnvironment(this.HostEnvironmentMessage, (string)this.AuditOptions["DockerContainer"], new OperatingSystem(PlatformID.Unix, new Version(0, 0)), this.HostEnvironment);
+                    if (string.IsNullOrEmpty(docker_environment.Container))
                     {
                         this.AuditEnvironmentIntialised = false;
                         throw new Exception("Failed to initialise audit environment.");
                     }
-                    else if (!ssh_environment.ContainerRunning)
+                    else if (!docker_environment.ContainerRunning)
                     {
                         this.AuditEnvironmentIntialised = false;
                         throw new Exception("The Docker container is not currently running and DevAudit does not know how to run your container. Ensure your container is running before attempting to" +
@@ -116,83 +89,175 @@ namespace DevAudit.AuditLibrary
                     }
                     else
                     {
+                        this.AuditEnvironment = docker_environment;
+                        this.AuditEnvironmentIntialised = true;
+                        this.AuditEnvironmentMessage = AuditTarget_AuditEnvironmentMessageHandler;
+                        this.AuditEnvironment.MessageHandler -= HostEnvironmentMessage;
+                        this.AuditEnvironment.MessageHandler += this.AuditEnvironmentMessage;
+                    }
+
+                }
+                else if (this.AuditOptions.Keys.Contains("DockerContainer") && this.AuditOptions.Keys.Contains("RemoteHost"))
+                {
+                    SshDockerAuditEnvironment ssh_environment = null;
+                    if (this.AuditOptions.Keys.Contains("RemoteUser") && this.AuditOptions.Keys.Contains("RemoteKeyFile"))
+                    {
+                        if (this.AuditOptions.Keys.Contains("RemoteKeyPassPhrase"))
+                        {
+                            ssh_environment = new SshDockerAuditEnvironment(this.HostEnvironmentMessage, "ssh", (string)this.AuditOptions["RemoteHost"], (int)this.AuditOptions["RemoteSshPort"],
+                                (string)this.AuditOptions["RemoteUser"], this.AuditOptions["RemoteKeyPassPhrase"], (string)this.AuditOptions["RemoteKeyFile"],
+                                (string)this.AuditOptions["DockerContainer"], new OperatingSystem(PlatformID.Unix, new Version(0, 0)), this.HostEnvironment);
+                        }
+                        else
+                        {
+                            ssh_environment = new SshDockerAuditEnvironment(this.HostEnvironmentMessage, "ssh", (string)this.AuditOptions["RemoteHost"], (int)this.AuditOptions["RemoteSshPort"],
+                                (string)this.AuditOptions["RemoteUser"], null, (string)this.AuditOptions["RemoteKeyFile"],
+                                (string)this.AuditOptions["DockerContainer"], new OperatingSystem(PlatformID.Unix, new Version(0, 0)), this.HostEnvironment);
+                        }
+                    }
+                    else if (this.AuditOptions.Keys.Contains("RemoteUser") && this.AuditOptions.Keys.Contains("RemotePass"))
+                    {
+                        ssh_environment = new SshDockerAuditEnvironment(this.HostEnvironmentMessage, "ssh", (string)this.AuditOptions["RemoteHost"], (int)this.AuditOptions["RemoteSshPort"],
+                            (string)this.AuditOptions["RemoteUser"], this.AuditOptions["RemotePass"], (string)this.AuditOptions["DockerContainer"], null, new OperatingSystem(PlatformID.Unix, new Version(0, 0)), this.HostEnvironment);
+                    }
+                    else throw new Exception("Unknown remote host authentication options.");
+
+                    if (ssh_environment.IsConnected)
+                    {
+                        if (string.IsNullOrEmpty(ssh_environment.Container))
+                        {
+                            this.AuditEnvironmentIntialised = false;
+                            throw new Exception("Failed to initialise audit environment.");
+                        }
+                        else if (!ssh_environment.ContainerRunning)
+                        {
+                            this.AuditEnvironmentIntialised = false;
+                            throw new Exception("The Docker container is not currently running and DevAudit does not know how to run your container. Ensure your container is running before attempting to" +
+                                "audit it.");
+                        }
+                        else
+                        {
+                            this.AuditEnvironment = ssh_environment;
+                            this.AuditEnvironmentIntialised = true;
+                            this.AuditEnvironmentMessage = AuditTarget_AuditEnvironmentMessageHandler;
+                            this.AuditEnvironment.MessageHandler -= HostEnvironmentMessage;
+                            this.AuditEnvironment.MessageHandler += this.AuditEnvironmentMessage;
+                        }
+                    }
+                    else
+                    {
+                        ssh_environment = null;
+                        this.AuditEnvironmentIntialised = false;
+                        throw new Exception("Failed to initialise SSH Docker audit environment.");
+                    }
+
+                }
+                else if (this.AuditOptions.Keys.Contains("RemoteHost"))
+                {
+                    string client;
+                    SshAuditEnvironment ssh_environment = null;
+                    if (this.HostEnvironment.OS.Platform == PlatformID.Win32NT)
+                    {
+                        client = this.AuditOptions.Keys.Contains("WindowsUsePlink") ? "plink" : this.AuditOptions.Keys.Contains("WindowsUsePlink") ? "openssh" : "ssh";
+                    }
+                    else
+                    {
+                        client = "ssh";
+                    }
+
+                    if (this.AuditOptions.Keys.Contains("RemoteUser") && this.AuditOptions.Keys.Contains("RemoteKeyFile"))
+                    {
+                        if (this.AuditOptions.Keys.Contains("RemoteKeyPassPhrase"))
+                        {
+                            ssh_environment = new SshAuditEnvironment(this.HostEnvironmentMessage, client, (string)this.AuditOptions["RemoteHost"], (int)this.AuditOptions["RemoteSshPort"],
+                                (string)this.AuditOptions["RemoteUser"], this.AuditOptions["RemoteKeyPassPhrase"], (string)this.AuditOptions["RemoteKeyFile"], new OperatingSystem(PlatformID.Unix, new Version(0, 0)), this.HostEnvironment);
+                        }
+                        else
+                        {
+                            ssh_environment = new SshAuditEnvironment(this.HostEnvironmentMessage, client, (string)this.AuditOptions["RemoteHost"], (int)this.AuditOptions["RemoteSshPort"],
+                                (string)this.AuditOptions["RemoteUser"], null, (string)this.AuditOptions["RemoteKeyFile"], new OperatingSystem(PlatformID.Unix, new Version(0, 0)), this.HostEnvironment);
+                        }
+                    }
+                    else if (this.AuditOptions.Keys.Contains("RemoteUser") && this.AuditOptions.Keys.Contains("RemotePass"))
+                    {
+                        ssh_environment = new SshAuditEnvironment(this.HostEnvironmentMessage, client, (string)this.AuditOptions["RemoteHost"], (int)this.AuditOptions["RemoteSshPort"],
+                            (string)this.AuditOptions["RemoteUser"], this.AuditOptions["RemotePass"], null, new OperatingSystem(PlatformID.Unix, new Version(0, 0)), this.HostEnvironment);
+                    }
+                    else throw new Exception("Unknown remote host authentication options.");
+
+                    if (ssh_environment.IsConnected)
+                    {
                         this.AuditEnvironment = ssh_environment;
                         this.AuditEnvironmentIntialised = true;
                         this.AuditEnvironmentMessage = AuditTarget_AuditEnvironmentMessageHandler;
                         this.AuditEnvironment.MessageHandler -= HostEnvironmentMessage;
                         this.AuditEnvironment.MessageHandler += this.AuditEnvironmentMessage;
                     }
-                }
-                else
-                {
-                    ssh_environment = null;
-                    this.AuditEnvironmentIntialised = false;
-                    throw new Exception("Failed to initialise SSH Docker audit environment.");
-                }
-
-            }
-            else if (this.AuditOptions.Keys.Contains("RemoteHost"))
-            {
-                string client;
-                SshAuditEnvironment ssh_environment = null;
-                if (this.HostEnvironment.OS.Platform == PlatformID.Win32NT)
-                {
-                    client = this.AuditOptions.Keys.Contains("WindowsUsePlink") ? "plink" : this.AuditOptions.Keys.Contains("WindowsUsePlink") ? "openssh" : "ssh";
-                }
-                else
-                {
-                    client = "ssh";
-                }
-
-                if (this.AuditOptions.Keys.Contains("RemoteUser") && this.AuditOptions.Keys.Contains("RemoteKeyFile"))
-                {
-                    if (this.AuditOptions.Keys.Contains("RemoteKeyPassPhrase"))
+                    else
                     {
-                        ssh_environment = new SshAuditEnvironment(this.HostEnvironmentMessage, client, (string)this.AuditOptions["RemoteHost"], (int) this.AuditOptions["RemoteSshPort"],
-                            (string)this.AuditOptions["RemoteUser"], this.AuditOptions["RemoteKeyPassPhrase"], (string)this.AuditOptions["RemoteKeyFile"], new OperatingSystem(PlatformID.Unix, new Version(0, 0)), this.HostEnvironment);
+                        ssh_environment = null;
+                        this.AuditEnvironmentIntialised = false;
+                        throw new Exception("Failed to initialise SSH audit environment.");
+                    }
+                }
+                else if (this.AuditOptions.Keys.Contains("WinRmRemoteIp") || this.AuditOptions.Keys.Contains("WinRmRemoteHost"))
+                {
+                    if (!this.AuditOptions.Keys.Contains("RemoteUser") || !this.AuditOptions.Keys.Contains("RemotePass"))
+                    {
+                        throw new Exception("A remote user and password must be specified.");
+                    }
+                    WinRmAuditEnvironment winrm;
+                    if (this.AuditOptions.Keys.Contains("WinRmRemoteIp"))
+                    {
+                        winrm = new WinRmAuditEnvironment(this.HostEnvironmentMessage, this.AuditOptions["WinRmRemoteIp"] as IPAddress,
+                            (string)this.AuditOptions["RemoteUser"], (SecureString)this.AuditOptions["RemotePass"], this.HostEnvironment);
+                        if (winrm.IsConnected)
+                        {
+                            this.AuditEnvironment = winrm;
+                            this.AuditEnvironmentIntialised = true;
+                            this.AuditEnvironmentMessage = AuditTarget_AuditEnvironmentMessageHandler;
+                            this.AuditEnvironment.MessageHandler -= HostEnvironmentMessage;
+                            this.AuditEnvironment.MessageHandler += this.AuditEnvironmentMessage;
+                        }
+                        else
+                        {
+                            winrm = null;
+                            this.AuditEnvironmentIntialised = false;
+                            throw new Exception("Failed to initialise WinRM audit environment.");
+                        }
                     }
                     else
                     {
-                        ssh_environment = new SshAuditEnvironment(this.HostEnvironmentMessage, client, (string)this.AuditOptions["RemoteHost"], (int)this.AuditOptions["RemoteSshPort"],
-                            (string)this.AuditOptions["RemoteUser"], null, (string)this.AuditOptions["RemoteKeyFile"], new OperatingSystem(PlatformID.Unix, new Version(0, 0)), this.HostEnvironment);
+                        winrm = new WinRmAuditEnvironment(this.HostEnvironmentMessage, (string)this.AuditOptions["WinRmRemoteHost"],
+                            (string)this.AuditOptions["RemoteUser"], (SecureString)this.AuditOptions["RemotePass"], this.HostEnvironment);
                     }
                 }
-                else if (this.AuditOptions.Keys.Contains("RemoteUser") && this.AuditOptions.Keys.Contains("RemotePass"))
+                else if (this.AuditOptions.Keys.Contains("RemoteUser") || this.AuditOptions.Keys.Contains("RemotePass"))
                 {
-                    ssh_environment = new SshAuditEnvironment(this.HostEnvironmentMessage, client, (string)this.AuditOptions["RemoteHost"], (int)this.AuditOptions["RemoteSshPort"],
-                        (string)this.AuditOptions["RemoteUser"], this.AuditOptions["RemotePass"], null, new OperatingSystem(PlatformID.Unix, new Version(0, 0)), this.HostEnvironment);
+                    throw new Exception("A remote host name must be specified.");
                 }
-                else throw new Exception("Unknown remote host authentication options.");
-
-                if (ssh_environment.IsConnected)
+                else if (this.AuditOptions.ContainsKey("Dockerized"))
                 {
-                    this.AuditEnvironment = ssh_environment;
-                    this.AuditEnvironmentIntialised = true;
                     this.AuditEnvironmentMessage = AuditTarget_AuditEnvironmentMessageHandler;
-                    this.AuditEnvironment.MessageHandler -= HostEnvironmentMessage;
-                    this.AuditEnvironment.MessageHandler += this.AuditEnvironmentMessage;
+                    this.AuditEnvironment = new DockerizedLocalEnvironment(this.AuditEnvironmentMessage);
+                    this.AuditEnvironmentIntialised = true;
                 }
-                else
+                else if (this.AuditOptions.ContainsKey("GitHubRepoName"))
                 {
-                    ssh_environment = null;
-                    this.AuditEnvironmentIntialised = false;
-                    throw new Exception("Failed to initialise SSH audit environment.");
-                }
-            }
-            else if (this.AuditOptions.Keys.Contains("WinRmRemoteIp") || this.AuditOptions.Keys.Contains("WinRmRemoteHost"))
-            {
-                if (!this.AuditOptions.Keys.Contains("RemoteUser") || !this.AuditOptions.Keys.Contains("RemotePass"))
-                {
-                    throw new Exception("A remote user and password must be specified.");
-                }
-                WinRmAuditEnvironment winrm;
-                if (this.AuditOptions.Keys.Contains("WinRmRemoteIp"))
-                {
-                    winrm  = new WinRmAuditEnvironment(this.HostEnvironmentMessage, this.AuditOptions["WinRmRemoteIp"] as IPAddress,
-                        (string)this.AuditOptions["RemoteUser"], (SecureString)this.AuditOptions["RemotePass"], this.HostEnvironment);
-                    if (winrm.IsConnected)
+                    if (!this.AuditOptions.ContainsKey("GitHubRepoOwner") || !this.AuditOptions.ContainsKey("GitHubRepoBranch"))
                     {
-                        this.AuditEnvironment = winrm;
+                        throw new ArgumentException("A required audit option for the GitHub environment is missing.");
+                    }
+                    string user_api_token = string.Empty;
+                    if (this.AuditOptions.ContainsKey("GitHubToken"))
+                    {
+                        user_api_token = (string)this.AuditOptions["GitHubToken"];
+                    }
+                    GitHubAuditEnvironment github_environment = new GitHubAuditEnvironment(this.HostEnvironmentMessage, user_api_token, (string)this.AuditOptions["GitHubRepoOwner"],
+                       (string)this.AuditOptions["GitHubRepoName"], (string)this.AuditOptions["GitHubRepoBranch"], this.HostEnvironment);
+                    if (github_environment.RepositoryInitialised)
+                    {
+                        this.AuditEnvironment = github_environment;
                         this.AuditEnvironmentIntialised = true;
                         this.AuditEnvironmentMessage = AuditTarget_AuditEnvironmentMessageHandler;
                         this.AuditEnvironment.MessageHandler -= HostEnvironmentMessage;
@@ -200,114 +265,73 @@ namespace DevAudit.AuditLibrary
                     }
                     else
                     {
-                        winrm = null;
+                        github_environment = null;
                         this.AuditEnvironmentIntialised = false;
-                        throw new Exception("Failed to initialise WinRM audit environment.");
+                        throw new Exception("Failed to initialise GitHub audit environment.");
+                    }
+                }
+                else if (this.AuditOptions.ContainsKey("GitLabRepoName"))
+                {
+                    string api_token = string.Empty;
+                    if (!this.AuditOptions.ContainsKey("GitLabRepoUrl") || !this.AuditOptions.ContainsKey("GitLabRepoName") || !this.AuditOptions.ContainsKey("GitLabRepoBranch"))
+                    {
+                        throw new ArgumentException("A required audit option for the GitLab environment is missing.");
+                    }
+                    GitLabAuditEnvironment GitLab_environment = new GitLabAuditEnvironment(this.HostEnvironmentMessage, api_token, (string)this.AuditOptions["GitLabRepoUrl"],
+                       (string)this.AuditOptions["GitLabRepoName"], (string)this.AuditOptions["GitLabRepoBranch"], this.HostEnvironment);
+                    if (GitLab_environment.RepositoryInitialised)
+                    {
+                        this.AuditEnvironment = GitLab_environment;
+                        this.AuditEnvironmentIntialised = true;
+                        this.AuditEnvironmentMessage = AuditTarget_AuditEnvironmentMessageHandler;
+                        this.AuditEnvironment.MessageHandler -= HostEnvironmentMessage;
+                        this.AuditEnvironment.MessageHandler += this.AuditEnvironmentMessage;
+                    }
+                    else
+                    {
+                        GitLab_environment = null;
+                        this.AuditEnvironmentIntialised = false;
+                        throw new Exception("Failed to initialise audit environment.");
                     }
                 }
                 else
                 {
-                    winrm = new WinRmAuditEnvironment(this.HostEnvironmentMessage, (string)this.AuditOptions["WinRmRemoteHost"],
-                        (string)this.AuditOptions["RemoteUser"], (SecureString)this.AuditOptions["RemotePass"], this.HostEnvironment);
-                }
-            }
-            else if (this.AuditOptions.Keys.Contains("RemoteUser") || this.AuditOptions.Keys.Contains("RemotePass"))
-            {
-                throw new Exception("A remote host name must be specified.");
-            }
-            else if (this.AuditOptions.ContainsKey("Dockerized"))
-            {
-                this.AuditEnvironmentMessage = AuditTarget_AuditEnvironmentMessageHandler;
-                this.AuditEnvironment = new DockerizedLocalEnvironment(this.AuditEnvironmentMessage);
-                this.AuditEnvironmentIntialised = true;
-            }
-            else if (this.AuditOptions.ContainsKey("GitHubRepoName"))
-            {
-                if (!this.AuditOptions.ContainsKey("GitHubRepoOwner") || !this.AuditOptions.ContainsKey("GitHubRepoBranch"))
-                {
-                    throw new ArgumentException("A required audit option for the GitHub environment is missing.");
-                }
-                string user_api_token = string.Empty;
-                if (this.AuditOptions.ContainsKey("GitHubToken"))
-                {
-                    user_api_token = (string)this.AuditOptions["GitHubToken"];
-                }
-                GitHubAuditEnvironment github_environment = new GitHubAuditEnvironment(this.HostEnvironmentMessage, user_api_token, (string)this.AuditOptions["GitHubRepoOwner"],
-                   (string)this.AuditOptions["GitHubRepoName"], (string)this.AuditOptions["GitHubRepoBranch"], this.HostEnvironment);
-                if (github_environment.RepositoryInitialised)
-                {
-                    this.AuditEnvironment = github_environment;
-                    this.AuditEnvironmentIntialised = true;
                     this.AuditEnvironmentMessage = AuditTarget_AuditEnvironmentMessageHandler;
-                    this.AuditEnvironment.MessageHandler -= HostEnvironmentMessage;
-                    this.AuditEnvironment.MessageHandler += this.AuditEnvironmentMessage;
-                }
-                else
-                {
-                    github_environment = null;
-                    this.AuditEnvironmentIntialised = false;
-                    throw new Exception("Failed to initialise GitHub audit environment.");
-                }
-            }
-            else if (this.AuditOptions.ContainsKey("GitLabRepoName"))
-            {
-                string api_token = string.Empty;
-                if (!this.AuditOptions.ContainsKey("GitLabRepoUrl") || !this.AuditOptions.ContainsKey("GitLabRepoName") || !this.AuditOptions.ContainsKey("GitLabRepoBranch"))
-                {
-                    throw new ArgumentException("A required audit option for the GitLab environment is missing.");
-                }
-                GitLabAuditEnvironment GitLab_environment = new GitLabAuditEnvironment(this.HostEnvironmentMessage, api_token, (string)this.AuditOptions["GitLabRepoUrl"],
-                   (string)this.AuditOptions["GitLabRepoName"], (string)this.AuditOptions["GitLabRepoBranch"], this.HostEnvironment);
-                if (GitLab_environment.RepositoryInitialised)
-                {
-                    this.AuditEnvironment = GitLab_environment;
+                    this.AuditEnvironment = new LocalEnvironment(this.AuditEnvironmentMessage);
                     this.AuditEnvironmentIntialised = true;
-                    this.AuditEnvironmentMessage = AuditTarget_AuditEnvironmentMessageHandler;
-                    this.AuditEnvironment.MessageHandler -= HostEnvironmentMessage;
-                    this.AuditEnvironment.MessageHandler += this.AuditEnvironmentMessage;
                 }
-                else
+                if (this.AuditOptions.ContainsKey("Profile"))
                 {
-                    GitLab_environment = null;
-                    this.AuditEnvironmentIntialised = false;
-                    throw new Exception("Failed to initialise audit environment.");
+                    AuditFileInfo pf = this.AuditEnvironment.ConstructFile((string)this.AuditOptions["Profile"]);
+                    if (pf.Exists)
+                    {
+                        this.AuditProfile = new AuditProfile(this.AuditEnvironment, pf);
+                    }
+                    else
+                    {
+                        this.AuditEnvironment.Warning("The profile file {0} does not exist. No audit profile will be used.", pf.FullName);
+                    }
                 }
-            }
-            else
-            {
-                this.AuditEnvironmentMessage = AuditTarget_AuditEnvironmentMessageHandler;
-                this.AuditEnvironment = new LocalEnvironment(this.AuditEnvironmentMessage);
-                this.AuditEnvironmentIntialised = true;
-            }
-            if (this.AuditOptions.ContainsKey("Profile"))
-            {
-                AuditFileInfo pf = this.AuditEnvironment.ConstructFile((string)this.AuditOptions["Profile"]);
-                if (pf.Exists)
-                {
-                    this.AuditProfile = new AuditProfile(this.AuditEnvironment, pf);
-                }
-                else
-                {
-                    this.AuditEnvironment.Warning("The profile file {0} does not exist. No audit profile will be used.", pf.FullName);
-                }
-            }
 
-            this.AlpheusEnvironment = new AlEnvironment(this);
-            if (this.AuditEnvironment is IOperatingSystemEnvironment)
-            {
-                this.AuditEnvironment.GetOSName();
-                this.AuditEnvironment.GetOSVersion();
-                if (this.AuditOptions.ContainsKey("OSName"))
+                this.AlpheusEnvironment = new AlEnvironment(this);
+                if (this.AuditEnvironment is IOperatingSystemEnvironment)
                 {
-                    this.AuditEnvironment.OSName = (string)this.AuditOptions["OSName"];
-                    this.AuditEnvironment.Info("Overriding audit environment OS name to {0}.", this.AuditEnvironment.OSName);
-                }
-                if (this.AuditOptions.ContainsKey("OSVersion"))
-                {
-                    this.AuditEnvironment.OSVersion = (string)this.AuditOptions["OSVersion"];
-                    this.AuditEnvironment.Info("Overriding audit environment OS version to {0}.", this.AuditEnvironment.OSVersion);
+                    this.AuditEnvironment.GetOSName();
+                    this.AuditEnvironment.GetOSVersion();
+                    if (this.AuditOptions.ContainsKey("OSName"))
+                    {
+                        this.AuditEnvironment.OSName = (string)this.AuditOptions["OSName"];
+                        this.AuditEnvironment.Info("Overriding audit environment OS name to {0}.", this.AuditEnvironment.OSName);
+                    }
+                    if (this.AuditOptions.ContainsKey("OSVersion"))
+                    {
+                        this.AuditEnvironment.OSVersion = (string)this.AuditOptions["OSVersion"];
+                        this.AuditEnvironment.Info("Overriding audit environment OS version to {0}.", this.AuditEnvironment.OSVersion);
+                    }
                 }
             }
+            #endregion
+
             if (this.AuditOptions.ContainsKey("IgnoreHttpsCertErrors"))
             {
                 this.DataSourceOptions.Add("IgnoreHttpsCertErrors", true);
@@ -424,9 +448,12 @@ namespace DevAudit.AuditLibrary
                                 hs.Dispose();
                             }
                         }
-                        foreach (Delegate d in this.AuditEnvironmentMessage.GetInvocationList())
+                        if (AuditEnvironmentMessage != null)
                         {
-                            this.AuditEnvironmentMessage -= (EventHandler<EnvironmentEventArgs>)d;
+                            foreach (Delegate d in this.AuditEnvironmentMessage.GetInvocationList())
+                            {
+                                this.AuditEnvironmentMessage -= (EventHandler<EnvironmentEventArgs>)d;
+                            }
                         }
 
                         if (this.AuditEnvironment != null)
@@ -434,9 +461,12 @@ namespace DevAudit.AuditLibrary
                             this.AuditEnvironment.Dispose();
                             this.AuditEnvironment = null;
                         }
-                        foreach (Delegate d in this.HostEnvironmentMessage.GetInvocationList())
+                        if (this.HostEnvironmentMessage != null)
                         {
-                            this.HostEnvironmentMessage -= (EventHandler<EnvironmentEventArgs>)d;
+                            foreach (Delegate d in this.HostEnvironmentMessage.GetInvocationList())
+                            {
+                                this.HostEnvironmentMessage -= (EventHandler<EnvironmentEventArgs>)d;
+                            }
                         }
 
                         if (this.HostEnvironment != null)

@@ -830,7 +830,7 @@ namespace DevAudit.CommandLine
                 }
             });
 
-            if (Source == null && Application == null && Server == null && CodeProject == null)
+            if (Source == null && Application == null && Server == null && CodeProject == null && Container == null)
             {
                 if (AuditLibraryException == null)
                 {
@@ -856,6 +856,10 @@ namespace DevAudit.CommandLine
                     else if (arge.ParamName == "project_options")
                     {
                         PrintErrorMessage("Error initialzing audit library for code project audit target: {0}.", arge.Message);
+                    }
+                    else if (arge.ParamName == "container_options")
+                    {
+                        PrintErrorMessage("Error initialzing audit library for container audit target: {0}.", arge.Message);
                     }
                     else
                     {
@@ -971,6 +975,21 @@ namespace DevAudit.CommandLine
                 if (conar != AuditTarget.AuditResult.SUCCESS)
                 {
                     Exit = conar;
+                }
+                else
+                {
+                    if (Container.OSPackageSourceAuditResult == AuditTarget.AuditResult.SUCCESS)
+                    {
+                        Source = Container.OSPackageSource;
+                        PrintPackageSourceAuditResults(Container.OSPackageSourceAuditResult, out Exit);
+                        Source.Dispose();
+                    }
+                    foreach (var k in Container.ApplicationServerAuditResults.Where(ar => ar.Value == AuditTarget.AuditResult.SUCCESS))
+                    {
+                        Application = k.Key;
+                        PrintApplicationAuditResults(k.Value, out Exit);
+                        Application.Dispose();
+                    }
                 }
             }
             #endregion

@@ -20,6 +20,10 @@ namespace DevAudit.AuditLibrary
             : base(server_options, RequiredFilePaths, RequiredDirectoryPaths, message_handler)
         {
             this.ServerOptions = server_options;
+            if (this.ServerOptions.ContainsKey("ServerSkipPackagesAudit"))
+            {
+                this.SkipPackagesAudit = true;
+            }
             if (default_binary_file_path == null) throw new ArgumentNullException("default_binary_file_path");
             if (default_configuration_file_path == null) throw new ArgumentNullException("default_configuration_file_path");
             if (this.ApplicationBinary == null)
@@ -59,18 +63,6 @@ namespace DevAudit.AuditLibrary
             }
             
         }
-
-        public ApplicationServer(Dictionary<string, object> server_options, string[] default_configuration_file_path, Dictionary<string, string[]> RequiredFilePaths, Dictionary<string, string[]> RequiredDirectoryPaths, EventHandler<EnvironmentEventArgs> message_handler = null) 
-            : base(server_options, RequiredFilePaths, RequiredDirectoryPaths, message_handler)
-        {
-            this.ServerOptions = server_options;
-            if (default_configuration_file_path == null) throw new ArgumentNullException("default_configuration_file_path");
-            FindConfigurationFile(default_configuration_file_path);
-            if (!this.ApplicationFileSystemMap.ContainsKey("ConfigurationFile"))
-            {
-                throw new ArgumentException("Could not initialise configuration for {0}.", this.ApplicationLabel);
-            }
-        }
         #endregion
 
         #region Properties
@@ -96,17 +88,33 @@ namespace DevAudit.AuditLibrary
         public Dictionary<string, string> OptionalDirectoryLocations { get; } = new Dictionary<string, string>();
 
         public Dictionary<string, object> ServerOptions { get; set; } = new Dictionary<string, object>();
-        
+
         #endregion
 
         #region Methods
-        protected void FindServerBinaryFile(string[] autodetect_binary_file_path)
+        protected virtual void DetectServerBinaryFile(Dictionary<PlatformID, string[]> autodetect_binary_file_path)
+        {
+            if (autodetect_binary_file_path.Keys.Contains(this.AuditEnvironment.OS.Platform))
+            {
+                this.FindServerBinaryFile(autodetect_binary_file_path[this.AuditEnvironment.OS.Platform]);
+            }
+        }
+
+        protected virtual void DetectConfigurationFile(Dictionary<PlatformID, string[]> default_configuration_file_path)
+        {
+            if (default_configuration_file_path.Keys.Contains(this.AuditEnvironment.OS.Platform))
+            {
+                this.FindConfigurationFile(default_configuration_file_path[this.AuditEnvironment.OS.Platform]);
+            }
+        }
+
+        protected void FindServerBinaryFile(string[] default_binary_file_path)
         {
             if (this.ApplicationBinary == null)
             {
-                if (autodetect_binary_file_path.Length > 1 && autodetect_binary_file_path.First() == "which")
+                if (default_binary_file_path.Length > 1 && default_binary_file_path.First() == "which")
                 {
-                    string search_path = this.CombinePath(autodetect_binary_file_path.Skip(1).ToArray());
+                    string search_path = this.CombinePath(default_binary_file_path.Skip(1).ToArray());
                     string file = this.WhichServerFile(search_path);
                     if (!string.IsNullOrEmpty(file))
                     {
@@ -114,9 +122,9 @@ namespace DevAudit.AuditLibrary
                     }
 
                 }
-                else if (autodetect_binary_file_path.Length > 1 && autodetect_binary_file_path.First() == "find")
+                else if (default_binary_file_path.Length > 1 && default_binary_file_path.First() == "find")
                 {
-                    string search_path = this.CombinePath(autodetect_binary_file_path.Skip(1).ToArray());
+                    string search_path = this.CombinePath(default_binary_file_path.Skip(1).ToArray());
                     string file = this.FindServerFile(search_path).FirstOrDefault();
                     if (!string.IsNullOrEmpty(file))
                     {
@@ -126,7 +134,7 @@ namespace DevAudit.AuditLibrary
                 }
                 else
                 {
-                    string file = this.CombinePath(autodetect_binary_file_path);
+                    string file = this.CombinePath(default_binary_file_path);
                     if (this.AuditEnvironment.FileExists(file))
                     {
                         this.ApplicationBinary = this.AuditEnvironment.ConstructFile(file);
@@ -136,14 +144,6 @@ namespace DevAudit.AuditLibrary
                 {
                     this.AuditEnvironment.Success("Auto-detected {0} server binary at {1}.", this.ApplicationLabel, this.ApplicationBinary.FullName);
                 }
-            }
-        }
-
-        protected virtual void DetectServerBinaryFile(Dictionary<PlatformID, string[]> autodetect_binary_file_path)
-        {
-            if (autodetect_binary_file_path.Keys.Contains(this.AuditEnvironment.OS.Platform))
-            {
-                this.FindServerBinaryFile(autodetect_binary_file_path[this.AuditEnvironment.OS.Platform]);
             }
         }
 
@@ -190,14 +190,6 @@ namespace DevAudit.AuditLibrary
             }
         }
 
-        protected virtual void DetectConfigurationFile(Dictionary<PlatformID, string[]> default_configuration_file_path)
-        {
-            if (default_configuration_file_path.Keys.Contains(this.AuditEnvironment.OS.Platform))
-            {
-                this.FindConfigurationFile(default_configuration_file_path[this.AuditEnvironment.OS.Platform]);
-            }
-        }
-
         protected string WhichServerFile(string path)
         {
             AuditEnvironment.ProcessExecuteStatus process_status;
@@ -205,11 +197,12 @@ namespace DevAudit.AuditLibrary
             string process_error;
             if (this.AuditEnvironment.Execute("which", path, out process_status, out process_output, out process_error))
             {
+                this.AuditEnvironment.Debug("WhichServerFile({0}) returned {1}.", path, process_output);
                 return process_output;
             }
             else
             {
-                this.AuditEnvironment.Debug("Did not successfully execute command 'which {0}'. Process error: {1}.", path, process_error);
+                this.AuditEnvironment.Debug("WhichServerFile({0}) returned null.", path); ;
                 return string.Empty;
             }
         }
@@ -242,11 +235,13 @@ namespace DevAudit.AuditLibrary
                 bool r = this.AuditEnvironment.Execute("find", args, out process_status, out process_output, out process_error);
                 if (r || (!string.IsNullOrEmpty(process_output)))
                 {
-                    return process_output.Split(this.AuditEnvironment.LineTerminator.ToCharArray());
+                    string[] files = process_output.Split(this.AuditEnvironment.LineTerminator.ToCharArray()).Where(o => !o.Contains("Permission denied")).ToArray();
+                    this.AuditEnvironment.Debug("FindServerFile({0}) returned {1}.", path, files.Aggregate((f1, f2) => f1 + " " + f2));
+                    return files;
                 }
                 else
                 {
-                    this.AuditEnvironment.Debug("Did not successfully execute command 'find {0}'. Process error: {1}.", args, process_error);
+                    this.AuditEnvironment.Debug("FindServerFile({0}) returned null.", path);
                     return new string[] { };
                 }
             }

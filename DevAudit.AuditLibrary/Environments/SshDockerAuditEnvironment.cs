@@ -82,7 +82,7 @@ namespace DevAudit.AuditLibrary
         {
             if (!this.IsConnected) throw new InvalidOperationException("The SSH session is not connected.");
             string output;
-            bool ls_result = this.ExecuteCommand("stat ", file_path, out output);
+            bool ls_result = this.ExecuteCommand("stat ", file_path, out output, false);
             if (ls_result)
             {
                 
@@ -99,7 +99,7 @@ namespace DevAudit.AuditLibrary
         {
             if (!this.IsConnected) throw new InvalidOperationException("The SSH session is not connected.");
             string output;
-            bool ls_result = this.ExecuteCommand("stat ", dir_path, out output);
+            bool ls_result = this.ExecuteCommand("stat ", dir_path, out output, false);
             if (ls_result)
             {
 
