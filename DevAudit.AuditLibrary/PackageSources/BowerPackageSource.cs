@@ -48,12 +48,12 @@ namespace DevAudit.AuditLibrary
 
             if (dev_dependencies != null)
             {
-                packages.Concat(dev_dependencies.Properties().Select(d => new Package("bower", d.Name, d.Value.ToString(), "")));
+                packages.AddRange(dev_dependencies.Properties().Select(d => new Package("bower", d.Name, d.Value.ToString(), "")));
             }
 
             if (dependencies != null)
             {
-                packages.Concat(dependencies.Properties().Select(d => new Package("bower", d.Name, d.Value.ToString(), "")));
+                packages.AddRange(dependencies.Properties().Select(d => new Package("bower", d.Name, d.Value.ToString(), "")));
             }
 
             return packages;
