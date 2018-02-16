@@ -30,19 +30,33 @@ namespace DevAudit.AuditLibrary
         //Get bower packages from reading bower.json
         public override IEnumerable<Package> GetPackages(params string[] o)
         {
+
+            var packages = new List<Package>();
+
             AuditFileInfo config_file = this.AuditEnvironment.ConstructFile(this.PackageManagerConfigurationFile);
             JObject json = (JObject)JToken.Parse(config_file.ReadAsText());
+
+            packages.Add(
+                new Package("bower", 
+                    json.Properties().First(j => j.Name == "name").Value.ToString(),
+                    json.Properties().First(j => j.Name == "version").Value.ToString(),
+                    "")
+            );
+
             JObject dependencies = (JObject)json["dependencies"];
             JObject dev_dependencies = (JObject)json["devDependencies"];
+
             if (dev_dependencies != null)
             {
-                return dependencies.Properties().Select(d => new Package("bower", d.Name, d.Value.ToString(), ""))
-                    .Concat(dev_dependencies.Properties().Select(d => new Package("bower", d.Name, d.Value.ToString(), "")));
+                packages.Concat(dev_dependencies.Properties().Select(d => new Package("bower", d.Name, d.Value.ToString(), "")));
             }
-            else
+
+            if (dependencies != null)
             {
-                return dependencies.Properties().Select(d => new Package("bower", d.Name, d.Value.ToString(), ""));
+                packages.Concat(dependencies.Properties().Select(d => new Package("bower", d.Name, d.Value.ToString(), "")));
             }
+
+            return packages;
             
         }
 
