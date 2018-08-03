@@ -344,6 +344,10 @@ namespace DevAudit.AuditLibrary
             {
                 this.DataSources.Add(new VulnersDataSource(this, DataSourceOptions));
             }
+            if (this.AuditOptions.ContainsKey("WithOSSI3"))
+            {
+                this.DataSources.Add(new OSSIndexApiv3DataSource(this, DataSourceOptions));
+            }
         }
 
         private void AuditTarget_HostEnvironmentMessageHandler(object sender, EnvironmentEventArgs e)

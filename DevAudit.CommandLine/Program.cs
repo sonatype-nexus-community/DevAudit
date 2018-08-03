@@ -666,6 +666,10 @@ namespace DevAudit.CommandLine
             {
                 audit_options.Add("WithOSSI", true);
             }
+            if (ProgramOptions.WithOSSI3)
+            {
+                audit_options.Add("WithOSSI3", true);
+            }
             if (ProgramOptions.WithVulners)
             {
                 audit_options.Add("WithVulners", true);
