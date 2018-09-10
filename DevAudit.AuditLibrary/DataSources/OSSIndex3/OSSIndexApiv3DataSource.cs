@@ -1,25 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Diagnostics;
-using System.IO;
-using System.Net;
 using System.Net.Http;
-using System.Net.Http.Headers;
-using System.Web;
-using System.Xml;
-using System.Xml.Linq;
 using System.Linq;
-using System.Security;
-using System.Security.Permissions;
 using System.Text;
-using System.Text.RegularExpressions;
 using System.Threading.Tasks;
-
-using Microsoft.Win32;
 using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 using System.Threading;
+using PackageUrl;
 
 namespace DevAudit.AuditLibrary
 {
@@ -52,10 +40,6 @@ namespace DevAudit.AuditLibrary
 
         public override async Task<Dictionary<IPackage, List<IVulnerability>>> SearchVulnerabilities(List<Package> packages)
         {
-            Dictionary<IPackage, List<IVulnerability>> vulnerabilities = new Dictionary<IPackage, List<IVulnerability>>();
-
-
-
             CallerInformation here = this.HostEnvironment.Here();
             this.HostEnvironment.Status("Searching OSS Index for vulnerabilities for {0} packages.", packages.Count());
             Stopwatch sw = new Stopwatch();
@@ -75,6 +59,7 @@ namespace DevAudit.AuditLibrary
                         {
                             if (r.Vulnerabilities != null && r.Vulnerabilities.Count > 0)
                             {
+                                this.HostEnvironment.Status("Pkg: {0}:{1}/{2}@{3}", r.Package.PackageManager, r.Package.Group, r.Package.Name, r.Package.Version);
                                 this.AddVulnerability(r.Package, r.Vulnerabilities);
                             }
                         }
@@ -109,7 +94,8 @@ namespace DevAudit.AuditLibrary
                 sw.Stop();
             }
 
-            return vulnerabilities;
+            return await Task.FromResult(this._Vulnerabilities.Select(kv => new KeyValuePair<IPackage, List<IVulnerability>>(kv.Key as IPackage, kv.Value.Select(v => v as IVulnerability)
+                 .ToList())).ToDictionary(x => x.Key, x => x.Value));
         }
 
         public override bool IsEligibleForTarget(AuditTarget target)
@@ -140,7 +126,7 @@ namespace DevAudit.AuditLibrary
             Func<List<OSSIndexApiv3Package>, List<OSSIndexApiv3Package>> transform)
         {
             string server_api_version = "3";
-            IEnumerable<Package> packages_for_query = packages.Select(p => new Package(p.PackageManager, p.Name, "*", string.Empty, p.Group));
+            IEnumerable<Package> packages_for_query = packages.Select(p => new Package(p.PackageManager, p.Name, p.Version, string.Empty, p.Group));
             OSSIndexApiv3Query query = new OSSIndexApiv3Query();
 
             // Convert the packages into a list of string
@@ -160,9 +146,6 @@ namespace DevAudit.AuditLibrary
             {
                 string url = "v" + server_api_version + "/component-report";
                 string content = JsonConvert.SerializeObject(query);
-
-                this.HostEnvironment.Status("Query URL: {0}", url);
-                this.HostEnvironment.Status("Query content: {0}", content);
 
                 HttpResponseMessage response = await client.PostAsync(url,
                     new StringContent(content, Encoding.UTF8, "application/json"));
@@ -191,7 +174,7 @@ namespace DevAudit.AuditLibrary
             List<Package> o = packages;
             foreach (Package p in o)
             {
-                Package package = new Package(p.PackageManager, p.Name, "*", p.Group);
+                Package package = new Package(p.PackageManager, p.Name, p.Version, p.Group);
             }
             return o.ToList();
         };
@@ -202,13 +185,22 @@ namespace DevAudit.AuditLibrary
             List<OSSIndexApiv3Package> o = results;
             foreach (OSSIndexApiv3Package r in o)
             {
-                if (string.IsNullOrEmpty(r.PackageManager) || string.IsNullOrEmpty(r.PackageName))
+                if (string.IsNullOrEmpty(r.Coordinates))
                 {
-                    throw new Exception("Did not receive expected fields for result with id: " + r.Id);
+                    throw new Exception("Did not receive expected coordinate for result");
                 }
                 else
                 {
-                    Package package = new Package(r.PackageManager, r.PackageName, r.PackageVersion, "");
+                    PackageURL purl = r.GetPackageURL();
+                    Package package = null;
+                    if (string.IsNullOrEmpty(purl.Namespace))
+                    {
+                        package = new Package(purl.Type, purl.Name, purl.Version, "");
+                    }
+                    else
+                    {
+                        package = new Package(purl.Type, purl.Name, purl.Version, purl.Namespace);
+                    }
                     r.Package = package;
                     if (r.Vulnerabilities != null)
                     {

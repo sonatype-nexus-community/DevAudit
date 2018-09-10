@@ -276,6 +276,8 @@
     <Compile Include="DataSources\OSSIndex3\Models\OSSIndexApiv3Vulnerability.cs" />
     <Compile Include="DataSources\OSSIndex3\OSSIndexApiv3DataSource.cs" />
     <Compile Include="DataSources\OSSIndex3\OSSIndexApiv3Query.cs" />
+    <Compile Include="DataSources\OSSIndex3\PackageURL\MalformedPackageUrlException.cs" />
+    <Compile Include="DataSources\OSSIndex3\PackageURL\PackageURL.cs" />
     <Compile Include="Environments\Models\ProcessInfo.cs" />
     <Compile Include="Utility.cs" />
     <Compile Include="DataSourceInfo.cs" />

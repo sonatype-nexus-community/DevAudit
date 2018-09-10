@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 
 using Newtonsoft.Json;
+using PackageUrl;
 
 namespace DevAudit.AuditLibrary
 {
@@ -47,35 +48,25 @@ namespace DevAudit.AuditLibrary
 */
     public class OSSIndexApiv3Package
     {
-        [JsonProperty("id")]
-        public string Id { get; set; }
+        [JsonProperty("coordinates")]
+        public string Coordinates { get; set; }
 
-        [JsonProperty("pm")]
-        public string PackageManager { get; set; }
+        [JsonProperty("description")]
+        public string Description { get; set; }
 
-        [JsonProperty("name")]
-        public string PackageName { get; set; }
-
-        [JsonProperty("version")]
-        public string PackageVersion { get; set; }
-
-        [JsonProperty("vulnerability-total")]
-        public int VulnerabilityTotal { get; set; }
-
-        [JsonProperty("vulnerability-matches")]
-        public int VulnerabilityMatches { get; set; }
+        [JsonProperty("reference")]
+        public string Reference { get; set; }
 
         [JsonProperty("vulnerabilities")]
         public List<OSSIndexApiv3Vulnerability> Vulnerabilities { get; set; }
 
         [JsonIgnore]
-        public string PackageId { get; set; }
+        public Package Package { get; internal set; }
 
-        [JsonIgnore]
-        public Package Package { get; set; }
-
-        [JsonIgnore]
-        public bool CurrentPackageVersionIsInRange { get; set; }
+        public PackageURL GetPackageURL()
+        {
+            return new PackageURL(Coordinates);
+        }
     }
 
 }
