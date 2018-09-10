@@ -220,6 +220,7 @@ namespace DevAudit.AuditLibrary
             foreach (OSSIndexApiv3Vulnerability v in vulnerabilities)
             {
                 v.DataSource = this.Info;
+                v.addVersion(package.Version);
             }
             lock (vulnerabilities_lock)
             {
