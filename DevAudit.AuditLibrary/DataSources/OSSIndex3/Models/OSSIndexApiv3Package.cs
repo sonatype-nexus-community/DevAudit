@@ -66,7 +66,7 @@ namespace DevAudit.AuditLibrary
         public int VulnerabilityMatches { get; set; }
 
         [JsonProperty("vulnerabilities")]
-        public List<OSSIndexApiv2Vulnerability> Vulnerabilities { get; set; }
+        public List<OSSIndexApiv3Vulnerability> Vulnerabilities { get; set; }
 
         [JsonIgnore]
         public string PackageId { get; set; }

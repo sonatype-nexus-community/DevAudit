@@ -30,12 +30,14 @@ namespace DevAudit.AuditLibrary
 
         protected PackageSource PackageSource { get; set; }
 
-        private string HOST = "https://ossindex.sonatype.org/";
+        private string HOST = "https://ossindex.sonatype.org/api/";
+
         #endregion
 
         #region Constructors
         public OSSIndexApiv3DataSource(AuditTarget target, Dictionary<string, object> options) : base(target, options)
         {
+            this.ApiUrl = new Uri(HOST);
             this.PackageSource = target as PackageSource;
             this.Initialised = true;
             this.Info = new DataSourceInfo("OSS Index", "https://ossindex.sonatype.org", "OSS Index is a free index of software information, focusing on vulnerabilities. The data has been made available to the community through a REST API as well as several open source tools. Particular focus is being made on software packages, both those used for development libraries as well as installation packages.");
@@ -139,11 +141,31 @@ namespace DevAudit.AuditLibrary
         {
             string server_api_version = "3";
             IEnumerable<Package> packages_for_query = packages.Select(p => new Package(p.PackageManager, p.Name, "*", string.Empty, p.Group));
+            OSSIndexApiv3Query query = new OSSIndexApiv3Query();
+
+            // Convert the packages into a list of string
+            foreach (Package pkg in packages_for_query)
+            {
+                if (pkg.Group != null)
+                {
+                    query.addCoordinate("pkg:" + pkg.PackageManager + "/" + pkg.Group + "/" + pkg.Name + "@" + pkg.Version);
+                }
+                else
+                {
+                    query.addCoordinate("pkg:" + pkg.PackageManager + "/" + pkg.Name + "@" + pkg.Version);
+                }
+            }
 
             using (HttpClient client = CreateHttpClient())
             {
-                HttpResponseMessage response = await client.PostAsync("v" + server_api_version + "/package",
-                    new StringContent(JsonConvert.SerializeObject(packages_for_query), Encoding.UTF8, "application/json"));
+                string url = "v" + server_api_version + "/component-report";
+                string content = JsonConvert.SerializeObject(query);
+
+                this.HostEnvironment.Status("Query URL: {0}", url);
+                this.HostEnvironment.Status("Query content: {0}", content);
+
+                HttpResponseMessage response = await client.PostAsync(url,
+                    new StringContent(content, Encoding.UTF8, "application/json"));
                 if (response.IsSuccessStatusCode)
                 {
                     string r = await response.Content.ReadAsStringAsync();
@@ -175,10 +197,10 @@ namespace DevAudit.AuditLibrary
         };
 
 
-        protected Func<List<OSSIndexApiv2Result>, List<OSSIndexApiv2Result>> VulnerabilitiesResultsTransform { get; } = (results) =>
+        protected Func<List<OSSIndexApiv3Package>, List<OSSIndexApiv3Package>> VulnerabilitiesResultsTransform { get; } = (results) =>
         {
-            List<OSSIndexApiv2Result> o = results;
-            foreach (OSSIndexApiv2Result r in o)
+            List<OSSIndexApiv3Package> o = results;
+            foreach (OSSIndexApiv3Package r in o)
             {
                 if (string.IsNullOrEmpty(r.PackageManager) || string.IsNullOrEmpty(r.PackageName))
                 {
@@ -194,16 +216,16 @@ namespace DevAudit.AuditLibrary
                     }
                     else
                     {
-                        r.Vulnerabilities = new List<OSSIndexApiv2Vulnerability>();
+                        r.Vulnerabilities = new List<OSSIndexApiv3Vulnerability>();
                     }
                 }
             }
             return o.ToList();
         };
 
-        private void AddVulnerability(Package package, List<OSSIndexApiv2Vulnerability> vulnerabilities)
+        private void AddVulnerability(Package package, List<OSSIndexApiv3Vulnerability> vulnerabilities)
         {
-            foreach (OSSIndexApiv2Vulnerability v in vulnerabilities)
+            foreach (OSSIndexApiv3Vulnerability v in vulnerabilities)
             {
                 v.DataSource = this.Info;
             }
@@ -220,7 +242,7 @@ namespace DevAudit.AuditLibrary
 
         #region Fields
         private readonly object artifacts_lock = new object(), vulnerabilities_lock = new object();
-        private Dictionary<Package, List<OSSIndexApiv2Vulnerability>> _Vulnerabilities = new Dictionary<Package, List<OSSIndexApiv2Vulnerability>>();
+        private Dictionary<Package, List<OSSIndexApiv3Vulnerability>> _Vulnerabilities = new Dictionary<Package, List<OSSIndexApiv3Vulnerability>>();
         #endregion
 
     }

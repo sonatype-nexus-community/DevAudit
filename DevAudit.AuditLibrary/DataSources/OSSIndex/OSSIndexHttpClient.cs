@@ -38,6 +38,12 @@ namespace DevAudit.AuditLibrary
         {
             this.ApiVersion = api_version;
         }
+        public OSSIndexHttpClient(string host, string api_version)
+        {
+            this.HOST = host;
+            this.ApiVersion = api_version;
+        }
+
         #endregion
 
         #region Methods                     
