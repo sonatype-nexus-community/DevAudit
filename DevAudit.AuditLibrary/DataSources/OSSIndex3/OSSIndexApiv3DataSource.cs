@@ -59,7 +59,6 @@ namespace DevAudit.AuditLibrary
                         {
                             if (r.Vulnerabilities != null && r.Vulnerabilities.Count > 0)
                             {
-                                this.HostEnvironment.Status("Pkg: {0}:{1}/{2}@{3}", r.Package.PackageManager, r.Package.Group, r.Package.Name, r.Package.Version);
                                 this.AddVulnerability(r.Package, r.Vulnerabilities);
                             }
                         }
