@@ -1135,6 +1135,21 @@ namespace DevAudit.CommandLine
                         {
                             PrintMessageLine("  --Id: {0}", v.Id);
                         }
+                        if (v.References != null && v.References.Count() > 0)
+                        {
+                            if (v.References.Count() == 1)
+                            {
+                                PrintMessageLine("  --Reference: {0}", v.References[0]);
+                            }
+                            else
+                            {
+                                PrintMessageLine("  --References:");
+                                for (int i = 0; i < v.References.Count(); i++)
+                                {
+                                    PrintMessageLine("    - {0}", v.References[i]);
+                                }
+                            }
+                        }
                         if (!string.IsNullOrEmpty(v.DataSource.Name))
                         {
                             PrintMessageLine("  --Provided by: {0}", v.DataSource.Name);
