@@ -104,7 +104,8 @@ namespace DevAudit.AuditLibrary
             }
             if (this.PackageSourceInitialized && this.DataSources.Count == 0)
             {
-                this.DataSources.Add(new OSSIndexDataSource(this, this.DataSourceOptions));
+                // this.DataSources.Add(new OSSIndexDataSource(this, this.DataSourceOptions));
+                this.DataSources.Add(new OSSIndexApiv3DataSource(this, DataSourceOptions));
             }
         }
 
@@ -119,7 +120,8 @@ namespace DevAudit.AuditLibrary
 
                 if (this.DataSources.Count == 0)
                 {
-                    this.DataSources.Add(new OSSIndexDataSource(this, this.DataSourceOptions));
+                    // this.DataSources.Add(new OSSIndexDataSource(this, this.DataSourceOptions));
+                    this.DataSources.Add(new OSSIndexApiv3DataSource(this, DataSourceOptions));
                 }
             }
             else throw new ArgumentException("Package source is null.", "package_source");

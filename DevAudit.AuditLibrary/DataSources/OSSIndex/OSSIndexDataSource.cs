@@ -60,8 +60,9 @@ namespace DevAudit.AuditLibrary
             else if (target is PackageSource)
             {
                 PackageSource source = target as PackageSource;
-                string[] eligible_sources = {"nuget", "bower", "composer", "choco", "msi", "yarn", "oneget" };
-                return eligible_sources.Contains(source.PackageManagerId);
+                // string[] eligible_sources = {"nuget", "bower", "composer", "choco", "msi", "yarn", "oneget" };
+                // return eligible_sources.Contains(source.PackageManagerId);
+                return false;
             }
  
 

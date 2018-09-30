@@ -209,9 +209,6 @@ namespace DevAudit.CommandLine
         [Option("with-ossi", Required = false, HelpText = "Use vulnerability data from the OSS Index API. This data source is used by default when no other data source is specified.")]
         public bool WithOSSI { get; set; }
 
-        [Option("with-ossi3", Required = false, HelpText = "Use vulnerability data from the OSS Index API v3. This data source is used by default when no other data source is specified.")]
-        public bool WithOSSI3 { get; set; }
-
         [Option("with-vulners", Required = false, HelpText = "Use vulnerability data from the vulners.com API and/or data files.")]
         public bool WithVulners { get; set; }
 

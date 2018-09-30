@@ -338,15 +338,12 @@ namespace DevAudit.AuditLibrary
             }
             if (this.AuditOptions.ContainsKey("WithOSSI")) 
             {
-                this.DataSources.Add(new OSSIndexDataSource(this, this.DataSourceOptions));
+                // this.DataSources.Add(new OSSIndexDataSource(this, this.DataSourceOptions));
+                this.DataSources.Add(new OSSIndexApiv3DataSource(this, DataSourceOptions));
             }
             if (this.AuditOptions.ContainsKey("WithVulners"))
             {
                 this.DataSources.Add(new VulnersDataSource(this, DataSourceOptions));
-            }
-            if (this.AuditOptions.ContainsKey("WithOSSI3"))
-            {
-                this.DataSources.Add(new OSSIndexApiv3DataSource(this, DataSourceOptions));
             }
         }
 

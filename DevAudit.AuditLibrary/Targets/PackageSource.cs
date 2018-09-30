@@ -82,7 +82,8 @@ namespace DevAudit.AuditLibrary
             if (this.DataSources.Count == 0 && ossi_pms.Contains(this.PackageManagerId))
             {
                 this.HostEnvironment.Info("Using OSS Index as default package vulnerabilities data source for {0} package source.", this.PackageManagerLabel);
-                this.DataSources.Add(new OSSIndexDataSource(this, this.DataSourceOptions));
+                // this.DataSources.Add(new OSSIndexDataSource(this, this.DataSourceOptions));
+                this.DataSources.Add(new OSSIndexApiv3DataSource(this, DataSourceOptions));
             }
         }
         #endregion
