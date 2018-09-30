@@ -35,24 +35,32 @@ namespace DevAudit.AuditLibrary
             XElement results;
             string message;
             IEnumerable<VulnerableCredentialStorage> cs1;
-            if (this.Configuration.XPathEvaluate("//connectionStrings/add", out results, out message))
+
+            try
             {
-                cs1 =
-                   from e in results.Elements("add")
-                   where e.Attribute("connectionString") != null
-                   from s in e.Attribute("connectionString").Value.Split(';')
-                   where s.ToLower().Trim().StartsWith("password") || s.ToLower().Trim().StartsWith("pwd")
-                   select new VulnerableCredentialStorage
-                   {
-                       File = this.AppConfig.FullName,
-                       Location = e.Attribute("Line").Value,
-                       Contents = this.Configuration,
-                       Value = e.ToString()
-                   };
-                return cs1.ToList();
+                if (this.Configuration.XPathEvaluate("//connectionStrings/add", out results, out message))
+                {
+                    cs1 =
+                       from e in results.Elements("add")
+                       where e.Attribute("connectionString") != null
+                       from s in e.Attribute("connectionString").Value.Split(';')
+                       where s.ToLower().Trim().StartsWith("password") || s.ToLower().Trim().StartsWith("pwd")
+                       select new VulnerableCredentialStorage
+                       {
+                           File = this.AppConfig.FullName,
+                           Location = e.Attribute("Line").Value,
+                           Contents = this.Configuration,
+                           Value = e.ToString()
+                       };
+                    return cs1.ToList();
+                }
             }
-            else return null;
-            
+            catch (Exception e)
+            {
+                this.AuditEnvironment.Debug("Not evaluating credential storage; no XPath matching '//connectionStrings/add: ({0})'", e);
+            }
+
+            return null;
         }
         #endregion
         }
