@@ -206,7 +206,7 @@ namespace DevAudit.CommandLine
         [Option("profile", Required = false, HelpText = "Use the specified file as the audit profile for this audit run.")]
         public string Profile { get; set; }
 
-        [Option("ci", Required = false, HelpText = "Run in 'continual integration' mode. Returns non-zero exist when vulnerabilities found.")]
+        [Option("ci", Required = false, HelpText = "Run in 'continuous integration' mode. Returns non-zero exist when vulnerabilities found.")]
         public bool CiMode { get; set; }
 
         //[Option("with-ossi", Required = false, HelpText = "Use vulnerability data from the OSS Index API. This data source is used by default when no other data source is specified.")]
