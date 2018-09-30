@@ -876,6 +876,7 @@ namespace DevAudit.CommandLine
             #endregion
 
             #region Print audit results
+            int vulnCount = 0;
             if (CodeProject == null && Application == null && Server == null && Source != null) //Auditing a package source
             {
                 AuditTarget.AuditResult ar = Source.Audit(CTS.Token);
@@ -887,7 +888,7 @@ namespace DevAudit.CommandLine
                 }
                 else
                 {
-                    PrintPackageSourceAuditResults(ar, out Exit);
+                    vulnCount += PrintPackageSourceAuditResults(ar, out Exit);
                 }
                 Source.Dispose();
             }
@@ -904,9 +905,9 @@ namespace DevAudit.CommandLine
                 {
                     if (Source != null)
                     {
-                        PrintPackageSourceAuditResults(aar, out Exit);
+                        vulnCount += PrintPackageSourceAuditResults(aar, out Exit);
                     }
-                    PrintApplicationAuditResults(aar, out Exit);
+                    vulnCount += PrintApplicationAuditResults(aar, out Exit);
                 }
                 if (Source != null)
                 {
@@ -926,9 +927,9 @@ namespace DevAudit.CommandLine
                 {
                     if (Source != null)
                     {
-                        PrintPackageSourceAuditResults(aar, out Exit);
+                        vulnCount += PrintPackageSourceAuditResults(aar, out Exit);
                     }
-                    PrintApplicationAuditResults(aar, out Exit);
+                    vulnCount += PrintApplicationAuditResults(aar, out Exit);
                 }
                 if (Source != null)
                 {
@@ -948,15 +949,15 @@ namespace DevAudit.CommandLine
                 {
                     if (Source != null)
                     {
-                        PrintPackageSourceAuditResults(cpar, out Exit);
+                        vulnCount += PrintPackageSourceAuditResults(cpar, out Exit);
                     }
                     if (Application != null)
                     {
-                        PrintApplicationAuditResults(cpar, out Exit);
+                        vulnCount += PrintApplicationAuditResults(cpar, out Exit);
 
                     }
 
-                    PrintCodeProjectAuditResults(cpar, out Exit);
+                    vulnCount += PrintCodeProjectAuditResults(cpar, out Exit);
                 }
                 if (Source != null)
                 {
@@ -981,31 +982,45 @@ namespace DevAudit.CommandLine
                     if (Container.OSPackageSourceAuditResult == AuditTarget.AuditResult.SUCCESS)
                     {
                         Source = Container.OSPackageSource;
-                        PrintPackageSourceAuditResults(Container.OSPackageSourceAuditResult, out Exit);
+                        vulnCount += PrintPackageSourceAuditResults(Container.OSPackageSourceAuditResult, out Exit);
                         Source.Dispose();
                     }
                     foreach (var k in Container.ApplicationServerAuditResults.Where(ar => ar.Value == AuditTarget.AuditResult.SUCCESS))
                     {
                         Application = k.Key;
-                        PrintApplicationAuditResults(k.Value, out Exit);
+                        vulnCount += PrintApplicationAuditResults(k.Value, out Exit);
                         Application.Dispose();
                     }
                 }
             }
             #endregion
 
-            return (int) ExitApplication(Exit);
+            if (Exit == AuditTarget.AuditResult.SUCCESS && ProgramOptions.CiMode)
+            {
+                // Is execution is succesfull and we are in CI mode then exit with the number of problems found
+                return (int)ExitApplication(vulnCount);
+            }
+            else
+            {
+                return (int)ExitApplication(Exit);
+            }
         }
 
         #region Private methods
         static int ExitApplication(AuditTarget.AuditResult exit)
         {
-            if (Spinner != null) StopSpinner();
-            if (!ProgramOptions.NonInteractive) Console.CursorVisible = true;
-            return (int) exit;
+            // Make error codes negative, since positive numbers can be made to indicate the number of vulnerabilities identified
+            return ExitApplication(-(int)exit);
         }
 
-        static void PrintPackageSourceAuditResults(AuditTarget.AuditResult ar, out AuditTarget.AuditResult exit)
+        static int ExitApplication(int exit)
+        {
+            if (Spinner != null) StopSpinner();
+            if (!ProgramOptions.NonInteractive) Console.CursorVisible = true;
+            return (int)exit;
+        }
+
+        static int PrintPackageSourceAuditResults(AuditTarget.AuditResult ar, out AuditTarget.AuditResult exit)
         {
             exit = ar;
             if (Spinner != null) StopSpinner();
@@ -1019,16 +1034,16 @@ namespace DevAudit.CommandLine
                         PrintMessageLine("[{0}/{1}] {2} {3} {4}", i++, Source.Packages.Count(), package.Name,
                             package.Version, package.Vendor);
                     }
-                    return;
+                    return 0;
                 }
                 else if (ar == AuditTarget.AuditResult.SUCCESS && Source.Packages.Count() == 0)
                 {
                     PrintMessageLine("No packages found for {0}. ", Source.PackageManagerLabel);
-                    return;
+                    return 0;
                 }
                 else
                 {
-                    return;
+                    return 0;
                 }
             }
             else if (ProgramOptions.ListArtifacts)
@@ -1049,21 +1064,21 @@ namespace DevAudit.CommandLine
                             PrintMessage(ConsoleColor.DarkRed, "No project id found.\n");
                         }
                     }
-                    return;
+                    return 0;
                 }
                 else if (ar == AuditTarget.AuditResult.SUCCESS && Source.Artifacts.Count() == 0)
                 {
                     PrintMessageLine("No artifacts found for {0}. ", Source.PackageManagerLabel);
-                    return;
+                    return 0;
                 }
                 else
                 {
-                    return;
+                    return 0;
                 }
             }
             else if (ProgramOptions.SkipPackagesAudit || ProgramOptions.ListConfigurationRules || ProgramOptions.PrintConfiguration || ProgramOptions.ListAnalyzers)
             {
-                return;
+                return 0;
             }
             int total_vulnerabilities = Source.Vulnerabilities.Sum(v => v.Value != null ? v.Value.Count(pv => pv.PackageVersionIsInRange) : 0);
             PrintMessageLine(ConsoleColor.White, "\nPackage Source Audit Results\n============================");
@@ -1163,17 +1178,17 @@ namespace DevAudit.CommandLine
                 }
             }
             Source.Dispose();
-            return;
+            return total_vulnerabilities;
         }
   
-        static void PrintApplicationAuditResults(AuditTarget.AuditResult ar, out AuditTarget.AuditResult exit)
+        static int PrintApplicationAuditResults(AuditTarget.AuditResult ar, out AuditTarget.AuditResult exit)
         {
             if (Stopwatch.IsRunning) Stopwatch.Stop();
             exit = ar;
             if (Spinner != null) StopSpinner();
             if (ProgramOptions.ListPackages || ProgramOptions.ListArtifacts)
             {
-                return;
+                return 0;
             }
             else if (ar == AuditTarget.AuditResult.SUCCESS && ProgramOptions.PrintConfiguration)
             {
@@ -1185,7 +1200,7 @@ namespace DevAudit.CommandLine
                 {
                     PrintErrorMessage("Configuration was not initialised.");
                 }
-                return;
+                return 0;
             }
             else if (ProgramOptions.ListConfigurationRules)
             {
@@ -1203,12 +1218,12 @@ namespace DevAudit.CommandLine
                             PrintMessageLine("  [{0}/{1}] {2}", j++, project_rule.Value.Count(), rule.Title);
                         }
                     }
-                    return;
+                    return 0;
                 }
                 else if (ar == AuditTarget.AuditResult.SUCCESS && Application.ConfigurationRules.Count() == 0)
                 {
                     PrintMessageLine("No configuration rules found for {0}. ", Application.ApplicationLabel);
-                    return;
+                    return 0;
                 }
             }
             else if (Application.ConfigurationRules.Count() > 0)
@@ -1289,6 +1304,8 @@ namespace DevAudit.CommandLine
                 PrintMessageLine(ConsoleColor.White, "\nApplication Configuration Audit Results\n=======================================");
                 PrintMessageLine(ConsoleColor.White, "{0} total vulnerabilities found in {1} application configuration audit. Total time for audit: {2} ms.\n", Application.ConfigurationRulesEvaluations.Values.Where(v => v.Item1).Count(), Application.ApplicationLabel, Stopwatch.ElapsedMilliseconds);
             }
+
+            int errors = 0;
             if (Application.AnalyzerResults != null && Application.AnalyzerResults.Count > 0)
             {
                 IEnumerable<ByteCodeAnalyzerResult> code_analysis_results = Application.AnalyzerResults;
@@ -1297,6 +1314,7 @@ namespace DevAudit.CommandLine
                     int bcar_count = code_analysis_results.Count();
                     int bcar_succeded_count = code_analysis_results.Count(car => car.Succeded);
                     int bcar_vulnerable_count = code_analysis_results.Count(car => car.IsVulnerable);
+                    errors += bcar_vulnerable_count;
                     PrintMessageLine(ConsoleColor.White, "\nApplication Code Analysis Results\n=======================================");
                     PrintMessageLine(ConsoleColor.White, "{0} {1} found in {2} application code analysis audit. Total time for audit: {3} ms.\n",
                         bcar_vulnerable_count, bcar_vulnerable_count == 0 || bcar_vulnerable_count > 1 ? "vulnerabilities" : "vulnerability", Application.ApplicationLabel, Stopwatch.ElapsedMilliseconds);
@@ -1362,14 +1380,16 @@ namespace DevAudit.CommandLine
                     }
                 }
             }
+            return errors;
         }
 
-        static void PrintCodeProjectAuditResults(AuditTarget.AuditResult ar, out AuditTarget.AuditResult exit)
+        static int PrintCodeProjectAuditResults(AuditTarget.AuditResult ar, out AuditTarget.AuditResult exit)
         {
             if (Stopwatch.IsRunning) Stopwatch.Stop();
             exit = ar;
             if (Spinner != null) StopSpinner();
             PrintMessageLine(ConsoleColor.White, "\nCode Project Audit Results\n============================");
+            return 0;
         }
 
         static void EnvironmentMessageHandler(object sender, EnvironmentEventArgs e)

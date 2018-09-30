@@ -610,7 +610,20 @@ namespace DevAudit.AuditLibrary
                         string message;
                         lock (evaluate_rules)
                         {
-                            results.Add(r, new Tuple<bool, List<string>, string>(this.Configuration.XPathEvaluate(r.XPathTest, out result, out message), result, message));
+                            try
+                            {
+                                bool xpathResult = this.Configuration.XPathEvaluate(r.XPathTest, out result, out message);
+                                results.Add(r, new Tuple<bool, List<string>, string>(xpathResult, result, message));
+                            }
+                            catch (Exception e)
+                            {
+                                result = new List<string>();
+                                result.Add("Skipped");
+                                this.AuditEnvironment.Debug("Not evaluating rule \"{0}\"; cannot evaluate XPath expression", r.Title);
+                                this.AuditEnvironment.Debug("  XPath exception on '{0}': {1}", r.XPathTest, e);
+                                results.Add(r, new Tuple<bool, List<string>, string>(false, result, "Skipped"));
+                                this.DisabledRules.Add(r);
+                            }
                         }
                     }
                 });
