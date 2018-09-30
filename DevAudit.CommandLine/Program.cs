@@ -1113,7 +1113,6 @@ namespace DevAudit.CommandLine
                         PrintMessage(ConsoleColor.White, "--[{0}/{1}] ", ++c, matched_vulnerabilities_count);
                         PrintMessageLine(ConsoleColor.Red, "{0} ", v.Title.Trim());
                         PrintAuditResultMultiLineField(ConsoleColor.White, 2, "Description", v.Description.Trim().Replace("\n", "").Replace(". ", "." + Environment.NewLine));
-                        PrintMessage(ConsoleColor.White, "  --Affected versions: ");
                         PrintMessageLine(ConsoleColor.Red, "{0}", string.Join(", ", v.Versions.ToArray()));
                         if (v.CVE != null && v.CVE.Count() > 0)
                         {
