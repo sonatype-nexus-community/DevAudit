@@ -17,7 +17,7 @@ if not "%5"=="" (
    set SPECIAL=%5
 )
 if not exist "DevAudit.sln" goto SlnError
-set TAG=v%MAJOR%.%MINOR%.x
+set TAG=v%MAJOR%.x
 set BUILD_TAG=%MAJOR%.%MINOR%.%PATCH%.%BUILD%
 if not "%5"=="" (
    set RELEASE_TAG=%BUILD_TAG%-%SPECIAL%
