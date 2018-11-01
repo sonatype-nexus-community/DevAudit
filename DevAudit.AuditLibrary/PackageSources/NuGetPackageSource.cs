@@ -36,9 +36,23 @@ namespace DevAudit.AuditLibrary
                     xml = xml.Remove(0, lastIndexOfUtf8);
                 }
                 XElement root = XElement.Parse(xml);
-                IEnumerable<Package> packages =
-                    from el in root.Elements("package")
-                    select new Package("nuget", el.Attribute("id").Value, el.Attribute("version").Value, "");
+                IEnumerable<Package> packages;
+
+                if (root.Name == "Project")
+                {
+                    // dotnet core csproj file
+                    packages = root.Descendants().Where(x => x.Name == "PackageReference").Select(r =>
+                        new Package("nuget", r.Attribute("Include").Value, r.Attribute("Version").Value)).ToList();
+                }
+                else
+                {
+                    packages =
+                        from el in root.Elements("package")
+                        select new Package("nuget", el.Attribute("id").Value, el.Attribute("version").Value, "");
+                }
+
+
+
                 return packages;
             }
             catch (XmlException e)

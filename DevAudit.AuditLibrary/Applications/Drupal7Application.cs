@@ -13,7 +13,6 @@ using IniParser.Model.Configuration;
 using Versatile;
 using Alpheus;
 using Alpheus.IO;
-using System.Xml;
 
 namespace DevAudit.AuditLibrary
 {
@@ -180,45 +179,8 @@ namespace DevAudit.AuditLibrary
 
         public override IEnumerable<Package> GetPackages(params string[] o)
         {
-            try
-            {
-                AuditFileInfo config_file = this.AuditEnvironment.ConstructFile(this.PackageManagerConfigurationFile);
-                string _byteOrderMarkUtf8 = Encoding.UTF8.GetString(Encoding.UTF8.GetPreamble());
-                string xml = config_file.ReadAsText();
-                if (xml.StartsWith(_byteOrderMarkUtf8, StringComparison.Ordinal))
-                {
-                    var lastIndexOfUtf8 = _byteOrderMarkUtf8.Length;
-                    xml = xml.Remove(0, lastIndexOfUtf8);
-                }
-                XElement root = XElement.Parse(xml);
-                IEnumerable<Package> packages;
-
-                if (root.Name == "Project")
-                {
-                    // dotnet core csproj file
-                    packages = root.Descendants().Where(x => x.Name == "PackageReference").Select(r =>
-                        new Package("nuget", r.Attribute("Include").Value, r.Attribute("Version").Value)).ToList();
-                }
-                else
-                {
-                    packages =
-                        from el in root.Elements("package")
-                        select new Package("nuget", el.Attribute("id").Value, el.Attribute("version").Value, "");
-                }
-
-
-
-                return packages;
-            }
-            catch (XmlException e)
-            {
-                throw new Exception("XML exception thrown parsing file: " + this.PackageManagerConfigurationFile, e);
-            }
-            catch (Exception e)
-            {
-                throw new Exception("Unknown exception thrown attempting to get packages from file: "
-                    + this.PackageManagerConfigurationFile, e);
-            }
+            if(!this.ModulesInitialised) throw new InvalidOperationException("Modules must be initialized before GetVersion is called.");
+            return this.ModulePackages["all"];
         }
 
         protected override IConfiguration GetConfiguration()
