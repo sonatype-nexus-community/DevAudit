@@ -99,7 +99,8 @@ namespace DevAudit.AuditLibrary
         #endregion
 
         #region Constructors
-        public ChocolateyPackageSource(Dictionary<string, object> package_source_options, EventHandler<EnvironmentEventArgs> message_handler) : base(package_source_options,message_handler) {}
+        public ChocolateyPackageSource(Dictionary<string, object> package_source_options, EventHandler<EnvironmentEventArgs> message_handler) : base(package_source_options,message_handler) {
+        }
         #endregion
 
     }
