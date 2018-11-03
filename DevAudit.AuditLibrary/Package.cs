@@ -8,6 +8,7 @@ using Newtonsoft.Json;
 
 namespace DevAudit.AuditLibrary
 {
+    [Serializable]
     public class Package : IPackage
     {
         [JsonProperty("pm")]
@@ -36,6 +37,18 @@ namespace DevAudit.AuditLibrary
             if (!string.IsNullOrEmpty(vendor)) this.Vendor = vendor;
             if (!string.IsNullOrEmpty(group)) this.Group = group;
             if (!string.IsNullOrEmpty(architecture)) this.Architecture = architecture;
+        }
+
+        public string getPurl()
+        {
+            if (Group != null)
+            {
+                return "pkg:" + PackageManager + "/" + Group + "/" + Name + "@" + Version;
+            }
+            else
+            {
+                return "pkg:" + PackageManager + "/" + Name + "@" + Version;
+            }
         }
     }
 }

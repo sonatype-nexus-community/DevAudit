@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 
 namespace DevAudit.AuditLibrary
 {
+    [Serializable]
     public class DataSourceInfo
     {
         #region Constructors

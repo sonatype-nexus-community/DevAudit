@@ -8,6 +8,8 @@ using System.Threading.Tasks;
 using Newtonsoft.Json;
 using System.Threading;
 using PackageUrl;
+using System.Runtime.Caching;
+using System.Reflection;
 
 namespace DevAudit.AuditLibrary
 {
@@ -19,6 +21,10 @@ namespace DevAudit.AuditLibrary
         protected PackageSource PackageSource { get; set; }
 
         private string HOST = "https://ossindex.sonatype.org/api/";
+
+        private FileCache cache = new FileCache(new ObjectBinder());
+
+        private long cacheExpiration = 43200; // Seconds in 12 hours
 
         #endregion
 
@@ -38,14 +44,38 @@ namespace DevAudit.AuditLibrary
             throw new NotImplementedException();
         }
 
-        public override async Task<Dictionary<IPackage, List<IVulnerability>>> SearchVulnerabilities(List<Package> packages)
+        public override async Task<Dictionary<IPackage, List<IVulnerability>>> SearchVulnerabilities(List<Package> inPackages)
         {
             CallerInformation here = this.HostEnvironment.Here();
-            this.HostEnvironment.Status("Searching OSS Index for vulnerabilities for {0} packages.", packages.Count());
+            this.HostEnvironment.Status("Searching OSS Index for vulnerabilities for {0} packages.", inPackages.Count());
             Stopwatch sw = new Stopwatch();
             sw.Start();
             int i = 0;
-            IGrouping<int, Package>[] packages_groups = packages.GroupBy(x => i++ / 100).ToArray();
+
+            List<Package> doPackages = new List<Package>();
+            foreach(var package in inPackages)
+            {
+                string purl = package.getPurl();
+                OSSIndexApiv3Package cachedPkg = (OSSIndexApiv3Package)cache[purl];
+                if (cachedPkg != null)
+                {
+                    long now = DateTime.UtcNow.Ticks / TimeSpan.TicksPerSecond;
+                    long diff = now - cachedPkg.CachedAt;
+                    if (diff < cacheExpiration)
+                    {
+                        this.AddVulnerability(cachedPkg.Package, cachedPkg.Vulnerabilities);
+                    }
+                    else
+                    {
+                        doPackages.Add(package);
+                    }
+                } else
+                {
+                    doPackages.Add(package);
+                }
+            }
+
+            IGrouping<int, Package>[] packages_groups = doPackages.GroupBy(x => i++ / 100).ToArray();
             IEnumerable<Package>[] queries = packages_groups.Select(group => packages_groups.Where(g => g.Key == group.Key).SelectMany(g => g)).ToArray();
             List<Task> tasks = new List<Task>();
             foreach (IEnumerable<Package> q in queries)
@@ -54,9 +84,13 @@ namespace DevAudit.AuditLibrary
                 {
                     try
                     {
+                        this.HostEnvironment.Info("------------------------------- Performing query on {0} packages", q.Count());
+
                         List<OSSIndexApiv3Package> results = await SearchVulnerabilitiesAsync(q, this.VulnerabilitiesResultsTransform);
                         foreach (OSSIndexApiv3Package r in results)
                         {
+                            r.CachedAt = DateTime.UtcNow.Ticks / TimeSpan.TicksPerSecond;
+                            cache[r.Coordinates] = r;
                             if (r.Vulnerabilities != null && r.Vulnerabilities.Count > 0)
                             {
                                 this.AddVulnerability(r.Package, r.Vulnerabilities);
@@ -65,6 +99,8 @@ namespace DevAudit.AuditLibrary
                     }
                     catch (Exception e)
                     {
+                        Console.WriteLine(e.ToString());
+
                         if (e is HttpException)
                         {
                             this.HostEnvironment.Error(here, e, "An HTTP error occured attempting to query the OSS Index API for the following {1} packages: {0}.",
@@ -131,14 +167,7 @@ namespace DevAudit.AuditLibrary
             // Convert the packages into a list of string
             foreach (Package pkg in packages_for_query)
             {
-                if (pkg.Group != null)
-                {
-                    query.addCoordinate("pkg:" + pkg.PackageManager + "/" + pkg.Group + "/" + pkg.Name + "@" + pkg.Version);
-                }
-                else
-                {
-                    query.addCoordinate("pkg:" + pkg.PackageManager + "/" + pkg.Name + "@" + pkg.Version);
-                }
+                query.addCoordinate(pkg.getPurl());
             }
 
             using (HttpClient client = CreateHttpClient())
@@ -237,5 +266,25 @@ namespace DevAudit.AuditLibrary
         private Dictionary<Package, List<OSSIndexApiv3Vulnerability>> _Vulnerabilities = new Dictionary<Package, List<OSSIndexApiv3Vulnerability>>();
         #endregion
 
+    }
+
+    /** https://github.com/acarteas/FileCache
+     */
+    public sealed class ObjectBinder : System.Runtime.Serialization.SerializationBinder
+    {
+        public override Type BindToType(string assemblyName, string typeName)
+        {
+            Type typeToDeserialize = null;
+            String currentAssembly = Assembly.GetExecutingAssembly().FullName;
+
+            // In this case we are always using the current assembly
+            assemblyName = currentAssembly;
+
+            // Get the type using the typeName and assemblyName
+            typeToDeserialize = Type.GetType(String.Format("{0}, {1}",
+            typeName, assemblyName));
+
+            return typeToDeserialize;
+        }
     }
 }
