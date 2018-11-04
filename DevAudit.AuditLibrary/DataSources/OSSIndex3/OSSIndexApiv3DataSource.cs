@@ -10,6 +10,7 @@ using System.Threading;
 using PackageUrl;
 using System.Runtime.Caching;
 using System.Reflection;
+using System.IO;
 
 namespace DevAudit.AuditLibrary
 {
@@ -22,9 +23,9 @@ namespace DevAudit.AuditLibrary
 
         private string HOST = "https://ossindex.sonatype.org/api/";
 
-        private FileCache cache = new FileCache(new ObjectBinder());
+        private FileCache cache = null;
 
-        private long cacheExpiration = 43200; // Seconds in 12 hours
+        private long cacheExpiration { get; set; } = 43200; // Seconds in 12 hours
 
         #endregion
 
@@ -35,6 +36,35 @@ namespace DevAudit.AuditLibrary
             this.PackageSource = target as PackageSource;
             this.Initialised = true;
             this.Info = new DataSourceInfo("OSS Index", "https://ossindex.sonatype.org", "OSS Index is a free index of software information, focusing on vulnerabilities. The data has been made available to the community through a REST API as well as several open source tools. Particular focus is being made on software packages, both those used for development libraries as well as installation packages.");
+
+            // Get an appropriate place for the cache and initialize it
+            OperatingSystem os = Environment.OSVersion;
+            PlatformID pid = os.Platform;
+            switch (pid)
+            {
+                case PlatformID.Win32NT:
+                case PlatformID.Win32S:
+                case PlatformID.Win32Windows:
+                case PlatformID.WinCE:
+                    {
+                        var directory = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
+                        string path = Path.Combine(directory, "OSSIndex", "cache");
+                        cache = new FileCache(path, new ObjectBinder());
+                        break;
+                    }
+                case PlatformID.Unix:
+                case PlatformID.MacOSX:
+                    {
+                        string home = Environment.GetEnvironmentVariable("HOME");
+                        string path = Path.Combine(home, ".ossindex", "cache");
+                        cache = new FileCache(path, new ObjectBinder());
+                        break;
+                    }
+
+                default:
+                    cache = new FileCache(new ObjectBinder());
+                    break;
+            }
         }
         #endregion
 
