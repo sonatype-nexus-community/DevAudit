@@ -54,7 +54,10 @@ namespace DevAudit.AuditLibrary
             }
             try
             {
-                Deserializer yaml_deserializer = new Deserializer(namingConvention: new CamelCaseNamingConvention(), ignoreUnmatched: true);
+                IDeserializer yaml_deserializer = new DeserializerBuilder()
+                .WithNamingConvention(new CamelCaseNamingConvention())
+                .IgnoreUnmatchedProperties()
+                .Build();
                 this.DrupalModuleInfo = yaml_deserializer.Deserialize<DrupalModuleInfo>(new StringReader(File.ReadAllText(wf.FullName)));
                 this.DrupalModuleInfo.ShortName = wf.Name.Split('.')[0];
             }

@@ -89,7 +89,10 @@ namespace DevAudit.AuditLibrary
                 {
                     if (!string.IsNullOrEmpty(kv.Value))
                     {
-                        Deserializer yaml_deserializer = new Deserializer(namingConvention: new CamelCaseNamingConvention(), ignoreUnmatched: true);
+                        IDeserializer yaml_deserializer = new DeserializerBuilder()
+                        .WithNamingConvention(new CamelCaseNamingConvention())
+                        .IgnoreUnmatchedProperties()
+                        .Build();
                         DrupalModuleInfo m = yaml_deserializer.Deserialize<DrupalModuleInfo>(new System.IO.StringReader(kv.Value));
                         m.ShortName = kv.Key.Name.Split('.')[0];
                         lock (modules_lock)
@@ -112,7 +115,10 @@ namespace DevAudit.AuditLibrary
                 {
                     if (!string.IsNullOrEmpty(kv.Value))
                     {
-                        Deserializer yaml_deserializer = new Deserializer(namingConvention: new CamelCaseNamingConvention(), ignoreUnmatched: true);
+                        IDeserializer yaml_deserializer = new DeserializerBuilder()
+                        .WithNamingConvention(new CamelCaseNamingConvention())
+                        .IgnoreUnmatchedProperties()
+                        .Build();
                         DrupalModuleInfo m = yaml_deserializer.Deserialize<DrupalModuleInfo>(new System.IO.StringReader(kv.Value));
                         m.ShortName = kv.Key.Name.Split('.')[0];
                         lock (modules_lock)
@@ -140,7 +146,10 @@ namespace DevAudit.AuditLibrary
                     {
                         if (!string.IsNullOrEmpty(kv.Value))
                         {
-                            Deserializer yaml_deserializer = new Deserializer(namingConvention: new CamelCaseNamingConvention(), ignoreUnmatched: true);
+                            IDeserializer yaml_deserializer = new DeserializerBuilder()
+                            .WithNamingConvention(new CamelCaseNamingConvention())
+                            .IgnoreUnmatchedProperties()
+                            .Build();
                             DrupalModuleInfo m = yaml_deserializer.Deserialize<DrupalModuleInfo>(new System.IO.StringReader(kv.Value));
                             m.ShortName = kv.Key.Name.Split('.')[0];
                             lock (modules_lock)

@@ -17,7 +17,10 @@ namespace DevAudit.AuditLibrary
             this.AuditEnvironment = env;
             this.ProfileFile = pf;
             this.AuditEnvironment.Info("Using profile file {0}.", pf.FullName);
-            Deserializer yaml_deserializer = new Deserializer(namingConvention: new CamelCaseNamingConvention(), ignoreUnmatched: true);
+            IDeserializer yaml_deserializer = new DeserializerBuilder()
+            .WithNamingConvention(new CamelCaseNamingConvention())
+            .IgnoreUnmatchedProperties()
+            .Build();
             try
             {
                 this.Rules = yaml_deserializer.Deserialize<List<AuditProfileRule>>(new StringReader(this.ProfileFile.ReadAsText()));

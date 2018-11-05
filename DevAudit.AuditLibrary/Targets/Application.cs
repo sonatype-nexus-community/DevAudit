@@ -483,7 +483,10 @@ namespace DevAudit.AuditLibrary
             sw.Start();
             AuditFileInfo rules_file = this.HostEnvironment.ConstructFile(Path.Combine(this.DevAuditDirectory, "Rules", this.ApplicationId + "." + "yml"));
             if (!rules_file.Exists) throw new Exception(string.Format("The default rules file {0} does not exist.", rules_file.FullName));
-            Deserializer yaml_deserializer = new Deserializer(namingConvention: new CamelCaseNamingConvention(), ignoreUnmatched: true);
+            IDeserializer yaml_deserializer = new DeserializerBuilder()
+            .WithNamingConvention(new CamelCaseNamingConvention())
+            .IgnoreUnmatchedProperties()
+            .Build();
             Dictionary<string, List<ConfigurationRule>> rules;
             rules = yaml_deserializer.Deserialize<Dictionary<string, List<ConfigurationRule>>>(new StringReader(rules_file.ReadAsText()));
             if (rules == null)
