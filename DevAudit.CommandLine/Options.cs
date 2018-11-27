@@ -141,7 +141,7 @@ namespace DevAudit.CommandLine
         [Option('w', "winrm", Required = false, HelpText = "Connect to the remote host using the WinRM protocol. You must enable WinRM on the remote Windows machine.")]
         public bool WinRm { get; set; }
 
-        [Option('c', "config-file", Required = false, HelpText = "Specifies the configuration file for the application server to be audited.")]
+        [Option("config-file", Required = false, HelpText = "Specifies the configuration file for the application server to be audited.")]
         public string ConfigurationFile { get; set; }
 
         [Option('r', "root", Required = false, HelpText = "The root directory of the application instance to audit.")]
