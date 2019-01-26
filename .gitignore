@@ -220,3 +220,6 @@ ModelManifest.xml
 /Analyzers
 /Examples
 /Rules
+/.vscode
+/.stignore
+/omnisharp.json

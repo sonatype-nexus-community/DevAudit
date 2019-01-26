@@ -332,6 +332,10 @@ namespace DevAudit.AuditLibrary
             }
             #endregion
 
+            if (this.AuditOptions.ContainsKey("HttpsProxy"))
+            {
+                this.HostEnvironment.Info("Using proxy {0}.", ((Uri)AuditOptions["HttpsProxy"]).AbsoluteUri);
+            }
             if (this.AuditOptions.ContainsKey("IgnoreHttpsCertErrors"))
             {
                 this.DataSourceOptions.Add("IgnoreHttpsCertErrors", true);
