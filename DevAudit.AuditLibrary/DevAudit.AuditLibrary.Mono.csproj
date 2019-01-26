@@ -256,6 +256,7 @@
     <Compile Include="Targets\PackageSource.cs" />
     <Compile Include="PackageSources\BowerPackageSource.cs" />
     <Compile Include="PackageSources\ChocolateyPackageSource.cs" />
+    <Compile Include="PackageSources\NetCorePackageSource.cs" />
     <Compile Include="PackageSources\ComposerPackageSource.cs" />
     <Compile Include="PackageSources\DpkgPackageSource.cs" />
     <Compile Include="PackageSources\RpmPackageSource.cs" />
@@ -263,7 +264,7 @@
     <Compile Include="PackageSources\MSIPackageSource.cs" />
     <Compile Include="PackageSources\NuGetPackageSource.cs" />
     <Compile Include="PackageSources\OneGetPackageSource.cs" />
-    <Compile Include="PackageSources\YarnPackageSource.cs" />    
+    <Compile Include="PackageSources\YarnPackageSource.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Targets\ApplicationServer.cs" />
     <Compile Include="Targets\Container.cs" />

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -74,7 +74,7 @@ namespace DevAudit.AuditLibrary
                 {
                     this.AuditEnvironment.Info("Reading packages from .NET Core depedencies manifest..");
                     JObject json = (JObject)JToken.Parse(config_file.ReadAsText());
-                    JObject libraries = (JObject)json["dli"];
+                    JObject libraries = (JObject)json["libraries"];
 
                     if (libraries != null)
                     {
