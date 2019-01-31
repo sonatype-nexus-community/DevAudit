@@ -84,22 +84,30 @@ namespace DevAudit.AuditLibrary
             foreach(var package in inPackages)
             {
                 string purl = package.getPurl();
-                OSSIndexApiv3Package cachedPkg = (OSSIndexApiv3Package)cache[purl];
-                if (cachedPkg != null)
+                try
                 {
-                    long now = DateTime.UtcNow.Ticks / TimeSpan.TicksPerSecond;
-                    long diff = now - cachedPkg.CachedAt;
-                    if (diff < cacheExpiration)
+                    OSSIndexApiv3Package cachedPkg = (OSSIndexApiv3Package)cache[purl];
+                    if (cachedPkg != null)
                     {
-                        this.AddVulnerability(cachedPkg.Package, cachedPkg.Vulnerabilities);
+                        long now = DateTime.UtcNow.Ticks / TimeSpan.TicksPerSecond;
+                        long diff = now - cachedPkg.CachedAt;
+                        if (diff < cacheExpiration)
+                        {
+                            this.AddVulnerability(cachedPkg.Package, cachedPkg.Vulnerabilities);
+                        }
+                        else
+                        {
+                            doPackages.Add(package);
+                        }
                     }
                     else
                     {
                         doPackages.Add(package);
                     }
-                } else
+                }
+                catch (Exception ignore)
                 {
-                    doPackages.Add(package);
+                    cache.Remove(purl);
                 }
             }
 
