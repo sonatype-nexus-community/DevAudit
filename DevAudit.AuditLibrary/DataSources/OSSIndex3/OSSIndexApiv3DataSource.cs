@@ -17,8 +17,6 @@ namespace DevAudit.AuditLibrary
     public class OSSIndexApiv3DataSource : HttpDataSource
     {
         #region Properties
-        public Uri HttpsProxy { get; set; } = null;
-
         protected PackageSource PackageSource { get; set; }
 
         private string HOST = "https://ossindex.sonatype.org/api/";
@@ -168,7 +166,7 @@ namespace DevAudit.AuditLibrary
             if (target is PackageSource)
             {
                 PackageSource source = target as PackageSource;
-                string[] eligible_sources = {"nuget", "bower", "composer", "chocolatey", "yarn", "oneget" };
+                string[] eligible_sources = {"nuget", "bower", "composer", "chocolatey", "yarn", "oneget", "netcore" };
                 return eligible_sources.Contains(source.PackageManagerId);
             }
 

@@ -32,13 +32,18 @@ namespace DevAudit.AuditLibrary
             {
                 if (this.AuditEnvironment.FileExists(this.DefaultPackageManagerConfigurationFile))
                 {
-                    this.AuditEnvironment.Info("Using default {0} package manager configuration file {1}", this.PackageManagerLabel, this.DefaultPackageManagerConfigurationFile);
+                    this.AuditEnvironment.Info("Using default {0} package source configuration file {1}", this.PackageManagerLabel, this.DefaultPackageManagerConfigurationFile);
                     this.PackageManagerConfigurationFile = this.DefaultPackageManagerConfigurationFile;
                 }
                 else
                 {
-                    throw new ArgumentException(string.Format("No file option was specified and the default {0} package manager configuration file {1} was not found.", this.PackageManagerLabel, this.DefaultPackageManagerConfigurationFile));
+                    throw new ArgumentException(string.Format("No file option was specified and the default {0} package sourcs configuration file {1} was not found.", this.PackageManagerLabel, this.DefaultPackageManagerConfigurationFile));
                 }
+            }
+            else if (!this.PackageSourceOptions.ContainsKey("File") && this.DefaultPackageManagerConfigurationFile == string.Empty)
+            {
+                throw new ArgumentException(string.Format("No file option was specified and the {0} package source " 
+                    + "does not specify a default configuration file.", this.PackageManagerLabel));
             }
 
             if (!string.IsNullOrEmpty(this.PackageManagerConfigurationFile))
@@ -72,13 +77,13 @@ namespace DevAudit.AuditLibrary
 
             if (this.PackageSourceOptions.ContainsKey("HttpsProxy"))
             {
-                if (this.AuditOptions.ContainsKey("HttpsProxy"))
+                if (!this.AuditOptions.ContainsKey("HttpsProxy"))
                 {
                     DataSourceOptions.Add("HttpsProxy", (Uri)this.PackageSourceOptions["HttpsProxy"]);
                 }
             }
 
-            string[] ossi_pms = { "bower", "composer", "chocolatey", "msi", "nuget", "oneget", "yarn" };
+            string[] ossi_pms = { "bower", "composer", "chocolatey", "msi", "nuget", "oneget", "yarn", "netcore" };
             if (this.DataSources.Count == 0 && ossi_pms.Contains(this.PackageManagerId))
             {
                 this.HostEnvironment.Info("Using OSS Index as default package vulnerabilities data source for {0} package source.", this.PackageManagerLabel);

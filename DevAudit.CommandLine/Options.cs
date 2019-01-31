@@ -84,6 +84,9 @@ namespace DevAudit.CommandLine
         [VerbOption("netfx", HelpText = "Audit a .NET Framework application. Use the --root option to specify the root directory of the application and the -b option to specify the application .NET assembly.")]
         public Options NetFx { get; set; }
 
+        [VerbOption("netcore", HelpText = "Audit a .NET Core application or .NET Standard library's dependencies. Use the -f option to specify the path to the .csproj project or the .deps.json dependencies manifest file.")]
+        public Options NetCore { get; set; }
+
         [VerbOption("aspnet", HelpText = "Audit an ASP.NET application or code project deployed to a web server. Use the --root option to specify the root directory of the application and the -b option to specify the application .NET assembly.")]
         public Options AspNet { get; set; }
 

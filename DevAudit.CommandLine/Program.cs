@@ -99,6 +99,7 @@ namespace DevAudit.CommandLine
             }
             #endregion
 
+            #region Https proxy
             if (!string.IsNullOrEmpty(ProgramOptions.HttpsProxy))
             {
                 Uri https_proxy = null;
@@ -112,6 +113,7 @@ namespace DevAudit.CommandLine
                     return (int)Exit;
                 }
             }
+            #endregion
 
             if (!string.IsNullOrEmpty(Environment.GetEnvironmentVariable("DOCKER")))
             {
@@ -694,6 +696,10 @@ namespace DevAudit.CommandLine
                     if (verb == "nuget")
                     {
                         Source = new NuGetPackageSource(audit_options, EnvironmentMessageHandler);
+                    }
+                    else if (verb == "netcore")
+                    {
+                        Source = new NetCorePackageSource(audit_options, EnvironmentMessageHandler);
                     }
                     else if (verb == "msi")
                     {

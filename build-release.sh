@@ -38,7 +38,7 @@ fi
 mkdir $RELEASE_TAG
 mkdir $RELEASE_TAG/DevAudit
 RELEASE_DIR=$RELEASE_TAG/DevAudit
-nuget restore $BUILD_DIR/DevAudit.Mono.sln && xbuild $BUILD_DIR/DevAudit.Mono.sln /verbosity:diagnostic /p:Configuration=RuntimeDebug /p:VersionAssembly=$BUILD_TAG
+mono .nuget/nuget.exe restore $BUILD_DIR/DevAudit.Mono.sln && xbuild $BUILD_DIR/DevAudit.Mono.sln /verbosity:diagnostic /p:Configuration=RuntimeDebug /p:VersionAssembly=$BUILD_TAG
 if [[ $? -ne 0 ]]; then
 	echo An error occurred during build in $BUILD_DIR.
     rm -rf "$BUILD_DIR"
