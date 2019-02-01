@@ -1,0 +1,45 @@
+ .NET Desktop
+# https://docs.microsoft.com/azure/devops/pipelines/apps/windows/dot-net
+
+name: $(Date:yyyyMMdd).$(Rev:.r) 
+trigger:
+  - v3.x
+
+variables:
+  win-solution: 'DevAudit.sln'
+  linux-solution: 'DevAudit.Mono.sln'
+  buildPlatform: 'Any CPU'
+  buildConfiguration: 'RuntimeDebug'
+
+jobs:
+- job: Windows
+  pool:
+    vmImage: 'VS2017-Win2016'
+  steps:
+  - task: NuGetToolInstaller@0
+  - task: NuGetCommand@2
+    inputs:
+      restoreSolution: '$(win-solution)'
+      feedsToUse: 'config'
+      nugetConfigPath: 'NuGet.Config'
+
+  - task: VSBuild@1
+    inputs:
+      solution: '$(win-solution)'
+      platform: '$(buildPlatform)'
+      configuration: '$(buildConfiguration)'
+
+- job: Linux
+  pool:
+    vmImage: 'ubuntu-16.04'
+  steps:
+  - task: NuGetToolInstaller@0
+  - task: NuGetCommand@2
+    inputs:
+      restoreSolution: '$(linux-solution)'
+      feedsToUse: 'config'
+      nugetConfigPath: 'NuGet.Config'
+  - task: Bash@3
+    inputs:
+      targetType: 'filePath'
+      filePath: 'build.sh'
