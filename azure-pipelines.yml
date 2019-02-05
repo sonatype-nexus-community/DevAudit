@@ -30,4 +30,4 @@ jobs:
     vmImage: 'ubuntu-16.04'
   steps:
   - script: $(Build.SourcesDirectory)/build.sh
-  - script: docker build -t $(dockerId)/$(dockerImage)
+  - script: docker build -t $(dockerId)/$(dockerImage) .
