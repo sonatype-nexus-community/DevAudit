@@ -30,4 +30,6 @@ jobs:
     vmImage: 'ubuntu-16.04'
   steps:
   - script: $(Build.SourcesDirectory)/build.sh
-  - script: docker build -t $DOCKERID/$DOCKERIMAGE .
+  - script: docker build -t $DOCKERID/$DOCKERIMAGE:$DOCKERTAG .
+  - script: docker login -u ossindexadmin -p Th3Butt3rflyEff3ct
+  - script: docker push $DOCKERID/$DOCKERIMAGE:$DOCKERTAG
