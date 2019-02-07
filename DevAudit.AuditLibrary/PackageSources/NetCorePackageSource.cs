@@ -31,42 +31,36 @@ namespace DevAudit.AuditLibrary
             List<Package> packages = new List<Package>();
             if (config_file.Name.EndsWith(".csproj"))
             {
-                try
+                this.AuditEnvironment.Info("Reading packages from .NET Core C# .csproj file.");
+                string _byteOrderMarkUtf8 = Encoding.UTF8.GetString(Encoding.UTF8.GetPreamble());
+                string xml = config_file.ReadAsText();
+                if (xml.StartsWith(_byteOrderMarkUtf8, StringComparison.Ordinal))
                 {
-                    this.AuditEnvironment.Info("Reading packages from .NET Core C# .csproj file.");
-                    string _byteOrderMarkUtf8 = Encoding.UTF8.GetString(Encoding.UTF8.GetPreamble());
-                    string xml = config_file.ReadAsText();
-                    if (xml.StartsWith(_byteOrderMarkUtf8, StringComparison.Ordinal))
-                    {
-                        var lastIndexOfUtf8 = _byteOrderMarkUtf8.Length;
-                        xml = xml.Remove(0, lastIndexOfUtf8);
-                    }
-                    XElement root = XElement.Parse(xml);
+                    var lastIndexOfUtf8 = _byteOrderMarkUtf8.Length;
+                    xml = xml.Remove(0, lastIndexOfUtf8);
+                }
+                XElement root = XElement.Parse(xml);
 
 
-                    if (root.Name == "Project")
-                    {
-                        packages = root.Descendants().Where(x => x.Name == "PackageReference").Select(r =>
-                            new Package("nuget", r.Attribute("Include").Value, r.Attribute("Version").Value)).ToList();
-                        return packages;
-                    }
-                    else
-                    {
-                        this.AuditEnvironment.Error("{0} is not a .NET Core format .csproj file.", config_file.FullName);
-                        return packages;
-                    }
-
-                    
-                }
-                catch (XmlException e)
+                if (root.Name == "Project")
                 {
-                    throw new Exception("XML exception thrown parsing file: " + this.PackageManagerConfigurationFile, e);
+                    packages = root.Descendants().Where(x => x.Name == "PackageReference" && x.Attribute("Include") != null && x.Attribute("Version") != null).Select(r =>
+                        new Package("nuget", r.Attribute("Include").Value, r.Attribute("Version").Value))
+                        .ToList();
+                    IEnumerable<string> skipped_packages = root.Descendants().Where(x => x.Name == "PackageReference" && x.Attribute("Include") != null && x.Attribute("Version") == null).Select(r =>
+                        r.Attribute("Include").Value);
+                    if (skipped_packages.Count() > 0)
+                    {
+                        this.AuditEnvironment.Warning("{0} package(s) do not have a version specified and will not be audited: {1}.", skipped_packages.Count(),
+                        skipped_packages.Aggregate((s1,s2) => s1 + "," + s2));
+                    }
+                    return packages;
                 }
-                catch (Exception e)
+                else
                 {
-                    throw new Exception("Unknown exception thrown attempting to get packages from file: "
-                        + this.PackageManagerConfigurationFile, e);
-                }
+                    this.AuditEnvironment.Error("{0} is not a .NET Core format .csproj file.", config_file.FullName);
+                    return packages;
+                }               
             }
             else if (config_file.Name.EndsWith(".deps.json"))
             {
@@ -95,7 +89,7 @@ namespace DevAudit.AuditLibrary
             }
             else
             {
-                this.AuditEnvironment.Error("Unknown .NET Core prooject file type: {0}.", config_file.FullName);
+                this.AuditEnvironment.Error("Unknown .NET Core project file type: {0}.", config_file.FullName);
                 return packages;
             }
 
