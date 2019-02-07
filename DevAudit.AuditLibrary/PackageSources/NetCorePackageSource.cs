@@ -49,7 +49,7 @@ namespace DevAudit.AuditLibrary
                         .ToList();
                     IEnumerable<string> skipped_packages = root.Descendants().Where(x => x.Name == "PackageReference" && x.Attribute("Include") != null && x.Attribute("Version") == null).Select(r =>
                         r.Attribute("Include").Value);
-                    if (packages.Count > 0)
+                    if (skipped_packages.Count() > 0)
                     {
                         this.AuditEnvironment.Warning("{0} package(s) do not have a version specified and will not be audited: {1}.", skipped_packages.Count(),
                         skipped_packages.Aggregate((s1,s2) => s1 + "," + s2));
