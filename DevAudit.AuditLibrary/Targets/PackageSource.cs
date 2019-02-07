@@ -179,6 +179,7 @@ namespace DevAudit.AuditLibrary
             }
             catch (AggregateException ae)
             {
+                this.AuditEnvironment.Error(ae.ToString());
                 this.AuditEnvironment.Error(here, ae, "Error in GetVulnerabilities task");
                 return AuditResult.ERROR_SEARCHING_VULNERABILITIES;
             }

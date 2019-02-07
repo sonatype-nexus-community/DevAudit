@@ -84,22 +84,30 @@ namespace DevAudit.AuditLibrary
             foreach(var package in inPackages)
             {
                 string purl = package.getPurl();
-                OSSIndexApiv3Package cachedPkg = (OSSIndexApiv3Package)cache[purl];
-                if (cachedPkg != null)
+                try
                 {
-                    long now = DateTime.UtcNow.Ticks / TimeSpan.TicksPerSecond;
-                    long diff = now - cachedPkg.CachedAt;
-                    if (diff < cacheExpiration)
+                    OSSIndexApiv3Package cachedPkg = (OSSIndexApiv3Package)cache[purl];
+                    if (cachedPkg != null)
                     {
-                        this.AddVulnerability(cachedPkg.Package, cachedPkg.Vulnerabilities);
+                        long now = DateTime.UtcNow.Ticks / TimeSpan.TicksPerSecond;
+                        long diff = now - cachedPkg.CachedAt;
+                        if (diff < cacheExpiration)
+                        {
+                            this.AddVulnerability(cachedPkg.Package, cachedPkg.Vulnerabilities);
+                        }
+                        else
+                        {
+                            doPackages.Add(package);
+                        }
                     }
                     else
                     {
                         doPackages.Add(package);
                     }
-                } else
+                }
+                catch (Exception ignore)
                 {
-                    doPackages.Add(package);
+                    cache.Remove(purl);
                 }
             }
 
@@ -119,10 +127,7 @@ namespace DevAudit.AuditLibrary
                         {
                             r.CachedAt = DateTime.UtcNow.Ticks / TimeSpan.TicksPerSecond;
                             cache[r.Coordinates] = r;
-                            if (r.Vulnerabilities != null && r.Vulnerabilities.Count > 0)
-                            {
-                                this.AddVulnerability(r.Package, r.Vulnerabilities);
-                            }
+                            this.AddVulnerability(r.Package, r.Vulnerabilities);
                         }
                     }
                     catch (Exception e)
@@ -157,8 +162,14 @@ namespace DevAudit.AuditLibrary
                 sw.Stop();
             }
 
-            return await Task.FromResult(this._Vulnerabilities.Select(kv => new KeyValuePair<IPackage, List<IVulnerability>>(kv.Key as IPackage, kv.Value.Select(v => v as IVulnerability)
-                 .ToList())).ToDictionary(x => x.Key, x => x.Value));
+            this.HostEnvironment.Status("Waiting...");
+
+            return await Task.FromResult(
+                this._Vulnerabilities.Select(
+                    kv => new KeyValuePair<IPackage, List<IVulnerability>>(
+                        kv.Key as IPackage,
+                        kv.Value.Select(v => v as IVulnerability).ToList()))
+                    .ToDictionary(x => x.Key, x => x.Value));
         }
 
         public override bool IsEligibleForTarget(AuditTarget target)
