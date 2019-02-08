@@ -33,16 +33,14 @@ jobs:
   - script: docker build -t $DOCKERORGID/$DOCKERIMAGE:$DOCKERTAG .
   - script: docker login -u $DOCKERUSERID -p $DOCKERUSERPASS
   - script: docker push $DOCKERORGID/$DOCKERIMAGE:$DOCKERTAG
-  - powershell: gci env:* | sort-object name | Format-Table -AutoSize | Out-File $env:BUILD_ARTIFACTSTAGINGDIRECTORY/environment-variables.txt
 
   - task: CopyFiles@2
     inputs:
       sourceFolder: '$(Build.SourcesDirectory)/DevAudit.CommandLine/bin/Debug'
-      contents: '**/(*.exe|*.dll|*.pdb)'
+      contents: '(*.exe|*.dll|*.pdb)'
       TargetFolder: '$(Build.ArtifactStagingDirectory)'
 
   - task: PublishBuildArtifacts@1
     inputs:
       pathtoPublish: '$(Build.ArtifactStagingDirectory)'
       artifactName: drop
-      publishLocation: 'Container'
