@@ -2,8 +2,6 @@
 # https://docs.microsoft.com/azure/devops/pipelines/apps/windows/dot-net
 
 name: $(Date:yyyyMMdd).$(Rev:.r) 
-trigger:
-  - v3.x
 
 variables:
   win-solution: 'DevAudit.sln'
@@ -16,22 +14,10 @@ jobs:
   pool:
     vmImage: 'VS2017-Win2016'
   steps:
-  - task: NuGetToolInstaller@0
-  - task: NuGetCommand@2
-    inputs:
-      restoreSolution: '$(win-solution)'
-      feedsToUse: 'config'
-      nugetConfigPath: 'NuGet.Config'
-
-  - task: VSBuild@1
-    inputs:
-      solution: '$(win-solution)'
-      platform: '$(buildPlatform)'
-      configuration: '$(buildConfiguration)'
+  - script: $(Build.SourcesDirectory)/build.cmd /p:VersionAssembly=$(releaseVersion)
 
 - job: Linux
   pool:
     vmImage: 'ubuntu-16.04'
   steps:
-  - script: $(Build.SourcesDirectory)/build.sh
-  - script: docker build -t $DOCKERID/$(DOCKERIMAGE)
+  - script: $(Build.SourcesDirectory)/build.sh /p:VersionAssembly=$(releaseVersion)
