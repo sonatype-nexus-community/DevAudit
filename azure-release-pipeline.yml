@@ -14,7 +14,7 @@ jobs:
   - script: $(Build.SourcesDirectory)/build.cmd /p:VersionAssembly=$(releaseVersion)
   - task: ArchiveFiles@2
     inputs:
-     rootFolderOrFile: '$(Build.SourcesDirectory)\\DevAudit.CommandLine\\bin\\Debug\\'
+     rootFolderOrFile: '$(Build.SourcesDirectory)/DevAudit.CommandLine/bin/Debug/'
      includeRootFolder: false
      archiveType: zip
      archiveFile: '$(Build.ArtifactStagingDirectory)/DevAudit_$(releaseVersion).zip'
@@ -24,7 +24,7 @@ jobs:
     inputs:
       pathtoPublish: '$(Build.ArtifactStagingDirectory)/DevAudit_$(releaseVersion).zip'
       publishLocation: Container
-      artifactName: 'DevAudit-$(releaseVersion)-Release' 
+      artifactName: 'DevAudit-$(releaseVersion)-Windows' 
 
 - job: Linux
   pool:
