@@ -5,13 +5,29 @@ name: $(Date:yyyyMMdd).$(Rev:.r)
 
 variables:
   releaseVersion: '3.2.0.0'
-
+  win-solution: 'DevAudit.sln'
+  linux-solution: 'DevAudit.Mono.sln'
+  buildPlatform: 'Any CPU'
+  buildConfiguration: 'RuntimeDebug'
+ 
 jobs:
 - job: Windows
   pool:
     vmImage: 'VS2017-Win2016'
   steps:
-  - script: $(Build.SourcesDirectory)/build.cmd /p:VersionAssembly=$(releaseVersion)
+  - task: NuGetToolInstaller@0
+  - task: NuGetCommand@2
+    inputs:
+      restoreSolution: '$(win-solution)'
+      feedsToUse: 'config'
+      nugetConfigPath: 'NuGet.Config'
+
+  - task: VSBuild@1
+    inputs:
+      solution: '$(win-solution)'
+      platform: '$(buildPlatform)'
+      configuration: '$(buildConfiguration)' 
+ 
   - task: ArchiveFiles@2
     inputs:
      rootFolderOrFile: '$(Build.SourcesDirectory)/DevAudit.CommandLine/bin/Debug/'
