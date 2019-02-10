@@ -35,7 +35,8 @@ jobs:
     inputs:
       SourceFolder: '$(Build.SourcesDirectory)'
       Contents: |
-       **/*
+       DevAudit.CommandLine/bin/Debug/*
+       DevAudit.CommandLine/bin/Debug/Analyzers/*
       TargetFolder: '$(Build.ArtifactStagingDirectory)'
 
   - task: PublishBuildArtifacts@1
