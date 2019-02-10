@@ -18,16 +18,11 @@ jobs:
      includeRootFolder: false
      archiveType: tar
      tarCompression: gz
-     archiveFile: 'DevAudit_$(releaseVersion).tar.gz'
-
-  - task: CopyFiles@2
-    inputs:
-      SourceFolder: '$(Build.SourcesDirectory)'
-      Contents: |
-       'DevAudit_$(releaseVersion).tar.gz'
-      TargetFolder: '$(Build.ArtifactStagingDirectory)'
+     archiveFile: '$(Build.ArtifactStagingDirectory)/DevAudit_$(releaseVersion).tar.gz'
+     verbose: true
 
   - task: PublishBuildArtifacts@1
     inputs:
       pathtoPublish: '$(Build.ArtifactStagingDirectory)'
+      publishLocation: Container
       artifactName: 'DevAudit-$(releaseVersion)' 
