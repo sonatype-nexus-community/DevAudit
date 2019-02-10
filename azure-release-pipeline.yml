@@ -4,20 +4,30 @@
 name: $(Date:yyyyMMdd).$(Rev:.r) 
 
 variables:
-  win-solution: 'DevAudit.sln'
-  linux-solution: 'DevAudit.Mono.sln'
-  buildPlatform: 'Any CPU'
-  buildConfiguration: 'RuntimeDebug'
+  releaseVersion: '3.2.0.0'
 
 jobs:
-- job: Windows
-  pool:
-    vmImage: 'VS2017-Win2016'
-  steps:
-  - script: $(Build.SourcesDirectory)/build.cmd /p:VersionAssembly=$(releaseVersion)
-
 - job: Linux
   pool:
     vmImage: 'ubuntu-16.04'
   steps:
   - script: $(Build.SourcesDirectory)/build.sh /p:VersionAssembly=$(releaseVersion)
+  - task: ArchiveFiles@2
+    inputs:
+     rootFolderOrFile: '$(Build.SourcesDirectory)/DevAudit.CommandLine/bin/Debug/'
+     includeRootFolder: false
+     archiveType: tar
+     tarCompression: gz
+     archiveFile: 'DevAudit_$(releaseVersion).tar.gz'
+
+  - task: CopyFiles@2
+    inputs:
+      SourceFolder: '$(Build.SourcesDirectory)'
+      Contents: |
+       'DevAudit_$(releaseVersion).tar.gz'
+      TargetFolder: '$(Build.ArtifactStagingDirectory)'
+
+  - task: PublishBuildArtifacts@1
+    inputs:
+      pathtoPublish: '$(Build.ArtifactStagingDirectory)'
+      artifactName: 'DevAudit-$(releaseVersion)' 
