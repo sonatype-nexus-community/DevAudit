@@ -26,8 +26,8 @@ if [[ $? -ne 0 ]]; then
 	echo An error occurred during checkout of branch $TAG.
 	exit 1
 fi
-if [ ! -f $BUILD_DIR/DevAudit.Mono.sln ]; then
-	echo Could not find the solution file $BUILD_DIR/DevAudit.Mono.sln. An error may have occurred during git checkout.	
+if [ ! -f $BUILD_DIR/DevAudit.sln ]; then
+	echo Could not find the solution file $BUILD_DIR/DevAudit.sln. An error may have occurred during git checkout.	
 	exit 2
 fi
 
@@ -38,14 +38,14 @@ fi
 mkdir $RELEASE_TAG
 mkdir $RELEASE_TAG/DevAudit
 RELEASE_DIR=$RELEASE_TAG/DevAudit
-mono .nuget/nuget.exe restore $BUILD_DIR/DevAudit.Mono.sln && xbuild $BUILD_DIR/DevAudit.Mono.sln /verbosity:diagnostic /p:Configuration=RuntimeDebug /p:VersionAssembly=$BUILD_TAG
+mono .nuget/nuget.exe restore $BUILD_DIR/DevAudit.sln && msbuild $BUILD_DIR/DevAudit.sln /verbosity:diagnostic /p:Configuration=RuntimeDebug /p:VersionAssembly=$BUILD_TAG
 if [[ $? -ne 0 ]]; then
 	echo An error occurred during build in $BUILD_DIR.
     rm -rf "$BUILD_DIR"
     rm -rf "$RELEASE_DIR"
 	exit 3
 fi
-cp $BUILD_DIR/DevAudit.AuditLibrary/bin/Debug/Gendarme.Rules.* $BUILD_DIR/DevAudit.CommandLine/bin/Debug/
+
 cp -R $BUILD_DIR/DevAudit.CommandLine/bin/Debug/* $RELEASE_DIR
 mkdir $RELEASE_DIR/Examples && cp -R $BUILD_DIR/Examples/* $RELEASE_DIR/Examples
 copy ./README.md %RELEASE_DIR%
