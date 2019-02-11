@@ -1,7 +1,7 @@
 # .NET Desktop
 # https://docs.microsoft.com/azure/devops/pipelines/apps/windows/dot-net
 
-name: Release.$(Date:yyyyMMdd).$(Rev:.r) 
+name: Rel.$(Date:yyyyMMdd).$(Rev:.r) 
 
 variables:
   releaseVersion: '3.3.0.0'
