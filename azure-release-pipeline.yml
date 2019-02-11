@@ -60,4 +60,11 @@ jobs:
     inputs:
       pathtoPublish: '$(Build.ArtifactStagingDirectory)/DevAudit_$(releaseVersion).tar.gz'
       publishLocation: Container
-      artifactName: 'DevAudit-$(releaseVersion)-Linux' 
+      artifactName: 'DevAudit-$(releaseVersion)-Linux'
+
+  - script: $(Build.SourcesDirectory)/build.sh
+  - script: docker build -t $DOCKERORGID/$DOCKERIMAGE:$DOCKERTAG .
+  - script: docker login -u $DOCKERUSERID -p $DOCKERUSERPASS
+  - script: docker push $DOCKERORGID/$DOCKERIMAGE:$DOCKERTAG 
+
+    
