@@ -5,14 +5,13 @@ VisualStudioVersion = 14.0.25420.1
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DevAudit.AuditLibrary", "DevAudit.AuditLibrary\DevAudit.AuditLibrary.csproj", "{36F663F6-4B5C-441F-B11A-9CC556D1C1FE}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DevAudit.Tests", "DevAudit.Tests\DevAudit.Tests.csproj", "{55B89480-3482-4E8F-BD46-6FB07DC155AD}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DevAudit.CommandLine", "DevAudit.CommandLine\DevAudit.CommandLine.csproj", "{86EE75FC-D05D-42BC-B2C2-B80CF3734332}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DevAudit.PowerShell", "DevAudit.PowerShell\DevAudit.PowerShell.csproj", "{019B92FA-B3B4-418B-B069-AC9B87992EB7}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Expect", "Expect.NET\Expect.csproj", "{8AA52B5E-DB66-4B0B-AABA-9E6900BC3D5A}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Renci.SshNet", "Renci.SshNet\Renci.SshNet.csproj", "{2F5F8C90-0BD1-424F-997C-7BC6280919D1}"
+EndProject
+
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{214479BB-441E-4A96-8F67-74690790AD98}"
 	ProjectSection(SolutionItems) = preProject
 		build-release.cmd = build-release.cmd
@@ -35,10 +34,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		docker\tests\run-pgsql-container.sh = docker\tests\run-pgsql-container.sh
 	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Renci.SshNet", "Renci.SshNet\Renci.SshNet.csproj", "{2F5F8C90-0BD1-424F-997C-7BC6280919D1}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DevAudit.AuditLibrary.Analyzers.CSharp", "DevAudit.AuditLibrary.Analyzers.CSharp\DevAudit.AuditLibrary.Analyzers.CSharp.csproj", "{5FFDF671-0B89-4C86-B2D3-2B15C00986C8}"
-EndProject
+
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU

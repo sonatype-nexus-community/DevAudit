@@ -24,8 +24,6 @@ namespace DevAudit.AuditLibrary
             AuditOptions = target.AuditOptions;
             AuditEnvironment = target.AuditEnvironment;
             Source = target as PackageSource;
-            Application = target as Application;
-            Server = target as ApplicationServer;
         }
         #endregion
 
@@ -33,8 +31,6 @@ namespace DevAudit.AuditLibrary
         protected Dictionary<string, object> AuditOptions { get; set; }
         protected AuditEnvironment AuditEnvironment { get; set; }
         protected PackageSource Source { get; set; }
-        protected Application Application { get; set; }
-        protected ApplicationServer Server { get; set; }
         #endregion
 
         #region Methods

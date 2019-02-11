@@ -68,7 +68,6 @@ namespace DevAudit.AuditLibrary
             if (this.AuditOptions.ContainsKey("AuditEnvironment"))
             {
                 this.AuditEnvironment = (AuditEnvironment)this.AuditOptions["AuditEnvironment"];
-                this.AlpheusEnvironment = new AlEnvironment(this);
                 this.AuditEnvironmentIntialised = true;
             }
             else
@@ -313,7 +312,6 @@ namespace DevAudit.AuditLibrary
                     }
                 }
 
-                this.AlpheusEnvironment = new AlEnvironment(this);
                 if (this.AuditEnvironment is IOperatingSystemEnvironment)
                 {
                     this.AuditEnvironment.GetOSName();
@@ -390,8 +388,6 @@ namespace DevAudit.AuditLibrary
         public LocalEnvironment HostEnvironment { get; protected set; }
 
         public AuditEnvironment AuditEnvironment { get; protected set; }
-
-        public AlEnvironment AlpheusEnvironment { get; protected set; }
 
         public bool HostEnvironmentInitialised { get; private set; } = false;
 

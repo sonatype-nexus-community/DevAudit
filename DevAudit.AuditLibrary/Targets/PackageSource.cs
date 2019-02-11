@@ -119,8 +119,6 @@ namespace DevAudit.AuditLibrary
 
         public IEnumerable<Package> Packages { get; protected set; }
 
-        public List<VulnerableCredentialStorage> CredentialStorageCandidates { get; protected set; }
-
         public Dictionary<IPackage, List<IArtifact>> Artifacts { get; } = new Dictionary<IPackage, List<IArtifact>>();
 
         public Dictionary<IPackage, List<IVulnerability>> Vulnerabilities { get; } = new Dictionary<IPackage, List<IVulnerability>>();
@@ -128,8 +126,6 @@ namespace DevAudit.AuditLibrary
         public ConcurrentDictionary<IPackage, Exception> GetVulnerabilitiesExceptions { get; protected set; }
 
         public Task PackagesTask { get; protected set; }
-
-        public Task VulnerableCredentialStorageTask { get; protected set; }
 
         public Task ArtifactsTask { get; protected set; }
 
@@ -145,11 +141,11 @@ namespace DevAudit.AuditLibrary
         {
             CallerInformation here = this.AuditEnvironment.Here();
             this.GetPackagesTask(ct);
-            this.GetVulnerableCredentialStorageTask(ct);
+            
             try
             {
-                Task.WaitAll(this.PackagesTask, this.VulnerableCredentialStorageTask);
-                if (!this.SkipPackagesAudit) AuditEnvironment.Success("Scanned {0} {1} packages.", this.Packages.Count(), this.PackageManagerLabel);
+                Task.WaitAll(this.PackagesTask);
+                AuditEnvironment.Success("Scanned {0} {1} packages.", this.Packages.Count(), this.PackageManagerLabel);
             }
             catch (AggregateException ae)
             {
@@ -316,21 +312,7 @@ namespace DevAudit.AuditLibrary
             }
             return this.VulnerabilitiesTask;
         }
-
-        protected virtual Task GetVulnerableCredentialStorageTask(CancellationToken ct)
-        {
-            if (!(this is IVulnerableCredentialStore) || this.ListPackages || this.ListArtifacts)
-            {
-                return this.VulnerableCredentialStorageTask = Task.CompletedTask;
-            }
-            else
-            {
-                IVulnerableCredentialStore credentials_store = this as IVulnerableCredentialStore;
-                this.AuditEnvironment.Status("Scanning for vulnerable credential storage candidates");
-                return this.VulnerableCredentialStorageTask = Task.Run(() => credentials_store.GetVulnerableCredentialStorage());
-            }
-
-        }
+        
         protected IEnumerable<Package> FilterPackagesUsingProfile()
         {
             if (this.Packages == null || this.Packages.Count() == 0 || this.AuditProfile == null || this.AuditProfile.Rules == null)

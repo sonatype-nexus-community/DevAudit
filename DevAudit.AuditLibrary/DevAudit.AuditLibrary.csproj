@@ -271,22 +271,20 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="AuditProfile.cs" />
     <Compile Include="AuditProfileRule.cs" />
     <Compile Include="AuditReporter.cs" />
     <Compile Include="Containers\DockerContainer.cs" />
+    <Compile Include="Environments\Models\ProcessInfo.cs" />
+    <Compile Include="Utility.cs" />
+    <Compile Include="DataSourceInfo.cs" />
     <Compile Include="DataSources\OSSIndex3\Models\OSSIndexApiv3Package.cs" />
     <Compile Include="DataSources\OSSIndex3\Models\OSSIndexApiv3Vulnerability.cs" />
     <Compile Include="DataSources\OSSIndex3\OSSIndexApiv3DataSource.cs" />
     <Compile Include="DataSources\OSSIndex3\OSSIndexApiv3Query.cs" />
     <Compile Include="DataSources\OSSIndex3\PackageURL\MalformedPackageUrlException.cs" />
     <Compile Include="DataSources\OSSIndex3\PackageURL\PackageURL.cs" />
-    <Compile Include="Environments\Models\ProcessInfo.cs" />
-    <Compile Include="Utility.cs" />
-    <Compile Include="DataSourceInfo.cs" />
-    <Compile Include="DataSources\LibrariesdotIO\LibrariesdotIODataSource.cs" />
-    <Compile Include="DataSources\LibrariesdotIO\Models\LibdotIOArtifact.cs" />
-    <Compile Include="DataSources\OSSIndex\OSSIndexDataSource.cs" />
     <Compile Include="DataSources\Vulnersdotcom\Models\VulnersAuditQuery.cs" />
     <Compile Include="DataSources\Vulnersdotcom\Models\VulnersAuditResult.cs" />
     <Compile Include="DataSources\Vulnersdotcom\Models\VulnersIdSearchResult.cs" />
@@ -294,7 +292,7 @@
     <Compile Include="DataSources\Vulnersdotcom\Models\VulnersSearchResult.cs" />
     <Compile Include="DataSources\HttpException.cs" />
     <Compile Include="DataSources\Vulnersdotcom\VulnersDataSource.cs" />
-    <Compile Include="Environments\AlpheusEnvironment.cs" />
+    <Compile Include="EnvironmentEventArgs.cs" />
     <Compile Include="Environments\DockerAuditFileInfo.cs" />
     <Compile Include="Environments\IContainerEnvironment.cs" />
     <Compile Include="Environments\SshDockerAuditDirectoryInfo.cs" />
@@ -303,52 +301,24 @@
     <Compile Include="Environments\WinRmAuditFileInfo.cs" />
     <Compile Include="Environments\WinRmAuditEnvironment.cs" />
     <Compile Include="DataSources\HttpDataSource.cs" />
-    <Compile Include="Targets\IDbAuditTarget.cs" />
     <Compile Include="IArtifact.cs" />
     <Compile Include="IDataSource.cs" />
-    <Compile Include="Analyzers\DevAuditGendarmeRunner.cs" />
-    <Compile Include="Analyzers\ByteCodeAnalyzer.cs" />
-    <Compile Include="Analyzers\NetFxAnalyzer.cs" />
-    <Compile Include="Analyzers\PHPAnalyzer.cs" />
-    <Compile Include="Applications\AspNetApplication.cs" />
-    <Compile Include="Applications\NetFxApplication.cs" />
     <Compile Include="Environments\DockerAuditDirectoryInfo.cs" />
     <Compile Include="Environments\DockerizedLocalEnvironment.cs" />
     <Compile Include="Environments\DockerAuditEnvironment.cs" />
     <Compile Include="Environments\SshDockerAuditFileInfo.cs" />
     <Compile Include="Environments\GitLabAuditEnvironment.cs" />
     <Compile Include="Environments\GitHubAuditEnvironment.cs" />
-    <Compile Include="DataSources\OSSIndex\Models\OSSIndexApiv2Result.cs" />
-    <Compile Include="DataSources\OSSIndex\Models\OSSIndexApiv2Vulnerability.cs" />
     <Compile Include="Environments\IOperatingSystemEnvironment.cs" />
     <Compile Include="IPackage.cs" />
     <Compile Include="IVulnerability.cs" />
     <Compile Include="DataSources\LocalDataSource.cs" />
     <Compile Include="Targets\Container.cs" />
-    <Compile Include="Targets\IVulnerableCredentialStore.cs" />
     <Compile Include="Vulnerability.cs" />
     <Compile Include="PackageSources\YarnPackageSource.cs" />
-    <Compile Include="Projects\Drupal8ModuleCodeProject.cs" />
-    <Compile Include="Projects\PHPAuditCodeSourceUnit.cs" />
-    <Compile Include="Projects\PHPAuditErrorSink.cs" />
-    <Compile Include="Projects\PHPCodeProject.cs" />
-    <Compile Include="Projects\PHPTreeVisitors.cs" />
-    <Compile Include="Analyzers\RoslynAnalyzer.cs" />
-    <Compile Include="Servers\IIS6Server.cs" />
-    <Compile Include="Servers\MariaDBServer.cs" />
-    <Compile Include="Servers\PostgreSQLServer.cs" />
-    <Compile Include="Targets\Application.cs" />
-    <Compile Include="Applications\Drupal7Application.cs" />
-    <Compile Include="Applications\Drupal8Application.cs" />
-    <Compile Include="Applications\DrupalModuleInfo.cs" />
     <Compile Include="AuditFileSystemInfo.cs" />
-    <Compile Include="Analyzer.cs" />
-    <Compile Include="IAnalyzer.cs" />
     <Compile Include="Environments\LocalAuditDirectoryInfo.cs" />
     <Compile Include="Environments\LocalAuditFileInfo.cs" />
-    <Compile Include="Targets\CodeProject.cs" />
-    <Compile Include="Projects\AspNetCodeProject.cs" />
-    <Compile Include="Projects\NetFxCodeProject.cs" />
     <Compile Include="Reporters\BitBucketIssueReporter.cs" />
     <Compile Include="Reporters\ConsoleReporter.cs" />
     <Compile Include="Reporters\GitLabIssueReporter.cs" />
@@ -365,12 +335,6 @@
     <Compile Include="AuditFileInfo.cs" />
     <Compile Include="AuditTarget.cs" />
     <Compile Include="Environments\LocalEnvironment.cs" />
-    <Compile Include="DataSources\OSSIndex\Models\OSSIndexArtifact.cs" />
-    <Compile Include="ConfigurationRule.cs" />
-    <Compile Include="DataSources\OSSIndex\OSSIndexHttpClient.cs" />
-    <Compile Include="DataSources\OSSIndex\Models\OSSIndexPackageVulnerability.cs" />
-    <Compile Include="DataSources\OSSIndex\Models\OSSIndexProject.cs" />
-    <Compile Include="DataSources\OSSIndex\Models\OSSIndexProjectVulnerability.cs" />
     <Compile Include="Package.cs" />
     <Compile Include="Targets\PackageSource.cs" />
     <Compile Include="PackageSources\BowerPackageSource.cs" />
@@ -383,16 +347,7 @@
     <Compile Include="PackageSources\NuGetPackageSource.cs" />
     <Compile Include="PackageSources\NetCorePackageSource.cs" />
     <Compile Include="PackageSources\OneGetPackageSource.cs" />
-    <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Targets\ApplicationServer.cs" />
-    <Compile Include="Servers\NginxServer.cs" />
-    <Compile Include="Servers\HttpdServer.cs" />
-    <Compile Include="Servers\SSHDServer.cs" />
-    <Compile Include="Servers\MySQLServer.cs" />
     <Compile Include="Environments\SshAuditEnvironment.cs" />
-    <Compile Include="EnvironmentEventArgs.cs" />
-    <Compile Include="Analyzers\StyleCopAnalyzer.cs" />
-    <Compile Include="VulnerableCredentialStorage.cs" />
   </ItemGroup>
   <ItemGroup>
     <Examples Include="Examples\bower.json.example">
@@ -453,19 +408,7 @@
     <None Include="Examples\v6a6.packages.config" />
     <None Include="Examples\yarn.lock.1" />
     <None Include="packages.config" />
-    <Rules Include="Rules\mariadb.yml">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Rules>
-    <Rules Include="Rules\iis6.yml">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Rules>
-    <Rules Include="Rules\aspnet.yml">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Rules>
-    <Rules Include="Rules\netfx4.yml">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Rules>
-  </ItemGroup>
+   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Expect.NET\Expect.csproj">
       <Project>{8aa52b5e-db66-4b0b-aaba-9e6900bc3d5a}</Project>
@@ -480,29 +423,6 @@
     <Analyzer Include="..\packages\Microsoft.CodeAnalysis.Analyzers.1.2.0-beta2\analyzers\dotnet\cs\Analyzer.Utilities.dll" />
     <Analyzer Include="..\packages\Microsoft.CodeAnalysis.Analyzers.1.2.0-beta2\analyzers\dotnet\cs\Microsoft.CodeAnalysis.Analyzers.dll" />
     <Analyzer Include="..\packages\Microsoft.CodeAnalysis.Analyzers.1.2.0-beta2\analyzers\dotnet\cs\Microsoft.CodeAnalysis.CSharp.Analyzers.dll" />
-  </ItemGroup>
-  <ItemGroup>
-    <Rules Include="Rules\drupal8.yml">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Rules>
-    <Rules Include="Rules\drupal7.yml">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Rules>
-    <Rules Include="Rules\httpd.yml">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Rules>
-    <Rules Include="Rules\mysql.yml">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Rules>
-    <Rules Include="Rules\nginx.yml">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Rules>
-    <Rules Include="Rules\sshd.yml">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Rules>
-    <Rules Include="Rules\postgresql.yml">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Rules>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="$(SolutionDir)BuildCommon\Common.targets" />
@@ -522,7 +442,5 @@
     <RemoveDir Directories="$([System.IO.Directory]::GetDirectories(&quot;$(SolutionDir)DevAudit.CommandLine\bin\Debug\Rules&quot;))" Condition="Exists('$(SolutionDir)DevAudit.CommandLine\bin\Debug\Examples')" />
     <Copy SourceFiles="@(Examples)" DestinationFiles="@(Examples->'$(SolutionDir)Examples\%(RecursiveDir)%(Filename)%(Extension)')" />
     <Copy SourceFiles="@(Examples)" DestinationFiles="@(Examples->'$(SolutionDir)DevAudit.CommandLine\bin\Debug\Examples\%(RecursiveDir)%(Filename)%(Extension)')" />
-    <Copy SourceFiles="@(Rules)" DestinationFiles="@(Rules->'$(SolutionDir)Rules\%(RecursiveDir)%(Filename)%(Extension)')" />
-    <Copy SourceFiles="@(Rules)" DestinationFiles="@(Rules->'$(SolutionDir)DevAudit.CommandLine\bin\Debug\Rules\%(RecursiveDir)%(Filename)%(Extension)')" />
   </Target>
 </Project>

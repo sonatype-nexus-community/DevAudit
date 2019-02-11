@@ -105,7 +105,7 @@ namespace DevAudit.AuditLibrary
                         doPackages.Add(package);
                     }
                 }
-                catch (Exception ignore)
+                catch (Exception)
                 {
                     cache.Remove(purl);
                 }
