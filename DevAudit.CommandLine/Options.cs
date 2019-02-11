@@ -15,7 +15,7 @@ namespace DevAudit.CommandLine
     {
         public Options() {}
 
-        [VerbOption("nuget", HelpText = "Audit NuGet packages. Use the --file option to specify a particular packages.config file otherwise the one in the current directory will be used.")]
+        [VerbOption("nuget", HelpText = "Audit NuGet packages for .NET Framework libraries or applications. Use the --file option to specify a particular packages.config file otherwise the one in the current directory will be used.")]
         public Options AuditNuGet { get; set; }      
 
         [VerbOption("choco", HelpText = "Audit Chocolatey packages on Windows. Packages are scanned from C:\\ProgramData\\chocolatey.")]
@@ -39,7 +39,7 @@ namespace DevAudit.CommandLine
         [VerbOption("yum", HelpText = "Audit yum packages on Linux. The packages are scanned from the system rpm repository.")]
         public Options AuditYum { get; set; }
 
-        [VerbOption("netcore", HelpText = "Audit a .NET Core application or .NET Standard library's dependencies. Use the -f option to specify the path to the .csproj project or the .deps.json dependencies manifest file.")]
+        [VerbOption("netcore", HelpText = "Audit a .NET Core application or .NET Standard library's dependencies. Use the -f option to specify the path to the .csproj project file or the .deps.json dependencies manifest file.")]
         public Options NetCore { get; set; }
 
         [Option('d', "enable-debug", Required = false, HelpText = "Enable printing debug messages and other behavior useful for debugging the program.")]
