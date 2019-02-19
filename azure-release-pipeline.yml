@@ -41,15 +41,9 @@ jobs:
       publishLocation: Container
       artifactName: 'DevAudit-$(releaseVersion)-Windows' 
 
-  - task: NuGetCommand@2
-    inputs:
-      command: pack
-      packagesToPack: '$(Build.SourcesDirectory)/DevAudit.CommandLine.csproj'
-      configuration: 'RuntimeDebug'
-      includeReferencedProjects: true
-      versioningScheme: byEnvVar
-      versionEnvVar: 'releaseVersion'
-
+  - script: '$(Build.SourcesDirectory)/.nuget/nuget pack -IncludeReferencedProjects'
+    workingDirectory: '$(Build.SourcesDirectory)/DevAudit.CommandLine'
+    
   - task: PublishBuildArtifacts@1
     inputs:
       pathtoPublish: '$(Build.ArtifactStagingDirectory)/*.nupkg'
