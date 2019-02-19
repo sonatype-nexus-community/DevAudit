@@ -51,7 +51,7 @@ jobs:
 
   - task: PublishBuildArtifacts@1
     inputs:
-      pathtoPublish: '$(Build.ArtifactStagingDirectory)/DevAudit.CommandLine/DevAudit.*.nupkg'
+      pathtoPublish: '$(Build.ArtifactStagingDirectory)/**/*.nupkg'
       publishLocation: Container
       artifactName: 'DevAudit-$(releaseVersion)-NuGet' 
 
