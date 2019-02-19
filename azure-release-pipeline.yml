@@ -41,6 +41,12 @@ jobs:
       publishLocation: Container
       artifactName: 'DevAudit-$(releaseVersion)-Windows' 
 
+  - task: NuGetCommand@2
+    inputs:
+      command: pack
+      packagesToPack: '$(Build.SourcesDirectory)/DevAudit.CommandLine.csproj'
+      configuration: 'RuntimeDebug'
+
 - job: Linux
   pool:
     vmImage: 'ubuntu-16.04'
