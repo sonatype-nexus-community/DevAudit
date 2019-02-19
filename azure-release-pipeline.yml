@@ -41,7 +41,7 @@ jobs:
       publishLocation: Container
       artifactName: 'DevAudit-$(releaseVersion)-Windows' 
 
-  - script: '$(Build.SourcesDirectory)/.nuget/nuget pack -IncludeReferencedProjects -properties Configuration=RuntimeDebug'
+  - script: '$(Build.SourcesDirectory)/.nuget/nuget pack -IncludeReferencedProjects'
     workingDirectory: '$(Build.SourcesDirectory)/DevAudit.CommandLine'
     
   - task: CopyFiles@2
