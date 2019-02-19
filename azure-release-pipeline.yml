@@ -48,7 +48,7 @@ jobs:
     inputs:
       sourceFolder: '$(Build.SourcesDirectory)/DevAudit.CommandLine/' 
       contents: '**/*.nupkg'
-      targetFolder: '$(Build.ArtifactStagingDirectory)''
+      targetFolder: '$(Build.ArtifactStagingDirectory)'
 
   - task: PublishBuildArtifacts@1
     inputs:
