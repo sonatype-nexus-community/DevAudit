@@ -46,6 +46,15 @@ jobs:
       command: pack
       packagesToPack: '$(Build.SourcesDirectory)/DevAudit.CommandLine.csproj'
       configuration: 'RuntimeDebug'
+      includeReferencedProjects: true
+      versioningScheme: byEnvVar
+      versionEnvVar: 'releaseVersion'
+
+  - task: PublishBuildArtifacts@1
+    inputs:
+      pathtoPublish: '$(Build.ArtifactStagingDirectory)/*.nupkg'
+      publishLocation: Container
+      artifactName: 'DevAudit-$(releaseVersion)-NuGet' 
 
 - job: Linux
   pool:
