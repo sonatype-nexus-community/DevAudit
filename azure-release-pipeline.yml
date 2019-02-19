@@ -46,8 +46,9 @@ jobs:
     
   - task: CopyFiles@2
     inputs:
-      contents: '$(Build.SourcesDirectory)/DevAudit.CommandLine/*.nupkg'
-      targetFolder: $(Build.ArtifactStagingDirectory)
+      sourceFolder: '$(Build.SourcesDirectory)/DevAudit.CommandLine/' 
+      contents: '**/*.nupkg'
+      targetFolder: '$(Build.ArtifactStagingDirectory)''
 
   - task: PublishBuildArtifacts@1
     inputs:
