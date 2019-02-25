@@ -295,65 +295,15 @@
     <Compile Include="Environments\SshAuditEnvironment.cs" />
   </ItemGroup>
   <ItemGroup>
-    <Examples Include="Examples\bower.json.example">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Examples>
-    <Examples Include="Examples\bower.json.example.2">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Examples>
-    <Examples Include="Examples\composer.json.example.1">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Examples>
-    <Examples Include="Examples\composer.json.example.2">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Examples>
-    <Examples Include="Examples\composer.json.example.3">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Examples>
-    <None Include="Examples\devaudit.yaml">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <Examples Include="Examples\Drupal\core\composer.json">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Examples>
-    <Examples Include="Examples\Drupal\core\core.services.yml">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Examples>
-    <Examples Include="Examples\Drupal\web.config">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Examples>
-    <Examples Include="Examples\my.cnf">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Examples>
-    <Examples Include="Examples\package.json.1">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Examples>
-    <Examples Include="Examples\packages.config.example">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Examples>
-    <Examples Include="Examples\packages.config.example.2">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Examples>
-    <Examples Include="Examples\packages.config.example.3">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Examples>
-    <Examples Include="Examples\v6a6.packages.config">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Examples>
-    <Examples Include="Examples\yarn.lock.1">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Examples>
-  </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Examples\Drupal\core\modules\" />
-  </ItemGroup>
-  <ItemGroup>
     <None Include="app.config" />
-    <None Include="Examples\package.json.1" />
-    <None Include="Examples\v6a6.packages.config" />
-    <None Include="Examples\yarn.lock.1" />
     <None Include="packages.config" />
    </ItemGroup>
+
+  <ItemGroup>
+    <Examples Include="Examples\**\*.*">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Examples>
+  </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Expect.NET\Expect.csproj">
       <Project>{8aa52b5e-db66-4b0b-aaba-9e6900bc3d5a}</Project>
@@ -371,15 +321,12 @@
   <Target Name="BeforeBuild">
   </Target> -->
   <Target Name="AfterBuild">
+    <Delete Files="$(SolutionDir)Examples\**\*.*" Condition="Exists('$(SolutionDir)Examples')"/>
+    <Delete Files="$(SolutionDir)DevAudit.CommandLine\bin\Debug\Examples\**\*.*" Condition="Exists('$(SolutionDir)DevAudit.CommandLine\bin\Debug\Examples')"/>
+    <RemoveDir Directories="$([System.IO.Directory]::GetDirectories(&quot;$(SolutionDir)Examples&quot;))" Condition="Exists('$(SolutionDir)Examples')" />
+    <RemoveDir Directories="$([System.IO.Directory]::GetDirectories(&quot;$(SolutionDir)DevAudit.CommandLine\bin\Debug\Examples&quot;))" Condition="Exists('$(SolutionDir)DevAudit.CommandLine\bin\Debug\Examples')" />
     <MakeDir Directories="$(SolutionDir)Examples" Condition="!Exists('$(SolutionDir)Examples')" />
-    <MakeDir Directories="$(SolutionDir)Rules" Condition="!Exists('$(SolutionDir)Rules')" />
-    <Delete Files="$(SolutionDir)Examples\**\*.*" />
-    <Delete Files="$(SolutionDir)Rules\**\*.*" />
-    <Delete Files="$(SolutionDir)DevAudit.CommandLine\bin\Debug\Rules\**\*.*" />
-    <RemoveDir Directories="$([System.IO.Directory]::GetDirectories(&quot;$(SolutionDir)Examples&quot;))" />
-    <RemoveDir Directories="$([System.IO.Directory]::GetDirectories(&quot;$(SolutionDir)Rules&quot;))" />
-    <RemoveDir Directories="$([System.IO.Directory]::GetDirectories(&quot;$(SolutionDir)DevAudit.CommandLine\bin\Debug\Rules&quot;))" Condition="Exists('$(SolutionDir)DevAudit.CommandLine\bin\Debug\Rules')" />
-    <RemoveDir Directories="$([System.IO.Directory]::GetDirectories(&quot;$(SolutionDir)DevAudit.CommandLine\bin\Debug\Rules&quot;))" Condition="Exists('$(SolutionDir)DevAudit.CommandLine\bin\Debug\Examples')" />
+    <MakeDir Directories="$(SolutionDir)DevAudit.CommandLine\bin\Debug\Examples" Condition="!Exists('$(SolutionDir)DevAudit.CommandLine\bin\Debug\Examples')" />
     <Copy SourceFiles="@(Examples)" DestinationFiles="@(Examples->'$(SolutionDir)Examples\%(RecursiveDir)%(Filename)%(Extension)')" />
     <Copy SourceFiles="@(Examples)" DestinationFiles="@(Examples->'$(SolutionDir)DevAudit.CommandLine\bin\Debug\Examples\%(RecursiveDir)%(Filename)%(Extension)')" />
   </Target>
