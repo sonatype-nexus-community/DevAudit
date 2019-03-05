@@ -40,11 +40,11 @@ namespace DevAudit.AuditLibrary
                     throw new ArgumentException(string.Format("No file option was specified and the default {0} package sourcs configuration file {1} was not found.", this.PackageManagerLabel, this.DefaultPackageManagerConfigurationFile));
                 }
             }
-            else if (!this.PackageSourceOptions.ContainsKey("File") && this.DefaultPackageManagerConfigurationFile == string.Empty)
-            {
-                throw new ArgumentException(string.Format("No file option was specified and the {0} package source " 
-                    + "does not specify a default configuration file.", this.PackageManagerLabel));
-            }
+            //else if (!this.PackageSourceOptions.ContainsKey("File") && this.DefaultPackageManagerConfigurationFile == string.Empty)
+            //{
+            //    throw new ArgumentException(string.Format("No file option was specified and the {0} package source " 
+            //        + "does not specify a default configuration file.", this.PackageManagerLabel));
+            //}
 
             if (!string.IsNullOrEmpty(this.PackageManagerConfigurationFile))
             {
