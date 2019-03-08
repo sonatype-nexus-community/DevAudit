@@ -41,11 +41,11 @@
     <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   <ItemGroup>
-  <Reference Include="Sprache, Version=2.0.0.51, Culture=neutral, processorArchitecture=MSIL">
+    <Reference Include="Sprache, Version=2.0.0.51, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\Sprache.2.0.0.51\lib\portable-net4+netcore45+win8+wp8+sl5+MonoAndroid+Xamarin.iOS10+MonoTouch\Sprache.dll</HintPath>
       <Private>True</Private>
-   </Reference>
-   <Reference Include="Alpheus.Core, Version=0.5.2.0, Culture=neutral, processorArchitecture=MSIL">
+    </Reference>
+    <Reference Include="Alpheus.Core, Version=0.5.2.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\Alpheus.0.5.2-beta\lib\net45\Alpheus.Core.dll</HintPath>
       <Private>True</Private>
     </Reference>
@@ -100,7 +100,6 @@
       <HintPath>..\packages\YamlDotNet.5.2.1\lib\net45\YamlDotNet.dll</HintPath>
     </Reference>
   </ItemGroup>
-  
   <ItemGroup>
     <Analyzer Include="..\packages\Microsoft.CodeAnalysis.Analyzers.1.2.0-beta2\analyzers\dotnet\cs\Analyzer.Utilities.dll" />
     <Analyzer Include="..\packages\Microsoft.CodeAnalysis.Analyzers.1.2.0-beta2\analyzers\dotnet\cs\Microsoft.CodeAnalysis.Analyzers.dll" />
@@ -214,16 +213,15 @@
       <Private>True</Private>
     </Reference>
   </ItemGroup>
-  
   <ItemGroup>
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="AuditProfile.cs" />
-    <Compile Include="AuditProfileRule.cs" />
-    <Compile Include="AuditReporter.cs" />
+    <Compile Include="Audit\AuditProfile.cs" />
+    <Compile Include="Audit\AuditProfileRule.cs" />
+    <Compile Include="Base\AuditReporter.cs" />
     <Compile Include="Containers\DockerContainer.cs" />
     <Compile Include="Environments\Models\ProcessInfo.cs" />
-    <Compile Include="Utility.cs" />
-    <Compile Include="DataSourceInfo.cs" />
+    <Compile Include="Audit\Utility.cs" />
+    <Compile Include="Audit\DataSourceInfo.cs" />
     <Compile Include="DataSources\OSSIndex3\Models\OSSIndexApiv3Package.cs" />
     <Compile Include="DataSources\OSSIndex3\Models\OSSIndexApiv3Vulnerability.cs" />
     <Compile Include="DataSources\OSSIndex3\OSSIndexApiv3DataSource.cs" />
@@ -237,50 +235,50 @@
     <Compile Include="DataSources\Vulnersdotcom\Models\VulnersSearchResult.cs" />
     <Compile Include="DataSources\HttpException.cs" />
     <Compile Include="DataSources\Vulnersdotcom\VulnersDataSource.cs" />
-    <Compile Include="EnvironmentEventArgs.cs" />
+    <Compile Include="Environments\Models\EnvironmentEventArgs.cs" />
     <Compile Include="Environments\DockerAuditFileInfo.cs" />
-    <Compile Include="Environments\IContainerEnvironment.cs" />
+    <Compile Include="Base\IContainerEnvironment.cs" />
     <Compile Include="Environments\SshDockerAuditDirectoryInfo.cs" />
     <Compile Include="Environments\SshDockerAuditEnvironment.cs" />
     <Compile Include="Environments\WinRmAuditDirectoryInfo.cs" />
     <Compile Include="Environments\WinRmAuditFileInfo.cs" />
     <Compile Include="Environments\WinRmAuditEnvironment.cs" />
     <Compile Include="DataSources\HttpDataSource.cs" />
-    <Compile Include="IArtifact.cs" />
-    <Compile Include="IDataSource.cs" />
+    <Compile Include="Base\IArtifact.cs" />
+    <Compile Include="Base\IDataSource.cs" />
     <Compile Include="Environments\DockerAuditDirectoryInfo.cs" />
     <Compile Include="Environments\DockerizedLocalEnvironment.cs" />
     <Compile Include="Environments\DockerAuditEnvironment.cs" />
     <Compile Include="Environments\SshDockerAuditFileInfo.cs" />
     <Compile Include="Environments\GitLabAuditEnvironment.cs" />
     <Compile Include="Environments\GitHubAuditEnvironment.cs" />
-    <Compile Include="Environments\IOperatingSystemEnvironment.cs" />
-    <Compile Include="IPackage.cs" />
-    <Compile Include="IVulnerability.cs" />
+    <Compile Include="Base\IOperatingSystemEnvironment.cs" />
+    <Compile Include="Base\IPackage.cs" />
+    <Compile Include="Base\IVulnerability.cs" />
     <Compile Include="DataSources\LocalDataSource.cs" />
     <Compile Include="Targets\Container.cs" />
-    <Compile Include="Vulnerability.cs" />
+    <Compile Include="Audit\Vulnerability.cs" />
     <Compile Include="PackageSources\YarnPackageSource.cs" />
-    <Compile Include="AuditFileSystemInfo.cs" />
+    <Compile Include="Base\AuditFileSystemInfo.cs" />
     <Compile Include="Environments\LocalAuditDirectoryInfo.cs" />
     <Compile Include="Environments\LocalAuditFileInfo.cs" />
     <Compile Include="Reporters\BitBucketIssueReporter.cs" />
     <Compile Include="Reporters\ConsoleReporter.cs" />
     <Compile Include="Reporters\GitLabIssueReporter.cs" />
     <Compile Include="Reporters\GitHubIssueReporter.cs" />
-    <Compile Include="ScriptEnvironment.cs" />
+    <Compile Include="Environments\ScriptEnvironment.cs" />
     <Compile Include="Environments\DockerizedLocalAuditFileInfo.cs" />
     <Compile Include="Environments\DockerizedLocalAuditDirectoryInfo.cs" />
     <Compile Include="Environments\GitHubAuditFileInfo.cs" />
     <Compile Include="Environments\GitHubAuditDirectoryInfo.cs" />
     <Compile Include="Environments\SshAuditFileInfo.cs" />
     <Compile Include="Environments\SshAuditDirectoryInfo.cs" />
-    <Compile Include="AuditEnvironment.cs" />
-    <Compile Include="AuditDirectoryInfo.cs" />
-    <Compile Include="AuditFileInfo.cs" />
-    <Compile Include="AuditTarget.cs" />
+    <Compile Include="Base\AuditEnvironment.cs" />
+    <Compile Include="Base\AuditDirectoryInfo.cs" />
+    <Compile Include="Base\AuditFileInfo.cs" />
+    <Compile Include="Base\AuditTarget.cs" />
     <Compile Include="Environments\LocalEnvironment.cs" />
-    <Compile Include="Package.cs" />
+    <Compile Include="Audit\Package.cs" />
     <Compile Include="Targets\PackageSource.cs" />
     <Compile Include="PackageSources\BowerPackageSource.cs" />
     <Compile Include="PackageSources\ChocolateyPackageSource.cs" />
@@ -297,8 +295,7 @@
   <ItemGroup>
     <None Include="app.config" />
     <None Include="packages.config" />
-   </ItemGroup>
-
+  </ItemGroup>
   <ItemGroup>
     <Examples Include="Examples\**\*.*">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
@@ -321,8 +318,8 @@
   <Target Name="BeforeBuild">
   </Target> -->
   <Target Name="AfterBuild">
-    <Delete Files="$(SolutionDir)Examples\**\*.*" Condition="Exists('$(SolutionDir)Examples')"/>
-    <Delete Files="$(SolutionDir)DevAudit.CommandLine\bin\Debug\Examples\**\*.*" Condition="Exists('$(SolutionDir)DevAudit.CommandLine\bin\Debug\Examples')"/>
+    <Delete Files="$(SolutionDir)Examples\**\*.*" Condition="Exists('$(SolutionDir)Examples')" />
+    <Delete Files="$(SolutionDir)DevAudit.CommandLine\bin\Debug\Examples\**\*.*" Condition="Exists('$(SolutionDir)DevAudit.CommandLine\bin\Debug\Examples')" />
     <RemoveDir Directories="$([System.IO.Directory]::GetDirectories(&quot;$(SolutionDir)Examples&quot;))" Condition="Exists('$(SolutionDir)Examples')" />
     <RemoveDir Directories="$([System.IO.Directory]::GetDirectories(&quot;$(SolutionDir)DevAudit.CommandLine\bin\Debug\Examples&quot;))" Condition="Exists('$(SolutionDir)DevAudit.CommandLine\bin\Debug\Examples')" />
     <MakeDir Directories="$(SolutionDir)Examples" Condition="!Exists('$(SolutionDir)Examples')" />
