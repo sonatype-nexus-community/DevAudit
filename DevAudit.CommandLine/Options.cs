@@ -15,13 +15,8 @@ namespace DevAudit.CommandLine
     {
         public Options() {}
 
-        [VerbOption("nuget", HelpText = "Audit NuGet packages. Use the --file option to specify a particular packages.config file otherwise the one in the current directory will be used.")]
-        public Options AuditNuGet { get; set; }
-
-        /** This is rarely used, and the v3 API does not currently support MSI packages.
-         * [VerbOption("msi", HelpText = "Audit MSI packages on Windows. Packages are scanned from the registry.")]
-         * public Options AuditMsi { get; set; }
-         */
+        [VerbOption("nuget", HelpText = "Audit NuGet packages for .NET Framework libraries or applications. Use the --file option to specify a particular packages.config file otherwise the one in the current directory will be used.")]
+        public Options AuditNuGet { get; set; }      
 
         [VerbOption("choco", HelpText = "Audit Chocolatey packages on Windows. Packages are scanned from C:\\ProgramData\\chocolatey.")]
         public Options AuditChocolatey { get; set; }
@@ -37,12 +32,6 @@ namespace DevAudit.CommandLine
 
         [VerbOption("composer", HelpText = "Audit PHP Composer packages. Use the --file option to specify a particular composer.json file otherwise the one in the current directory will be used.")]
         public Options AuditComposer { get; set; }
-
-        /** The dpkg data is not available on OSS Index at this time
-         * 
-         * [VerbOption("dpkg", HelpText = "Audit dpkg packages on Linux. The packages are scanned from the system dpkg repository.")]
-         */
-        public Options AuditDpkg { get; set; }
          
         [VerbOption("rpm", HelpText = "Audit rpm packages on Linux. The packages are scanned from the system rpm repository.")]
         public Options AuditRpm { get; set; }
@@ -50,66 +39,8 @@ namespace DevAudit.CommandLine
         [VerbOption("yum", HelpText = "Audit yum packages on Linux. The packages are scanned from the system rpm repository.")]
         public Options AuditYum { get; set; }
 
-        [VerbOption("docker", HelpText = "Audit the configuration and operating system, servers, and applications present in a Linux Docker container. Use the -f/--file option to specify a Dockerfile to statically analyze or the -i/--container-id option to specify a running Docker container to perform a runtime analysis.")]
-        public Options AuditDockerContainer { get; set; }
-
-        /* Disabled. Drupal does not appear to be used at this time, and maintenance of the data and code takes time we do not currently have.
-         * [VerbOption("drupal8", HelpText = "Audit a Drupal 8 application instance. Use the -r option to specify the root directory of the Drupal 8 instance, otherwise the current directory will be used.")]
-         * public Options AuditDrupal8 { get; set; }
-         * 
-         * [VerbOption("drupal7", HelpText = "Audit a Drupal 7 application instance. Use the -r option to specify the root directory of the Drupal 7 instance, otherwise the current directory will be used.")]
-         * public Options AuditDrupal7 { get; set; }
-         */
-        [VerbOption("mysql", HelpText = "Audit a MySQL database server instance. Use the -r option to specify the root directory of the mysqld server. Use the -b option to specify the path to the mysqld server binary and the -c option to specify the configuration file otherwise default values will be used for these 2 parameters.")]
-        public Options MySQL { get; set; }
-
-        [VerbOption("mariadb", HelpText = "Audit a MariaDB database server instance. Use the -r option to specify the root directory of the MariaDB server. Use the -b option to specify the path to the mysqld server binary and the -c option to specify the configuration file otherwise default values will be used for these 2 parameters.")]
-        public Options MariaDB { get; set; }
-
-        [VerbOption("sshd", HelpText = "Audit an OpenSSH sshd-compatibile application server instance. Use the -r option to specify the root directory of the sshd server. Use the -b option to specify the path to the sshd server binary, and the -c option to specify the configuration file otherwise default values will be used for these 2 parameters.")]
-        public Options SSHD { get; set; }
-
-        [VerbOption("httpd", HelpText = "Audit an Apache httpd server instance. Use the -r option to specify the root directory of the httpd server. Use the -b option to specify the path to the httpd server binary and the -c option to specify the configuration file otherwise default values will be used for these 2 parameters.")]
-        public Options Httpd { get; set; }
-
-        [VerbOption("nginx", HelpText = "Audit a Nginx server instance. Use the -r option to specify the root directory of the server. Use the -b option to specify the path to the httpd server binary and the -c option to specify the configuration file otherwise default values will be used for these 2 parameters.")]
-        public Options Nginx { get; set; }
-
-        [VerbOption("pgsql", HelpText = "Audit a PostgreSQL database server instance. Use the -r option to specify the root directory of the httpd server. The server binary and configuration files will be autodetected; to override use the -b option to specify the path to the postgres server binary and the -c option to specify the configuration file.")]
-        public Options PGSQL { get; set; }
-
-        [VerbOption("iis6", HelpText = "Audit an IIS 6 server instance. Use the -r option to specify the root otherwise the default C:\\Window\\system32\\inetsrv is used.")]
-        public Options IIS6 { get; set; }
-
-        [VerbOption("netfx", HelpText = "Audit a .NET Framework application. Use the --root option to specify the root directory of the application and the -b option to specify the application .NET assembly.")]
-        public Options NetFx { get; set; }
-
-        [VerbOption("netcore", HelpText = "Audit a .NET Core application or .NET Standard library's dependencies. Use the -f option to specify the path to the .csproj project or the .deps.json dependencies manifest file.")]
+        [VerbOption("netcore", HelpText = "Audit a .NET Core application or .NET Standard library's dependencies. Use the -f option to specify the path to the .csproj project file or the .deps.json dependencies manifest file.")]
         public Options NetCore { get; set; }
-
-        [VerbOption("aspnet", HelpText = "Audit an ASP.NET application or code project deployed to a web server. Use the --root option to specify the root directory of the application and the -b option to specify the application .NET assembly.")]
-        public Options AspNet { get; set; }
-
-        /* Disabled -- code analysis targets, incomplete
-         * [VerbOption("netfx-code", HelpText = "Audit a .NET Framework 4 code project. Use the --root option to specify the root directory of the solution, and the --project-name option to specify the name of the project.")]
-         * public Options NetFxCode { get; set; }
-         */
-
-        /* Disabled -- code analysis targets, incomplete
-         * [VerbOption("aspnet-code", HelpText = "Audit an ASP.NET code project. Use the --root option to specify the root directory of the solution, and the --project-name option to specify the name of the project.")]
-         * public Options AspNetCode { get; set; }
-         */
-
-
-        /* Disabled -- code analysis targets, incomplete
-         * [VerbOption("php", HelpText = "Audit a PHP code project. Use the --root option to specify the root directory of the code project.")]
-         * public Options Php { get; set; }
-         */
-
-        /* Disabled -- code analysis targets, incomplete
-         *[VerbOption("drupal8-module", HelpText = "Audit a Drupal 8 module project. Use the --root option to specify the root directory of the code project and the --code-project option to specify the Drupal 8 module name.")]
-         *public Options Drupal8Module { get; set; }
-         */
 
         [Option('d', "enable-debug", Required = false, HelpText = "Enable printing debug messages and other behavior useful for debugging the program.")]
         public bool EnableDebug { get; set; }
@@ -144,14 +75,8 @@ namespace DevAudit.CommandLine
         [Option('w', "winrm", Required = false, HelpText = "Connect to the remote host using the WinRM protocol. You must enable WinRM on the remote Windows machine.")]
         public bool WinRm { get; set; }
 
-        [Option("config-file", Required = false, HelpText = "Specifies the configuration file for the application server to be audited.")]
-        public string ConfigurationFile { get; set; }
-
         [Option('r', "root", Required = false, HelpText = "The root directory of the application instance to audit.")]
         public string RootDirectory { get; set; }
-
-        [Option('b', "application-binary", Required = false, HelpText = "The path to the application or server binary.")]
-        public string ApplicationBinary { get; set; }
 
         [Option('i', "container-id", Required = false, HelpText = "Connect to a Docker container with this name or id.")]
         public string DockerContainerId { get; set; }
@@ -186,26 +111,6 @@ namespace DevAudit.CommandLine
         [Option("list-packages", Required = false, HelpText = "Only list the local packages that will be audited.", MutuallyExclusiveSet ="audit-action")]
         public bool ListPackages { get; set; }
 
-        //[Option("list-artifacts", Required = false, HelpText = "Only list the artifacts corresponding to local packages found on OSS Index.", MutuallyExclusiveSet = "audit-action")]
-        public bool ListArtifacts { get; set; }
-
-        //[Option("package-info", Required = false, HelpText = "Retrieve and print detailed package info for each package scanned from the package source.")]
-        //public bool PackageInfo { get; set; }
-        //[Option("list-rules", Required = false, HelpText = "Only list the configuration rules found for the application or application server.", MutuallyExclusiveSet = "audit-action")]
-        public bool ListConfigurationRules { get; set; }
-
-        //[Option("list-analyzers", Required = false, HelpText = "Only list the analyzers found for the application or code project.", MutuallyExclusiveSet = "audit-action")]
-        public bool ListAnalyzers { get; set; }
-        
-        [Option("print-configuration", Required = false, HelpText = "Only print the application or application server configuration.", MutuallyExclusiveSet = "audit-action")]
-        public bool PrintConfiguration { get; set; }
-
-        [Option("skip-packages-audit", Required = false, HelpText = "Skip the package audit for the application or application server.")]
-        public bool SkipPackagesAudit { get; set; }
-
-        //[Option("only-local-rules", Required = false, HelpText = "Only use the configuration rules for the application or application server listed in YAML rules files.")]
-        public bool OnlyLocalRules { get; set; }
-
         [Option("https-proxy", Required = false, HelpText = "Use the specified Url as the proxy for HTTPS calls made to the OSS Index API.")]
         public string HttpsProxy { get; set; }
 
@@ -218,14 +123,8 @@ namespace DevAudit.CommandLine
         [Option("ci", Required = false, HelpText = "Run in 'continuous integration' mode. Returns non-zero exist when vulnerabilities found.")]
         public bool CiMode { get; set; }
 
-        //[Option("with-ossi", Required = false, HelpText = "Use vulnerability data from the OSS Index API. This data source is used by default when no other data source is specified.")]
-        public bool WithOSSI { get; set; }
-
         [Option("with-vulners", Required = false, HelpText = "Use vulnerability data from the vulners.com API and/or data files.")]
         public bool WithVulners { get; set; }
-
-        //[Option("with-libio", Required = false, HelpText = "Use artifact data from the libraries.io API.")]
-        public bool WithLibIO { get; set; }
 
         public static Dictionary<string, object> Parse(string o)
         {

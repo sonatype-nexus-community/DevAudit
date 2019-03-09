@@ -31,11 +31,6 @@ namespace DevAudit.CommandLine
 
         static PackageSource Source { get; set; }
         
-        static Application Application { get; set; }
-
-        static ApplicationServer Server { get; set; }
-
-        static CodeProject CodeProject { get; set; }
 
         static Container Container { get; set; }
 
@@ -69,9 +64,9 @@ namespace DevAudit.CommandLine
 
         static int Main(string[] args)
         {
+            #region Setup font and console colors
             FigletFont = new CC.Figlet(CC.FigletFont.Load(Path.Combine(DevAuditDirectory, "chunky.flf")));
 
-            #region Setup console colors
             ConsoleMessageColors.Add(EventMessageType.INFO, Console.ForegroundColor);
             ConsoleMessageColors.Add(EventMessageType.PROGRESS, Console.ForegroundColor);
             ConsoleMessageColors.Add(EventMessageType.STATUS, Console.ForegroundColor);
@@ -566,41 +561,9 @@ namespace DevAudit.CommandLine
                 }
             }
             #endregion
-
-            if (ProgramOptions.SkipPackagesAudit && ProgramOptions.ListPackages)
-            {
-                PrintErrorMessage("You can't specify both --skip-packages-audit and --list-packages.");
-                return (int)Exit;
-            }
-            if (ProgramOptions.SkipPackagesAudit)
-            {
-                audit_options.Add("SkipPackagesAudit", ProgramOptions.SkipPackagesAudit);
-            }
             if (ProgramOptions.ListPackages)
             {
                 audit_options.Add("ListPackages", ProgramOptions.ListPackages);
-            }
-            if (ProgramOptions.ListArtifacts)
-            {
-                audit_options.Add("ListArtifacts", ProgramOptions.ListArtifacts);
-            }
-            if (ProgramOptions.PrintConfiguration)
-            {
-                audit_options.Add("PrintConfiguration", ProgramOptions.PrintConfiguration);
-            }
-            
-            if (ProgramOptions.ListConfigurationRules)
-            {
-                audit_options.Add("ListConfigurationRules", ProgramOptions.ListConfigurationRules);
-            }
-            if (ProgramOptions.ListAnalyzers)
-            {
-                audit_options.Add("ListAnalyzers", ProgramOptions.ListAnalyzers);
-            }
-            
-            if (ProgramOptions.OnlyLocalRules)
-            {
-                audit_options.Add("OnlyLocalRules", ProgramOptions.OnlyLocalRules);
             }
             
             if (!string.IsNullOrEmpty(ProgramOptions.File))
@@ -613,20 +576,6 @@ namespace DevAudit.CommandLine
                 audit_options.Add("RootDirectory", ProgramOptions.RootDirectory);
             }
 
-            if (!string.IsNullOrEmpty(ProgramOptions.ConfigurationFile))
-            {
-                audit_options.Add("ConfigurationFile", ProgramOptions.ConfigurationFile);
-            }
-
-            if (!string.IsNullOrEmpty(ProgramOptions.ApplicationBinary))
-            {
-                audit_options.Add("ApplicationBinary", ProgramOptions.ApplicationBinary);
-            }
-
-            if (!string.IsNullOrEmpty(ProgramOptions.ProjectName))
-            {
-                audit_options.Add("ProjectName", ProgramOptions.ProjectName);
-            }
             if(!string.IsNullOrEmpty(ProgramOptions.AuditOptions))
             {
                 Dictionary<string, object> parsed_options = Options.Parse(ProgramOptions.AuditOptions);
@@ -664,23 +613,16 @@ namespace DevAudit.CommandLine
             #endregion
 
             #region Data sources
-            if (ProgramOptions.WithOSSI)
-            {
-                audit_options.Add("WithOSSI", true);
-            }
             if (ProgramOptions.WithVulners)
             {
                 audit_options.Add("WithVulners", true);
-            }
-            if (ProgramOptions.WithLibIO)
-            {
-                audit_options.Add("WithLibIO", true);
             }
             if (ProgramOptions.IgnoreHttpsCertErrors)
             {
                 audit_options.Add("IgnoreHttpsCertErrors", true);
             }
             #endregion
+
             #endregion
 
             PrintBanner();
@@ -700,10 +642,6 @@ namespace DevAudit.CommandLine
                     else if (verb == "netcore")
                     {
                         Source = new NetCorePackageSource(audit_options, EnvironmentMessageHandler);
-                    }
-                    else if (verb == "msi")
-                    {
-                        Source = new MSIPackageSource(audit_options, EnvironmentMessageHandler);
                     }
                     else if (verb == "choco")
                     {
@@ -737,90 +675,6 @@ namespace DevAudit.CommandLine
                     {
                         Source = new YumPackageSource(audit_options, EnvironmentMessageHandler);
                     }
-                    else if (verb == "drupal8")
-                    {
-                        Application = new Drupal8Application(audit_options, EnvironmentMessageHandler);
-                        Source = Application.PackageSource;
-                    }
-                    else if (verb == "drupal7")
-                    {
-                        Application = new Drupal7Application(audit_options, EnvironmentMessageHandler);
-                        Source = Application.PackageSource;
-                    }
-                    else if (verb == "netfx")
-                    {
-                        Application = new NetFx4Application(audit_options, EnvironmentMessageHandler);
-                        Source = Application.PackageSource;
-
-                    }
-                    else if (verb == "aspnet")
-                    {                        
-                        Application = new AspNetApplication(audit_options, EnvironmentMessageHandler);
-                        Source = Application.PackageSource; 
-                        
-                    }
-                    else if (verb == "mysql")
-                    {
-                        Server = new MySQLServer(audit_options, EnvironmentMessageHandler);
-                        Application = Server as Application;
-                        Source = Server.PackageSource;
-                    }
-                    else if (verb == "mariadb")
-                    {
-                        Server = new MariaDBServer(audit_options, EnvironmentMessageHandler);
-                        Application = Server as Application;
-                        Source = Server.PackageSource;
-                    }
-                    else if (verb == "sshd")
-                    {
-                        Server = new SSHDServer(audit_options, EnvironmentMessageHandler);
-                        Application = Server as Application;
-                        Source = Server.PackageSource;
-                    }
-                    else if (verb == "httpd")
-                    {
-                        Server = new HttpdServer(audit_options, EnvironmentMessageHandler);
-                        Application = Server as Application;
-                        Source = Server.PackageSource;
-                    }
-                    else if (verb == "nginx")
-                    {
-                        Server = new NginxServer(audit_options, EnvironmentMessageHandler);
-                        Application = Server as Application;
-                        Source = Server.PackageSource;
-                    }
-                    else if (verb == "pgsql")
-                    {
-                        Server = new PostgreSQLServer(audit_options, EnvironmentMessageHandler);
-                        Application = Server as Application;
-                        Source = Server.PackageSource;
-                    }
-                    else if (verb == "iis6")
-                    {
-                        Server = new IIS6Server(audit_options, EnvironmentMessageHandler);
-                        Application = Server as Application;
-                        Source = Server.PackageSource;
-                    }
-                    else if (verb == "netfx-code")
-                    {
-                        CodeProject = new NetFxCodeProject(audit_options, EnvironmentMessageHandler);
-                        Application = CodeProject.Application;                        
-                        Source = CodeProject.PackageSource;
-                    }
-                    else if (verb == "aspnet-code")
-                    {
-                        CodeProject = new AspNetCodeProject(audit_options, EnvironmentMessageHandler);
-                        Application = CodeProject.ApplicationInitialised ? CodeProject.Application : null;
-                        Source = CodeProject.PackageSource;
-                    }
-                    else if (verb == "drupal8-module")
-                    {
-                        CodeProject = new Drupal8ModuleCodeProject(audit_options, EnvironmentMessageHandler);                       
-                    }
-                    else if (verb == "docker")
-                    {
-                        Container = new DockerContainer(audit_options, EnvironmentMessageHandler);
-                    }
                 }
                 catch (ArgumentException ae)
                 {
@@ -836,7 +690,7 @@ namespace DevAudit.CommandLine
                 }
             });
 
-            if (Source == null && Application == null && Server == null && CodeProject == null && Container == null)
+            if (Source == null )
             {
                 if (AuditLibraryException == null)
                 {
@@ -850,22 +704,6 @@ namespace DevAudit.CommandLine
                     if (arge.ParamName == "package_source_options")
                     {
                         PrintErrorMessage("Error initialzing audit library for package source audit target: {0}.", arge.Message);
-                    }
-                    else if (arge.ParamName == "application_options")
-                    {
-                        PrintErrorMessage("Error initialzing audit library for application audit target: {0}.", arge.Message);
-                    }
-                    else if (arge.ParamName == "server_options")
-                    {
-                        PrintErrorMessage("Error initialzing audit library for application server audit target: {0}.", arge.Message);
-                    }
-                    else if (arge.ParamName == "project_options")
-                    {
-                        PrintErrorMessage("Error initialzing audit library for code project audit target: {0}.", arge.Message);
-                    }
-                    else if (arge.ParamName == "container_options")
-                    {
-                        PrintErrorMessage("Error initialzing audit library for container audit target: {0}.", arge.Message);
                     }
                     else
                     {
@@ -883,122 +721,18 @@ namespace DevAudit.CommandLine
 
             #region Print audit results
             int vulnCount = 0;
-            if (CodeProject == null && Application == null && Server == null && Source != null) //Auditing a package source
-            {
-                AuditTarget.AuditResult ar = Source.Audit(CTS.Token);
-                if (Stopwatch.IsRunning) Stopwatch.Stop();
+            AuditTarget.AuditResult ar = Source.Audit(CTS.Token);
+            if (Stopwatch.IsRunning) Stopwatch.Stop();
 
-                if (ar != AuditTarget.AuditResult.SUCCESS)
-                {
-                    Exit = ar;
-                }
-                else
-                {
-                    vulnCount += PrintPackageSourceAuditResults(ar, out Exit);
-                }
-                Source.Dispose();
-            }
-
-            else if (CodeProject == null && Server == null && Application != null) //Auditing an application
+            if (ar != AuditTarget.AuditResult.SUCCESS)
             {
-                AuditTarget.AuditResult aar = Application.Audit(CTS.Token);
-                if (Stopwatch.IsRunning) Stopwatch.Stop();
-                if (aar != AuditTarget.AuditResult.SUCCESS)
-                {
-                    Exit = aar;
-                }
-                else
-                {
-                    if (Source != null)
-                    {
-                        vulnCount += PrintPackageSourceAuditResults(aar, out Exit);
-                    }
-                    vulnCount += PrintApplicationAuditResults(aar, out Exit);
-                }
-                if (Source != null)
-                {
-                    Source.Dispose();
-                }
-                Application.Dispose();
+                Exit = ar;
             }
-            else if (CodeProject == null && Server != null) //Auditing server
+            else
             {
-                AuditTarget.AuditResult aar = Server.Audit(CTS.Token);
-                if (Stopwatch.IsRunning) Stopwatch.Stop();
-                if (aar != AuditTarget.AuditResult.SUCCESS)
-                {
-                    Exit = aar;
-                }
-                else
-                {
-                    if (Source != null)
-                    {
-                        vulnCount += PrintPackageSourceAuditResults(aar, out Exit);
-                    }
-                    vulnCount += PrintApplicationAuditResults(aar, out Exit);
-                }
-                if (Source != null)
-                {
-                    Source.Dispose();
-                }
-                Server.Dispose();
+                vulnCount += PrintPackageSourceAuditResults(ar, out Exit);
             }
-            else if (CodeProject != null && Server == null) //auditing code project
-            {
-                AuditTarget.AuditResult cpar = CodeProject.Audit(CTS.Token);
-                if (Stopwatch.IsRunning) Stopwatch.Stop();
-                if (cpar != AuditTarget.AuditResult.SUCCESS)
-                {
-                    Exit = cpar;
-                }
-                else
-                {
-                    if (Source != null)
-                    {
-                        vulnCount += PrintPackageSourceAuditResults(cpar, out Exit);
-                    }
-                    if (Application != null)
-                    {
-                        vulnCount += PrintApplicationAuditResults(cpar, out Exit);
-
-                    }
-
-                    vulnCount += PrintCodeProjectAuditResults(cpar, out Exit);
-                }
-                if (Source != null)
-                {
-                    Source.Dispose();
-                }
-                if (Application != null)
-                {
-                    Application.Dispose();
-                }
-                CodeProject.Dispose();
-            }
-            else if (Container != null) //auditing container
-            {
-                AuditTarget.AuditResult conar = Container.Audit(CTS.Token);
-                if (Stopwatch.IsRunning) Stopwatch.Stop();
-                if (conar != AuditTarget.AuditResult.SUCCESS)
-                {
-                    Exit = conar;
-                }
-                else
-                {
-                    if (Container.OSPackageSourceAuditResult == AuditTarget.AuditResult.SUCCESS)
-                    {
-                        Source = Container.OSPackageSource;
-                        vulnCount += PrintPackageSourceAuditResults(Container.OSPackageSourceAuditResult, out Exit);
-                        Source.Dispose();
-                    }
-                    foreach (var k in Container.ApplicationServerAuditResults.Where(ar => ar.Value == AuditTarget.AuditResult.SUCCESS))
-                    {
-                        Application = k.Key;
-                        vulnCount += PrintApplicationAuditResults(k.Value, out Exit);
-                        Application.Dispose();
-                    }
-                }
-            }
+            Source.Dispose();
             #endregion
 
             if (Exit == AuditTarget.AuditResult.SUCCESS && ProgramOptions.CiMode)
@@ -1051,40 +785,6 @@ namespace DevAudit.CommandLine
                 {
                     return 0;
                 }
-            }
-            else if (ProgramOptions.ListArtifacts)
-            {
-                if (ar == AuditTarget.AuditResult.SUCCESS && Source.Artifacts.Count() > 0)
-                {
-                    int i = 1;
-                    foreach (IArtifact artifact in Source.Artifacts.Values)
-                    {
-                        PrintMessage("[{0}/{1}] {2} ({3}) ", i++, Source.Artifacts.Count(), artifact.PackageName,
-                            !string.IsNullOrEmpty(artifact.Version) ? artifact.Version : string.Format("No version reported for package {0}", artifact.PackageName));
-                        if (!string.IsNullOrEmpty(artifact.ArtifactId))
-                        {
-                            PrintMessage(ConsoleColor.Blue, artifact.ArtifactId + "\n");
-                        }
-                        else
-                        {
-                            PrintMessage(ConsoleColor.DarkRed, "No project id found.\n");
-                        }
-                    }
-                    return 0;
-                }
-                else if (ar == AuditTarget.AuditResult.SUCCESS && Source.Artifacts.Count() == 0)
-                {
-                    PrintMessageLine("No artifacts found for {0}. ", Source.PackageManagerLabel);
-                    return 0;
-                }
-                else
-                {
-                    return 0;
-                }
-            }
-            else if (ProgramOptions.SkipPackagesAudit || ProgramOptions.ListConfigurationRules || ProgramOptions.PrintConfiguration || ProgramOptions.ListAnalyzers)
-            {
-                return 0;
             }
             int total_vulnerabilities = Source.Vulnerabilities.Sum(v => v.Value != null ? v.Value.Count(pv => pv.PackageVersionIsInRange) : 0);
             PrintMessageLine(ConsoleColor.White, "\nPackage Source Audit Results\n============================");
@@ -1183,236 +883,11 @@ namespace DevAudit.CommandLine
                     PrintMessageLine(dsi.Description);
                 }
             }
-            if (Source.CredentialStorageCandidates != null && Source.CredentialStorageCandidates.Count > 0)
-            {
-                PrintMessageLine("Credential Storage Candidates\n==============================");
-                int cs_processed = 0;
-                int cs_total = Source.CredentialStorageCandidates.Count;
-                foreach (VulnerableCredentialStorage cs in Source.CredentialStorageCandidates)
-                {
-                    PrintMessage(ConsoleColor.White, "[{0}/{1}]", ++cs_processed, cs_total);
-                    PrintMessageLine(ConsoleColor.Blue, " {0}", cs.File);
-                    PrintMessageLine(ConsoleColor.White, "  --Location: {0}", cs.Location);
-                    PrintMessageLine(ConsoleColor.White, "  --Value: {0}", cs.Value);
-                    PrintMessageLine(ConsoleColor.White, "  --Entropy: {0}", cs.Entropy);
-                }
-            }
             Source.Dispose();
             return total_vulnerabilities;
         }
   
-        static int PrintApplicationAuditResults(AuditTarget.AuditResult ar, out AuditTarget.AuditResult exit)
-        {
-            if (Stopwatch.IsRunning) Stopwatch.Stop();
-            exit = ar;
-            if (Spinner != null) StopSpinner();
-            if (ProgramOptions.ListPackages || ProgramOptions.ListArtifacts)
-            {
-                return 0;
-            }
-            else if (ar == AuditTarget.AuditResult.SUCCESS && ProgramOptions.PrintConfiguration)
-            {
-                if (Application.ConfigurationInitialised)
-                {
-                    PrintMessageLine(Application.XmlConfiguration.ToString());
-                }
-                else
-                {
-                    PrintErrorMessage("Configuration was not initialised.");
-                }
-                return 0;
-            }
-            else if (ProgramOptions.ListConfigurationRules)
-            {
-                if (ar == AuditTarget.AuditResult.SUCCESS && Application.ConfigurationRules.Count() > 0)
-                {
-                    int i = 1;
-                    foreach (var project_rule in Application.ConfigurationRules)
-                    {
-                        if (project_rule.Key == Application.ApplicationId + "_" + "default") continue;
-                        PrintMessage("[{0}/{1}]", i, Application.ConfigurationRules.Count);
-                        PrintMessageLine(ConsoleColor.Blue, " {0} ", project_rule.Key);
-                        int j = 1;
-                        foreach (ConfigurationRule rule in project_rule.Value)
-                        {
-                            PrintMessageLine("  [{0}/{1}] {2}", j++, project_rule.Value.Count(), rule.Title);
-                        }
-                    }
-                    return 0;
-                }
-                else if (ar == AuditTarget.AuditResult.SUCCESS && Application.ConfigurationRules.Count() == 0)
-                {
-                    PrintMessageLine("No configuration rules found for {0}. ", Application.ApplicationLabel);
-                    return 0;
-                }
-            }
-            else if (Application.ConfigurationRules.Count() > 0)
-            {
-                PrintMessageLine(ConsoleColor.White, "\nApplication Configuration Audit Results\n=======================================");
-                if (Application.AppDevMode && Application.DisabledRules.Count > 0)
-                {
-                    PrintMessageLine("{0} rules disabled for application development mode:", Application.DisabledRules.Count);
-                    int rdfadm = 0;
-                    foreach(ConfigurationRule rule in Application.DisabledRules)
-                    {
-                        PrintMessageLine(ConsoleColor.DarkGray, "--[{0}/{1}] {2}", ++rdfadm, Application.DisabledRules.Count, rule.Title);
-                    }
-                }
-                PrintMessageLine(ConsoleColor.White, "{0} {3} found in {1} application configuration audit. Total time for audit: {2} ms.\n", 
-                    Application.ConfigurationRulesEvaluations.Values.Where(v => v.Item1).Count(), Application.ApplicationLabel, Stopwatch.ElapsedMilliseconds,
-                    Application.ConfigurationRulesEvaluations.Values.Where(v => v.Item1).Count() == 1 ? "vulnerability" : "total vulnerabilities");
-                int projects_count = Application.ConfigurationRules.Count, projects_processed = 0;
-                foreach (KeyValuePair<string, IEnumerable<ConfigurationRule>> module_rule in Application.ConfigurationRules)
-                {
-                    IEnumerable<KeyValuePair<ConfigurationRule, Tuple<bool, List<string>, string>>> evals = 
-                        Application.ConfigurationRulesEvaluations.Where(cre => cre.Key.ModuleName == module_rule.Key);
-                    PrintMessage("[{0}/{1}] Module: ", ++projects_processed, projects_count);
-                    PrintMessage(ConsoleColor.Blue, "{0}. ", module_rule.Key);
-                    int total_project_rules = module_rule.Value.Count();
-                    int succeded_project_rules = evals.Count() > 0 ? evals.Count(ev => ev.Value.Item1) : 0;
-                    int processed_project_rules = 0;
-                    PrintMessage("{0} rule(s). ", total_project_rules);
-                    if (succeded_project_rules > 0)
-                    {
-                        PrintMessage(ConsoleColor.Magenta, " {0} rule(s) succeeded. ", succeded_project_rules);
-                        PrintMessageLine(ConsoleColor.Red, "[VULNERABLE]");
-                    }
-                    else
-                    {
-                        PrintMessage(ConsoleColor.DarkGreen, " {0} rule(s) succeeded. \n", succeded_project_rules);
-                    }
-                    foreach (KeyValuePair<ConfigurationRule, Tuple<bool, List<string>, string>> e in evals)
-                    {
-                        ++processed_project_rules;
-                        bool vulnerable = e.Value.Item1;
-                        ConfigurationRule _rule = e.Key;
-                        if (!vulnerable)
-                        {
-                            PrintMessage("--[{0}/{1}] Rule: {2}. Result: ", processed_project_rules, total_project_rules, _rule.Title);
-                        }
-                        else
-                        {
-                            PrintMessage(ConsoleColor.White, "--[{0}/{1}] Rule: {2}. Result: ", processed_project_rules, total_project_rules, _rule.Title);
-                        }
-                        PrintMessageLine(vulnerable ? ConsoleColor.Red : ConsoleColor.DarkGreen, "{0}.", vulnerable);
-                        if (vulnerable)
-                        {
-                            PrintAuditResultMultiLineField(ConsoleColor.White, 2, "Summary", _rule.Summary);
-                            if (e.Value.Item2 != null && e.Value.Item2.Count > 0)
-                            {
-                                PrintAuditResultMultiLineField(ConsoleColor.White, 2, "Results", e.Value.Item2);
-                            }
-                            if (_rule.Tags != null && _rule.Tags.Count > 0)
-                            {
-                                PrintAuditResultMultiLineField(ConsoleColor.White, 2, "Tags", _rule.Tags);
-                            }
-                            if (_rule.Severity > 0)
-                            {
-                                PrintMessage(ConsoleColor.White, "  --Severity: ");
-                                ConsoleColor severity_color = _rule.Severity == 1 ? ConsoleColor.DarkYellow : _rule.Severity == 2 ? ConsoleColor.DarkRed : ConsoleColor.Red;
-                                PrintMessageLine(severity_color, "{0}", _rule.Severity);
-                            }
-                            PrintAuditResultMultiLineField(ConsoleColor.Magenta, 2, "Resolution", _rule.Resolution);
-                            PrintAuditResultMultiLineField(ConsoleColor.White, 2, "Urls", _rule.Urls);
-                            PrintMessageLine(string.Empty);
-                        }
-                    }
-                }
-            }
-            else
-            {
-                PrintMessageLine(ConsoleColor.White, "\nApplication Configuration Audit Results\n=======================================");
-                PrintMessageLine(ConsoleColor.White, "{0} total vulnerabilities found in {1} application configuration audit. Total time for audit: {2} ms.\n", Application.ConfigurationRulesEvaluations.Values.Where(v => v.Item1).Count(), Application.ApplicationLabel, Stopwatch.ElapsedMilliseconds);
-            }
-
-            int errors = 0;
-            if (Application.AnalyzerResults != null && Application.AnalyzerResults.Count > 0)
-            {
-                IEnumerable<ByteCodeAnalyzerResult> code_analysis_results = Application.AnalyzerResults;
-                if (code_analysis_results != null && code_analysis_results.Count() > 0)
-                {
-                    int bcar_count = code_analysis_results.Count();
-                    int bcar_succeded_count = code_analysis_results.Count(car => car.Succeded);
-                    int bcar_vulnerable_count = code_analysis_results.Count(car => car.IsVulnerable);
-                    errors += bcar_vulnerable_count;
-                    PrintMessageLine(ConsoleColor.White, "\nApplication Code Analysis Results\n=======================================");
-                    PrintMessageLine(ConsoleColor.White, "{0} {1} found in {2} application code analysis audit. Total time for audit: {3} ms.\n",
-                        bcar_vulnerable_count, bcar_vulnerable_count == 0 || bcar_vulnerable_count > 1 ? "vulnerabilities" : "vulnerability", Application.ApplicationLabel, Stopwatch.ElapsedMilliseconds);
-                    int processed_code_analysis_results = 0;
-                    foreach (ByteCodeAnalyzerResult bcar in code_analysis_results)
-                    {
-                        ++processed_code_analysis_results;
-                        if (!bcar.Executed)
-                        {
-                            PrintMessage("--[{0}/{1}] Analyzer: {2}. Result: ", processed_code_analysis_results, bcar_count, bcar.Analyzer.Summary);
-                            PrintMessageLine(ConsoleColor.DarkGray, "Not executed");
-                            if (bcar.Exceptions != null && bcar.Exceptions.Any())
-                            {
-                                foreach (Exception e in bcar.Exceptions)
-                                {
-                                    PrintMessageLine("  --Exception {0} {1}.", e.Message, e.StackTrace);
-                                }
-                            }
-                        }
-                        else if (!bcar.Succeded)
-                        {
-                            PrintMessage("--[{0}/{1}] Analyzer: {2}. Result: ", processed_code_analysis_results, bcar_count, bcar.Analyzer.Summary);
-                            PrintMessageLine(ConsoleColor.Yellow, "Failed");
-                            if (bcar.Exceptions != null && bcar.Exceptions.Any())
-                            {
-                                foreach (Exception e in bcar.Exceptions)
-                                {
-                                    PrintMessageLine("  --Exception {0} {1}.", e.Message, e.StackTrace);
-                                }
-                            }
-                        }
-                        else
-                        {
-                            PrintMessage("--[{0}/{1}] Analyzer: {2}. Result: ", processed_code_analysis_results, bcar_count, bcar.Analyzer.Summary);
-                            PrintMessageLine(bcar.IsVulnerable ? ConsoleColor.Red : ConsoleColor.DarkGreen, "{0}.", bcar.IsVulnerable);
-                            PrintMessageLine("  --Description: {0}", bcar.Analyzer.Description);
-                            PrintMessageLine("  --Module: {0}", bcar.ModuleName);
-                            PrintMessageLine("  --Location: {0}", bcar.LocationDescription);
-                            if (bcar.DiagnosticMessages != null && bcar.DiagnosticMessages.Any())
-                            {
-                                if (bcar.DiagnosticMessages != null && bcar.DiagnosticMessages.Any())
-                                {
-                                    PrintMessageLine("  --Diagnostics");
-                                    int dmc_total = bcar.DiagnosticMessages.Count, dmc_count = 0;
-                                    foreach (string diagnostics in bcar.DiagnosticMessages)
-                                    {
-                                        List<string> messages = diagnostics.Split("\n".ToCharArray()).ToList();
-                                        string name = messages.Where(d => d.StartsWith("Name:")).FirstOrDefault();
-                                        string severity = messages.Where(d => d.StartsWith("Severity:")).FirstOrDefault();
-                                        PrintMessage("    --[{0}/{1}] {2} Severity: ", ++dmc_count, dmc_total, name);
-                                        ConsoleColor severity_color = severity.Contains("Low") ? ConsoleColor.DarkYellow : severity.Contains("Medium") ? ConsoleColor.DarkRed : ConsoleColor.Red;
-                                        PrintMessageLine(severity_color, "{0}", severity.Replace("Severity: ", string.Empty));
-                                        messages.RemoveAll(m => m == name || m == severity);
-                                        foreach (string m in messages)
-                                        {
-                                            PrintMessageLine("      --{0}", m);
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                        
-                    }
-                }
-            }
-            return errors;
-        }
-
-        static int PrintCodeProjectAuditResults(AuditTarget.AuditResult ar, out AuditTarget.AuditResult exit)
-        {
-            if (Stopwatch.IsRunning) Stopwatch.Stop();
-            exit = ar;
-            if (Spinner != null) StopSpinner();
-            PrintMessageLine(ConsoleColor.White, "\nCode Project Audit Results\n============================");
-            return 0;
-        }
-
-        static void EnvironmentMessageHandler(object sender, EnvironmentEventArgs e)
+static void EnvironmentMessageHandler(object sender, EnvironmentEventArgs e)
         {
             lock (ConsoleLock)
             {
@@ -1491,7 +966,6 @@ namespace DevAudit.CommandLine
                 }
             }
         }
-
         static void PrintMessage(string format, params object[] args)
         {
             if (args.Length == 0)

@@ -1,0 +1,98 @@
+# .NET Desktop
+# https://docs.microsoft.com/azure/devops/pipelines/apps/windows/dot-net
+
+name: Rel.$(Date:yyyyMMdd).$(Rev:.r) 
+
+variables:
+  releaseVersion: '3.3.0.0'
+  solution: 'DevAudit.sln'
+  buildPlatform: 'Any CPU'
+  buildConfiguration: 'RuntimeDebug'
+ 
+jobs:
+- job: Windows
+  pool:
+    vmImage: 'VS2017-Win2016'
+  steps:
+  - task: NuGetToolInstaller@0
+  - task: NuGetCommand@2
+    inputs:
+      restoreSolution: '$(solution)'
+      feedsToUse: 'config'
+      nugetConfigPath: 'NuGet.Config'
+
+  - task: VSBuild@1
+    inputs:
+      solution: '$(solution)'
+      platform: '$(buildPlatform)'
+      configuration: '$(buildConfiguration)' 
+ 
+  - task: ArchiveFiles@2
+    inputs:
+     rootFolderOrFile: '$(Build.SourcesDirectory)/DevAudit.CommandLine/bin/Debug/'
+     includeRootFolder: false
+     archiveType: zip
+     archiveFile: '$(Build.ArtifactStagingDirectory)/DevAudit_$(releaseVersion).zip'
+     verbose: true
+
+  - task: PublishBuildArtifacts@1
+    inputs:
+      pathtoPublish: '$(Build.ArtifactStagingDirectory)/DevAudit_$(releaseVersion).zip'
+      publishLocation: Container
+      artifactName: 'DevAudit-$(releaseVersion)-Windows' 
+
+  - script: '$(Build.SourcesDirectory)/.nuget/nuget pack -Version $(nugetVersion) -IncludeReferencedProjects'
+    workingDirectory: '$(Build.SourcesDirectory)/DevAudit.AuditLibrary'
+    
+  - task: CopyFiles@2
+    inputs:
+      sourceFolder: '$(Build.SourcesDirectory)/DevAudit.AuditLibrary/' 
+      contents: 'DevAudit.AuditLibrary.$(nugetVersion).nupkg'
+      targetFolder: '$(Build.ArtifactStagingDirectory)'
+
+  - task: PublishBuildArtifacts@1
+    inputs:
+      pathtoPublish: '$(Build.ArtifactStagingDirectory)/DevAudit.AuditLibrary.$(nugetVersion).nupkg'
+      publishLocation: Container
+      artifactName: 'DevAudit.AuditLibrary.$(releaseVersion)-NuGet' 
+
+  - script: '$(Build.SourcesDirectory)/.nuget/nuget pack -Version $(nugetVersion) -IncludeReferencedProjects'
+    workingDirectory: '$(Build.SourcesDirectory)/DevAudit.CommandLine'
+    
+  - task: CopyFiles@2
+    inputs:
+      sourceFolder: '$(Build.SourcesDirectory)/DevAudit.CommandLine/' 
+      contents: 'DevAudit.CLI.$(nugetVersion).nupkg'
+      targetFolder: '$(Build.ArtifactStagingDirectory)'
+
+  - task: PublishBuildArtifacts@1
+    inputs:
+      pathtoPublish: '$(Build.ArtifactStagingDirectory)/DevAudit.CLI.$(nugetVersion).nupkg'
+      publishLocation: Container
+      artifactName: 'DevAudit.CLI.$(releaseVersion)-NuGet' 
+
+- job: Linux
+  pool:
+    vmImage: 'ubuntu-16.04'
+  steps:
+  - script: $(Build.SourcesDirectory)/build.sh /p:VersionAssembly=$(releaseVersion)
+  - task: ArchiveFiles@2
+    inputs:
+     rootFolderOrFile: '$(Build.SourcesDirectory)/DevAudit.CommandLine/bin/Debug/'
+     includeRootFolder: false
+     archiveType: tar
+     tarCompression: gz
+     archiveFile: '$(Build.ArtifactStagingDirectory)/DevAudit_$(releaseVersion).tar.gz'
+     verbose: true
+
+  - task: PublishBuildArtifacts@1
+    inputs:
+      pathtoPublish: '$(Build.ArtifactStagingDirectory)/DevAudit_$(releaseVersion).tar.gz'
+      publishLocation: Container
+      artifactName: 'DevAudit-$(releaseVersion)-Linux'
+
+  - script: docker build -t $DOCKERORGID/$DOCKERIMAGE:$DOCKERTAG .
+  - script: docker login -u $DOCKERUSERID -p $DOCKERUSERPASS
+  - script: docker push $DOCKERORGID/$DOCKERIMAGE:$DOCKERTAG 
+
+    

@@ -210,6 +210,8 @@ FakesAssemblies/
 GeneratedArtifacts/
 _Pvt_Extensions/
 ModelManifest.xml
+
+# Custom
 /cygwin
 /cygwin2
 /augeas
@@ -223,3 +225,4 @@ ModelManifest.xml
 /.vscode
 /.stignore
 /omnisharp.json
+*.nupkg

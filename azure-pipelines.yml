@@ -1,11 +1,15 @@
 # .NET Desktop
 # https://docs.microsoft.com/azure/devops/pipelines/apps/windows/dot-net
 
+name: Dev.$(Date:yyyyMMdd).$(Rev:.r)
+
 variables:
-  win-solution: 'DevAudit.sln'
-  linux-solution: 'DevAudit.Mono.sln'
+  solution: 'DevAudit.sln'
   buildPlatform: 'Any CPU'
   buildConfiguration: 'RuntimeDebug'
+
+trigger:
+- v3.x
 
 jobs:
 - job: Windows
@@ -15,13 +19,13 @@ jobs:
   - task: NuGetToolInstaller@0
   - task: NuGetCommand@2
     inputs:
-      restoreSolution: '$(win-solution)'
+      restoreSolution: '$(solution)'
       feedsToUse: 'config'
       nugetConfigPath: 'NuGet.Config'
 
   - task: VSBuild@1
     inputs:
-      solution: '$(win-solution)'
+      solution: '$(solution)'
       platform: '$(buildPlatform)'
       configuration: '$(buildConfiguration)'
 
@@ -30,6 +34,7 @@ jobs:
     vmImage: 'ubuntu-16.04'
   steps:
   - script: $(Build.SourcesDirectory)/build.sh
+
   - script: docker build -t $DOCKERORGID/$DOCKERIMAGE:$DOCKERTAG .
   - script: docker login -u $DOCKERUSERID -p $DOCKERUSERPASS
   - script: docker push $DOCKERORGID/$DOCKERIMAGE:$DOCKERTAG
