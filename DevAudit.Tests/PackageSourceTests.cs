@@ -12,33 +12,15 @@ namespace DevAudit.Tests
 {
     public abstract class PackageSourceTests
     {
+        protected static void EnvironmentMessageHandler(object sender, EnvironmentEventArgs e) { }
+
         protected abstract PackageSource s { get; }
         
         [Fact]
         public void CanGetPackages()
         {
-            Assert.NotEmpty(s.GetPackages().Where(p => p.PackageManager == s.PackageManagerId));
+            Assert.NotEmpty(s.GetPackages());
         }
-
-        [Fact]
-        public void CanGetPackageVulnerabilities()
-        {
-                
-            
-        }
-
-
-        [Fact]
-        public void CanGetVulnerabilitiesTask()
-        {
-            
-        }
-
-        [Fact]
-        public abstract void CanCacheProjectVulnerabilities();
-               
-        [Fact]
-        public abstract Task CanGetProjects();
 
         [Fact]
         public abstract Task CanGetVulnerabilities();

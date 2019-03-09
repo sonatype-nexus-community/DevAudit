@@ -375,7 +375,8 @@ namespace DevAudit.AuditLibrary
         #endregion
         
         #region Properties
-        public string DevAuditDirectory = Path.GetDirectoryName(Assembly.GetEntryAssembly().Location);
+        public string DevAuditDirectory = Assembly.GetEntryAssembly() != null ?
+            Path.GetDirectoryName(Assembly.GetEntryAssembly().Location) : Directory.GetCurrentDirectory();
 
         public Dictionary<string, object> AuditOptions { get; set; } = new Dictionary<string, object>();
 
