@@ -22,12 +22,8 @@ namespace DevAudit.Tests
             Assert.NotEmpty(s.GetPackages());
         }
 
-        [Fact]
         public abstract Task CanGetVulnerabilities();
-
-        [Fact]
+        
         public abstract void CanComparePackageVersions();
-
-
     }
 }
