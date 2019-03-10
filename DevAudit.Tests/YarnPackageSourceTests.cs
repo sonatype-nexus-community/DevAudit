@@ -12,16 +12,19 @@ namespace DevAudit.Tests
 {
     public class Yarn : PackageSourceTests 
     {
-        protected override PackageSource s { get; } = new 
-            YarnPackageSource(new Dictionary<string, object>(){ {"File", @".\Examples\package.json.2" } }, EnvironmentMessageHandler);
+        protected override PackageSource s { get; } = 
+            new YarnPackageSource(new Dictionary<string, object>(){ {"File", @".\Examples\package.json.2" } }, EnvironmentMessageHandler);
 			
-        //[Fact]
         public override Task CanGetVulnerabilities()
         {
             throw new NotImplementedException();
         }
 
-       
+        public override void CanComparePackageVersions()
+        {
+            throw new NotImplementedException();
+        }
+
         public void CanTestVulnerabilityVersionInPackageVersionRange()
         {
             Assert.True(s.IsVulnerabilityVersionInPackageVersionRange(">1.2", "<1.5.2"));
