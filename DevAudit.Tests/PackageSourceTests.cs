@@ -33,8 +33,8 @@ namespace DevAudit.Tests
         [Fact]
         public virtual void CanGetVulnerabilities()
         {
-            var x = Source.Audit(Cts.Token);
-            Assert.True(x == AuditTarget.AuditResult.SUCCESS);
+            var res = Source.Audit(Cts.Token);
+            Assert.True(res == AuditTarget.AuditResult.SUCCESS);
         }
 
         
