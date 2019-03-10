@@ -14,16 +14,32 @@ namespace DevAudit.Tests
     {
         protected static void EnvironmentMessageHandler(object sender, EnvironmentEventArgs e) { }
 
-        protected abstract PackageSource s { get; }
-        
+        protected CancellationTokenSource Cts = new CancellationTokenSource();
+
+        protected abstract PackageSource Source { get; }
+
         [Fact]
-        public void CanGetPackages()
+        public virtual void CanConstructPackageSource()
         {
-            Assert.NotEmpty(s.GetPackages());
+            Assert.NotNull(Source);
         }
 
-        public abstract Task CanGetVulnerabilities();
+        [Fact]
+        public virtual void CanGetPackages()
+        {
+            Assert.NotEmpty(Source.GetPackages());
+        }
+
+        [Fact]
+        public virtual void CanGetVulnerabilities()
+        {
+            var x = Source.Audit(Cts.Token);
+            Assert.True(x == AuditTarget.AuditResult.SUCCESS);
+        }
+
         
-        public abstract void CanComparePackageVersions();
+        public abstract void CanTestVulnerabilityVersionInPackageVersionRange();
+
+        public abstract void CanGetMinimumPackageVersion();
     }
 }
