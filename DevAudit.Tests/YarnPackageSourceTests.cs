@@ -12,23 +12,23 @@ namespace DevAudit.Tests
 {
     public class Yarn : PackageSourceTests 
     {
-        protected override PackageSource s { get; } = new 
-            YarnPackageSource(new Dictionary<string, object>(){ {"File", @".\Examples\package.json.2" } }, EnvironmentMessageHandler);
+        protected override PackageSource Source { get; } = 
+            new YarnPackageSource(new Dictionary<string, object>(){ {"File", @".\Examples\package.json.2" } }, EnvironmentMessageHandler);
 			
-        //[Fact]
-        public override Task CanGetVulnerabilities()
+        [Fact]
+        public override void CanTestVulnerabilityVersionInPackageVersionRange()
         {
-            throw new NotImplementedException();
+            Assert.True(Source.IsVulnerabilityVersionInPackageVersionRange(">1.2", "<1.5.2"));
+            Assert.True(Source.IsVulnerabilityVersionInPackageVersionRange("<=4.3", "<4.2"));
+            Assert.True(Source.IsVulnerabilityVersionInPackageVersionRange(">=1.2.2", ">1.2.0-alpha.0"));
+            Assert.True(Source.IsVulnerabilityVersionInPackageVersionRange(">12.2.2", "<=20.0.0"));
         }
 
-       
-        public void CanTestVulnerabilityVersionInPackageVersionRange()
+        [Fact]
+        public override void CanGetMinimumPackageVersion()
         {
-            Assert.True(s.IsVulnerabilityVersionInPackageVersionRange(">1.2", "<1.5.2"));
-            Assert.True(s.IsVulnerabilityVersionInPackageVersionRange("<=4.3", "<4.2"));
-            Assert.True(s.IsVulnerabilityVersionInPackageVersionRange(">=1.2.2", ">1.2.0-alpha.0"));
-            Assert.True(s.IsVulnerabilityVersionInPackageVersionRange(">12.2.2", "<=20.0.0"));
-
+            string version = "^6.26.0";
+            Assert.Equal("6.26.0", YarnPackageSource.GetMinimumPackageVersion(version));
         }
     }
 }

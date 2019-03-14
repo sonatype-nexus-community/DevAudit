@@ -51,8 +51,11 @@ namespace DevAudit.AuditLibrary
                 AuditFileInfo cf = this.AuditEnvironment.ConstructFile(this.PackageManagerConfigurationFile);
                 AuditDirectoryInfo d = this.AuditEnvironment.ConstructDirectory(cf.DirectoryName);
                 IFileInfo[] pf;
-                if ((pf = d.GetFiles("devaudit.yml")) != null)
-                this.AuditProfile = new AuditProfile(this.AuditEnvironment, this.AuditEnvironment.ConstructFile(pf.First().FullName));
+                if (this.AuditEnvironment.FileExists("devaudit.yml"))
+                {
+                    pf = d.GetFiles("devaudit.yml");
+                    this.AuditProfile = new AuditProfile(this.AuditEnvironment, this.AuditEnvironment.ConstructFile(pf.First().FullName));
+                }
             }
 
             if (this.PackageSourceOptions.ContainsKey("ListPackages"))
