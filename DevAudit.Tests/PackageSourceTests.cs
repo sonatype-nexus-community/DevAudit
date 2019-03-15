@@ -1,11 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
 using Xunit;
+
 using DevAudit.AuditLibrary;
 
 namespace DevAudit.Tests
@@ -18,6 +20,9 @@ namespace DevAudit.Tests
 
         protected abstract PackageSource Source { get; }
 
+        public abstract void CanTestVulnerabilityVersionInPackageVersionRange();
+
+        
         [Fact]
         public virtual void CanConstructPackageSource()
         {
@@ -37,9 +42,7 @@ namespace DevAudit.Tests
             Assert.True(res == AuditTarget.AuditResult.SUCCESS);
         }
 
-        
-        public abstract void CanTestVulnerabilityVersionInPackageVersionRange();
-
+        [Fact]
         public abstract void CanGetMinimumPackageVersion();
     }
 }

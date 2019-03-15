@@ -318,17 +318,18 @@
   <Target Name="BeforeBuild">
   </Target> -->
   <Target Name="AfterBuild">
-    <Delete Files="$(SolutionDir)Examples\**\*.*" Condition="Exists('$(SolutionDir)Examples')" />
-    <Delete Files="$(SolutionDir)DevAudit.CommandLine\bin\Debug\Examples\**\*.*" Condition="Exists('$(SolutionDir)DevAudit.CommandLine\bin\Debug\Examples')" />
-    <Delete Files="$(SolutionDir)DevAudit.Tests\bin\Debug\Examples\**\*.*" Condition="Exists('$(SolutionDir)DevAudit.Tests\bin\Debug\Examples')" />
-    <RemoveDir Directories="$([System.IO.Directory]::GetDirectories(&quot;$(SolutionDir)Examples&quot;))" Condition="Exists('$(SolutionDir)Examples')" />
-    <RemoveDir Directories="$([System.IO.Directory]::GetDirectories(&quot;$(SolutionDir)DevAudit.CommandLine\bin\Debug\Examples&quot;))" Condition="Exists('$(SolutionDir)DevAudit.CommandLine\bin\Debug\Examples')" />
-    <RemoveDir Directories="$([System.IO.Directory]::GetDirectories(&quot;$(SolutionDir)DevAudit.Tests\bin\Debug\Examples&quot;))" Condition="Exists('$(SolutionDir)DevAudit.Tests\bin\Debug\Examples')" />
-    <MakeDir Directories="$(SolutionDir)Examples" Condition="!Exists('$(SolutionDir)Examples')" />
-    <MakeDir Directories="$(SolutionDir)DevAudit.CommandLine\bin\Debug\Examples" Condition="!Exists('$(SolutionDir)DevAudit.CommandLine\bin\Debug\Examples')" />
-    <MakeDir Directories="$(SolutionDir)DevAudit.Tests\bin\Debug\Examples" Condition="!Exists('$(SolutionDir)DevAudit.Tests\bin\Debug\Examples')" />
-    <Copy SourceFiles="@(Examples)" DestinationFiles="@(Examples->'$(SolutionDir)Examples\%(RecursiveDir)%(Filename)%(Extension)')" />
-    <Copy SourceFiles="@(Examples)" DestinationFiles="@(Examples->'$(SolutionDir)DevAudit.CommandLine\bin\Debug\Examples\%(RecursiveDir)%(Filename)%(Extension)')" />
-    <Copy SourceFiles="@(Examples)" DestinationFiles="@(Examples->'$(SolutionDir)DevAudit.Tests\bin\Debug\Examples\%(RecursiveDir)%(Filename)%(Extension)')" />
+      <Delete Files="$(SolutionDir)Examples\**\*.*" Condition="'$(SolutionDir)' != '*Undefined*' AND Exists('$(SolutionDir)Examples')" />
+      <Delete Files="$(SolutionDir)DevAudit.CommandLine\bin\Debug\Examples\**\*.*" Condition="'$(SolutionDir)' != '*Undefined*' AND Exists('$(SolutionDir)DevAudit.CommandLine\bin\Debug\Examples')" />
+      <Delete Files="$(SolutionDir)DevAudit.Tests\bin\Debug\Examples\**\*.*" Condition="'$(SolutionDir)' != '*Undefined*' AND Exists('$(SolutionDir)DevAudit.Tests\bin\Debug\Examples')" />
+      <RemoveDir Directories="$([System.IO.Directory]::GetDirectories(&quot;$(SolutionDir)Examples&quot;))" Condition="'$(SolutionDir)' != '*Undefined*' AND Exists('$(SolutionDir)Examples')" />
+      <RemoveDir Directories="$([System.IO.Directory]::GetDirectories(&quot;$(SolutionDir)DevAudit.CommandLine\bin\Debug\Examples&quot;))" Condition="'$(SolutionDir)' != '*Undefined*' AND Exists('$(SolutionDir)DevAudit.CommandLine\bin\Debug\Examples')" />
+      <RemoveDir Directories="$([System.IO.Directory]::GetDirectories(&quot;$(SolutionDir)DevAudit.Tests\bin\Debug\Examples&quot;))" Condition="'$(SolutionDir)' != '*Undefined*' AND Exists('$(SolutionDir)DevAudit.Tests\bin\Debug\Examples')" />
+      <MakeDir Directories="$(SolutionDir)Examples" Condition="'$(SolutionDir)' != '*Undefined*' AND !Exists('$(SolutionDir)Examples')" />
+      <MakeDir Directories="$(SolutionDir)DevAudit.CommandLine\bin\Debug\Examples" Condition="'$(SolutionDir)' != '*Undefined*' AND !Exists('$(SolutionDir)DevAudit.CommandLine\bin\Debug\Examples')" />
+      <MakeDir Directories="$(SolutionDir)DevAudit.Tests\bin\Debug\Examples" Condition="'$(SolutionDir)' != '*Undefined*' AND !Exists('$(SolutionDir)DevAudit.Tests\bin\Debug\Examples')" />
+      <Copy SourceFiles="@(Examples)" DestinationFiles="@(Examples->'$(SolutionDir)Examples\%(RecursiveDir)%(Filename)%(Extension)')" Condition="'$(SolutionDir)' != '*Undefined*'"/>
+      <Copy SourceFiles="@(Examples)" DestinationFiles="@(Examples->'$(SolutionDir)DevAudit.CommandLine\bin\Debug\Examples\%(RecursiveDir)%(Filename)%(Extension)')" Condition="'$(SolutionDir)' != '*Undefined*'"/>
+      <Copy SourceFiles="@(Examples)" DestinationFiles="@(Examples->'$(SolutionDir)DevAudit.Tests\bin\Debug\Examples\%(RecursiveDir)%(Filename)%(Extension)')" Condition="'$(SolutionDir)' != '*Undefined*'"/>
+    
   </Target>
 </Project>

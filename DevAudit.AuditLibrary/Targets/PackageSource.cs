@@ -50,10 +50,9 @@ namespace DevAudit.AuditLibrary
             {
                 AuditFileInfo cf = this.AuditEnvironment.ConstructFile(this.PackageManagerConfigurationFile);
                 AuditDirectoryInfo d = this.AuditEnvironment.ConstructDirectory(cf.DirectoryName);
-                IFileInfo[] pf;
                 if (this.AuditEnvironment.FileExists("devaudit.yml"))
                 {
-                    pf = d.GetFiles("devaudit.yml");
+                    IFileInfo[] pf = d.GetFiles("devaudit.yml");
                     this.AuditProfile = new AuditProfile(this.AuditEnvironment, this.AuditEnvironment.ConstructFile(pf.First().FullName));
                 }
             }
@@ -61,16 +60,6 @@ namespace DevAudit.AuditLibrary
             if (this.PackageSourceOptions.ContainsKey("ListPackages"))
             {
                 this.ListPackages = true;
-            }
-
-            if (this.PackageSourceOptions.ContainsKey("ListArtifacts"))
-            {
-                this.ListArtifacts = true;
-            }
-
-            if (this.PackageSourceOptions.ContainsKey("SkipPackagesAudit"))
-            {
-                this.SkipPackagesAudit = true;
             }
 
             if (this.PackageSourceOptions.ContainsKey("WithPackageInfo"))
@@ -90,7 +79,6 @@ namespace DevAudit.AuditLibrary
             if (this.DataSources.Count == 0 && ossi_pms.Contains(this.PackageManagerId))
             {
                 this.HostEnvironment.Info("Using OSS Index as default package vulnerabilities data source for {0} package source.", this.PackageManagerLabel);
-                // this.DataSources.Add(new OSSIndexDataSource(this, this.DataSourceOptions));
                 this.DataSources.Add(new OSSIndexApiv3DataSource(this, DataSourceOptions));
             }
         }
@@ -114,23 +102,15 @@ namespace DevAudit.AuditLibrary
 
         public bool WithPackageInfo { get; protected set; } = false;
 
-        public bool ListArtifacts { get; protected set; } = false;
-
-        public bool SkipPackagesAudit { get; protected set; } = false;
-
         public string PackageManagerConfigurationFile { get; set; }
 
         public IEnumerable<Package> Packages { get; protected set; }
-
-        public Dictionary<IPackage, List<IArtifact>> Artifacts { get; } = new Dictionary<IPackage, List<IArtifact>>();
 
         public Dictionary<IPackage, List<IVulnerability>> Vulnerabilities { get; } = new Dictionary<IPackage, List<IVulnerability>>();
          
         public ConcurrentDictionary<IPackage, Exception> GetVulnerabilitiesExceptions { get; protected set; }
 
         public Task PackagesTask { get; protected set; }
-
-        public Task ArtifactsTask { get; protected set; }
 
         public Task VulnerabilitiesTask { get; protected set; }
 
@@ -143,6 +123,7 @@ namespace DevAudit.AuditLibrary
         public virtual AuditResult Audit(CancellationToken ct)
         {
             CallerInformation here = this.AuditEnvironment.Here();
+
             this.GetPackagesTask(ct);
             
             try
@@ -158,20 +139,8 @@ namespace DevAudit.AuditLibrary
 
             this.Packages = this.FilterPackagesUsingProfile();
 
-
-            this.GetArtifactsTask(ct);
-            
-            try
-            {
-                this.ArtifactsTask.Wait();
-            }
-            catch (AggregateException ae)
-            {
-                this.AuditEnvironment.Error("Error in GetArtifacts task.", ae);
-                return AuditResult.ERROR_SEARCHING_ARTIFACTS;
-            }
-
             this.GetVulnerabilitiesTask(ct);
+
             try
             {
                 this.VulnerabilitiesTask.Wait();
@@ -224,55 +193,13 @@ namespace DevAudit.AuditLibrary
 
         internal virtual Task GetPackagesTask(CancellationToken ct)
         {
-            if (this.SkipPackagesAudit)
-            {
-                this.PackagesTask = Task.CompletedTask;
-                this.Packages = new List<Package>();
-            }
-            else
-            {
-                this.AuditEnvironment.Status("Scanning {0} packages.", this.PackageManagerLabel);
-                this.PackagesTask = Task.Run(() => this.Packages = this.GetPackages(), ct);
-            }
+            this.AuditEnvironment.Status("Scanning {0} packages.", this.PackageManagerLabel);
+            this.PackagesTask = Task.Run(() => this.Packages = this.GetPackages(), ct);
             return this.PackagesTask;
-        }
-
-        protected virtual Task GetArtifactsTask(CancellationToken ct)
-        {
-            if (!this.ListArtifacts || this.Packages.Count() == 0)
-            {
-                this.ArtifactsTask = Task.CompletedTask;
-            }
-            else
-            {
-                List<Task> tasks = new List<Task>();
-                foreach (IDataSource ds in this.DataSources.Where(d => d.IsEligibleForTarget(this) && d.Initialised))
-                {
-                    Task t = Task.Factory.StartNew(async () =>
-                    {
-                        Dictionary<IPackage, List<IArtifact>> artifacts = await ds.SearchArtifacts(this.Packages.ToList());
-                        lock (artifacts_lock)
-                        {
-                            foreach (KeyValuePair<IPackage, List<IArtifact>> kv in artifacts)
-                            {
-                                this.Artifacts.Add(kv.Key, kv.Value);
-                            }
-                        }
-                    }, CancellationToken.None, TaskCreationOptions.DenyChildAttach, TaskScheduler.Default).Unwrap();
-                    tasks.Add(t);
-                }
-                this.ArtifactsTask = Task.WhenAll(tasks);
-            }
-            return this.ArtifactsTask;
         }
 
         protected virtual Task GetVulnerabilitiesTask(CancellationToken ct)
         {
-            if (this.SkipPackagesAudit || this.ListPackages || this.Packages.Count() == 0 || this.ListArtifacts)
-            {
-                this.VulnerabilitiesTask = Task.CompletedTask;
-                return this.VulnerabilitiesTask;
-            }
             List<Task> tasks = new List<Task>();
             IEnumerable<IDataSource> eligible_datasources = this.DataSources.Where(d => d.Initialised && d.IsEligibleForTarget(this));
             if (eligible_datasources.Count() == 0)
