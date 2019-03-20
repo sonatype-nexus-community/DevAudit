@@ -374,6 +374,12 @@ namespace DevAudit.AuditLibrary
                 pv.Value.AsParallel().ForAll((vulnerability) =>
                 {
                     List<Package> packages = this.Packages.Where(p => p.PackageManager == vulnerability.Package.PackageManager && p.Name == vulnerability.Package.Name).ToList();
+
+                    for (int i = 0; i < vulnerability.Versions.Length; i++)
+                    {
+                        vulnerability.Versions[i] = Uri.UnescapeDataString(vulnerability.Versions[i]);
+                    }
+
                     foreach (Package p in packages)
                     {
                         try
