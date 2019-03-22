@@ -13,13 +13,22 @@ using Versatile;
 
 namespace DevAudit.AuditLibrary
 {
-    public class ComposerPackageSource : PackageSource
+    public class ComposerPackageSource : PackageSource, IDeveloperPackageManager
     {
+        #region Constructors
+        public ComposerPackageSource(Dictionary<string, object> package_source_options, EventHandler<EnvironmentEventArgs> message_handler = null) : base(package_source_options, message_handler)
+        {            
+           
+        }
+        #endregion
+
+        #region Overriden members
         public override string PackageManagerId { get { return "composer"; } }
 
         public override string PackageManagerLabel { get { return "Composer"; } }
 
         public override string DefaultPackageManagerConfigurationFile { get { return "composer.json"; } }
+        
         //Get  packages from reading composer.json
         public override IEnumerable<Package> GetPackages(params string[] o)
         {
@@ -61,10 +70,12 @@ namespace DevAudit.AuditLibrary
             else return r;
 
         }
+        #endregion
 
-        public ComposerPackageSource(Dictionary<string, object> package_source_options, EventHandler<EnvironmentEventArgs> message_handler = null) : base(package_source_options, message_handler)
-        {            
-           
-        }
+        #region Properties
+        public string PackageManagerLockFile {get; set;}
+
+        public string DefaultPackageManagerLockFile {get;} = "composer.lock";
+        #endregion
     }
 }

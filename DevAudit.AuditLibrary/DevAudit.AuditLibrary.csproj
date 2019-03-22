@@ -276,6 +276,7 @@
     <Compile Include="Base\AuditDirectoryInfo.cs" />
     <Compile Include="Base\AuditFileInfo.cs" />
     <Compile Include="Base\AuditTarget.cs" />
+    <Compile Include="Base\IDeveloperPackageManager.cs" />
     <Compile Include="Environments\LocalEnvironment.cs" />
     <Compile Include="Audit\Package.cs" />
     <Compile Include="Targets\PackageSource.cs" />
@@ -286,7 +287,7 @@
     <Compile Include="PackageSources\RpmPackageSource.cs" />
     <Compile Include="PackageSources\YumPackageSource.cs" />
     <Compile Include="PackageSources\MSIPackageSource.cs" />
-    <Compile Include="PackageSources\NuGetPackageSource.cs" />
+    <Compile Include="PackageSources\NuGetv2PackageSource.cs" />
     <Compile Include="PackageSources\NetCorePackageSource.cs" />
     <Compile Include="PackageSources\OneGetPackageSource.cs" />
     <Compile Include="Environments\SshAuditEnvironment.cs" />

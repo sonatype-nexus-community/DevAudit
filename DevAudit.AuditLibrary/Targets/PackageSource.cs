@@ -28,43 +28,57 @@ namespace DevAudit.AuditLibrary
                     throw new ArgumentException("Could not find the file " + this.PackageManagerConfigurationFile + ".", "package_source_options");
                 }
             }
-            else if (!this.PackageSourceOptions.ContainsKey("File") && this.DefaultPackageManagerConfigurationFile != string.Empty)
+            else if (this.DefaultPackageManagerConfigurationFile != string.Empty)
             {
                 if (this.AuditEnvironment.FileExists(this.DefaultPackageManagerConfigurationFile))
                 {
-                    this.AuditEnvironment.Info("Using default {0} package source configuration file {1}", this.PackageManagerLabel, this.DefaultPackageManagerConfigurationFile);
                     this.PackageManagerConfigurationFile = this.DefaultPackageManagerConfigurationFile;
+                    this.AuditEnvironment.Info("Using default {0} package source configuration file {1}", this.PackageManagerLabel, this.DefaultPackageManagerConfigurationFile);
                 }
                 else
                 {
                     throw new ArgumentException(string.Format("No file option was specified and the default {0} package sourcs configuration file {1} was not found.", this.PackageManagerLabel, this.DefaultPackageManagerConfigurationFile));
                 }
             }
-            else if (!this.PackageSourceOptions.ContainsKey("File") && this.DefaultPackageManagerConfigurationFile == string.Empty)
+            else
             {
                 throw new ArgumentException(string.Format("No file option was specified and the {0} package source " 
                     + "does not specify a default configuration file.", this.PackageManagerLabel));
             }
 
-            if (!string.IsNullOrEmpty(this.PackageManagerConfigurationFile))
+            if (this is IDeveloperPackageManager dpm)
             {
-                AuditFileInfo cf = this.AuditEnvironment.ConstructFile(this.PackageManagerConfigurationFile);
-                AuditDirectoryInfo d = this.AuditEnvironment.ConstructDirectory(cf.DirectoryName);
-                if (this.AuditEnvironment.FileExists("devaudit.yml"))
+                if (this.PackageSourceOptions.ContainsKey("LockFile"))
                 {
-                    IFileInfo[] pf = d.GetFiles("devaudit.yml");
-                    this.AuditProfile = new AuditProfile(this.AuditEnvironment, this.AuditEnvironment.ConstructFile(pf.First().FullName));
+                    string lf = (string) this.PackageSourceOptions["LockFile"];
+                    if (this.AuditEnvironment.FileExists(lf))
+                    {
+                        dpm.PackageManagerLockFile = lf;
+                        this.AuditEnvironment.Info("Using {0} package manager lock file {1}.", this.PackageManagerLabel, lf);
+                    }
+                    else
+                    {
+                        this.AuditEnvironment.Warning("Could not find the {0} package manager lock file {1}.", this.PackageManagerLabel, lf);
+                    }
+                }
+                else if (dpm.DefaultPackageManagerLockFile != string.Empty)
+                {
+                    string lf = dpm.DefaultPackageManagerLockFile;
+                    if (this.AuditEnvironment.FileExists(lf))
+                    {
+                        this.AuditEnvironment.Info("Using the default {0} package manager lock file {1}.", this.PackageManagerLabel, lf);
+                        dpm.PackageManagerLockFile = lf;
+                    }
+                    else
+                    {
+                        this.AuditEnvironment.Warning("Could not find the default package manager lock file {0}.", lf);
+                    } 
                 }
             }
-
+            
             if (this.PackageSourceOptions.ContainsKey("ListPackages"))
             {
                 this.ListPackages = true;
-            }
-
-            if (this.PackageSourceOptions.ContainsKey("WithPackageInfo"))
-            {
-                this.WithPackageInfo = true;
             }
 
             if (this.PackageSourceOptions.ContainsKey("HttpsProxy"))
@@ -87,7 +101,7 @@ namespace DevAudit.AuditLibrary
         #region Abstract properties
         public abstract string PackageManagerId { get; }
         public abstract string PackageManagerLabel { get; }
-        public abstract string DefaultPackageManagerConfigurationFile { get; }
+        public abstract string DefaultPackageManagerConfigurationFile {get; }
         #endregion
 
         #region Abstract methods
@@ -100,9 +114,7 @@ namespace DevAudit.AuditLibrary
 
         public bool ListPackages { get; protected set; } = false;
 
-        public bool WithPackageInfo { get; protected set; } = false;
-
-        public string PackageManagerConfigurationFile { get; set; }
+        public string PackageManagerConfigurationFile { get; }
 
         public IEnumerable<Package> Packages { get; protected set; }
 

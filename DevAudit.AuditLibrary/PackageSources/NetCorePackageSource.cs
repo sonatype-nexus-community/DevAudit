@@ -13,18 +13,20 @@ using Versatile;
 
 namespace DevAudit.AuditLibrary
 {
-    public class NetCorePackageSource : PackageSource
+    public class NetCorePackageSource : PackageSource, IDeveloperPackageManager
     {
-        public override string PackageManagerId { get { return "netcore"; } }
+        #region Constructors
+        public NetCorePackageSource(Dictionary<string, object> package_source_options, 
+            EventHandler<EnvironmentEventArgs> message_handler = null) : base(package_source_options, message_handler)
+        {}
+        #endregion
+
+        #region Overriden members
+                public override string PackageManagerId { get { return "netcore"; } }
 
         public override string PackageManagerLabel { get { return ".NET Core"; } }
 
         public override string DefaultPackageManagerConfigurationFile { get { return string.Empty; } }
-
-        public NetCorePackageSource(Dictionary<string, object> package_source_options, 
-            EventHandler<EnvironmentEventArgs> message_handler = null) : base(package_source_options, message_handler)
-        {}
-
         public override IEnumerable<Package> GetPackages(params string[] o)
         {
             AuditFileInfo config_file = this.AuditEnvironment.ConstructFile(this.PackageManagerConfigurationFile);
@@ -105,5 +107,12 @@ namespace DevAudit.AuditLibrary
             }
             else return r;
         }
+        #endregion
+
+        #region Properties
+        public string DefaultPackageManagerLockFile {get; } = "packages.lock.json";
+
+        public string PackageManagerLockFile {get; set;}
+        #endregion 
     }
 }

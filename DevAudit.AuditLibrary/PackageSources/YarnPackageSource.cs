@@ -14,7 +14,7 @@ using Alpheus;
 
 namespace DevAudit.AuditLibrary
 {
-    public class YarnPackageSource : PackageSource
+    public class YarnPackageSource : PackageSource, IDeveloperPackageManager
     {
         #region Constructors
         public YarnPackageSource(Dictionary<string, object> package_source_options, EventHandler<EnvironmentEventArgs> message_handler = null) : base(package_source_options, message_handler)
@@ -23,15 +23,13 @@ namespace DevAudit.AuditLibrary
         }
         #endregion
 
-        #region Overriden properties
+        #region Overriden members
         public override string PackageManagerId { get { return "yarn"; } }
 
         public override string PackageManagerLabel { get { return "Yarn"; } }
 
         public override string DefaultPackageManagerConfigurationFile { get { return "package.json"; } }
-        #endregion
-
-        #region Overriden methods
+        
         public override IEnumerable<Package> GetPackages(params string[] o)
         {
             List<Package> packages = new List<Package>();
@@ -82,6 +80,12 @@ namespace DevAudit.AuditLibrary
         }
         #endregion
 
+        #region Properties
+        public string PackageManagerLockFile {get; set;}
+
+        public string DefaultPackageManagerLockFile {get; } = "yarn.lock";
+        #endregion
+        
         #region Methods
         internal static string GetMinimumPackageVersion(string version)
         {

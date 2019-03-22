@@ -10,19 +10,22 @@ using Versatile;
 
 namespace DevAudit.AuditLibrary
 {
-    public class NuGetPackageSource : PackageSource
+    public class NuGetv2PackageSource : PackageSource, IDeveloperPackageManager
     {
+        #region Constructors
+        public NuGetv2PackageSource(Dictionary<string, object> package_source_options, EventHandler<EnvironmentEventArgs> message_handler = null) : base(package_source_options, message_handler)
+        {
+              
+        }
+        #endregion
+        
+        #region Overriden members
         public override string PackageManagerId { get { return "nuget"; } }
 
         public override string PackageManagerLabel { get { return "NuGet"; } }
 
         public override string DefaultPackageManagerConfigurationFile { get { return "packages.config"; } }
-
-        public NuGetPackageSource(Dictionary<string, object> package_source_options, EventHandler<EnvironmentEventArgs> message_handler = null) : base(package_source_options, message_handler)
-        {
-              
-        }
-
+        
         public override IEnumerable<Package> GetPackages(params string[] o) ////Get NuGet packages from reading packages.config
         {
             try
@@ -50,9 +53,6 @@ namespace DevAudit.AuditLibrary
                         from el in root.Elements("package")
                         select new Package("nuget", el.Attribute("id").Value, el.Attribute("version").Value, "");
                 }
-
-
-
                 return packages;
             }
             catch (XmlException e)
@@ -77,5 +77,12 @@ namespace DevAudit.AuditLibrary
             }
             else return r;           
         }
+        #endregion
+
+        #region Properties
+        public string PackageManagerLockFile { get; set; }
+
+        public string DefaultPackageManagerLockFile {get; } = null;
+        #endregion
     }
 }

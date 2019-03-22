@@ -11,7 +11,6 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
-
 using CL = CommandLine; //Avoid type name conflict with external CommandLine library
 using CC = Colorful; //Avoid type name conflict with System Console class
 
@@ -561,6 +560,8 @@ namespace DevAudit.CommandLine
                 }
             }
             #endregion
+            
+            #region Package source options
             if (ProgramOptions.ListPackages)
             {
                 audit_options.Add("ListPackages", ProgramOptions.ListPackages);
@@ -571,10 +572,16 @@ namespace DevAudit.CommandLine
                 audit_options.Add("File", ProgramOptions.File);
             }
 
+            if (!string.IsNullOrEmpty(ProgramOptions.LockFile))
+            {
+                audit_options.Add("LockFile", ProgramOptions.LockFile);
+            }
+
             if (!string.IsNullOrEmpty(ProgramOptions.RootDirectory))
             {
                 audit_options.Add("RootDirectory", ProgramOptions.RootDirectory);
             }
+            #endregion
 
             if(!string.IsNullOrEmpty(ProgramOptions.AuditOptions))
             {
@@ -586,7 +593,6 @@ namespace DevAudit.CommandLine
                 }                
                 else if (parsed_options.Where(o => o.Key == "_ERROR_").Count() > 0)
                 {
-
                     string error_options = parsed_options.Where(o => o.Key == "_ERROR_").Select(kv => (string)kv.Value).Aggregate((s1, s2) => s1 + Environment.NewLine + s2);
                     PrintErrorMessage("There was an error parsing the following options {0}.", error_options);
                     parsed_options = parsed_options.Where(o => o.Key != "_ERROR_").ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
@@ -604,6 +610,7 @@ namespace DevAudit.CommandLine
                     }
                 }
             }
+            
             #region Profile
             if (!string.IsNullOrEmpty(ProgramOptions.Profile))
             {
@@ -637,7 +644,7 @@ namespace DevAudit.CommandLine
                     Stopwatch.Start();
                     if (verb == "nuget")
                     {
-                        Source = new NuGetPackageSource(audit_options, EnvironmentMessageHandler);
+                        Source = new NuGetv2PackageSource(audit_options, EnvironmentMessageHandler);
                     }
                     else if (verb == "netcore")
                     {

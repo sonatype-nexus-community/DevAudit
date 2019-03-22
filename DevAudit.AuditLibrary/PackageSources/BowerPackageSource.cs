@@ -7,10 +7,9 @@ using Newtonsoft.Json.Linq;
 
 using Versatile;
 
-
 namespace DevAudit.AuditLibrary
 {
-    public class BowerPackageSource : PackageSource
+    public class BowerPackageSource : PackageSource, IDeveloperPackageManager
     {
         #region Constructors
         public BowerPackageSource(Dictionary<string, object> package_source_options, EventHandler<EnvironmentEventArgs> message_handler = null) : base(package_source_options, message_handler)
@@ -30,7 +29,6 @@ namespace DevAudit.AuditLibrary
         //Get bower packages from reading bower.json
         public override IEnumerable<Package> GetPackages(params string[] o)
         {
-
             var packages = new List<Package>();
 
             AuditFileInfo config_file = this.AuditEnvironment.ConstructFile(this.PackageManagerConfigurationFile);
@@ -70,6 +68,12 @@ namespace DevAudit.AuditLibrary
             }
             else return r;
         }
+        #endregion
+
+        #region Properties
+        public string DefaultPackageManagerLockFile {get; } = "";
+
+        public string PackageManagerLockFile {get; set;}
         #endregion
     }
 }

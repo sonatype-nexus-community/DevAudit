@@ -330,10 +330,13 @@ namespace DevAudit.AuditLibrary
             }
             #endregion
 
+            
             if (this.AuditOptions.ContainsKey("HttpsProxy"))
             {
                 this.HostEnvironment.Info("Using proxy {0}.", ((Uri)AuditOptions["HttpsProxy"]).AbsoluteUri);
             }
+            
+            #region Setup data source options
             if (this.AuditOptions.ContainsKey("IgnoreHttpsCertErrors"))
             {
                 this.DataSourceOptions.Add("IgnoreHttpsCertErrors", true);
@@ -346,6 +349,15 @@ namespace DevAudit.AuditLibrary
             {
                 this.DataSources.Add(new VulnersDataSource(this, DataSourceOptions));
             }
+            #endregion
+
+            #region Setup audit profile
+            if (this.AuditEnvironment.FileExists("devaudit.yml"))
+            {
+                this.AuditProfile = new AuditProfile(this.AuditEnvironment, this.AuditEnvironment.ConstructFile("devaudit.yml"));
+            }
+
+            #endregion
         }
 
         private void AuditTarget_HostEnvironmentMessageHandler(object sender, EnvironmentEventArgs e)
