@@ -22,10 +22,15 @@ namespace DevAudit.AuditLibrary
             this.PackageSourceOptions = this.AuditOptions;
             if (this.PackageSourceOptions.ContainsKey("File"))
             {
-                this.PackageManagerConfigurationFile = (string)this.PackageSourceOptions["File"];
-                if (!this.AuditEnvironment.FileExists(this.PackageManagerConfigurationFile))
+                string cf = (string)this.PackageSourceOptions["File"];
+                if (!this.AuditEnvironment.FileExists(cf))
                 {
-                    throw new ArgumentException("Could not find the file " + this.PackageManagerConfigurationFile + ".", "package_source_options");
+                    throw new ArgumentException("Could not find the file " + cf + ".", "package_source_options");
+                }
+                else
+                {
+                    this.PackageManagerConfigurationFile = cf;
+                    this.AuditEnvironment.Info("Using {0} package source configuration file {1}.", this.PackageManagerLabel, this.PackageManagerConfigurationFile);
                 }
             }
             else if (this.DefaultPackageManagerConfigurationFile != string.Empty)
@@ -54,7 +59,7 @@ namespace DevAudit.AuditLibrary
                     if (this.AuditEnvironment.FileExists(lf))
                     {
                         dpm.PackageManagerLockFile = lf;
-                        this.AuditEnvironment.Info("Using {0} package manager lock file {1}.", this.PackageManagerLabel, lf);
+                        this.AuditEnvironment.Info("Using {0} package source lock file {1}.", this.PackageManagerLabel, lf);
                     }
                     else
                     {
@@ -71,7 +76,7 @@ namespace DevAudit.AuditLibrary
                     }
                     else
                     {
-                        this.AuditEnvironment.Warning("Could not find the default package manager lock file {0}.", lf);
+                        this.AuditEnvironment.Warning("Could not find the default {0} package source lock file {0}.", lf);
                     } 
                 }
             }

@@ -217,9 +217,7 @@
     <Compile Include="Audit\AuditProfile.cs" />
     <Compile Include="Audit\AuditProfileRule.cs" />
     <Compile Include="Base\AuditReporter.cs" />
-    <Compile Include="Containers\DockerContainer.cs" />
     <Compile Include="Environments\Models\ProcessInfo.cs" />
-    <Compile Include="Audit\Utility.cs" />
     <Compile Include="Audit\DataSourceInfo.cs" />
     <Compile Include="DataSources\OSSIndex3\Models\OSSIndexApiv3Package.cs" />
     <Compile Include="DataSources\OSSIndex3\Models\OSSIndexApiv3Vulnerability.cs" />
@@ -242,7 +240,7 @@
     <Compile Include="Environments\WinRmAuditDirectoryInfo.cs" />
     <Compile Include="Environments\WinRmAuditFileInfo.cs" />
     <Compile Include="Environments\WinRmAuditEnvironment.cs" />
-    <Compile Include="DataSources\HttpDataSource.cs" />
+    <Compile Include="Base\HttpDataSource.cs" />
     <Compile Include="Base\IArtifact.cs" />
     <Compile Include="Base\IDataSource.cs" />
     <Compile Include="Environments\DockerAuditDirectoryInfo.cs" />
@@ -254,8 +252,7 @@
     <Compile Include="Base\IOperatingSystemEnvironment.cs" />
     <Compile Include="Base\IPackage.cs" />
     <Compile Include="Base\IVulnerability.cs" />
-    <Compile Include="DataSources\LocalDataSource.cs" />
-    <Compile Include="Targets\Container.cs" />
+    <Compile Include="Base\LocalDataSource.cs" />
     <Compile Include="Audit\Vulnerability.cs" />
     <Compile Include="PackageSources\YarnPackageSource.cs" />
     <Compile Include="Base\AuditFileSystemInfo.cs" />

@@ -12,6 +12,8 @@ namespace DevAudit.AuditLibrary
 
         string PackageManagerLockFile {get; set;}
 
+        bool PackageVersionIsRange(string version);
+
         //string GetLockFilePackageVersion(string packageName);
     }
 }

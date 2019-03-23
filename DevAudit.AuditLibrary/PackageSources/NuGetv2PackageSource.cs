@@ -2,10 +2,12 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Text;
 using System.Xml;
 using System.Xml.Linq;
 
+using Sprache;
 using Versatile;
 
 namespace DevAudit.AuditLibrary
@@ -84,5 +86,30 @@ namespace DevAudit.AuditLibrary
 
         public string DefaultPackageManagerLockFile {get; } = null;
         #endregion
+    
+        #region Methods
+        public bool PackageVersionIsRange(string version)
+        {
+            var lcs = NuGetv2.Grammar.Range.Parse(version);
+            if (lcs.Count > 1) 
+            {
+                return true;
+            }
+            else if (lcs.Count == 1)
+            {
+                var cs = lcs.Single();
+                if (cs.Operator == ExpressionType.Equal)
+                {
+                    return false;
+                }
+                else
+                {
+                    return true;
+                }
+            }
+            else throw new ArgumentException($"Failed to parser {version} as a version.");
+        }
+        #endregion
+
     }
 }

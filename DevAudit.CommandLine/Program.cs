@@ -30,9 +30,6 @@ namespace DevAudit.CommandLine
 
         static PackageSource Source { get; set; }
         
-
-        static Container Container { get; set; }
-
         static Exception AuditLibraryException { get; set; }
 
         static Spinner Spinner { get; set; }

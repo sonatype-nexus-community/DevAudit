@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -9,7 +10,9 @@ using Microsoft.Win32;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
+using Sprache;
 using Versatile;
+
 
 namespace DevAudit.AuditLibrary
 {
@@ -77,5 +80,30 @@ namespace DevAudit.AuditLibrary
 
         public string DefaultPackageManagerLockFile {get;} = "composer.lock";
         #endregion
+
+        #region Methods
+        public bool PackageVersionIsRange(string version)
+        {
+            var lcs = Composer.Grammar.Range.Parse(version);
+            if (lcs.Count > 1) 
+            {
+                return true;
+            }
+            else if (lcs.Count == 1)
+            {
+                var cs = lcs.Single();
+                if (cs.Count == 1 && cs.Single().Operator == ExpressionType.Equal)
+                {
+                    return false;
+                }
+                else
+                {
+                    return true;
+                }
+            }
+            else throw new ArgumentException($"Failed to parser {version} as a Composer version.");
+        }
+        #endregion
+
     }
 }
