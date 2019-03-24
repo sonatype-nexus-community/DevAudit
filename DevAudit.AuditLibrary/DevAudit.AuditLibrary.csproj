@@ -230,7 +230,7 @@
     <Compile Include="DataSources\Vulnersdotcom\Models\VulnersIdSearchResult.cs" />
     <Compile Include="DataSources\Vulnersdotcom\Models\VulnersSearchQuery.cs" />
     <Compile Include="DataSources\Vulnersdotcom\Models\VulnersSearchResult.cs" />
-    <Compile Include="DataSources\HttpException.cs" />
+    <Compile Include="Audit\HttpException.cs" />
     <Compile Include="DataSources\Vulnersdotcom\VulnersDataSource.cs" />
     <Compile Include="Environments\Models\EnvironmentEventArgs.cs" />
     <Compile Include="Environments\DockerAuditFileInfo.cs" />
@@ -273,7 +273,7 @@
     <Compile Include="Base\AuditDirectoryInfo.cs" />
     <Compile Include="Base\AuditFileInfo.cs" />
     <Compile Include="Base\AuditTarget.cs" />
-    <Compile Include="Base\IDeveloperPackageManager.cs" />
+    <Compile Include="Base\IDeveloperPackageSource.cs" />
     <Compile Include="Environments\LocalEnvironment.cs" />
     <Compile Include="Audit\Package.cs" />
     <Compile Include="Targets\PackageSource.cs" />

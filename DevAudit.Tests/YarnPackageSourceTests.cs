@@ -16,8 +16,13 @@ namespace DevAudit.Tests
     public class Yarn : PackageSourceTests 
     {
         protected override PackageSource Source { get; } = 
-            new YarnPackageSource(new Dictionary<string, object>(){ {"File", @".\Examples\package.json.2" } }, EnvironmentMessageHandler);
-			
+            new YarnPackageSource(new Dictionary<string, object>()
+            { 
+                {"File", @".\Examples\package.json.2" },
+                {"LockFile", @".\Examples\yarn.lock.2"}
+            
+            }, EnvironmentMessageHandler);
+        
         [Fact]
         public override void CanTestVulnerabilityVersionInPackageVersionRange()
         {
@@ -25,6 +30,20 @@ namespace DevAudit.Tests
             Assert.True(Source.IsVulnerabilityVersionInPackageVersionRange("<=4.3", "<4.2"));
             Assert.True(Source.IsVulnerabilityVersionInPackageVersionRange(">=1.2.2", ">1.2.0-alpha.0"));
             Assert.True(Source.IsVulnerabilityVersionInPackageVersionRange(">12.2.2", "<=20.0.0"));
+        }
+
+        [Fact]
+        public void YarnIsDeveloperPackageSource()
+        {
+            Assert.NotNull(DPS);
+        }
+
+        [Fact]
+        public void CanTestPackageVersionIsRange()
+        {
+            Assert.False(DPS.PackageVersionIsRange("6.4.2"));
+            Assert.True(DPS.PackageVersionIsRange("~5.1"));
+            Assert.False(DPS.PackageVersionIsRange("=7.3"));
         }
         
         [Fact]

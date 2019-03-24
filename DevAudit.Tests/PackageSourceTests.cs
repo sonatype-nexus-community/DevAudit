@@ -14,15 +14,30 @@ namespace DevAudit.Tests
 {
     public abstract class PackageSourceTests
     {
+        #region Constructors
+        public PackageSourceTests()
+        {
+            DPS = this.Source as IDeveloperPackageSource;
+        }
+        #endregion
+
+        #region Abstract properties
+        protected abstract PackageSource Source { get; }
+        #endregion
+
+        #region Abstract methods
+        public abstract void CanTestVulnerabilityVersionInPackageVersionRange();
+        #endregion
+
+        #region Properties
+        protected CancellationTokenSource Cts { get; } = new CancellationTokenSource();
+
+        protected IDeveloperPackageSource DPS { get; }
+        #endregion
+
+        #region Methods
         protected static void EnvironmentMessageHandler(object sender, EnvironmentEventArgs e) { }
 
-        protected CancellationTokenSource Cts = new CancellationTokenSource();
-
-        protected abstract PackageSource Source { get; }
-
-        public abstract void CanTestVulnerabilityVersionInPackageVersionRange();
-
-        
         [Fact]
         public virtual void CanConstructPackageSource()
         {
@@ -44,5 +59,6 @@ namespace DevAudit.Tests
 
         [Fact]
         public abstract void CanGetMinimumPackageVersion();
+        #endregion
     }
 }

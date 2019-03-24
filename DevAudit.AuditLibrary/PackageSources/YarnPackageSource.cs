@@ -17,7 +17,7 @@ using Alpheus;
 
 namespace DevAudit.AuditLibrary
 {
-    public class YarnPackageSource : PackageSource, IDeveloperPackageManager
+    public class YarnPackageSource : PackageSource, IDeveloperPackageSource
     {
         #region Constructors
         public YarnPackageSource(Dictionary<string, object> package_source_options, EventHandler<EnvironmentEventArgs> message_handler = null) : base(package_source_options, message_handler)
@@ -84,9 +84,9 @@ namespace DevAudit.AuditLibrary
         #endregion
 
         #region Properties
-        public string PackageManagerLockFile {get; set;}
+        public string PackageSourceLockFile {get; set;}
 
-        public string DefaultPackageManagerLockFile {get; } = "yarn.lock";
+        public string DefaultPackageSourceLockFile {get; } = "yarn.lock";
         #endregion
         
         #region Methods

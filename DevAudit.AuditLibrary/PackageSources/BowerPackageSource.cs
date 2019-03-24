@@ -11,7 +11,7 @@ using Versatile;
 
 namespace DevAudit.AuditLibrary
 {
-    public class BowerPackageSource : PackageSource, IDeveloperPackageManager
+    public class BowerPackageSource : PackageSource, IDeveloperPackageSource
     {
         #region Constructors
         public BowerPackageSource(Dictionary<string, object> package_source_options, EventHandler<EnvironmentEventArgs> message_handler = null) : base(package_source_options, message_handler)
@@ -73,9 +73,9 @@ namespace DevAudit.AuditLibrary
         #endregion
 
         #region Properties
-        public string DefaultPackageManagerLockFile {get; } = "";
+        public string DefaultPackageSourceLockFile {get; } = "";
 
-        public string PackageManagerLockFile {get; set;}
+        public string PackageSourceLockFile {get; set;}
         #endregion
 
         #region Methods

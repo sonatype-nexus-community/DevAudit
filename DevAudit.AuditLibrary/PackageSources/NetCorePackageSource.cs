@@ -15,7 +15,7 @@ using Versatile;
 
 namespace DevAudit.AuditLibrary
 {
-    public class NetCorePackageSource : PackageSource, IDeveloperPackageManager
+    public class NetCorePackageSource : PackageSource, IDeveloperPackageSource
     {
         #region Constructors
         public NetCorePackageSource(Dictionary<string, object> package_source_options, 
@@ -112,9 +112,9 @@ namespace DevAudit.AuditLibrary
         #endregion
 
         #region Properties
-        public string DefaultPackageManagerLockFile {get; } = "packages.lock.json";
+        public string DefaultPackageSourceLockFile {get; } = "packages.lock.json";
 
-        public string PackageManagerLockFile {get; set;}
+        public string PackageSourceLockFile {get; set;}
         #endregion
 
         #region Methods

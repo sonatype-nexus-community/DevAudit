@@ -12,7 +12,7 @@ using Versatile;
 
 namespace DevAudit.AuditLibrary
 {
-    public class NuGetv2PackageSource : PackageSource, IDeveloperPackageManager
+    public class NuGetv2PackageSource : PackageSource, IDeveloperPackageSource
     {
         #region Constructors
         public NuGetv2PackageSource(Dictionary<string, object> package_source_options, EventHandler<EnvironmentEventArgs> message_handler = null) : base(package_source_options, message_handler)
@@ -82,9 +82,9 @@ namespace DevAudit.AuditLibrary
         #endregion
 
         #region Properties
-        public string PackageManagerLockFile { get; set; }
+        public string PackageSourceLockFile { get; set; }
 
-        public string DefaultPackageManagerLockFile {get; } = null;
+        public string DefaultPackageSourceLockFile {get; } = null;
         #endregion
     
         #region Methods

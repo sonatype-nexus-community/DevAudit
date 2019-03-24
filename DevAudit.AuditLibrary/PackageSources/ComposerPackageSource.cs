@@ -16,7 +16,7 @@ using Versatile;
 
 namespace DevAudit.AuditLibrary
 {
-    public class ComposerPackageSource : PackageSource, IDeveloperPackageManager
+    public class ComposerPackageSource : PackageSource, IDeveloperPackageSource
     {
         #region Constructors
         public ComposerPackageSource(Dictionary<string, object> package_source_options, EventHandler<EnvironmentEventArgs> message_handler = null) : base(package_source_options, message_handler)
@@ -76,9 +76,9 @@ namespace DevAudit.AuditLibrary
         #endregion
 
         #region Properties
-        public string PackageManagerLockFile {get; set;}
+        public string PackageSourceLockFile {get; set;}
 
-        public string DefaultPackageManagerLockFile {get;} = "composer.lock";
+        public string DefaultPackageSourceLockFile {get;} = "composer.lock";
         #endregion
 
         #region Methods

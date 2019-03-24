@@ -6,11 +6,11 @@ using System.Threading.Tasks;
 
 namespace DevAudit.AuditLibrary
 {
-    public interface IDeveloperPackageManager
+    public interface IDeveloperPackageSource
     {
-        string DefaultPackageManagerLockFile { get; }
+        string DefaultPackageSourceLockFile { get; }
 
-        string PackageManagerLockFile {get; set;}
+        string PackageSourceLockFile {get; set;}
 
         bool PackageVersionIsRange(string version);
 

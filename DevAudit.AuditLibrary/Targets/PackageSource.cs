@@ -51,14 +51,14 @@ namespace DevAudit.AuditLibrary
                     + "does not specify a default configuration file.", this.PackageManagerLabel));
             }
 
-            if (this is IDeveloperPackageManager dpm)
+            if (this is IDeveloperPackageSource dpm)
             {
                 if (this.PackageSourceOptions.ContainsKey("LockFile"))
                 {
                     string lf = (string) this.PackageSourceOptions["LockFile"];
                     if (this.AuditEnvironment.FileExists(lf))
                     {
-                        dpm.PackageManagerLockFile = lf;
+                        dpm.PackageSourceLockFile = lf;
                         this.AuditEnvironment.Info("Using {0} package source lock file {1}.", this.PackageManagerLabel, lf);
                     }
                     else
@@ -66,13 +66,13 @@ namespace DevAudit.AuditLibrary
                         this.AuditEnvironment.Warning("Could not find the {0} package manager lock file {1}.", this.PackageManagerLabel, lf);
                     }
                 }
-                else if (dpm.DefaultPackageManagerLockFile != string.Empty)
+                else if (dpm.DefaultPackageSourceLockFile != string.Empty)
                 {
-                    string lf = dpm.DefaultPackageManagerLockFile;
+                    string lf = dpm.DefaultPackageSourceLockFile;
                     if (this.AuditEnvironment.FileExists(lf))
                     {
                         this.AuditEnvironment.Info("Using the default {0} package manager lock file {1}.", this.PackageManagerLabel, lf);
-                        dpm.PackageManagerLockFile = lf;
+                        dpm.PackageSourceLockFile = lf;
                     }
                     else
                     {
