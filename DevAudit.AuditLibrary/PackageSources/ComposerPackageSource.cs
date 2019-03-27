@@ -32,7 +32,6 @@ namespace DevAudit.AuditLibrary
 
         public override string DefaultPackageManagerConfigurationFile { get { return "composer.json"; } }
         
-        //Get  packages from reading composer.json
         public override IEnumerable<Package> GetPackages(params string[] o)
         {
             AuditFileInfo config_file = this.AuditEnvironment.ConstructFile(this.PackageManagerConfigurationFile);
@@ -43,17 +42,22 @@ namespace DevAudit.AuditLibrary
             {
                 if (require_dev != null)
                 {
-                    return require.Properties().Select(d => new Package("composer", d.Name.Split('/').Last(), d.Value.ToString(), "", d.Name.Split('/').First()))
-                        .Concat(require_dev.Properties().Select(d => new Package("composer", d.Name.Split('/').Last(), d.Value.ToString(), "", d.Name.Split('/').First())));
+                    return 
+                        require.Properties()
+                        .SelectMany(d => GetDeveloperPackages(d.Name.Split('/').Last(), d.Value.ToString(), "", d.Name.Split('/').First()))
+                        .Concat(require_dev.Properties().SelectMany(d => GetDeveloperPackages(d.Name.Split('/').Last(), d.Value.ToString(), "", d.Name.Split('/').First())));
                 }
                 else
                 {
-                    return require.Properties().Select(d => new Package("composer", d.Name.Split('/').Last(), d.Value.ToString(), "", d.Name.Split('/').First()));
+                    return 
+                        require.Properties()
+                        .SelectMany(d => GetDeveloperPackages(d.Name.Split('/').Last(), d.Value.ToString(), "", d.Name.Split('/').First()));
                 }
             }
             else if (require_dev != null)
             {
-                return require_dev.Properties().Select(d => new Package("composer", d.Name.Split('/').Last(), d.Value.ToString(), "", d.Name.Split('/').First()));
+                return require_dev.Properties()
+                .SelectMany(d => GetDeveloperPackages(d.Name.Split('/').Last(), d.Value.ToString(), "", d.Name.Split('/').First()));
             }
             else
             {
@@ -103,7 +107,41 @@ namespace DevAudit.AuditLibrary
             }
             else throw new ArgumentException($"Failed to parser {version} as a Composer version.");
         }
-        #endregion
 
+        public List<string> GetMinimumPackageVersions(string version)
+        {
+            var lcs = Composer.Grammar.Range.Parse(version);
+            List<string> minVersions = new List<string>();
+            foreach(ComparatorSet<Composer> cs in lcs)
+            {
+                if (cs.Count == 1 && cs.Single().Operator == ExpressionType.Equal)
+                {
+                    minVersions.Add(cs.Single().Version.ToNormalizedString());
+                }
+                else
+                {
+                    var gt = cs.Where(c => c.Operator == ExpressionType.GreaterThan || c.Operator == ExpressionType.GreaterThanOrEqual).Single();
+                    if (gt.Operator == ExpressionType.GreaterThan)
+                    {
+                        var v = gt.Version;
+                        minVersions.Add((v++).ToNormalizedString());
+                    }
+                    else
+                    {
+                        minVersions.Add(gt.Version.ToNormalizedString());
+                    }
+                }
+
+            }
+            return minVersions;
+        }
+
+        public List<Package> GetDeveloperPackages(string name, string version, string vendor = null, string group = null, 
+            string architecture=null)  
+        {
+            return GetMinimumPackageVersions(version).Select(v => new Package(PackageManagerId, name, v, vendor, group,
+                architecture)).ToList();
+        }
+        #endregion
     }
 }

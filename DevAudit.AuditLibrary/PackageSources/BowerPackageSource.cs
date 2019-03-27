@@ -36,24 +36,21 @@ namespace DevAudit.AuditLibrary
             AuditFileInfo config_file = this.AuditEnvironment.ConstructFile(this.PackageManagerConfigurationFile);
             JObject json = (JObject)JToken.Parse(config_file.ReadAsText());
 
-            packages.Add(
-                new Package("bower", 
-                    json.Properties().First(j => j.Name == "name").Value.ToString(),
-                    json.Properties().First(j => j.Name == "version").Value.ToString(),
-                    "")
-            );
-
+            packages.AddRange(GetDeveloperPackages(
+                json.Properties().First(j => j.Name == "name").Value.ToString(), 
+                json.Properties().First(j => j.Name == "version").Value.ToString()));
+            
             JObject dependencies = (JObject)json["dependencies"];
             JObject dev_dependencies = (JObject)json["devDependencies"];
 
             if (dev_dependencies != null)
             {
-                packages.AddRange(dev_dependencies.Properties().Select(d => new Package("bower", d.Name, d.Value.ToString(), "")));
+                packages.AddRange(dev_dependencies.Properties().SelectMany(d => GetDeveloperPackages(d.Name, d.Value.ToString())));
             }
 
             if (dependencies != null)
             {
-                packages.AddRange(dependencies.Properties().Select(d => new Package("bower", d.Name, d.Value.ToString(), "")));
+                packages.AddRange(dependencies.Properties().SelectMany(d => GetDeveloperPackages(d.Name, d.Value.ToString())));
             }
 
             return packages;
@@ -99,6 +96,40 @@ namespace DevAudit.AuditLibrary
                 }
             }
             else throw new ArgumentException($"Failed to parser {version} as a version.");
+        }
+
+        public List<string> GetMinimumPackageVersions(string version)
+        {
+            var lcs = SemanticVersion.Grammar.Range.Parse(version);
+            List<string> minVersions = new List<string>();
+            foreach(ComparatorSet<SemanticVersion> cs in lcs)
+            {
+                if (cs.Count == 1 && cs.Single().Operator == ExpressionType.Equal)
+                {
+                    minVersions.Add(cs.Single().Version.ToNormalizedString());
+                }
+                else
+                {
+                    var gt = cs.Where(c => c.Operator == ExpressionType.GreaterThan || c.Operator == ExpressionType.GreaterThanOrEqual).Single();
+                    if (gt.Operator == ExpressionType.GreaterThan)
+                    {
+                        var v = gt.Version;
+                        minVersions.Add((v++).ToNormalizedString());
+                    }
+                    else
+                    {
+                        minVersions.Add(gt.Version.ToNormalizedString());
+                    }
+                }
+
+            }
+            return minVersions;
+        }
+
+        public List<Package> GetDeveloperPackages(string name, string version, string vendor = null, string group = null,
+            string architecture = null)  
+        {
+            return GetMinimumPackageVersions(version).Select(v => new Package(PackageManagerId, name, v, vendor, group, architecture)).ToList();
         }
         #endregion
     }

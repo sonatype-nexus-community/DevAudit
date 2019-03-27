@@ -45,28 +45,39 @@ namespace DevAudit.AuditLibrary
             JObject bundled_dependencies = (JObject)json["bundledDependencies"];
             if (dependencies != null)
             {
-                packages.AddRange(dependencies.Properties().Select(d => new Package("npm", d.Name.Replace("@", ""), 
-                    GetMinimumPackageVersion(d.Value.ToString()), "")));
+                packages.AddRange(dependencies.Properties()
+                    .SelectMany(d => GetDeveloperPackages(d.Name.Replace("@", ""), d.Value.ToString())));
+                //packages.AddRange(dependencies.Properties().Select(d => new Package("npm", d.Name.Replace("@", ""), 
+                //    GetMinimumPackageVersion(d.Value.ToString()), "")));
             }
             if (dev_dependencies != null)
             {
-                packages.AddRange(dev_dependencies.Properties().Select(d => new Package("npm", d.Name.Replace("@", ""),
-                    GetMinimumPackageVersion(d.Value.ToString()), "")));
+                packages.AddRange(dev_dependencies.Properties()
+                    .SelectMany(d => GetDeveloperPackages(d.Name.Replace("@", ""), d.Value.ToString())));
+
+                //packages.AddRange(dev_dependencies.Properties().Select(d => new Package("npm", d.Name.Replace("@", ""),
+                //    GetMinimumPackageVersion(d.Value.ToString()), "")));
             }
             if (peer_dependencies != null)
             {
-                packages.AddRange(peer_dependencies.Properties().Select(d => new Package("npm", d.Name.Replace("@", ""),
-                    GetMinimumPackageVersion(d.Value.ToString()), "")));
+                packages.AddRange(peer_dependencies.Properties()
+                    .SelectMany(d => GetDeveloperPackages(d.Name.Replace("@", ""), d.Value.ToString())));
+
+                //packages.AddRange(peer_dependencies.Properties().Select(d => new Package("npm", d.Name.Replace("@", ""),
+                //    GetMinimumPackageVersion(d.Value.ToString()), "")));
             }
             if (optional_dependencies != null)
             {
-                packages.AddRange(optional_dependencies.Properties().Select(d => new Package("npm", d.Name.Replace("@", ""),
-                    GetMinimumPackageVersion(d.Value.ToString()), "")));
+                packages.AddRange(optional_dependencies.Properties()
+                    .SelectMany(d => GetDeveloperPackages(d.Name.Replace("@", ""), d.Value.ToString())));
+
+                //packages.AddRange(optional_dependencies.Properties().Select(d => new Package("npm", d.Name.Replace("@", ""),
+                //    GetMinimumPackageVersion(d.Value.ToString()), "")));
             }
             if (bundled_dependencies != null)
             {
-                packages.AddRange(bundled_dependencies.Properties().Select(d => new Package("npm", d.Name.Replace("@", ""),
-                    GetMinimumPackageVersion(d.Value.ToString()), "")));
+                packages.AddRange(bundled_dependencies.Properties()
+                    .SelectMany(d => GetDeveloperPackages(d.Name.Replace("@", ""), d.Value.ToString())));
             }
             return packages;
         }
@@ -90,7 +101,6 @@ namespace DevAudit.AuditLibrary
         #endregion
         
         #region Methods
-
         public bool PackageVersionIsRange(string version)
         {
             var lcs = SemanticVersion.Grammar.Range.Parse(version);
@@ -113,22 +123,41 @@ namespace DevAudit.AuditLibrary
             else throw new ArgumentException($"Failed to parser {version} as a Yarn version.");
         }
         
-        internal static string GetMinimumPackageVersion(string version)
+        public List<string> GetMinimumPackageVersions(string version)
         {
-            var c = version[0];
-            if (Char.IsDigit(c))
+            if (version == "*")
             {
-                return version;
+                return new List<string>(1) {"0.1"};
             }
-            else if (c == '~' || c == '^')
+            var lcs = SemanticVersion.Grammar.Range.Parse(version);
+            List<string> minVersions = new List<string>();
+            foreach(ComparatorSet<SemanticVersion> cs in lcs)
             {
-                return version.Remove(0, 1);
+                if (cs.Count == 1 && cs.Single().Operator == ExpressionType.Equal)
+                {
+                    minVersions.Add(cs.Single().Version.ToNormalizedString());
+                }
+                else
+                {
+                    var gt = cs.Where(c => c.Operator == ExpressionType.GreaterThan || c.Operator == ExpressionType.GreaterThanOrEqual).Single();
+                    if (gt.Operator == ExpressionType.GreaterThan)
+                    {
+                        var v = gt.Version;
+                        minVersions.Add((v++).ToNormalizedString());
+                    }
+                    else
+                    {
+                        minVersions.Add(gt.Version.ToNormalizedString());
+                    }
+                }
             }
-            else
-            {
-                return version;
-            }
+            return minVersions;
+        }
 
+        public List<Package> GetDeveloperPackages(string name, string version, string vendor = null, string group = null,
+            string architecture = null)
+        {
+            return GetMinimumPackageVersions(version).Select(v => new Package(PackageManagerId, name, v, vendor, group, architecture)).ToList();
         }
         #endregion
     }

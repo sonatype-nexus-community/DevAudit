@@ -24,7 +24,7 @@ namespace DevAudit.AuditLibrary
         #endregion
 
         #region Overriden members
-                public override string PackageManagerId { get { return "netcore"; } }
+        public override string PackageManagerId { get { return "netcore"; } }
 
         public override string PackageManagerLabel { get { return ".NET Core"; } }
 
@@ -45,14 +45,21 @@ namespace DevAudit.AuditLibrary
                 }
                 XElement root = XElement.Parse(xml);
 
-
                 if (root.Name == "Project")
                 {
-                    packages = root.Descendants().Where(x => x.Name == "PackageReference" && x.Attribute("Include") != null && x.Attribute("Version") != null).Select(r =>
-                        new Package("nuget", r.Attribute("Include").Value, r.Attribute("Version").Value))
+                    packages = 
+                        root
+                        .Descendants()
+                        .Where(x => x.Name == "PackageReference" && x.Attribute("Include") != null && x.Attribute("Version") != null)
+                        .SelectMany(r => GetDeveloperPackages(r.Attribute("Include").Value, r.Attribute("Version").Value))
                         .ToList();
-                    IEnumerable<string> skipped_packages = root.Descendants().Where(x => x.Name == "PackageReference" && x.Attribute("Include") != null && x.Attribute("Version") == null).Select(r =>
-                        r.Attribute("Include").Value);
+
+                    IEnumerable<string> skipped_packages = 
+                        root
+                        .Descendants()
+                        .Where(x => x.Name == "PackageReference" && x.Attribute("Include") != null && x.Attribute("Version") == null)
+                        .Select(r => r.Attribute("Include").Value);
+                        
                     if (skipped_packages.Count() > 0)
                     {
                         this.AuditEnvironment.Warning("{0} package(s) do not have a version specified and will not be audited: {1}.", skipped_packages.Count(),
@@ -139,6 +146,43 @@ namespace DevAudit.AuditLibrary
             }
             else throw new ArgumentException($"Failed to parser {version} as a version.");
         }
+
+        public List<string> GetMinimumPackageVersions(string version)
+        {
+            var lcs = SemanticVersion.Grammar.Range.Parse(version);
+            List<string> minVersions = new List<string>();
+            foreach(ComparatorSet<SemanticVersion> cs in lcs)
+            {
+                if (cs.Count == 1 && cs.Single().Operator == ExpressionType.Equal)
+                {
+                    minVersions.Add(cs.Single().Version.ToNormalizedString());
+                }
+                else
+                {
+                    var gt = cs.Where(c => c.Operator == ExpressionType.GreaterThan || c.Operator == ExpressionType.GreaterThanOrEqual).Single();
+                    if (gt.Operator == ExpressionType.GreaterThan)
+                    {
+                        var v = gt.Version;
+                        minVersions.Add((v++).ToNormalizedString());
+                    }
+                    else
+                    {
+                        minVersions.Add(gt.Version.ToNormalizedString());
+                    }
+                }
+
+            }
+            return minVersions;
+        }
+
+        public List<Package> GetDeveloperPackages(string name, string version, string vendor = null, string group = null, 
+            string architecture=null)  
+        {
+            return GetMinimumPackageVersions(version).Select(v => new Package(PackageManagerId, name, v, vendor, group,
+                architecture)).ToList();
+        }
+
+
         #endregion
  
     }

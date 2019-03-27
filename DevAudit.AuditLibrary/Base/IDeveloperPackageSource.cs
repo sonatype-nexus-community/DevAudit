@@ -14,6 +14,9 @@ namespace DevAudit.AuditLibrary
 
         bool PackageVersionIsRange(string version);
 
-        //string GetLockFilePackageVersion(string packageName);
+        List<string> GetMinimumPackageVersions(string version);
+
+        List<Package> GetDeveloperPackages(string name, string version, string vendor = null, string group = null,
+            string architecture = null);
     }
 }

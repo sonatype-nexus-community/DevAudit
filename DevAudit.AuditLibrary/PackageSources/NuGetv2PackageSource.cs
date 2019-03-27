@@ -30,43 +30,35 @@ namespace DevAudit.AuditLibrary
         
         public override IEnumerable<Package> GetPackages(params string[] o) ////Get NuGet packages from reading packages.config
         {
-            try
+            AuditFileInfo configfile = this.AuditEnvironment.ConstructFile(this.PackageManagerConfigurationFile);
+            string _byteOrderMarkUtf8 = Encoding.UTF8.GetString(Encoding.UTF8.GetPreamble());
+            string xml = configfile.ReadAsText();
+            if (xml.StartsWith(_byteOrderMarkUtf8, StringComparison.Ordinal))
             {
-                AuditFileInfo config_file = this.AuditEnvironment.ConstructFile(this.PackageManagerConfigurationFile);
-                string _byteOrderMarkUtf8 = Encoding.UTF8.GetString(Encoding.UTF8.GetPreamble());
-                string xml = config_file.ReadAsText();
-                if (xml.StartsWith(_byteOrderMarkUtf8, StringComparison.Ordinal))
-                {
-                    var lastIndexOfUtf8 = _byteOrderMarkUtf8.Length;
-                    xml = xml.Remove(0, lastIndexOfUtf8);
-                }
-                XElement root = XElement.Parse(xml);
-                IEnumerable<Package> packages;
+                var lastIndexOfUtf8 = _byteOrderMarkUtf8.Length;
+                xml = xml.Remove(0, lastIndexOfUtf8);
+            }
+            XElement root = XElement.Parse(xml);
+            
+            IEnumerable<Package> packages;
 
-                if (root.Name == "Project")
-                {
-                    // dotnet core csproj file
-                    packages = root.Descendants().Where(x => x.Name == "PackageReference").Select(r =>
-                        new Package("nuget", r.Attribute("Include").Value, r.Attribute("Version").Value)).ToList();
-                }
-                else
-                {
-                    packages =
-                        from el in root.Elements("package")
-                        select new Package("nuget", el.Attribute("id").Value, el.Attribute("version").Value, "");
-                }
-                return packages;
-            }
-            catch (XmlException e)
+            if (root.Name == "Project")
             {
-                throw new Exception("XML exception thrown parsing file: " + this.PackageManagerConfigurationFile, e);
+                // dotnet core csproj file
+                packages = 
+                    root
+                    .Descendants()
+                    .Where(x => x.Name == "PackageReference")
+                    .SelectMany(r => GetDeveloperPackages(r.Attribute("Include").Value, r.Attribute("Version").Value)).ToList();
             }
-            catch (Exception e)
+            else
             {
-                throw new Exception("Unknown exception thrown attempting to get packages from file: "
-                    + this.PackageManagerConfigurationFile, e);
+                packages =
+                        root
+                        .Elements("package")
+                        .SelectMany(el => GetDeveloperPackages(el.Attribute("id").Value, el.Attribute("version").Value));
             }
-
+            return packages;
         }
 
         public override bool IsVulnerabilityVersionInPackageVersionRange(string vulnerability_version, string package_version)
@@ -109,7 +101,38 @@ namespace DevAudit.AuditLibrary
             }
             else throw new ArgumentException($"Failed to parser {version} as a version.");
         }
-        #endregion
 
+        public List<string> GetMinimumPackageVersions(string version)
+        {
+            var cs = NuGetv2.Grammar.Range.Parse(version);
+            List<string> minVersions = new List<string>();
+            
+            if (cs.Count == 1 && cs.Single().Operator == ExpressionType.Equal)
+            {
+                minVersions.Add(cs.Single().Version.ToNormalizedString());
+            }
+            else
+            {
+                var gt = cs.Where(c => c.Operator == ExpressionType.GreaterThan || c.Operator == ExpressionType.GreaterThanOrEqual).Single();
+                if (gt.Operator == ExpressionType.GreaterThan)
+                {
+                    var v = new NuGetv2(gt.Version.Version.Major, gt.Version.Version.Minor, gt.Version.Version.Revision + 1, gt.Version.Version.Build);
+                    minVersions.Add((v).ToNormalizedString());
+                }
+                else
+                {
+                    minVersions.Add(gt.Version.ToNormalizedString());
+                }
+            }            
+            return minVersions;
+        }
+
+        public List<Package> GetDeveloperPackages(string name, string version, string vendor = null, string group = null, 
+            string architecture=null)  
+        {
+            return GetMinimumPackageVersions(version).Select(v => new Package(PackageManagerId, name, v, vendor, group,
+                architecture)).ToList();
+        }
+        #endregion
     }
 }
