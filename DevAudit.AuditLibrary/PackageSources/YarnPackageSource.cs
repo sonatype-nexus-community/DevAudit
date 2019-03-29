@@ -127,6 +127,8 @@ namespace DevAudit.AuditLibrary
         {
             if (version == "*")
             {
+                this.AuditEnvironment.Info("Using {0} package version {1} which satisfies range {2}.", 
+                            this.PackageManagerLabel, "0.1", version);
                 return new List<string>(1) {"0.1"};
             }
             var lcs = SemanticVersion.Grammar.Range.Parse(version);
@@ -144,10 +146,15 @@ namespace DevAudit.AuditLibrary
                     {
                         var v = gt.Version;
                         minVersions.Add((v++).ToNormalizedString());
+                        this.AuditEnvironment.Info("Using {0} package version {1} which satisfies range {2}.", 
+                            this.PackageManagerLabel, (v++).ToNormalizedString(), version);
                     }
                     else
                     {
                         minVersions.Add(gt.Version.ToNormalizedString());
+                        this.AuditEnvironment.Debug("Using {0} package version {1} which satisfies range {2}.", 
+                            this.PackageManagerLabel, gt.Version.ToNormalizedString(), version);
+
                     }
                 }
             }
