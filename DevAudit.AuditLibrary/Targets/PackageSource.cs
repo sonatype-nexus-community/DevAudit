@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Reflection;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -10,6 +11,7 @@ using System.Threading;
 using System.Threading.Tasks;
 
 using Sprache;
+using Versatile;
 using Alpheus.IO;
 
 namespace DevAudit.AuditLibrary
@@ -22,60 +24,68 @@ namespace DevAudit.AuditLibrary
             this.PackageSourceOptions = this.AuditOptions;
             if (this.PackageSourceOptions.ContainsKey("File"))
             {
-                this.PackageManagerConfigurationFile = (string)this.PackageSourceOptions["File"];
-                if (!this.AuditEnvironment.FileExists(this.PackageManagerConfigurationFile))
+                string cf = (string)this.PackageSourceOptions["File"];
+                if (!this.AuditEnvironment.FileExists(cf))
                 {
-                    throw new ArgumentException("Could not find the file " + this.PackageManagerConfigurationFile + ".", "package_source_options");
+                    throw new ArgumentException("Could not find the file " + cf + ".", "package_source_options");
+                }
+                else
+                {
+                    this.PackageManagerConfigurationFile = cf;
+                    this.AuditEnvironment.Info("Using {0} package source configuration file {1}.", this.PackageManagerLabel, this.PackageManagerConfigurationFile);
                 }
             }
-            else if (!this.PackageSourceOptions.ContainsKey("File") && this.DefaultPackageManagerConfigurationFile != string.Empty)
+            else if (this.DefaultPackageManagerConfigurationFile != string.Empty)
             {
                 if (this.AuditEnvironment.FileExists(this.DefaultPackageManagerConfigurationFile))
                 {
-                    this.AuditEnvironment.Info("Using default {0} package source configuration file {1}", this.PackageManagerLabel, this.DefaultPackageManagerConfigurationFile);
                     this.PackageManagerConfigurationFile = this.DefaultPackageManagerConfigurationFile;
+                    this.AuditEnvironment.Info("Using default {0} package source configuration file {1}", this.PackageManagerLabel, this.DefaultPackageManagerConfigurationFile);
                 }
                 else
                 {
                     throw new ArgumentException(string.Format("No file option was specified and the default {0} package sourcs configuration file {1} was not found.", this.PackageManagerLabel, this.DefaultPackageManagerConfigurationFile));
                 }
             }
-            else if (!this.PackageSourceOptions.ContainsKey("File") && this.DefaultPackageManagerConfigurationFile == string.Empty)
+            else
             {
                 throw new ArgumentException(string.Format("No file option was specified and the {0} package source " 
                     + "does not specify a default configuration file.", this.PackageManagerLabel));
             }
 
-            if (!string.IsNullOrEmpty(this.PackageManagerConfigurationFile))
+            if (this is IDeveloperPackageSource dpm)
             {
-                AuditFileInfo cf = this.AuditEnvironment.ConstructFile(this.PackageManagerConfigurationFile);
-                AuditDirectoryInfo d = this.AuditEnvironment.ConstructDirectory(cf.DirectoryName);
-                IFileInfo[] pf;
-                if (this.AuditEnvironment.FileExists("devaudit.yml"))
+                if (this.PackageSourceOptions.ContainsKey("LockFile"))
                 {
-                    pf = d.GetFiles("devaudit.yml");
-                    this.AuditProfile = new AuditProfile(this.AuditEnvironment, this.AuditEnvironment.ConstructFile(pf.First().FullName));
+                    string lf = (string) this.PackageSourceOptions["LockFile"];
+                    if (this.AuditEnvironment.FileExists(lf))
+                    {
+                        dpm.PackageSourceLockFile = lf;
+                        this.AuditEnvironment.Info("Using {0} package source lock file {1}.", this.PackageManagerLabel, lf);
+                    }
+                    else
+                    {
+                        this.AuditEnvironment.Warning("Could not find the {0} package manager lock file {1}.", this.PackageManagerLabel, lf);
+                    }
+                }
+                else if (dpm.DefaultPackageSourceLockFile != string.Empty)
+                {
+                    string lf = dpm.DefaultPackageSourceLockFile;
+                    if (this.AuditEnvironment.FileExists(lf))
+                    {
+                        this.AuditEnvironment.Info("Using the default {0} package manager lock file {1}.", this.PackageManagerLabel, lf);
+                        dpm.PackageSourceLockFile = lf;
+                    }
+                    else
+                    {
+                        this.AuditEnvironment.Warning("Could not find the default {0} package source lock file {0}.", lf);
+                    } 
                 }
             }
-
+            
             if (this.PackageSourceOptions.ContainsKey("ListPackages"))
             {
                 this.ListPackages = true;
-            }
-
-            if (this.PackageSourceOptions.ContainsKey("ListArtifacts"))
-            {
-                this.ListArtifacts = true;
-            }
-
-            if (this.PackageSourceOptions.ContainsKey("SkipPackagesAudit"))
-            {
-                this.SkipPackagesAudit = true;
-            }
-
-            if (this.PackageSourceOptions.ContainsKey("WithPackageInfo"))
-            {
-                this.WithPackageInfo = true;
             }
 
             if (this.PackageSourceOptions.ContainsKey("HttpsProxy"))
@@ -90,7 +100,6 @@ namespace DevAudit.AuditLibrary
             if (this.DataSources.Count == 0 && ossi_pms.Contains(this.PackageManagerId))
             {
                 this.HostEnvironment.Info("Using OSS Index as default package vulnerabilities data source for {0} package source.", this.PackageManagerLabel);
-                // this.DataSources.Add(new OSSIndexDataSource(this, this.DataSourceOptions));
                 this.DataSources.Add(new OSSIndexApiv3DataSource(this, DataSourceOptions));
             }
         }
@@ -99,7 +108,7 @@ namespace DevAudit.AuditLibrary
         #region Abstract properties
         public abstract string PackageManagerId { get; }
         public abstract string PackageManagerLabel { get; }
-        public abstract string DefaultPackageManagerConfigurationFile { get; }
+        public abstract string DefaultPackageManagerConfigurationFile {get; }
         #endregion
 
         #region Abstract methods
@@ -112,25 +121,15 @@ namespace DevAudit.AuditLibrary
 
         public bool ListPackages { get; protected set; } = false;
 
-        public bool WithPackageInfo { get; protected set; } = false;
-
-        public bool ListArtifacts { get; protected set; } = false;
-
-        public bool SkipPackagesAudit { get; protected set; } = false;
-
-        public string PackageManagerConfigurationFile { get; set; }
+        public string PackageManagerConfigurationFile { get; }
 
         public IEnumerable<Package> Packages { get; protected set; }
-
-        public Dictionary<IPackage, List<IArtifact>> Artifacts { get; } = new Dictionary<IPackage, List<IArtifact>>();
 
         public Dictionary<IPackage, List<IVulnerability>> Vulnerabilities { get; } = new Dictionary<IPackage, List<IVulnerability>>();
          
         public ConcurrentDictionary<IPackage, Exception> GetVulnerabilitiesExceptions { get; protected set; }
 
         public Task PackagesTask { get; protected set; }
-
-        public Task ArtifactsTask { get; protected set; }
 
         public Task VulnerabilitiesTask { get; protected set; }
 
@@ -143,6 +142,7 @@ namespace DevAudit.AuditLibrary
         public virtual AuditResult Audit(CancellationToken ct)
         {
             CallerInformation here = this.AuditEnvironment.Here();
+
             this.GetPackagesTask(ct);
             
             try
@@ -158,20 +158,8 @@ namespace DevAudit.AuditLibrary
 
             this.Packages = this.FilterPackagesUsingProfile();
 
-
-            this.GetArtifactsTask(ct);
-            
-            try
-            {
-                this.ArtifactsTask.Wait();
-            }
-            catch (AggregateException ae)
-            {
-                this.AuditEnvironment.Error("Error in GetArtifacts task.", ae);
-                return AuditResult.ERROR_SEARCHING_ARTIFACTS;
-            }
-
             this.GetVulnerabilitiesTask(ct);
+
             try
             {
                 this.VulnerabilitiesTask.Wait();
@@ -224,55 +212,13 @@ namespace DevAudit.AuditLibrary
 
         internal virtual Task GetPackagesTask(CancellationToken ct)
         {
-            if (this.SkipPackagesAudit)
-            {
-                this.PackagesTask = Task.CompletedTask;
-                this.Packages = new List<Package>();
-            }
-            else
-            {
-                this.AuditEnvironment.Status("Scanning {0} packages.", this.PackageManagerLabel);
-                this.PackagesTask = Task.Run(() => this.Packages = this.GetPackages(), ct);
-            }
+            this.AuditEnvironment.Status("Scanning {0} packages.", this.PackageManagerLabel);
+            this.PackagesTask = Task.Run(() => this.Packages = this.GetPackages(), ct);
             return this.PackagesTask;
-        }
-
-        protected virtual Task GetArtifactsTask(CancellationToken ct)
-        {
-            if (!this.ListArtifacts || this.Packages.Count() == 0)
-            {
-                this.ArtifactsTask = Task.CompletedTask;
-            }
-            else
-            {
-                List<Task> tasks = new List<Task>();
-                foreach (IDataSource ds in this.DataSources.Where(d => d.IsEligibleForTarget(this) && d.Initialised))
-                {
-                    Task t = Task.Factory.StartNew(async () =>
-                    {
-                        Dictionary<IPackage, List<IArtifact>> artifacts = await ds.SearchArtifacts(this.Packages.ToList());
-                        lock (artifacts_lock)
-                        {
-                            foreach (KeyValuePair<IPackage, List<IArtifact>> kv in artifacts)
-                            {
-                                this.Artifacts.Add(kv.Key, kv.Value);
-                            }
-                        }
-                    }, CancellationToken.None, TaskCreationOptions.DenyChildAttach, TaskScheduler.Default).Unwrap();
-                    tasks.Add(t);
-                }
-                this.ArtifactsTask = Task.WhenAll(tasks);
-            }
-            return this.ArtifactsTask;
         }
 
         protected virtual Task GetVulnerabilitiesTask(CancellationToken ct)
         {
-            if (this.SkipPackagesAudit || this.ListPackages || this.Packages.Count() == 0 || this.ListArtifacts)
-            {
-                this.VulnerabilitiesTask = Task.CompletedTask;
-                return this.VulnerabilitiesTask;
-            }
             List<Task> tasks = new List<Task>();
             IEnumerable<IDataSource> eligible_datasources = this.DataSources.Where(d => d.Initialised && d.IsEligibleForTarget(this));
             if (eligible_datasources.Count() == 0)
@@ -348,7 +294,6 @@ namespace DevAudit.AuditLibrary
             else return this.Packages;
         }
  
-  
         protected void EvaluateVulnerabilities()
         {
             if (this.Vulnerabilities.Count == 0 || this.Vulnerabilities.Sum(kv => kv.Value.Count()) == 0) return;
@@ -425,10 +370,6 @@ namespace DevAudit.AuditLibrary
                 }
             }
         }
-
-
-
-
         #endregion
 
         #region Fields

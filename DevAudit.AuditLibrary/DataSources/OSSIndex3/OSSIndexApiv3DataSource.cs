@@ -122,7 +122,7 @@ namespace DevAudit.AuditLibrary
                 {
                     try
                     {
-                        this.HostEnvironment.Info("------------------------------- Performing query on {0} packages", q.Count());
+                        this.HostEnvironment.Info("Performing query on {0} packages", q.Count());
 
                         List<OSSIndexApiv3Package> results = await SearchVulnerabilitiesAsync(q, this.VulnerabilitiesResultsTransform);
                         foreach (OSSIndexApiv3Package r in results)

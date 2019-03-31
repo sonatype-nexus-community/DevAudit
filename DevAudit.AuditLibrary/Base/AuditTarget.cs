@@ -330,23 +330,34 @@ namespace DevAudit.AuditLibrary
             }
             #endregion
 
+            
             if (this.AuditOptions.ContainsKey("HttpsProxy"))
             {
                 this.HostEnvironment.Info("Using proxy {0}.", ((Uri)AuditOptions["HttpsProxy"]).AbsoluteUri);
             }
+            
+            #region Setup data source options
             if (this.AuditOptions.ContainsKey("IgnoreHttpsCertErrors"))
             {
                 this.DataSourceOptions.Add("IgnoreHttpsCertErrors", true);
             }
             if (this.AuditOptions.ContainsKey("WithOSSI")) 
             {
-                // this.DataSources.Add(new OSSIndexDataSource(this, this.DataSourceOptions));
                 this.DataSources.Add(new OSSIndexApiv3DataSource(this, DataSourceOptions));
             }
             if (this.AuditOptions.ContainsKey("WithVulners"))
             {
                 this.DataSources.Add(new VulnersDataSource(this, DataSourceOptions));
             }
+            #endregion
+
+            #region Setup audit profile
+            if (this.AuditEnvironment.FileExists("devaudit.yml"))
+            {
+                this.AuditProfile = new AuditProfile(this.AuditEnvironment, this.AuditEnvironment.ConstructFile("devaudit.yml"));
+            }
+
+            #endregion
         }
 
         private void AuditTarget_HostEnvironmentMessageHandler(object sender, EnvironmentEventArgs e)
