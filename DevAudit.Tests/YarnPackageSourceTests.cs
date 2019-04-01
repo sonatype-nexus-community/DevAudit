@@ -50,6 +50,7 @@ namespace DevAudit.Tests
 
             v = DPS.GetMinimumPackageVersions(">2.7.1");
             Assert.Single(v);
+            Assert.EndsWith("2", v.Single());
 
             v = DPS.GetMinimumPackageVersions("<2.6.1");
             Assert.Single(v);
@@ -59,7 +60,15 @@ namespace DevAudit.Tests
             Assert.Single(v);
             Assert.EndsWith("1", v.Single());
 
-            
+            v = DPS.GetMinimumPackageVersions("2.6.1-beta.3");
+            Assert.Single(v);
+            Assert.Equal("2.6.1", v.Single());
+
+            v = DPS.GetMinimumPackageVersions("<=2.7.1");
+            Assert.Single(v);
+            Assert.EndsWith("1", v.Single());
+
+
             v = DPS.GetMinimumPackageVersions("^2.7.1");
             Assert.Single(v);
             Assert.EndsWith("1", v.Single());
@@ -67,6 +76,21 @@ namespace DevAudit.Tests
             v = DPS.GetMinimumPackageVersions("~2.7.1");
             Assert.Single(v);
             Assert.EndsWith("1", v.Single());
+
+            v = DPS.GetMinimumPackageVersions(">=2.0.0 <3.1.4");
+            Assert.Single(v);
+            Assert.Equal("2.0.0", v.Single());
+
+            v = DPS.GetMinimumPackageVersions(">2.0.0 <3.1.4");
+            Assert.Single(v);
+            Assert.Equal("2.0.1", v.Single());
+
+            v = DPS.GetMinimumPackageVersions("<2.0.0 || >3.1.4");
+            Assert.Equal(2, v.Count);
+            Assert.Equal("0.0.1", v.First());
+
+
+
         }
 
         #endregion

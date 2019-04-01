@@ -330,25 +330,32 @@ namespace DevAudit.AuditLibrary
             }
             #endregion
 
-            
+            #region Setup data source options
             if (this.AuditOptions.ContainsKey("HttpsProxy"))
             {
                 this.HostEnvironment.Info("Using proxy {0}.", ((Uri)AuditOptions["HttpsProxy"]).AbsoluteUri);
             }
-            
-            #region Setup data source options
+
+            if (this.AuditOptions.ContainsKey("DeleteCache"))
+            {
+                this.DataSourceOptions.Add("DeleteCache", true);
+            }
+
             if (this.AuditOptions.ContainsKey("IgnoreHttpsCertErrors"))
             {
                 this.DataSourceOptions.Add("IgnoreHttpsCertErrors", true);
             }
+
             if (this.AuditOptions.ContainsKey("WithOSSI")) 
             {
                 this.DataSources.Add(new OSSIndexApiv3DataSource(this, DataSourceOptions));
             }
+
             if (this.AuditOptions.ContainsKey("WithVulners"))
             {
                 this.DataSources.Add(new VulnersDataSource(this, DataSourceOptions));
             }
+
             #endregion
 
             #region Setup audit profile
@@ -360,6 +367,7 @@ namespace DevAudit.AuditLibrary
             #endregion
         }
 
+        #region Event Handlers
         private void AuditTarget_HostEnvironmentMessageHandler(object sender, EnvironmentEventArgs e)
         {
             e.EnvironmentLocation = "HOST";
@@ -377,6 +385,8 @@ namespace DevAudit.AuditLibrary
             e.EnvironmentLocation = "SCRIPT";
             this.ControllerMessage.Invoke(sender, e);
         }
+        #endregion
+
         #endregion
 
         #region Events

@@ -39,6 +39,14 @@ namespace DevAudit.AuditLibrary
                 this.DataSourceOptions.Add("HttpsProxy", (Uri)this.Target.AuditOptions["HttpsProxy"]);
                 HttpsProxy = (Uri) this.Target.AuditOptions["HttpsProxy"];
             }
+            if (this.DataSourceOptions.Keys.Contains("DeleteCache"))
+            {
+                DeleteCache = true;
+            }
+            else
+            {
+                DeleteCache = false;
+            }
             
         }
         #endregion
@@ -61,6 +69,7 @@ namespace DevAudit.AuditLibrary
         public bool DataSourceInitialised { get; protected set; } = false;
         public Uri ApiUrl { get; protected set; }
         public Uri HttpsProxy { get; protected set; }
+        public bool DeleteCache { get; protected set; }
         public bool Initialised { get; protected set; }
         public DataSourceInfo Info { get; set; } = new DataSourceInfo();
         protected Version LibraryVersion { get; set; } = Assembly.GetExecutingAssembly().GetName().Version;

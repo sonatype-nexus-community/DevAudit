@@ -106,6 +106,11 @@ namespace DevAudit.CommandLine
             }
             #endregion
 
+            if (ProgramOptions.DeleteCache)
+            {
+                audit_options.Add("DeleteCache", true);
+            }
+
             if (!string.IsNullOrEmpty(Environment.GetEnvironmentVariable("DOCKER")))
             {
                 audit_options.Add("Dockerized", true);

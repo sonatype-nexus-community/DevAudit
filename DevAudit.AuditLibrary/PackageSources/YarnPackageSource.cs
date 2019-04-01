@@ -47,32 +47,23 @@ namespace DevAudit.AuditLibrary
             {
                 packages.AddRange(dependencies.Properties()
                     .SelectMany(d => GetDeveloperPackages(d.Name.Replace("@", ""), d.Value.ToString())));
-                //packages.AddRange(dependencies.Properties().Select(d => new Package("npm", d.Name.Replace("@", ""), 
-                //    GetMinimumPackageVersion(d.Value.ToString()), "")));
             }
             if (dev_dependencies != null)
             {
                 packages.AddRange(dev_dependencies.Properties()
                     .SelectMany(d => GetDeveloperPackages(d.Name.Replace("@", ""), d.Value.ToString())));
-
-                //packages.AddRange(dev_dependencies.Properties().Select(d => new Package("npm", d.Name.Replace("@", ""),
-                //    GetMinimumPackageVersion(d.Value.ToString()), "")));
             }
             if (peer_dependencies != null)
             {
                 packages.AddRange(peer_dependencies.Properties()
                     .SelectMany(d => GetDeveloperPackages(d.Name.Replace("@", ""), d.Value.ToString())));
 
-                //packages.AddRange(peer_dependencies.Properties().Select(d => new Package("npm", d.Name.Replace("@", ""),
-                //    GetMinimumPackageVersion(d.Value.ToString()), "")));
             }
             if (optional_dependencies != null)
             {
                 packages.AddRange(optional_dependencies.Properties()
                     .SelectMany(d => GetDeveloperPackages(d.Name.Replace("@", ""), d.Value.ToString())));
 
-                //packages.AddRange(optional_dependencies.Properties().Select(d => new Package("npm", d.Name.Replace("@", ""),
-                //    GetMinimumPackageVersion(d.Value.ToString()), "")));
             }
             if (bundled_dependencies != null)
             {
@@ -127,7 +118,7 @@ namespace DevAudit.AuditLibrary
         {
             if (version == "*")
             {
-                this.AuditEnvironment.Info("Using {0} package version {1} which satisfies range {2}.", 
+                this.AuditEnvironment.Debug("Using {0} package version {1} which satisfies range {2}.", 
                             this.PackageManagerLabel, "0.1", version);
                 return new List<string>(1) {"0.1"};
             }
@@ -146,7 +137,7 @@ namespace DevAudit.AuditLibrary
                     {
                         var v = gt.Version;
                         minVersions.Add((v++).ToNormalizedString());
-                        this.AuditEnvironment.Info("Using {0} package version {1} which satisfies range {2}.", 
+                        this.AuditEnvironment.Debug("Using {0} package version {1} which satisfies range {2}.", 
                             this.PackageManagerLabel, (v++).ToNormalizedString(), version);
                     }
                     else
@@ -164,7 +155,7 @@ namespace DevAudit.AuditLibrary
         public List<Package> GetDeveloperPackages(string name, string version, string vendor = null, string group = null,
             string architecture = null)
         {
-            return GetMinimumPackageVersions(version).Select(v => new Package(PackageManagerId, name, v, vendor, group, architecture)).ToList();
+            return GetMinimumPackageVersions(version).Select(v => new Package("npm", name, v, vendor, group, architecture)).ToList();
         }
         #endregion
     }
