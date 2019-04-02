@@ -122,6 +122,13 @@ namespace DevAudit.AuditLibrary
                             this.PackageManagerLabel, "0.1", version);
                 return new List<string>(1) {"0.1"};
             }
+            if (version.StartsWith("git"))
+            {
+                this.AuditEnvironment.Info("Using {0} package version {1} since it specifies a git commit as its version.", 
+                            this.PackageManagerLabel, "0.1", version);
+                return new List<string>(1) {"0.1"};
+            }
+
             var lcs = SemanticVersion.Grammar.Range.Parse(version);
             List<string> minVersions = new List<string>();
             foreach(ComparatorSet<SemanticVersion> cs in lcs)

@@ -20,12 +20,12 @@ namespace DevAudit.Tests
         #region Constructors
         public PackageSourceTests()
         {
-            DPS = this.Source as IDeveloperPackageSource;
+            DPS = this.Sources.Select(s => s as IDeveloperPackageSource).ToList();
         }
         #endregion
 
         #region Abstract properties
-        protected abstract PackageSource Source { get; }
+        protected abstract List<PackageSource> Sources { get; }
         #endregion
 
         #region Abstract tests
@@ -39,7 +39,7 @@ namespace DevAudit.Tests
         #region Properties
         protected CancellationTokenSource Cts { get; } = new CancellationTokenSource();
 
-        protected IDeveloperPackageSource DPS { get; }
+        protected List<IDeveloperPackageSource> DPS { get; }
         #endregion
 
         #region Methods
@@ -48,22 +48,20 @@ namespace DevAudit.Tests
 
         #region Tests
         [Fact]
-        public virtual void CanConstructPackageSource()
+        public virtual void CanConstructPackageSources()
         {
-            Assert.NotNull(Source);
+            Assert.All(Sources, s => Assert.NotNull(s));
         }
 
         [Fact]
         public virtual void CanGetPackages()
         {
-            Assert.NotEmpty(Source.GetPackages());
+            Assert.All(Sources, s => Assert.NotEmpty(s.GetPackages()));
         }
 
-        [Fact]
         public virtual void CanGetVulnerabilities()
         {
-            var res = Source.Audit(Cts.Token);
-            Assert.True(res == AuditTarget.AuditResult.SUCCESS);
+            Assert.All(Sources, s => Assert.Equal(AuditTarget.AuditResult.SUCCESS, s.Audit(Cts.Token)));
         }
 
         [Fact]
