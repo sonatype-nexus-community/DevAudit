@@ -812,6 +812,7 @@ namespace DevAudit.AuditLibrary
                 }
             }
         }
+        
 
         [DebuggerStepThrough]
         internal void Error(AggregateException ae, string message_format, params object[] message)

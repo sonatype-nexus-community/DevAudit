@@ -88,14 +88,6 @@ namespace DevAudit.AuditLibrary
                 this.ListPackages = true;
             }
 
-            if (this.PackageSourceOptions.ContainsKey("HttpsProxy"))
-            {
-                if (!this.AuditOptions.ContainsKey("HttpsProxy"))
-                {
-                    DataSourceOptions.Add("HttpsProxy", (Uri)this.PackageSourceOptions["HttpsProxy"]);
-                }
-            }
-
             string[] ossi_pms = { "bower", "composer", "chocolatey", "msi", "nuget", "oneget", "yarn", "netcore" };
             if (this.DataSources.Count == 0 && ossi_pms.Contains(this.PackageManagerId))
             {
@@ -376,6 +368,5 @@ namespace DevAudit.AuditLibrary
         public object vulnerabilities_lock = new object();
         public object artifacts_lock = new object();
         #endregion
-
     }
 }

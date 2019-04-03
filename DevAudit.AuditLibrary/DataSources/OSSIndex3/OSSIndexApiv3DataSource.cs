@@ -149,8 +149,6 @@ namespace DevAudit.AuditLibrary
                     }
                     catch (Exception e)
                     {
-                        Console.WriteLine(e.ToString());
-
                         if (e is HttpException)
                         {
                             this.HostEnvironment.Error(here, e, "An HTTP error occured attempting to query the OSS Index API for the following {1} packages: {0}.",

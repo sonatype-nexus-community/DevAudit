@@ -44,7 +44,7 @@ namespace DevAudit.AuditLibrary
             if (ReferenceEquals(audit_options, null)) throw new ArgumentNullException("audit_options");
             this.AuditOptions = audit_options;
 
-            #region Initialise host environment
+            #region Setup host environment
             if (this.AuditOptions.ContainsKey("HostEnvironment"))
             {
                 this.HostEnvironment = (LocalEnvironment)this.AuditOptions["HostEnvironment"];
@@ -64,7 +64,7 @@ namespace DevAudit.AuditLibrary
             }
             #endregion
 
-            #region Initialise audit environment
+            #region Setup audit environment
             if (this.AuditOptions.ContainsKey("AuditEnvironment"))
             {
                 this.AuditEnvironment = (AuditEnvironment)this.AuditOptions["AuditEnvironment"];
@@ -331,14 +331,19 @@ namespace DevAudit.AuditLibrary
             #endregion
 
             #region Setup data source options
-            if (this.AuditOptions.ContainsKey("HttpsProxy"))
+            if (this.AuditOptions.ContainsKey("NoCache"))
             {
-                this.HostEnvironment.Info("Using proxy {0}.", ((Uri)AuditOptions["HttpsProxy"]).AbsoluteUri);
+                this.DataSourceOptions.Add("NoCache", true);
             }
 
             if (this.AuditOptions.ContainsKey("DeleteCache"))
             {
                 this.DataSourceOptions.Add("DeleteCache", true);
+            }
+
+            if (this.AuditOptions.ContainsKey("HttpsProxy"))
+            {
+                DataSourceOptions.Add("HttpsProxy", (Uri)this.AuditOptions["HttpsProxy"]);
             }
 
             if (this.AuditOptions.ContainsKey("IgnoreHttpsCertErrors"))
@@ -355,7 +360,6 @@ namespace DevAudit.AuditLibrary
             {
                 this.DataSources.Add(new VulnersDataSource(this, DataSourceOptions));
             }
-
             #endregion
 
             #region Setup audit profile
@@ -513,6 +517,5 @@ namespace DevAudit.AuditLibrary
             Dispose(false);
         }
         #endregion
-
     }
 }

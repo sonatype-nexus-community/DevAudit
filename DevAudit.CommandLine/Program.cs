@@ -106,20 +106,33 @@ namespace DevAudit.CommandLine
             }
             #endregion
 
+            #region File cache
+            if (ProgramOptions.NoCache)
+            {
+                audit_options.Add("NoCache", true);
+            }
+
             if (ProgramOptions.DeleteCache)
             {
                 audit_options.Add("DeleteCache", true);
             }
+            #endregion
 
+            #region Docker container host environment
             if (!string.IsNullOrEmpty(Environment.GetEnvironmentVariable("DOCKER")))
             {
                 audit_options.Add("Dockerized", true);
             }
+            #endregion
 
+            #region Local Docker container audit environment
             if (!string.IsNullOrEmpty(ProgramOptions.DockerContainerId) && string.IsNullOrEmpty(ProgramOptions.RemoteHost))
             {
                 audit_options.Add("DockerContainer", ProgramOptions.DockerContainerId);
             }
+            #endregion
+
+            #region Remote Docker container audit environment
             else if (!string.IsNullOrEmpty(ProgramOptions.DockerContainerId) && !string.IsNullOrEmpty(ProgramOptions.RemoteHost))
             {
                 audit_options.Add("DockerContainer", ProgramOptions.DockerContainerId);
@@ -181,6 +194,9 @@ namespace DevAudit.CommandLine
                 }
                 #endregion
             }
+            #endregion
+
+            #region WinRM audit environment
             else if (!string.IsNullOrEmpty(ProgramOptions.RemoteHost) && ProgramOptions.WinRm)
             {
                 if (Uri.CheckHostName(ProgramOptions.RemoteHost) == UriHostNameType.IPv4 || Uri.CheckHostName(ProgramOptions.RemoteHost) == UriHostNameType.IPv6)
@@ -206,7 +222,7 @@ namespace DevAudit.CommandLine
                     return (int)Exit;
                 }
 
-                #region User and password
+                #region Remote user and password
                 if (!string.IsNullOrEmpty(ProgramOptions.RemoteUser))
                 {
                     audit_options.Add("RemoteUser", ProgramOptions.RemoteUser);
@@ -230,11 +246,12 @@ namespace DevAudit.CommandLine
                 {
                     PrintErrorMessage("You must specify the Windows user to authenticate with the remote host.");
                     return (int)Exit;
-
                 }
                 #endregion
-
             }
+            #endregion
+
+            #region SSH audit environment
             else if (!string.IsNullOrEmpty(ProgramOptions.RemoteHost) && string.IsNullOrEmpty(ProgramOptions.DockerContainerId))
             {
                 if (Uri.CheckHostName(ProgramOptions.RemoteHost) == UriHostNameType.Unknown)
@@ -253,7 +270,7 @@ namespace DevAudit.CommandLine
                     audit_options.Add("RemoteSshPort", ProgramOptions.RemoteSshPort);
                 }
 
-                #region User and password or key file
+                #region Remote user and password or key file
                 if (!string.IsNullOrEmpty(ProgramOptions.RemoteUser))
                 {
                     audit_options.Add("RemoteUser", ProgramOptions.RemoteUser);
@@ -295,9 +312,9 @@ namespace DevAudit.CommandLine
                 }
                 #endregion
             }
+            #endregion
 
-
-            #region GitHub
+            #region GitHub audit environment
             if (!string.IsNullOrEmpty(ProgramOptions.GitHubToken))
             {
                 audit_options.Add("GitHubToken", ProgramOptions.GitHubToken);
@@ -400,7 +417,7 @@ namespace DevAudit.CommandLine
             }
             #endregion
 
-            #region GitLab
+            #region GitLab audit environment
             if (!string.IsNullOrEmpty(ProgramOptions.GitLabToken))
             {
                 audit_options.Add("GitLabToken", ProgramOptions.GitLabToken);
@@ -503,7 +520,7 @@ namespace DevAudit.CommandLine
             }
             #endregion
 
-            #region BitBucket
+            #region BitBucket audit environment
             if (!string.IsNullOrEmpty(ProgramOptions.BitBucketKey))
             {
                 string[] components = ProgramOptions.BitBucketKey.Split('|');
@@ -583,8 +600,7 @@ namespace DevAudit.CommandLine
             {
                 audit_options.Add("RootDirectory", ProgramOptions.RootDirectory);
             }
-            #endregion
-
+        
             if(!string.IsNullOrEmpty(ProgramOptions.AuditOptions))
             {
                 Dictionary<string, object> parsed_options = Options.Parse(ProgramOptions.AuditOptions);
@@ -612,8 +628,9 @@ namespace DevAudit.CommandLine
                     }
                 }
             }
-            
-            #region Profile
+            #endregion
+
+            #region Audit profile
             if (!string.IsNullOrEmpty(ProgramOptions.Profile))
             {
                 audit_options.Add("Profile", ProgramOptions.Profile);
@@ -1040,7 +1057,7 @@ static void EnvironmentMessageHandler(object sender, EnvironmentEventArgs e)
             }
             else
             {
-                PrintMessage(ConsoleColor.DarkRed, "Exception: {0}", e.Message);
+                PrintMessage(ConsoleColor.DarkRed, "{0}", e.Message);
                 if (e.InnerException != null)
                 {
                     PrintMessageLine(ConsoleColor.DarkRed, " Inner Exception: {0}", e.InnerException.Message);
@@ -1256,7 +1273,6 @@ static void EnvironmentMessageHandler(object sender, EnvironmentEventArgs e)
             r.MakeReadOnly();
             return r;
         }
-
 
         static void Program_UnhandledException(object sender, UnhandledExceptionEventArgs e)
         {
