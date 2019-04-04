@@ -16,12 +16,18 @@ namespace DevAudit.AuditLibrary
 {
     public class ChocolateyPackageSource : PackageSource
     {
+        #region Constructors
+        public ChocolateyPackageSource(Dictionary<string, object> package_source_options, EventHandler<EnvironmentEventArgs> message_handler) : base(package_source_options,message_handler) {
+        }
+        #endregion
+
         #region Overriden properties
         public override string PackageManagerId { get { return "chocolatey"; } }
 
         public override string PackageManagerLabel { get { return "Chocolatey"; } }
 
         public override string DefaultPackageManagerConfigurationFile { get { return string.Empty; } }
+        
         #endregion
 
         #region Overriden methods
@@ -97,11 +103,5 @@ namespace DevAudit.AuditLibrary
             return vulnerability_version == package_version;
         }
         #endregion
-
-        #region Constructors
-        public ChocolateyPackageSource(Dictionary<string, object> package_source_options, EventHandler<EnvironmentEventArgs> message_handler) : base(package_source_options,message_handler) {
-        }
-        #endregion
-
     }
 }

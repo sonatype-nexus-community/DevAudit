@@ -1,101 +1,124 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Text;
-using
-    System.Threading;
+using System.Threading;
 using System.Threading.Tasks;
 
 using Xunit;
+
+using Sprache;
+using Versatile;
+
 using DevAudit.AuditLibrary;
 
 namespace DevAudit.Tests
 {
     public abstract class PackageSourceTests
     {
-        protected abstract PackageSource s { get; }
-        
-        [Fact]
-        public void CanGetPackages()
+        #region Constructors
+        public PackageSourceTests()
         {
-            Assert.NotEmpty(s.GetPackages().Where(p => p.PackageManager == s.PackageManagerId));
+            DPS = this.Source as IDeveloperPackageSource;
+        }
+        #endregion
+
+        #region Abstract properties
+        protected abstract PackageSource Source { get; }
+        #endregion
+
+        #region Abstract tests
+        public abstract void CanTestVulnerabilityVersionInPackageVersionRange();
+
+        public abstract void IsDeveloperPackageSource();
+
+        public abstract void CanGetDPSMinimumPackageVersion();
+        #endregion
+
+        #region Properties
+        protected CancellationTokenSource Cts { get; } = new CancellationTokenSource();
+
+        protected IDeveloperPackageSource DPS { get; }
+        #endregion
+
+        #region Methods
+        protected static void EnvironmentMessageHandler(object sender, EnvironmentEventArgs e) { }
+        #endregion
+
+        #region Tests
+        [Fact]
+        public virtual void CanConstructPackageSource()
+        {
+            Assert.NotNull(Source);
         }
 
         [Fact]
-        public void CanGetArtifactsTask()
+        public virtual void CanGetPackages()
         {
-            
-            s.
-            Assert.NotEmpty(s.Artifacts.Where(a => a.PackageManager == s.PackageManagerId));
+            Assert.NotEmpty(Source.GetPackages());
         }
 
         [Fact]
-        public void CanGetPackageVulnerabilities()
+        public virtual void CanGetVulnerabilities()
         {
-            s.PackagesTask.Wait();
-            Assert.NotEmpty(s.Packages);
-            Task.WaitAll(s.ArtifactsTask.ToArray());
-            Assert.NotEmpty(s.Artifacts);
-            var t = new List<Task> (s.ArtifactsWithProjects.Count());
-            /*
-            s.ArtifactProjects.ForEach(p =>
-            {
-                OSSIndexArtifact artifact = p as OSSIndexArtifact;
-                List<OSSIndexPackageVulnerability> package_vulnerabilities = s.HttpClient.GetPackageVulnerabilitiesAsync(artifact.PackageId).Result;
-            });*/
-            
-            s.ArtifactsWithProjects.ForEach(p => t.Add(Task<Task>
-                .Factory.StartNew(async (o) =>
-                {
-                    OSSIndexArtifact artifact = o as OSSIndexArtifact;
-                    List<OSSIndexPackageVulnerability> package_vulnerabilities = await s.HttpClient.GetPackageVulnerabilitiesAsync(artifact.PackageId);
-                }, p, CancellationToken.None, TaskCreationOptions.DenyChildAttach, TaskScheduler.Default).Unwrap()));
-                
-            try
-            {
-                Task.WaitAll(t.ToArray());
-            }
-            catch (AggregateException)
-            {
-                
-            }
-            catch (Exception)
-            { }
-            
-        }
-
-
-        [Fact]
-        public void CanGetVulnerabilitiesTask()
-        {
-            s.PackagesTask.Wait();
-            Assert.NotEmpty(s.Packages);
-            Task.WaitAll(s.ArtifactsTask.ToArray());
-            Assert.NotEmpty(s.Artifacts);
-            try
-            {
-                Task.WaitAll(s.VulnerabilitiesTask.ToArray());
-            }
-            
-            catch (AggregateException)
-            {
-
-            }
-            Assert.NotEmpty(s.ProjectVulnerabilities);
+            var res = Source.Audit(Cts.Token);
+            Assert.True(res == AuditTarget.AuditResult.SUCCESS);
         }
 
         [Fact]
-        public abstract void CanCacheProjectVulnerabilities();
-               
-        [Fact]
-        public abstract Task CanGetProjects();
+        public void SemanticVersionCanParseRange()
+        {
+            var comparatorSets = SemanticVersion.Grammar.Range.Parse("6.1.0");
+            Assert.NotEmpty(comparatorSets);
+            Assert.Single(comparatorSets);
+            var comparatorSet = comparatorSets.Single();
+            var a = comparatorSet[0];
+            Assert.Equal(ExpressionType.Equal, a.Operator);
 
-        [Fact]
-        public abstract Task CanGetVulnerabilities();
+            comparatorSet = SemanticVersion.Grammar.Range.Parse("<2.0.0").Single();
+            Assert.Equal(2, comparatorSet.Count);
+            Assert.Contains(comparatorSet, c => c.Operator == ExpressionType.LessThan);
 
-        [Fact]
-        public abstract void CanComparePackageVersions();
+            var max = comparatorSet.Single(c => c.Operator == ExpressionType.LessThan);
+            Assert.Equal(2, max.Version.Major);
+            var min = comparatorSet.Single(c => c.Operator == ExpressionType.GreaterThan);
+            Assert.Equal(0, min.Version.Major);
 
+            comparatorSet = SemanticVersion.Grammar.Range.Parse("<=3.1.4").Single();
+            Assert.Equal(2, comparatorSet.Count);
+            Assert.Contains(comparatorSet, c => c.Operator == ExpressionType.LessThanOrEqual);
+            Assert.Contains(comparatorSet, c => c.Operator == ExpressionType.GreaterThan);
 
+            max = comparatorSet.Single(c => c.Operator == ExpressionType.LessThanOrEqual);
+            Assert.Equal(3, max.Version.Major);
+            min = comparatorSet.Single(c => c.Operator == ExpressionType.GreaterThan);
+            Assert.Equal(0, min.Version.Major);
+
+            comparatorSet = SemanticVersion.Grammar.Range.Parse(">0.4.2").Single();
+            Assert.Equal(2, comparatorSet.Count);
+            Assert.Contains(comparatorSet, c => c.Operator == ExpressionType.GreaterThan);
+            Assert.Contains(comparatorSet, c => c.Operator == ExpressionType.LessThan);
+
+            max = comparatorSet.Single(c => c.Operator == ExpressionType.LessThan);
+            Assert.Equal(1000000, max.Version.Major);
+            min = comparatorSet.Single(c => c.Operator == ExpressionType.GreaterThan);
+            Assert.Equal(4, min.Version.Minor);
+
+            comparatorSet = SemanticVersion.Grammar.Range.Parse(">=2.7.1").Single();
+            Assert.Equal(2, comparatorSet.Count);
+            Assert.Contains(comparatorSet, c => c.Operator == ExpressionType.GreaterThanOrEqual);
+            Assert.Contains(comparatorSet, c => c.Operator == ExpressionType.LessThan);
+
+            max = comparatorSet.Single(c => c.Operator == ExpressionType.LessThan);
+            Assert.Equal(1000000, max.Version.Major);
+            min = comparatorSet.Single(c => c.Operator == ExpressionType.GreaterThanOrEqual);
+            Assert.Equal(1, min.Version.Patch);
+
+            comparatorSet = SemanticVersion.Grammar.Range.Parse("=4.6.6").Single();
+            Assert.Single(comparatorSet);
+            Assert.Contains(comparatorSet, c => c.Operator == ExpressionType.Equal);
+        }
+        #endregion
     }
 }

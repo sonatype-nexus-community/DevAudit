@@ -1,7 +1,7 @@
 # .NET Desktop
 # https://docs.microsoft.com/azure/devops/pipelines/apps/windows/dot-net
 
-name: Release.$(Date:yyyyMMdd).$(Rev:.r) 
+name: Rel.$(Date:yyyyMMdd).$(Rev:.r) 
 
 variables:
   releaseVersion: '3.3.0.0'
@@ -40,6 +40,36 @@ jobs:
       pathtoPublish: '$(Build.ArtifactStagingDirectory)/DevAudit_$(releaseVersion).zip'
       publishLocation: Container
       artifactName: 'DevAudit-$(releaseVersion)-Windows' 
+
+  - script: '$(Build.SourcesDirectory)/.nuget/nuget pack -Version $(nugetVersion) -IncludeReferencedProjects'
+    workingDirectory: '$(Build.SourcesDirectory)/DevAudit.AuditLibrary'
+    
+  - task: CopyFiles@2
+    inputs:
+      sourceFolder: '$(Build.SourcesDirectory)/DevAudit.AuditLibrary/' 
+      contents: 'DevAudit.AuditLibrary.$(nugetVersion).nupkg'
+      targetFolder: '$(Build.ArtifactStagingDirectory)'
+
+  - task: PublishBuildArtifacts@1
+    inputs:
+      pathtoPublish: '$(Build.ArtifactStagingDirectory)/DevAudit.AuditLibrary.$(nugetVersion).nupkg'
+      publishLocation: Container
+      artifactName: 'DevAudit.AuditLibrary.$(releaseVersion)-NuGet' 
+
+  - script: '$(Build.SourcesDirectory)/.nuget/nuget pack -Version $(nugetVersion) -IncludeReferencedProjects'
+    workingDirectory: '$(Build.SourcesDirectory)/DevAudit.CommandLine'
+    
+  - task: CopyFiles@2
+    inputs:
+      sourceFolder: '$(Build.SourcesDirectory)/DevAudit.CommandLine/' 
+      contents: 'DevAudit.CLI.$(nugetVersion).nupkg'
+      targetFolder: '$(Build.ArtifactStagingDirectory)'
+
+  - task: PublishBuildArtifacts@1
+    inputs:
+      pathtoPublish: '$(Build.ArtifactStagingDirectory)/DevAudit.CLI.$(nugetVersion).nupkg'
+      publishLocation: Container
+      artifactName: 'DevAudit.CLI.$(releaseVersion)-NuGet' 
 
 - job: Linux
   pool:

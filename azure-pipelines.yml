@@ -1,10 +1,15 @@
 # .NET Desktop
 # https://docs.microsoft.com/azure/devops/pipelines/apps/windows/dot-net
 
+name: Dev.$(Date:yyyyMMdd).$(Rev:.r)
+
 variables:
   solution: 'DevAudit.sln'
   buildPlatform: 'Any CPU'
   buildConfiguration: 'RuntimeDebug'
+
+trigger:
+- v3.x
 
 jobs:
 - job: Windows
@@ -29,7 +34,7 @@ jobs:
     vmImage: 'ubuntu-16.04'
   steps:
   - script: $(Build.SourcesDirectory)/build.sh
-  
+
   - script: docker build -t $DOCKERORGID/$DOCKERIMAGE:$DOCKERTAG .
   - script: docker login -u $DOCKERUSERID -p $DOCKERUSERPASS
   - script: docker push $DOCKERORGID/$DOCKERIMAGE:$DOCKERTAG

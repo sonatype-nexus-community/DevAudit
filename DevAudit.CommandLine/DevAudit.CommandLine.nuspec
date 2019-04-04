@@ -1,0 +1,17 @@
+<?xml version="1.0"?>
+<package >
+  <metadata>
+    <id>DevAudit.CLI</id>
+    <version>3.2.0-beta</version>
+    <title>DevAudit AuditLibrary</title>
+    <authors>Sonatype OSS Index</authors>
+    <owners>Sonatype OSS Index</owners>
+    <licenseUrl>https://github.com/OSSIndex/DevAudit/LICENSE</licenseUrl>
+    <projectUrl>https://github.com/OSSIndex/DevAudit/</projectUrl>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <description>Open-source, cross-platform, multi-purpose security auditing tool - command line interface</description>
+    <releaseNotes>Initial NuGet release.</releaseNotes>
+    <copyright>Copyright ©2019 Sonatype</copyright>
+    <tags>Security Auditing</tags>
+  </metadata>
+</package>

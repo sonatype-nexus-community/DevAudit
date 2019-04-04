@@ -15,7 +15,7 @@ namespace DevAudit.CommandLine
     {
         public Options() {}
 
-        [VerbOption("nuget", HelpText = "Audit NuGet packages. Use the --file option to specify a particular packages.config file otherwise the one in the current directory will be used.")]
+        [VerbOption("nuget", HelpText = "Audit NuGetv2 packages installed for .NET Framework libraries or applications. Use the --file option to specify a particular packages.config file otherwise the one in the current directory will be used.")]
         public Options AuditNuGet { get; set; }      
 
         [VerbOption("choco", HelpText = "Audit Chocolatey packages on Windows. Packages are scanned from C:\\ProgramData\\chocolatey.")]
@@ -39,7 +39,7 @@ namespace DevAudit.CommandLine
         [VerbOption("yum", HelpText = "Audit yum packages on Linux. The packages are scanned from the system rpm repository.")]
         public Options AuditYum { get; set; }
 
-        [VerbOption("netcore", HelpText = "Audit a .NET Core application or .NET Standard library's dependencies. Use the -f option to specify the path to the .csproj project or the .deps.json dependencies manifest file.")]
+        [VerbOption("netcore", HelpText = "Audit a .NET Core application or .NET Standard library's dependencies. Use the -f option to specify the path to the .csproj project file or the .deps.json dependencies manifest file.")]
         public Options NetCore { get; set; }
 
         [Option('d', "enable-debug", Required = false, HelpText = "Enable printing debug messages and other behavior useful for debugging the program.")]
@@ -51,8 +51,11 @@ namespace DevAudit.CommandLine
         [Option('o', "options", Required = false, HelpText = "Specify a set of comma delimited, key=value options for an audit target. E.g for a mvc5-app audit target you can specify -o package_source=mypackages.config,config_file=myapp.config")]
         public string AuditOptions { get; set; }
 
-        [Option('f', "file", Required = false, HelpText = "For a package source, specifies the file containing packages to be audited. For a code project, specifies the code project file.")]
+        [Option('f', "file", Required = false, HelpText = "For a package source specifies the package manifest or file containing packages to be audited.")]
         public string File { get; set; }
+
+        [Option('l', "lock-file", Required = false, HelpText = "For a package source specifies the lock file containing packages to be audited. For a code project, specifies the code project file.")]
+        public string LockFile { get; set; }
 
         [Option('s', "host", Required = false, HelpText = "Specifies the remote host that will be audited.")]
         public string RemoteHost { get; set; }
@@ -90,7 +93,7 @@ namespace DevAudit.CommandLine
         [Option("github-report", Required = false, HelpText = "Specify a set of comma delimited, key=value options for the GitHub audit reporter. You can specify 3 options: Owner=<owner>,Name=<repo>,Title=<title> for the repository GitHub owner, name and issue title respectively. Omitting the Title value will result in the default issue title being used.")]
         public string GitHubReporter { get; set; }
 
-        [Option('l', "gitlab", Required = false, HelpText = "Specify a set of comma delimited, key=value options for the GitLab audit environment. You can specify 3 options: Url=<url>,Project=<project>,Branch=<branch> for the GitLab host url, project name and branch respectively. Omitting the Branch value will specify the master branch by default.")]
+        [Option("gitlab", Required = false, HelpText = "Specify a set of comma delimited, key=value options for the GitLab audit environment. You can specify 3 options: Url=<url>,Project=<project>,Branch=<branch> for the GitLab host url, project name and branch respectively. Omitting the Branch value will specify the master branch by default.")]
         public string GitLabOptions { get; set; }
 
         [Option("gitlab-token", Required = false, HelpText = "Specify a GitLab OAuth token for authenticating with GitLab.")]

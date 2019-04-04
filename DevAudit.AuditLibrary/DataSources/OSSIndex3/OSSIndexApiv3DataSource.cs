@@ -32,8 +32,8 @@ namespace DevAudit.AuditLibrary
         {
             this.ApiUrl = new Uri(HOST);
             this.PackageSource = target as PackageSource;
-            this.Initialised = true;
-            this.Info = new DataSourceInfo("OSS Index", "https://ossindex.sonatype.org", "OSS Index is a free index of software information, focusing on vulnerabilities. The data has been made available to the community through a REST API as well as several open source tools. Particular focus is being made on software packages, both those used for development libraries as well as installation packages.");
+            this.Info = new DataSourceInfo("OSS Index", "https://ossindex.sonatype.org", 
+                "OSS Index is a free index of software information, focusing on vulnerabilities. The data has been made available to the community through a REST API as well as several open source tools. Particular focus is being made on software packages, both those used for development libraries as well as installation packages.");
 
             // Get an appropriate place for the cache and initialize it
             OperatingSystem os = Environment.OSVersion;
@@ -63,7 +63,9 @@ namespace DevAudit.AuditLibrary
                     cache = new FileCache(new ObjectBinder());
                     break;
             }
+            this.Initialised = true;
         }
+        
         #endregion
 
         #region Overriden methods
@@ -120,7 +122,7 @@ namespace DevAudit.AuditLibrary
                 {
                     try
                     {
-                        this.HostEnvironment.Info("------------------------------- Performing query on {0} packages", q.Count());
+                        this.HostEnvironment.Info("Performing query on {0} packages", q.Count());
 
                         List<OSSIndexApiv3Package> results = await SearchVulnerabilitiesAsync(q, this.VulnerabilitiesResultsTransform);
                         foreach (OSSIndexApiv3Package r in results)
