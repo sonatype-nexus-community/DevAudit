@@ -122,11 +122,30 @@ namespace DevAudit.AuditLibrary
                             this.PackageManagerLabel, "0.1", version);
                 return new List<string>(1) {"0.1"};
             }
-            if (version.StartsWith("git"))
+            else if (version.StartsWith("git"))
             {
-                this.AuditEnvironment.Info("Using {0} package version {1} since it specifies a git commit as its version.", 
+                this.AuditEnvironment.Info("Using {0} package version {1} since it specifies a git commit in the version field.", 
                             this.PackageManagerLabel, "0.1", version);
                 return new List<string>(1) {"0.1"};
+            }
+            else if (version.StartsWith("file"))
+            {
+                this.AuditEnvironment.Info("Using {0} package version {1} since it specifies a file in the version field.",
+                            this.PackageManagerLabel, "0.1", version);
+                return new List<string>(1) { "0.1" };
+            }
+            else if (version.StartsWith("http"))
+            {
+                this.AuditEnvironment.Info("Using {0} package version {1} since it specifies an http/https URL in the version field.",
+                            this.PackageManagerLabel, "0.1", version);
+                return new List<string>(1) { "0.1" };
+            }
+            else if (version.StartsWith("npm:"))
+            {
+                var s = version.Split('@').Last();
+                this.AuditEnvironment.Info("Using {0} package version {1} since it specifies an npm package in the version field.",
+                            this.PackageManagerLabel, s, version);
+                return new List<string>(1) { s };
             }
 
             var lcs = SemanticVersion.Grammar.Range.Parse(version);
