@@ -10,6 +10,9 @@ variables:
 
 trigger:
 - v3.x
+- v3.x_issue99
+- v3.x_issue107
+- v3.x_issue108
 
 jobs:
 - job: Windows
