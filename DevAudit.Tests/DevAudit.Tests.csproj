@@ -61,9 +61,10 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="EnvironmentTests.cs" />
-    <Compile Include="PackageSourceTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="EnvironmentTests.cs" />
+    <Compile Include="GitHubEnvironmentTests.cs" />
+    <Compile Include="PackageSourceTests.cs" />
     <Compile Include="YarnPackageSourceTests.cs" />
   </ItemGroup>
   <ItemGroup>
