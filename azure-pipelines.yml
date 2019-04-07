@@ -35,7 +35,6 @@ jobs:
   - task: VSTest@2
     inputs:
       testAssemblyVer2: '$(Build.SourcesDirectory)/DevAudit.Tests/bin/Debug/DevAudit.Tests.dll'
-      testRunTitle: 'Windows xUnit Tests'
   
 - job: Linux
   pool:
