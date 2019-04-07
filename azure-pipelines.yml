@@ -43,5 +43,5 @@ jobs:
   steps:
   - script: $(Build.SourcesDirectory)/build.sh
   - script: docker build -t $DOCKERORGID/$DOCKERIMAGE:$DOCKERTAG .
-  - script: docker login -u $DOCKERUSERID -p $DOCKERUSERPASS
+  - script: docker login -u $DOCKERUSERID -p '$DOCKERUSERPASS'
   - script: docker push $DOCKERORGID/$DOCKERIMAGE:$DOCKERTAG
