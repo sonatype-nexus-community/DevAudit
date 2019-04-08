@@ -24,11 +24,11 @@ namespace DevAudit.Tests
         }
         #endregion
 
-        #region Abstract properties
+        #region Abstract Properties
         protected abstract List<PackageSource> Sources { get; }
         #endregion
 
-        #region Abstract tests
+        #region Abstract Tsests
         public abstract void CanTestVulnerabilityVersionInPackageVersionRange();
 
         public abstract void IsDeveloperPackageSource();
@@ -59,6 +59,7 @@ namespace DevAudit.Tests
             Assert.All(Sources, s => Assert.NotEmpty(s.GetPackages()));
         }
 
+        [Fact]
         public virtual void CanGetVulnerabilities()
         {
             Assert.All(Sources, s => Assert.Equal(AuditTarget.AuditResult.SUCCESS, s.Audit(Cts.Token)));

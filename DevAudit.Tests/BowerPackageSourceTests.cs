@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -12,26 +12,25 @@ using DevAudit.AuditLibrary;
 
 namespace DevAudit.Tests
 {
-    public class Yarn : PackageSourceTests 
+    public class Bower : PackageSourceTests 
     {
         #region Overriden Members
         protected override List<PackageSource> Sources { get; } =
             new List<PackageSource>()
             { 
-                new YarnPackageSource(new Dictionary<string, object>()
+                new BowerPackageSource(new Dictionary<string, object>()
                 { 
-                    {"File", @".\Examples\package.json.1" }
+                    {"File", @".\Examples\bower.json.2" }
             
                 }, EnvironmentMessageHandler),
-                new YarnPackageSource(new Dictionary<string, object>()
+                new BowerPackageSource(new Dictionary<string, object>()
                 { 
-                    {"File", @".\Examples\package.json.2" },
-                    {"LockFile", @".\Examples\yarn.lock.2"}
+                    {"File", @".\Examples\bower.json.example" }
             
                 }, EnvironmentMessageHandler),
-                new YarnPackageSource(new Dictionary<string, object>()
+                new BowerPackageSource(new Dictionary<string, object>()
                 { 
-                    {"File", @".\Examples\package.json.3" }
+                    {"File", @".\Examples\bower.json.example.2" }
             
                 }, EnvironmentMessageHandler)
             };
@@ -45,14 +44,8 @@ namespace DevAudit.Tests
             Assert.True(Sources[0].IsVulnerabilityVersionInPackageVersionRange("<=4.3", "<4.2"));
             Assert.True(Sources[0].IsVulnerabilityVersionInPackageVersionRange(">=1.2.2", ">1.2.0-alpha.0"));
             Assert.True(Sources[0].IsVulnerabilityVersionInPackageVersionRange(">12.2.2", "<=20.0.0"));
-        }
-
-        [Fact]
-        public override void CanGetVulnerabilities()
-        {
-            base.CanGetVulnerabilities();
-            Assert.NotEmpty(Sources[1].Vulnerabilities.SelectMany(v => v.Value));
-            Assert.Empty(Sources[0].Vulnerabilities.SelectMany(v => v.Value));
+            Assert.True(Sources[0].IsVulnerabilityVersionInPackageVersionRange(">12.2.2", "<=20.0.0"));
+            //Fixme: Assert.True(Sources[0].IsVulnerabilityVersionInPackageVersionRange("1.3.x - 1.5.x", ">1.4.1"));
         }
 
         [Fact]

@@ -17,10 +17,6 @@ namespace DevAudit.Tests
 {
     public abstract class EnvironmentTests
     {
-        #region Constructors
-        public EnvironmentTests() {}
-        #endregion
-
         #region Abstract Properties
         protected abstract AuditEnvironment Env {get; }
 
@@ -60,12 +56,10 @@ namespace DevAudit.Tests
             Assert.All(FilesToTestExistence, f => Assert.True(Env.ConstructFile(f).Exists));
         }
 
-
         [Fact]
         public void CanReadFiles()
         {
-            Assert.All(FilesToRead, f => Assert.True(Env.ConstructFile(f.Key).ReadAsText().Contains(f.Value)));
-
+            Assert.All(FilesToRead, f => Assert.Contains(f.Value, Env.ConstructFile(f.Key).ReadAsText()));
         }
 
         [Fact]
