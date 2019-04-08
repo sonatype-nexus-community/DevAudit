@@ -61,7 +61,8 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="BowerPackageSourceTests.cs" />
+    <Compile Include="PackageSources\BowerPackageSourceTests.cs" />
+    <Compile Include="PackageSources\NuGetv2PackageSourceTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Base\EnvironmentTests.cs" />
     <Compile Include="Base\PackageSourceTests.cs" />
@@ -81,7 +82,9 @@
       <Name>DevAudit.AuditLibrary</Name>
     </ProjectReference>
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <Folder Include="Environments\" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
     <PropertyGroup>

@@ -10,7 +10,7 @@ using Xunit;
 
 using DevAudit.AuditLibrary;
 
-namespace DevAudit.Tests
+namespace DevAudit.Tests.VMRequired
 {
     public class Ssh : EnvironmentTests 
     {
