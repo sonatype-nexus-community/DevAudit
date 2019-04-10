@@ -8,12 +8,6 @@ variables:
   buildPlatform: 'Any CPU'
   buildConfiguration: 'RuntimeDebug'
 
-trigger:
-- v3.x
-- v3.x_issue99
-- v3.x_issue107
-- v3.x_issue108
-
 jobs:
 - job: Windows
   pool:
@@ -41,6 +35,3 @@ jobs:
     vmImage: 'ubuntu-16.04'
   steps:
   - script: $(Build.SourcesDirectory)/build.sh
-  - script: docker build -t $DOCKERORGID/$DOCKERIMAGE:$DOCKERTAG .
-  - script: docker login -u $DOCKERUSERID -p '$DOCKERUSERPASS'
-  - script: docker push $DOCKERORGID/$DOCKERIMAGE:$DOCKERTAG
