@@ -11,7 +11,6 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
-
 using CL = CommandLine; //Avoid type name conflict with external CommandLine library
 using CC = Colorful; //Avoid type name conflict with System Console class
 
@@ -31,9 +30,6 @@ namespace DevAudit.CommandLine
 
         static PackageSource Source { get; set; }
         
-
-        static Container Container { get; set; }
-
         static Exception AuditLibraryException { get; set; }
 
         static Spinner Spinner { get; set; }
@@ -110,15 +106,33 @@ namespace DevAudit.CommandLine
             }
             #endregion
 
+            #region File cache
+            if (ProgramOptions.NoCache)
+            {
+                audit_options.Add("NoCache", true);
+            }
+
+            if (ProgramOptions.DeleteCache)
+            {
+                audit_options.Add("DeleteCache", true);
+            }
+            #endregion
+
+            #region Docker container host environment
             if (!string.IsNullOrEmpty(Environment.GetEnvironmentVariable("DOCKER")))
             {
                 audit_options.Add("Dockerized", true);
             }
+            #endregion
 
+            #region Local Docker container audit environment
             if (!string.IsNullOrEmpty(ProgramOptions.DockerContainerId) && string.IsNullOrEmpty(ProgramOptions.RemoteHost))
             {
                 audit_options.Add("DockerContainer", ProgramOptions.DockerContainerId);
             }
+            #endregion
+
+            #region Remote Docker container audit environment
             else if (!string.IsNullOrEmpty(ProgramOptions.DockerContainerId) && !string.IsNullOrEmpty(ProgramOptions.RemoteHost))
             {
                 audit_options.Add("DockerContainer", ProgramOptions.DockerContainerId);
@@ -180,6 +194,9 @@ namespace DevAudit.CommandLine
                 }
                 #endregion
             }
+            #endregion
+
+            #region WinRM audit environment
             else if (!string.IsNullOrEmpty(ProgramOptions.RemoteHost) && ProgramOptions.WinRm)
             {
                 if (Uri.CheckHostName(ProgramOptions.RemoteHost) == UriHostNameType.IPv4 || Uri.CheckHostName(ProgramOptions.RemoteHost) == UriHostNameType.IPv6)
@@ -205,7 +222,7 @@ namespace DevAudit.CommandLine
                     return (int)Exit;
                 }
 
-                #region User and password
+                #region Remote user and password
                 if (!string.IsNullOrEmpty(ProgramOptions.RemoteUser))
                 {
                     audit_options.Add("RemoteUser", ProgramOptions.RemoteUser);
@@ -229,11 +246,12 @@ namespace DevAudit.CommandLine
                 {
                     PrintErrorMessage("You must specify the Windows user to authenticate with the remote host.");
                     return (int)Exit;
-
                 }
                 #endregion
-
             }
+            #endregion
+
+            #region SSH audit environment
             else if (!string.IsNullOrEmpty(ProgramOptions.RemoteHost) && string.IsNullOrEmpty(ProgramOptions.DockerContainerId))
             {
                 if (Uri.CheckHostName(ProgramOptions.RemoteHost) == UriHostNameType.Unknown)
@@ -252,7 +270,7 @@ namespace DevAudit.CommandLine
                     audit_options.Add("RemoteSshPort", ProgramOptions.RemoteSshPort);
                 }
 
-                #region User and password or key file
+                #region Remote user and password or key file
                 if (!string.IsNullOrEmpty(ProgramOptions.RemoteUser))
                 {
                     audit_options.Add("RemoteUser", ProgramOptions.RemoteUser);
@@ -294,9 +312,9 @@ namespace DevAudit.CommandLine
                 }
                 #endregion
             }
+            #endregion
 
-
-            #region GitHub
+            #region GitHub audit environment
             if (!string.IsNullOrEmpty(ProgramOptions.GitHubToken))
             {
                 audit_options.Add("GitHubToken", ProgramOptions.GitHubToken);
@@ -399,7 +417,7 @@ namespace DevAudit.CommandLine
             }
             #endregion
 
-            #region GitLab
+            #region GitLab audit environment
             if (!string.IsNullOrEmpty(ProgramOptions.GitLabToken))
             {
                 audit_options.Add("GitLabToken", ProgramOptions.GitLabToken);
@@ -502,7 +520,7 @@ namespace DevAudit.CommandLine
             }
             #endregion
 
-            #region BitBucket
+            #region BitBucket audit environment
             if (!string.IsNullOrEmpty(ProgramOptions.BitBucketKey))
             {
                 string[] components = ProgramOptions.BitBucketKey.Split('|');
@@ -561,6 +579,8 @@ namespace DevAudit.CommandLine
                 }
             }
             #endregion
+            
+            #region Package source options
             if (ProgramOptions.ListPackages)
             {
                 audit_options.Add("ListPackages", ProgramOptions.ListPackages);
@@ -571,11 +591,16 @@ namespace DevAudit.CommandLine
                 audit_options.Add("File", ProgramOptions.File);
             }
 
+            if (!string.IsNullOrEmpty(ProgramOptions.LockFile))
+            {
+                audit_options.Add("LockFile", ProgramOptions.LockFile);
+            }
+
             if (!string.IsNullOrEmpty(ProgramOptions.RootDirectory))
             {
                 audit_options.Add("RootDirectory", ProgramOptions.RootDirectory);
             }
-
+        
             if(!string.IsNullOrEmpty(ProgramOptions.AuditOptions))
             {
                 Dictionary<string, object> parsed_options = Options.Parse(ProgramOptions.AuditOptions);
@@ -586,7 +611,6 @@ namespace DevAudit.CommandLine
                 }                
                 else if (parsed_options.Where(o => o.Key == "_ERROR_").Count() > 0)
                 {
-
                     string error_options = parsed_options.Where(o => o.Key == "_ERROR_").Select(kv => (string)kv.Value).Aggregate((s1, s2) => s1 + Environment.NewLine + s2);
                     PrintErrorMessage("There was an error parsing the following options {0}.", error_options);
                     parsed_options = parsed_options.Where(o => o.Key != "_ERROR_").ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
@@ -604,7 +628,9 @@ namespace DevAudit.CommandLine
                     }
                 }
             }
-            #region Profile
+            #endregion
+
+            #region Audit profile
             if (!string.IsNullOrEmpty(ProgramOptions.Profile))
             {
                 audit_options.Add("Profile", ProgramOptions.Profile);
@@ -637,7 +663,7 @@ namespace DevAudit.CommandLine
                     Stopwatch.Start();
                     if (verb == "nuget")
                     {
-                        Source = new NuGetPackageSource(audit_options, EnvironmentMessageHandler);
+                        Source = new NuGetv2PackageSource(audit_options, EnvironmentMessageHandler);
                     }
                     else if (verb == "netcore")
                     {
@@ -1031,7 +1057,7 @@ static void EnvironmentMessageHandler(object sender, EnvironmentEventArgs e)
             }
             else
             {
-                PrintMessage(ConsoleColor.DarkRed, "Exception: {0}", e.Message);
+                PrintMessage(ConsoleColor.DarkRed, "{0}", e.Message);
                 if (e.InnerException != null)
                 {
                     PrintMessageLine(ConsoleColor.DarkRed, " Inner Exception: {0}", e.InnerException.Message);
@@ -1247,7 +1273,6 @@ static void EnvironmentMessageHandler(object sender, EnvironmentEventArgs e)
             r.MakeReadOnly();
             return r;
         }
-
 
         static void Program_UnhandledException(object sender, UnhandledExceptionEventArgs e)
         {

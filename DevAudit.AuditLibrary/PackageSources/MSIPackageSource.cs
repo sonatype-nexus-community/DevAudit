@@ -15,6 +15,7 @@ namespace DevAudit.AuditLibrary
 {
     public class MSIPackageSource : PackageSource
     { 
+        #region Overriden members
         public override string PackageManagerId { get { return "msi"; } }
 
         public override string PackageManagerLabel { get { return "MSI"; } }
@@ -78,8 +79,10 @@ namespace DevAudit.AuditLibrary
         {
             return vulnerability_version == package_version;
         }
+        #endregion
 
+        #region Constuctors
         public MSIPackageSource(Dictionary<string, object> package_source_options, EventHandler<EnvironmentEventArgs> message_handler) : base(package_source_options, message_handler) { }
-
+        #endregion
     }
 }

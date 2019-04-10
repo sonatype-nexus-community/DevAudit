@@ -31,7 +31,7 @@ namespace DevAudit.AuditLibrary
         }
         #endregion
 
-        #region Overriden properties and methods
+        #region Overriden members
         public override string PackageManagerId { get { return "dpkg"; } }
 
         public override string PackageManagerLabel { get { return "dpkg"; } }

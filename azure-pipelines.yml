@@ -8,9 +8,6 @@ variables:
   buildPlatform: 'Any CPU'
   buildConfiguration: 'RuntimeDebug'
 
-trigger:
-- v3.x
-
 jobs:
 - job: Windows
   pool:
@@ -29,12 +26,13 @@ jobs:
       platform: '$(buildPlatform)'
       configuration: '$(buildConfiguration)'
 
+  - task: VSTest@2
+    inputs:
+      testAssemblyVer2: '$(Build.SourcesDirectory)/DevAudit.Tests/bin/Debug/DevAudit.Tests.dll'
+      
 - job: Linux
   pool:
     vmImage: 'ubuntu-16.04'
   steps:
   - script: $(Build.SourcesDirectory)/build.sh
-
-  - script: docker build -t $DOCKERORGID/$DOCKERIMAGE:$DOCKERTAG .
-  - script: docker login -u $DOCKERUSERID -p $DOCKERUSERPASS
-  - script: docker push $DOCKERORGID/$DOCKERIMAGE:$DOCKERTAG
+  

@@ -44,7 +44,7 @@ namespace DevAudit.AuditLibrary
             if (ReferenceEquals(audit_options, null)) throw new ArgumentNullException("audit_options");
             this.AuditOptions = audit_options;
 
-            #region Initialise host environment
+            #region Setup host environment
             if (this.AuditOptions.ContainsKey("HostEnvironment"))
             {
                 this.HostEnvironment = (LocalEnvironment)this.AuditOptions["HostEnvironment"];
@@ -64,7 +64,7 @@ namespace DevAudit.AuditLibrary
             }
             #endregion
 
-            #region Initialise audit environment
+            #region Setup audit environment
             if (this.AuditOptions.ContainsKey("AuditEnvironment"))
             {
                 this.AuditEnvironment = (AuditEnvironment)this.AuditOptions["AuditEnvironment"];
@@ -330,25 +330,48 @@ namespace DevAudit.AuditLibrary
             }
             #endregion
 
+            #region Setup data source options
+            if (this.AuditOptions.ContainsKey("NoCache"))
+            {
+                this.DataSourceOptions.Add("NoCache", true);
+            }
+
+            if (this.AuditOptions.ContainsKey("DeleteCache"))
+            {
+                this.DataSourceOptions.Add("DeleteCache", true);
+            }
+
             if (this.AuditOptions.ContainsKey("HttpsProxy"))
             {
-                this.HostEnvironment.Info("Using proxy {0}.", ((Uri)AuditOptions["HttpsProxy"]).AbsoluteUri);
+                DataSourceOptions.Add("HttpsProxy", (Uri)this.AuditOptions["HttpsProxy"]);
             }
+
             if (this.AuditOptions.ContainsKey("IgnoreHttpsCertErrors"))
             {
                 this.DataSourceOptions.Add("IgnoreHttpsCertErrors", true);
             }
+
             if (this.AuditOptions.ContainsKey("WithOSSI")) 
             {
-                // this.DataSources.Add(new OSSIndexDataSource(this, this.DataSourceOptions));
                 this.DataSources.Add(new OSSIndexApiv3DataSource(this, DataSourceOptions));
             }
+
             if (this.AuditOptions.ContainsKey("WithVulners"))
             {
                 this.DataSources.Add(new VulnersDataSource(this, DataSourceOptions));
             }
+            #endregion
+
+            #region Setup audit profile
+            if (this.AuditEnvironment.FileExists("devaudit.yml"))
+            {
+                this.AuditProfile = new AuditProfile(this.AuditEnvironment, this.AuditEnvironment.ConstructFile("devaudit.yml"));
+            }
+
+            #endregion
         }
 
+        #region Event Handlers
         private void AuditTarget_HostEnvironmentMessageHandler(object sender, EnvironmentEventArgs e)
         {
             e.EnvironmentLocation = "HOST";
@@ -366,6 +389,8 @@ namespace DevAudit.AuditLibrary
             e.EnvironmentLocation = "SCRIPT";
             this.ControllerMessage.Invoke(sender, e);
         }
+        #endregion
+
         #endregion
 
         #region Events
@@ -492,6 +517,5 @@ namespace DevAudit.AuditLibrary
             Dispose(false);
         }
         #endregion
-
     }
 }

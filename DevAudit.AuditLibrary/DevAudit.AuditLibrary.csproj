@@ -92,9 +92,8 @@
       <HintPath>..\packages\SharpYaml.1.6.1\lib\net45\SharpYaml.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="Versatile.Core, Version=0.2.2.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Versatile.0.2.2.0\lib\net45\Versatile.Core.dll</HintPath>
-      <Private>True</Private>
+    <Reference Include="Versatile.Core, Version=0.2.6.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Versatile.0.2.6\lib\net45\Versatile.Core.dll</HintPath>
     </Reference>
     <Reference Include="YamlDotNet, Version=5.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\YamlDotNet.5.2.1\lib\net45\YamlDotNet.dll</HintPath>
@@ -218,9 +217,7 @@
     <Compile Include="Audit\AuditProfile.cs" />
     <Compile Include="Audit\AuditProfileRule.cs" />
     <Compile Include="Base\AuditReporter.cs" />
-    <Compile Include="Containers\DockerContainer.cs" />
     <Compile Include="Environments\Models\ProcessInfo.cs" />
-    <Compile Include="Audit\Utility.cs" />
     <Compile Include="Audit\DataSourceInfo.cs" />
     <Compile Include="DataSources\OSSIndex3\Models\OSSIndexApiv3Package.cs" />
     <Compile Include="DataSources\OSSIndex3\Models\OSSIndexApiv3Vulnerability.cs" />
@@ -233,7 +230,7 @@
     <Compile Include="DataSources\Vulnersdotcom\Models\VulnersIdSearchResult.cs" />
     <Compile Include="DataSources\Vulnersdotcom\Models\VulnersSearchQuery.cs" />
     <Compile Include="DataSources\Vulnersdotcom\Models\VulnersSearchResult.cs" />
-    <Compile Include="DataSources\HttpException.cs" />
+    <Compile Include="Audit\HttpException.cs" />
     <Compile Include="DataSources\Vulnersdotcom\VulnersDataSource.cs" />
     <Compile Include="Environments\Models\EnvironmentEventArgs.cs" />
     <Compile Include="Environments\DockerAuditFileInfo.cs" />
@@ -243,7 +240,7 @@
     <Compile Include="Environments\WinRmAuditDirectoryInfo.cs" />
     <Compile Include="Environments\WinRmAuditFileInfo.cs" />
     <Compile Include="Environments\WinRmAuditEnvironment.cs" />
-    <Compile Include="DataSources\HttpDataSource.cs" />
+    <Compile Include="Base\HttpDataSource.cs" />
     <Compile Include="Base\IArtifact.cs" />
     <Compile Include="Base\IDataSource.cs" />
     <Compile Include="Environments\DockerAuditDirectoryInfo.cs" />
@@ -255,8 +252,7 @@
     <Compile Include="Base\IOperatingSystemEnvironment.cs" />
     <Compile Include="Base\IPackage.cs" />
     <Compile Include="Base\IVulnerability.cs" />
-    <Compile Include="DataSources\LocalDataSource.cs" />
-    <Compile Include="Targets\Container.cs" />
+    <Compile Include="Base\LocalDataSource.cs" />
     <Compile Include="Audit\Vulnerability.cs" />
     <Compile Include="PackageSources\YarnPackageSource.cs" />
     <Compile Include="Base\AuditFileSystemInfo.cs" />
@@ -277,6 +273,7 @@
     <Compile Include="Base\AuditDirectoryInfo.cs" />
     <Compile Include="Base\AuditFileInfo.cs" />
     <Compile Include="Base\AuditTarget.cs" />
+    <Compile Include="Base\IDeveloperPackageSource.cs" />
     <Compile Include="Environments\LocalEnvironment.cs" />
     <Compile Include="Audit\Package.cs" />
     <Compile Include="Targets\PackageSource.cs" />
@@ -287,7 +284,7 @@
     <Compile Include="PackageSources\RpmPackageSource.cs" />
     <Compile Include="PackageSources\YumPackageSource.cs" />
     <Compile Include="PackageSources\MSIPackageSource.cs" />
-    <Compile Include="PackageSources\NuGetPackageSource.cs" />
+    <Compile Include="PackageSources\NuGetv2PackageSource.cs" />
     <Compile Include="PackageSources\NetCorePackageSource.cs" />
     <Compile Include="PackageSources\OneGetPackageSource.cs" />
     <Compile Include="Environments\SshAuditEnvironment.cs" />
@@ -318,17 +315,17 @@
   <Target Name="BeforeBuild">
   </Target> -->
   <Target Name="AfterBuild">
-    <Delete Files="$(SolutionDir)Examples\**\*.*" Condition="Exists('$(SolutionDir)Examples')" />
-    <Delete Files="$(SolutionDir)DevAudit.CommandLine\bin\Debug\Examples\**\*.*" Condition="Exists('$(SolutionDir)DevAudit.CommandLine\bin\Debug\Examples')" />
-    <Delete Files="$(SolutionDir)DevAudit.Tests\bin\Debug\Examples\**\*.*" Condition="Exists('$(SolutionDir)DevAudit.Tests\bin\Debug\Examples')" />
-    <RemoveDir Directories="$([System.IO.Directory]::GetDirectories(&quot;$(SolutionDir)Examples&quot;))" Condition="Exists('$(SolutionDir)Examples')" />
-    <RemoveDir Directories="$([System.IO.Directory]::GetDirectories(&quot;$(SolutionDir)DevAudit.CommandLine\bin\Debug\Examples&quot;))" Condition="Exists('$(SolutionDir)DevAudit.CommandLine\bin\Debug\Examples')" />
-    <RemoveDir Directories="$([System.IO.Directory]::GetDirectories(&quot;$(SolutionDir)DevAudit.Tests\bin\Debug\Examples&quot;))" Condition="Exists('$(SolutionDir)DevAudit.Tests\bin\Debug\Examples')" />
-    <MakeDir Directories="$(SolutionDir)Examples" Condition="!Exists('$(SolutionDir)Examples')" />
-    <MakeDir Directories="$(SolutionDir)DevAudit.CommandLine\bin\Debug\Examples" Condition="!Exists('$(SolutionDir)DevAudit.CommandLine\bin\Debug\Examples')" />
-    <MakeDir Directories="$(SolutionDir)DevAudit.Tests\bin\Debug\Examples" Condition="!Exists('$(SolutionDir)DevAudit.Tests\bin\Debug\Examples')" />
-    <Copy SourceFiles="@(Examples)" DestinationFiles="@(Examples->'$(SolutionDir)Examples\%(RecursiveDir)%(Filename)%(Extension)')" />
-    <Copy SourceFiles="@(Examples)" DestinationFiles="@(Examples->'$(SolutionDir)DevAudit.CommandLine\bin\Debug\Examples\%(RecursiveDir)%(Filename)%(Extension)')" />
-    <Copy SourceFiles="@(Examples)" DestinationFiles="@(Examples->'$(SolutionDir)DevAudit.Tests\bin\Debug\Examples\%(RecursiveDir)%(Filename)%(Extension)')" />
+    <Delete Files="$(SolutionDir)Examples\**\*.*" Condition="'$(SolutionDir)' != '*Undefined*' AND Exists('$(SolutionDir)Examples')" />
+    <Delete Files="$(SolutionDir)DevAudit.CommandLine\bin\Debug\Examples\**\*.*" Condition="'$(SolutionDir)' != '*Undefined*' AND Exists('$(SolutionDir)DevAudit.CommandLine\bin\Debug\Examples')" />
+    <Delete Files="$(SolutionDir)DevAudit.Tests\bin\Debug\Examples\**\*.*" Condition="'$(SolutionDir)' != '*Undefined*' AND Exists('$(SolutionDir)DevAudit.Tests\bin\Debug\Examples')" />
+    <RemoveDir Directories="$([System.IO.Directory]::GetDirectories(&quot;$(SolutionDir)Examples&quot;))" Condition="'$(SolutionDir)' != '*Undefined*' AND Exists('$(SolutionDir)Examples')" />
+    <RemoveDir Directories="$([System.IO.Directory]::GetDirectories(&quot;$(SolutionDir)DevAudit.CommandLine\bin\Debug\Examples&quot;))" Condition="'$(SolutionDir)' != '*Undefined*' AND Exists('$(SolutionDir)DevAudit.CommandLine\bin\Debug\Examples')" />
+    <RemoveDir Directories="$([System.IO.Directory]::GetDirectories(&quot;$(SolutionDir)DevAudit.Tests\bin\Debug\Examples&quot;))" Condition="'$(SolutionDir)' != '*Undefined*' AND Exists('$(SolutionDir)DevAudit.Tests\bin\Debug\Examples')" />
+    <MakeDir Directories="$(SolutionDir)Examples" Condition="'$(SolutionDir)' != '*Undefined*' AND !Exists('$(SolutionDir)Examples')" />
+    <MakeDir Directories="$(SolutionDir)DevAudit.CommandLine\bin\Debug\Examples" Condition="'$(SolutionDir)' != '*Undefined*' AND !Exists('$(SolutionDir)DevAudit.CommandLine\bin\Debug\Examples')" />
+    <MakeDir Directories="$(SolutionDir)DevAudit.Tests\bin\Debug\Examples" Condition="'$(SolutionDir)' != '*Undefined*' AND !Exists('$(SolutionDir)DevAudit.Tests\bin\Debug\Examples')" />
+    <Copy SourceFiles="@(Examples)" DestinationFiles="@(Examples->'$(SolutionDir)Examples\%(RecursiveDir)%(Filename)%(Extension)')" Condition="'$(SolutionDir)' != '*Undefined*'" />
+    <Copy SourceFiles="@(Examples)" DestinationFiles="@(Examples->'$(SolutionDir)DevAudit.CommandLine\bin\Debug\Examples\%(RecursiveDir)%(Filename)%(Extension)')" Condition="'$(SolutionDir)' != '*Undefined*'" />
+    <Copy SourceFiles="@(Examples)" DestinationFiles="@(Examples->'$(SolutionDir)DevAudit.Tests\bin\Debug\Examples\%(RecursiveDir)%(Filename)%(Extension)')" Condition="'$(SolutionDir)' != '*Undefined*'" />
   </Target>
 </Project>
