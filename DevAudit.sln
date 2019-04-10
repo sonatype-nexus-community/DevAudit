@@ -32,6 +32,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		docker\tests\run-httpd-container.sh = docker\tests\run-httpd-container.sh
 		docker\tests\run-mysql-container.sh = docker\tests\run-mysql-container.sh
 		docker\tests\run-pgsql-container.sh = docker\tests\run-pgsql-container.sh
+		test.cmd = test.cmd
 	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DevAudit.Tests", "DevAudit.Tests\DevAudit.Tests.csproj", "{69D9BD41-1B7C-4DC0-9B06-1DDAA8F7BBA6}"
