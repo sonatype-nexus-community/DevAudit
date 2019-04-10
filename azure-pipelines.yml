@@ -30,18 +30,5 @@ jobs:
   pool:
     vmImage: 'ubuntu-16.04'
   steps:
-  - task: NuGetToolInstaller@0
-  - task: NuGetCommand@2
-    inputs:
-      restoreSolution: '$(solution)'
-      feedsToUse: 'config'
-      nugetConfigPath: 'NuGet.Config'
-
-  - task: VSBuild@1
-    inputs:
-      solution: '$(solution)'
-      platform: '$(buildPlatform)'
-      configuration: '$(buildConfiguration)'
-  
-  - script: dotnet test
+  - script: $(Build.SourcesDirectory)/build.sh
   
