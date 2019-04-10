@@ -26,6 +26,10 @@ jobs:
       platform: '$(buildPlatform)'
       configuration: '$(buildConfiguration)'
 
+  - task: VSTest@2
+    inputs:
+      testAssemblyVer2: '$(Build.SourcesDirectory)/DevAudit.Tests/bin/Debug/DevAudit.Tests.dll'
+      
 - job: Linux
   pool:
     vmImage: 'ubuntu-16.04'
