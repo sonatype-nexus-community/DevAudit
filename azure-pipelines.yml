@@ -8,9 +8,6 @@ variables:
   buildPlatform: 'Any CPU'
   buildConfiguration: 'RuntimeDebug'
 
-trigger:
-- v3.x
-
 jobs:
 - job: Windows
   pool:
