@@ -3,6 +3,9 @@
 
 name: Dev.$(Date:yyyyMMdd).$(Rev:.r)
 
+trigger:
+- v3.x
+
 variables:
   solution: 'DevAudit.sln'
   buildPlatform: 'Any CPU'
