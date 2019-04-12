@@ -1,0 +1,26 @@
+{
+  "name": "example-app",
+  "version": "0.0.1",
+  "main": "public/javascripts/app.js",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components"
+  ],
+  "dependencies": {
+    "chaplin": "~0.11.0",
+    "console-polyfill": "~0.1.0",
+    "lodash": "~2.1.0",
+    "jquery": "~2.0.2",
+    "normalize-css": "~2.1.2"
+  },
+  "overrides": {
+    "backbone": {
+      "dependencies": {
+        "lodash": "*",
+        "jquery": "*"
+      },
+      "main": "backbone.js"
+    }
+  }
+}

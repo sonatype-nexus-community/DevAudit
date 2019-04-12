@@ -34,12 +34,28 @@ namespace DevAudit.AuditLibrary
             this.HostEnvironment = target.HostEnvironment;
             this.AuditEnvironment = target.AuditEnvironment;
             this.Target = target;
-            if (this.Target.AuditOptions.ContainsKey("HttpsProxy"))
+            if (this.DataSourceOptions.ContainsKey("HttpsProxy"))
             {
-                this.DataSourceOptions.Add("HttpsProxy", (Uri)this.Target.AuditOptions["HttpsProxy"]);
                 HttpsProxy = (Uri) this.Target.AuditOptions["HttpsProxy"];
             }
-            
+
+            if (this.DataSourceOptions.Keys.Contains("NoCache"))
+            {
+                NoCache = true;
+            }
+            else
+            {
+                DeleteCache = false;
+            }
+
+            if (this.DataSourceOptions.Keys.Contains("DeleteCache"))
+            {
+                DeleteCache = true;
+            }
+            else
+            {
+                DeleteCache = false;
+            }
         }
         #endregion
 
@@ -61,6 +77,8 @@ namespace DevAudit.AuditLibrary
         public bool DataSourceInitialised { get; protected set; } = false;
         public Uri ApiUrl { get; protected set; }
         public Uri HttpsProxy { get; protected set; }
+        public bool NoCache { get; protected set; }
+        public bool DeleteCache { get; protected set; }
         public bool Initialised { get; protected set; }
         public DataSourceInfo Info { get; set; } = new DataSourceInfo();
         protected Version LibraryVersion { get; set; } = Assembly.GetExecutingAssembly().GetName().Version;
@@ -75,6 +93,7 @@ namespace DevAudit.AuditLibrary
             handler.ServerCertificateValidationCallback += RemoteCertificateValidationCallback;
             if (this.HttpsProxy != null)
             {
+                this.HostEnvironment.Info("Using proxy {0}.", HttpsProxy.AbsoluteUri);
                 handler.Proxy = new WebProxy(this.HttpsProxy, false);
                 handler.UseProxy = true;
             }

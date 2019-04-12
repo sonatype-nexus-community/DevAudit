@@ -51,6 +51,12 @@ namespace DevAudit.CommandLine
         [Option('o', "options", Required = false, HelpText = "Specify a set of comma delimited, key=value options for an audit target. E.g for a mvc5-app audit target you can specify -o package_source=mypackages.config,config_file=myapp.config")]
         public string AuditOptions { get; set; }
 
+        [Option("no-cache", Required = false, HelpText = "Don't use file cache of vulnerabilities data.")]
+        public bool NoCache { get; set; }
+
+        [Option("delete-cache", Required = false, HelpText = "Delete file cache of vulnerabilities data.")]
+        public bool DeleteCache { get; set; }
+
         [Option('f', "file", Required = false, HelpText = "For a package source specifies the package manifest or file containing packages to be audited.")]
         public string File { get; set; }
 

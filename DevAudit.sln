@@ -13,6 +13,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Renci.SshNet", "Renci.SshNe
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{214479BB-441E-4A96-8F67-74690790AD98}"
 	ProjectSection(SolutionItems) = preProject
+		azure-pipelines.yml = azure-pipelines.yml
+		build-netcore.cmd = build-netcore.cmd
 		build-release.cmd = build-release.cmd
 		build-release.sh = build-release.sh
 		build.cmd = build.cmd
@@ -31,9 +33,12 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		docker\tests\run-httpd-container.sh = docker\tests\run-httpd-container.sh
 		docker\tests\run-mysql-container.sh = docker\tests\run-mysql-container.sh
 		docker\tests\run-pgsql-container.sh = docker\tests\run-pgsql-container.sh
+		test.cmd = test.cmd
 	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DevAudit.Tests", "DevAudit.Tests\DevAudit.Tests.csproj", "{69D9BD41-1B7C-4DC0-9B06-1DDAA8F7BBA6}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DevAudit.Tests.VMRequired", "DevAudit.Tests.VMRequired\DevAudit.Tests.VMRequired.csproj", "{9136CDB4-7E20-47F2-986D-D57B9AEB70D4}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -41,6 +46,7 @@ Global
 		Nuget|Any CPU = Nuget|Any CPU
 		Release|Any CPU = Release|Any CPU
 		RuntimeDebug|Any CPU = RuntimeDebug|Any CPU
+		VMRequiredTests|Any CPU = VMRequiredTests|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
 		{36F663F6-4B5C-441F-B11A-9CC556D1C1FE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
@@ -51,6 +57,8 @@ Global
 		{36F663F6-4B5C-441F-B11A-9CC556D1C1FE}.Release|Any CPU.Build.0 = Release|Any CPU
 		{36F663F6-4B5C-441F-B11A-9CC556D1C1FE}.RuntimeDebug|Any CPU.ActiveCfg = Debug|Any CPU
 		{36F663F6-4B5C-441F-B11A-9CC556D1C1FE}.RuntimeDebug|Any CPU.Build.0 = Debug|Any CPU
+		{36F663F6-4B5C-441F-B11A-9CC556D1C1FE}.VMRequiredTests|Any CPU.ActiveCfg = Debug|Any CPU
+		{36F663F6-4B5C-441F-B11A-9CC556D1C1FE}.VMRequiredTests|Any CPU.Build.0 = Debug|Any CPU
 		{86EE75FC-D05D-42BC-B2C2-B80CF3734332}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{86EE75FC-D05D-42BC-B2C2-B80CF3734332}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{86EE75FC-D05D-42BC-B2C2-B80CF3734332}.Nuget|Any CPU.ActiveCfg = Build|Any CPU
@@ -59,6 +67,8 @@ Global
 		{86EE75FC-D05D-42BC-B2C2-B80CF3734332}.Release|Any CPU.Build.0 = Release|Any CPU
 		{86EE75FC-D05D-42BC-B2C2-B80CF3734332}.RuntimeDebug|Any CPU.ActiveCfg = Debug|Any CPU
 		{86EE75FC-D05D-42BC-B2C2-B80CF3734332}.RuntimeDebug|Any CPU.Build.0 = Debug|Any CPU
+		{86EE75FC-D05D-42BC-B2C2-B80CF3734332}.VMRequiredTests|Any CPU.ActiveCfg = Debug|Any CPU
+		{86EE75FC-D05D-42BC-B2C2-B80CF3734332}.VMRequiredTests|Any CPU.Build.0 = Debug|Any CPU
 		{8AA52B5E-DB66-4B0B-AABA-9E6900BC3D5A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{8AA52B5E-DB66-4B0B-AABA-9E6900BC3D5A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{8AA52B5E-DB66-4B0B-AABA-9E6900BC3D5A}.Nuget|Any CPU.ActiveCfg = Nuget|Any CPU
@@ -67,6 +77,8 @@ Global
 		{8AA52B5E-DB66-4B0B-AABA-9E6900BC3D5A}.Release|Any CPU.Build.0 = Release|Any CPU
 		{8AA52B5E-DB66-4B0B-AABA-9E6900BC3D5A}.RuntimeDebug|Any CPU.ActiveCfg = Debug|Any CPU
 		{8AA52B5E-DB66-4B0B-AABA-9E6900BC3D5A}.RuntimeDebug|Any CPU.Build.0 = Debug|Any CPU
+		{8AA52B5E-DB66-4B0B-AABA-9E6900BC3D5A}.VMRequiredTests|Any CPU.ActiveCfg = Debug|Any CPU
+		{8AA52B5E-DB66-4B0B-AABA-9E6900BC3D5A}.VMRequiredTests|Any CPU.Build.0 = Debug|Any CPU
 		{2F5F8C90-0BD1-424F-997C-7BC6280919D1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{2F5F8C90-0BD1-424F-997C-7BC6280919D1}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{2F5F8C90-0BD1-424F-997C-7BC6280919D1}.Nuget|Any CPU.ActiveCfg = Release|Any CPU
@@ -75,6 +87,8 @@ Global
 		{2F5F8C90-0BD1-424F-997C-7BC6280919D1}.Release|Any CPU.Build.0 = Release|Any CPU
 		{2F5F8C90-0BD1-424F-997C-7BC6280919D1}.RuntimeDebug|Any CPU.ActiveCfg = Debug|Any CPU
 		{2F5F8C90-0BD1-424F-997C-7BC6280919D1}.RuntimeDebug|Any CPU.Build.0 = Debug|Any CPU
+		{2F5F8C90-0BD1-424F-997C-7BC6280919D1}.VMRequiredTests|Any CPU.ActiveCfg = Debug|Any CPU
+		{2F5F8C90-0BD1-424F-997C-7BC6280919D1}.VMRequiredTests|Any CPU.Build.0 = Debug|Any CPU
 		{69D9BD41-1B7C-4DC0-9B06-1DDAA8F7BBA6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{69D9BD41-1B7C-4DC0-9B06-1DDAA8F7BBA6}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{69D9BD41-1B7C-4DC0-9B06-1DDAA8F7BBA6}.Nuget|Any CPU.ActiveCfg = Release|Any CPU
@@ -83,6 +97,17 @@ Global
 		{69D9BD41-1B7C-4DC0-9B06-1DDAA8F7BBA6}.Release|Any CPU.Build.0 = Release|Any CPU
 		{69D9BD41-1B7C-4DC0-9B06-1DDAA8F7BBA6}.RuntimeDebug|Any CPU.ActiveCfg = Debug|Any CPU
 		{69D9BD41-1B7C-4DC0-9B06-1DDAA8F7BBA6}.RuntimeDebug|Any CPU.Build.0 = Debug|Any CPU
+		{69D9BD41-1B7C-4DC0-9B06-1DDAA8F7BBA6}.VMRequiredTests|Any CPU.ActiveCfg = Debug|Any CPU
+		{69D9BD41-1B7C-4DC0-9B06-1DDAA8F7BBA6}.VMRequiredTests|Any CPU.Build.0 = Debug|Any CPU
+		{9136CDB4-7E20-47F2-986D-D57B9AEB70D4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9136CDB4-7E20-47F2-986D-D57B9AEB70D4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9136CDB4-7E20-47F2-986D-D57B9AEB70D4}.Nuget|Any CPU.ActiveCfg = Release|Any CPU
+		{9136CDB4-7E20-47F2-986D-D57B9AEB70D4}.Nuget|Any CPU.Build.0 = Release|Any CPU
+		{9136CDB4-7E20-47F2-986D-D57B9AEB70D4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9136CDB4-7E20-47F2-986D-D57B9AEB70D4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9136CDB4-7E20-47F2-986D-D57B9AEB70D4}.RuntimeDebug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9136CDB4-7E20-47F2-986D-D57B9AEB70D4}.VMRequiredTests|Any CPU.ActiveCfg = Debug|Any CPU
+		{9136CDB4-7E20-47F2-986D-D57B9AEB70D4}.VMRequiredTests|Any CPU.Build.0 = Debug|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

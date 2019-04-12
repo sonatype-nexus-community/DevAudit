@@ -83,14 +83,14 @@ namespace DevAudit.AuditLibrary
         public bool PackageVersionIsRange(string version)
         {
             var lcs = NuGetv2.Grammar.Range.Parse(version);
-            if (lcs.Count > 1) 
+            if (lcs.Count > 1)
             {
                 return true;
             }
             else if (lcs.Count == 1)
             {
                 var cs = lcs.Single();
-                if (cs.Operator == ExpressionType.Equal)
+                if (cs.Count == 1 && cs.Single().Operator == ExpressionType.Equal)
                 {
                     return false;
                 }
@@ -99,39 +99,42 @@ namespace DevAudit.AuditLibrary
                     return true;
                 }
             }
-            else throw new ArgumentException($"Failed to parser {version} as a version.");
+            else throw new ArgumentException($"Failed to parse {version} as a NuGetv2 version.");
         }
 
         public List<string> GetMinimumPackageVersions(string version)
         {
-            var cs = NuGetv2.Grammar.Range.Parse(version);
+            var lcs = NuGetv2.Grammar.Range.Parse(version);
             List<string> minVersions = new List<string>();
-            
-            if (cs.Count == 1 && cs.Single().Operator == ExpressionType.Equal)
+            foreach (ComparatorSet<NuGetv2> cs in lcs)
             {
-                minVersions.Add(cs.Single().Version.ToNormalizedString());
-            }
-            else
-            {
-                var gt = cs.Where(c => c.Operator == ExpressionType.GreaterThan || c.Operator == ExpressionType.GreaterThanOrEqual).Single();
-                if (gt.Operator == ExpressionType.GreaterThan)
+                if (cs.Count == 1 && cs.Single().Operator == ExpressionType.Equal)
                 {
-                    var v = new NuGetv2(gt.Version.Version.Major, gt.Version.Version.Minor, gt.Version.Version.Revision + 1, gt.Version.Version.Build);
-                    minVersions.Add((v).ToNormalizedString());
-                    this.AuditEnvironment.Info("Using {0} package version {1} which satisfies range {2}.", 
-                        this.PackageManagerLabel, v.ToNormalizedString(), version);
-
+                    minVersions.Add(cs.Single().Version.ToNormalizedString());
                 }
                 else
                 {
-                    minVersions.Add(gt.Version.ToNormalizedString());
-                    this.AuditEnvironment.Info("Using {0} package version {1} which satisfies range {2}.", 
-                        this.PackageManagerLabel, gt.Version.ToNormalizedString(), version);
+                    var gt = cs.Where(c => c.Operator == ExpressionType.GreaterThan || c.Operator == ExpressionType.GreaterThanOrEqual).Single();
+                    if (gt.Operator == ExpressionType.GreaterThan)
+                    {
+                        var v = gt.Version;
+                        minVersions.Add((v++).ToNormalizedString());
+                        this.AuditEnvironment.Info("Using {0} package version {1} which satisfies range {2}.",
+                            this.PackageManagerLabel, (v++).ToNormalizedString(), version);
 
+                    }
+                    else
+                    {
+                        minVersions.Add(gt.Version.ToNormalizedString());
+                        this.AuditEnvironment.Info("Using {0} package version {1} which satisfies range {2}.",
+                            this.PackageManagerLabel, gt.Version.ToNormalizedString(), version);
+
+                    }
                 }
-            }            
+
+            }
             return minVersions;
-        }
+        }            
 
         public List<Package> GetDeveloperPackages(string name, string version, string vendor = null, string group = null, 
             string architecture=null)  

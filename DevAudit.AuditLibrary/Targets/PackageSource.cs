@@ -44,7 +44,7 @@ namespace DevAudit.AuditLibrary
                 }
                 else
                 {
-                    throw new ArgumentException(string.Format("No file option was specified and the default {0} package sourcs configuration file {1} was not found.", this.PackageManagerLabel, this.DefaultPackageManagerConfigurationFile));
+                    throw new ArgumentException(string.Format("No file option was specified and the default {0} package source configuration file {1} was not found.", this.PackageManagerLabel, this.DefaultPackageManagerConfigurationFile));
                 }
             }
             else
@@ -86,14 +86,6 @@ namespace DevAudit.AuditLibrary
             if (this.PackageSourceOptions.ContainsKey("ListPackages"))
             {
                 this.ListPackages = true;
-            }
-
-            if (this.PackageSourceOptions.ContainsKey("HttpsProxy"))
-            {
-                if (!this.AuditOptions.ContainsKey("HttpsProxy"))
-                {
-                    DataSourceOptions.Add("HttpsProxy", (Uri)this.PackageSourceOptions["HttpsProxy"]);
-                }
             }
 
             string[] ossi_pms = { "bower", "composer", "chocolatey", "msi", "nuget", "oneget", "yarn", "netcore" };
@@ -376,6 +368,5 @@ namespace DevAudit.AuditLibrary
         public object vulnerabilities_lock = new object();
         public object artifacts_lock = new object();
         #endregion
-
     }
 }

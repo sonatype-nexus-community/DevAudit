@@ -47,6 +47,20 @@ namespace DevAudit.AuditLibrary
                     {
                         var directory = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
                         string path = Path.Combine(directory, "OSSIndex", "cache");
+                        if (Directory.Exists(path) && DeleteCache)
+                        {
+                            this.HostEnvironment.Info("Deleting existing file cache at {0}.", path);
+                            Directory.Delete(path, true);
+                        }
+                        else if(Directory.Exists(path))
+                        {
+                            this.HostEnvironment.Debug("Using existing file cache at {0}.", path);
+                        }
+                        else
+                        {
+                            this.HostEnvironment.Debug("Creating new file cache at {0}.", path);
+                        }
+
                         cache = new FileCache(path, new ObjectBinder());
                         break;
                     }
@@ -96,6 +110,8 @@ namespace DevAudit.AuditLibrary
                         if (diff < cacheExpiration)
                         {
                             this.AddVulnerability(cachedPkg.Package, cachedPkg.Vulnerabilities);
+                            this.HostEnvironment.Debug("Using cache entry for package {0} with version {1} created at {2} UTC.",
+                                cachedPkg.Package.Name, cachedPkg.Package.Version, new DateTime((cachedPkg.CachedAt * TimeSpan.TicksPerSecond)));
                         }
                         else
                         {
@@ -123,7 +139,6 @@ namespace DevAudit.AuditLibrary
                     try
                     {
                         this.HostEnvironment.Info("Performing query on {0} packages", q.Count());
-
                         List<OSSIndexApiv3Package> results = await SearchVulnerabilitiesAsync(q, this.VulnerabilitiesResultsTransform);
                         foreach (OSSIndexApiv3Package r in results)
                         {
@@ -134,8 +149,6 @@ namespace DevAudit.AuditLibrary
                     }
                     catch (Exception e)
                     {
-                        Console.WriteLine(e.ToString());
-
                         if (e is HttpException)
                         {
                             this.HostEnvironment.Error(here, e, "An HTTP error occured attempting to query the OSS Index API for the following {1} packages: {0}.",
@@ -215,12 +228,13 @@ namespace DevAudit.AuditLibrary
             {
                 string url = "v" + server_api_version + "/component-report";
                 string content = JsonConvert.SerializeObject(query);
-
+                this.HostEnvironment.Debug("JSON query sent to OSS Index API: {0}.", content);
                 HttpResponseMessage response = await client.PostAsync(url,
                     new StringContent(content, Encoding.UTF8, "application/json"));
                 if (response.IsSuccessStatusCode)
                 {
                     string r = await response.Content.ReadAsStringAsync();
+                    this.HostEnvironment.Debug("JSON response from OSS Index API: {0}.", r);
                     List<OSSIndexApiv3Package> results = JsonConvert.DeserializeObject<List<OSSIndexApiv3Package>>(r);
                     if (results != null && results.Count > 0 && transform != null)
                     {

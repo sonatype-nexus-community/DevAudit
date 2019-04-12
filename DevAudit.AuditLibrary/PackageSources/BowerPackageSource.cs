@@ -35,11 +35,12 @@ namespace DevAudit.AuditLibrary
 
             AuditFileInfo config_file = this.AuditEnvironment.ConstructFile(this.PackageManagerConfigurationFile);
             JObject json = (JObject)JToken.Parse(config_file.ReadAsText());
-
-            packages.AddRange(GetDeveloperPackages(
-                json.Properties().First(j => j.Name == "name").Value.ToString(), 
-                json.Properties().First(j => j.Name == "version").Value.ToString()));
-            
+            if (json.Properties().Any(j => j.Name == "name") && json.Properties().Any(j => j.Name == "version"))
+            {
+                packages.AddRange(GetDeveloperPackages(
+                    json.Properties().First(j => j.Name == "name").Value.ToString(),
+                    json.Properties().First(j => j.Name == "version").Value.ToString()));
+            }
             JObject dependencies = (JObject)json["dependencies"];
             JObject dev_dependencies = (JObject)json["devDependencies"];
 
