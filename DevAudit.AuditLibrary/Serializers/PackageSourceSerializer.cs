@@ -1,10 +1,11 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace DevAudit.AuditLibrary.Serializers
+namespace DevAudit.AuditLibrary
 {
     public class PackageSourceSerializer : JsonConverter
     {
