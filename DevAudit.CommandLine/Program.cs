@@ -16,6 +16,7 @@ using CL = CommandLine; //Avoid type name conflict with external CommandLine lib
 using CC = Colorful; //Avoid type name conflict with System Console class
 
 using DevAudit.AuditLibrary;
+using Newtonsoft.Json;
 
 namespace DevAudit.CommandLine
 {
@@ -1080,6 +1081,15 @@ namespace DevAudit.CommandLine
             {
                 return 0;
             }
+
+
+            if (!string.IsNullOrEmpty(ProgramOptions.OutputFile))
+            {
+                Console.WriteLine("In Here");
+                File.WriteAllText(ProgramOptions.OutputFile, JsonConvert.SerializeObject(Source));
+            }
+           
+
             int total_vulnerabilities = Source.Vulnerabilities.Sum(v => v.Value != null ? v.Value.Count(pv => pv.PackageVersionIsInRange) : 0);
             PrintMessageLine(ConsoleColor.White, "\nPackage Source Audit Results\n============================");
             PrintMessageLine(ConsoleColor.White, "{0} total vulnerabilit{3} found in {1} package source audit. Total time for audit: {2} ms.\n", total_vulnerabilities, Source.PackageManagerLabel, Stopwatch.ElapsedMilliseconds, total_vulnerabilities == 0 || total_vulnerabilities > 1 ? "ies" : "y");

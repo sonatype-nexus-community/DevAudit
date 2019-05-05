@@ -11,9 +11,12 @@ using System.Threading.Tasks;
 
 using Sprache;
 using Alpheus.IO;
+using Newtonsoft.Json;
 
 namespace DevAudit.AuditLibrary
 {
+
+    [JsonConverter(typeof(PackageSourceSerializer))]
     public abstract class PackageSource : AuditTarget
     {
         #region Constructors
