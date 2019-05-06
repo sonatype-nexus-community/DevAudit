@@ -1,3 +1,7 @@
+
+**Note**: The 3.x release uses the new 3.x OSS Index database, which has some rate limiting. If you notice you are hitting the limit please raise an issue. Authenticated users get a higher limit, and we am implementing authentication into DevAudit soon. Most non-authenticated users probably won't notice the limit for many use cases. It usually kicks in only in much larger projects or higher project volumes.
+
+
 # DevAudit: Development Auditing
 Get the latest release from the [releases](https://github.com/OSSIndex/DevAudit/releases) page.
 
@@ -190,13 +194,13 @@ Package sources tagged [Experimental] are only available in the master branch of
 - `aspnet` Do an application audit on a ASP.NET application. The relevant options are:
 	- `-r --root-directory` Specify the root directory of the application. This is just the top-level application directory that contains files like Global.asax and Web.config.
 	- `-b --application-binary` Specify the application binary. The is the .NET assembly that contains the application's .NET bytecode. This file is usually a .DLL and located in the bin sub-folder of the ASP.NET application root directory.
-	- `-c --configuration-file` or `-o AppConfig=configuration-file` Specifies the ASP.NET application configuration file. This file is usually named Web.config and located in the application root directory. You can override the default @Web.config value with this option.
+	- `--config-file` or `-o AppConfig=configuration-file` Specifies the ASP.NET application configuration file. This file is usually named Web.config and located in the application root directory. You can override the default @Web.config value with this option.
 	- `-o AppDevMode=enabled` Specifies that application development mode should be enabled for the audit. This mode can be used when auditing an application that is under development. Certain configuration rules that are tagged as disabled for AppDevMode (e.g running the application in ASP.NET debug mode) will not be enabled during the audit.
 
 - `netfx` Do an application audit on a .NET application. The relevant options are:
 	- `-r --root-directory` Specify the root directory of the application. This is just the top-level application directory that contains files like App.config.
 	- `-b --application-binary` Specify the application binary. The is the .NET assembly that contains the application's .NET bytecode. This file is usually a .DLL and located in the bin sub-folder of the ASP.NET application root directory.
-	- `-c --configuration-file` or `-o AppConfig=configuration-file` Specifies the .NET application configuration file. This file is usually named App.config and located in the application root directory. You can override the default @App.config value with this option.
+	- `--config-file` or `-o AppConfig=configuration-file` Specifies the .NET application configuration file. This file is usually named App.config and located in the application root directory. You can override the default @App.config value with this option.
 	- `-o GendarmeRules=RuleLibrary` Specifies that the [Gendarme](http://www.mono-project.com/docs/tools+libraries/tools/gendarme/) static analyzer should enabled for the audit with rules from the specified rules library used. For example: 
 	`devaudit netfx -r /home/allisterb/vbot-debian/vbot.core -b @bin/Debug/vbot.core.dll --skip-packages-audit -o GendarmeRules=Gendarme.Rules.Naming`
 	will run the Gendarme static analyzer on the vbot.core.dll assembly using rules from Gendarme.Rules.Naming library. 	The complete list of rules libraries is (taken from the Gendarme wiki):
@@ -247,12 +251,12 @@ All applications also support the following common options for auditing the appl
 - `pgsql` Do an application server audit on a PostgreSQL server.
 
 This is an example command line for an application server audit:
-`./devaudit httpd -i httpd-2.2 -r /usr/local/apache2/ -c @conf/httpd.conf -b @bin/httpd`
+`./devaudit httpd -i httpd-2.2 -r /usr/local/apache2/ --config-file @conf/httpd.conf -b @bin/httpd`
 which audits an Apache Httpd server running on a Docker container named httpd-2.2.
 
 The following are audit options common to all application servers:
 - `-r --root-directory` Specifies the root directory of the server. This is just the top-level of your server filesystem and defaults to `/` unless you want a different server root. 
-- `-c --configuration-file` Specifies the server configuration file. e.g in the above audit the Apache configuration file is located at `/usr/local/apache2/conf/httpd.conf`. If you don't specify the configuration file DevAudit will attempt to auto-detect the configuration file for the server selected.
+- `--config-file` Specifies the server configuration file. e.g in the above audit the Apache configuration file is located at `/usr/local/apache2/conf/httpd.conf`. If you don't specify the configuration file DevAudit will attempt to auto-detect the configuration file for the server selected.
 - `-b --application-binary` Specifies the server binary. e.g in the above audit the Apache binary is located at `/usr/local/apache2/bin/httpd`. If you don't specify the binary path DevAudit will attempt to auto-detect the server binary for the server selected.
 
 Application servers also support the following common options for auditing the server modules or plugins:
@@ -310,8 +314,8 @@ The GitHub audit environment allows audits to be performed directly on a GitHub 
 
 `PATH` Specifies the branch of the project to connect to
 
-You can use the `-r`, `-c`, and `-f` options as usual to specify the path to file-system files and directories required for the audit. e.g the following commad:
-`devaudit aspnet -g "Owner=Dnnsoftware,Name=Dnn.Platforn,Branch=Release/9.0.2" -r /Website -c@web.config`
+You can use the `-r`, `--config-file`, and `-f` options as usual to specify the path to file-system files and directories required for the audit. e.g the following commad:
+`devaudit aspnet -g "Owner=Dnnsoftware,Name=Dnn.Platforn,Branch=Release/9.0.2" -r /Website --config-file @web.config`
 will do an ASP.NET audit on this repository https://github.com/dnnsoftware/Dnn.Platform/ using the `/Website` source folder as the root directory and the `web.config` file as the ASP.NET configuration file. Note that filenames are case-sensitive in most environments.  
 
 ![Screenshot of a GitHub project audit](https://cdn-images-1.medium.com/max/800/1*Uj0WBK9RlS8YvN0qW-IFZQ.png)
@@ -340,7 +344,7 @@ You must mount any directories on the Docker host machine that DevAudit needs to
 
 will allow the DevAudit Docker container to audit the local directory /home/allisterb/vbot-debian/vbot.core. You _must_ mount your local root in this way to audit _other_ Docker containers from the DevAudit container e.g. 
 
-`docker run -i -t -v /:/hostroot:ro ossindex/devaudit mysql -i myapp1 -r / -c /etc/my.cnf --skip-packages-audit`
+`docker run -i -t -v /:/hostroot:ro ossindex/devaudit mysql -i myapp1 -r / --config-file /etc/my.cnf --skip-packages-audit`
 
 will run a MySQL audit on a Docker container named `myapp1` from the `ossindex/devaudit` container.
 
