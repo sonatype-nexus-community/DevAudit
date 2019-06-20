@@ -42,13 +42,13 @@ namespace DevAudit.AuditLibrary
             
             IEnumerable<Package> packages;
 
-            if (root.Name == "Project")
+            if (root.Name.LocalName == "Project")
             {
                 // dotnet core csproj file
                 packages = 
                     root
                     .Descendants()
-                    .Where(x => x.Name == "PackageReference")
+                    .Where(x => x.Name.LocalName == "PackageReference")
                     .SelectMany(r => GetDeveloperPackages(r.Attribute("Include").Value, r.Attribute("Version").Value)).ToList();
             }
             else
