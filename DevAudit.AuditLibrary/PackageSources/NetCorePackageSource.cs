@@ -45,19 +45,19 @@ namespace DevAudit.AuditLibrary
                 }
                 XElement root = XElement.Parse(xml);
 
-                if (root.Name == "Project")
+                if (root.Name.LocalName == "Project")
                 {
                     packages = 
                         root
                         .Descendants()
-                        .Where(x => x.Name == "PackageReference" && x.Attribute("Include") != null && x.Attribute("Version") != null)
+                        .Where(x => x.Name.LocalName == "PackageReference" && x.Attribute("Include") != null && x.Attribute("Version") != null)
                         .SelectMany(r => GetDeveloperPackages(r.Attribute("Include").Value, r.Attribute("Version").Value))
                         .ToList();
 
                     IEnumerable<string> skipped_packages = 
                         root
                         .Descendants()
-                        .Where(x => x.Name == "PackageReference" && x.Attribute("Include") != null && x.Attribute("Version") == null)
+                        .Where(x => x.Name.LocalName == "PackageReference" && x.Attribute("Include") != null && x.Attribute("Version") == null)
                         .Select(r => r.Attribute("Include").Value);
                         
                     if (skipped_packages.Count() > 0)
