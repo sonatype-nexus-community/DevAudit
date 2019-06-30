@@ -1021,7 +1021,7 @@ static void EnvironmentMessageHandler(object sender, EnvironmentEventArgs e)
             }
             else
             {
-                Console.Write(format, args);
+                PrintMessage(format, args);
             }
         }
 
@@ -1032,7 +1032,7 @@ static void EnvironmentMessageHandler(object sender, EnvironmentEventArgs e)
 
         static void PrintMessageLine(string format, params object[] args)
         {
-            Console.WriteLine(format, args);
+            PrintMessage(format, args);
         }
 
         static void PrintMessageLine(ConsoleColor color, string format, params object[] args)
