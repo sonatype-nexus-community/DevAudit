@@ -4,6 +4,8 @@ using System.IO;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
 using System.Xml;
 using System.Xml.Linq;
 
@@ -16,9 +18,12 @@ using NuGet.Frameworks;
 using NuGet.Packaging;
 using NuGet.Packaging.Core;
 using NuGet.Packaging.Signing;
+using NuGet.Protocol;
 using NuGet.Protocol.Core.Types;
+using NuGet.DependencyResolver;
 using NuGet.Versioning;
 
+using NuGet.Repositories;
 using Sprache;
 using Versatile;
 
@@ -75,7 +80,7 @@ namespace DevAudit.AuditLibrary
                         skipped_packages.Aggregate((s1,s2) => s1 + "," + s2));
                     }
 
-                    GetDeps(root, packages);
+                    Task.WaitAll(GetDeps(root, packages));
                     return packages;
                 }
                 else
@@ -199,7 +204,7 @@ namespace DevAudit.AuditLibrary
                 architecture)).ToList();
         }
 
-        public void GetDeps(XElement project, List<Package> packages)
+        public async Task GetDeps(XElement project, List<Package> packages)
         {
             IEnumerable<NuGetFramework> frameworks =
                     project.Descendants()
@@ -209,11 +214,26 @@ namespace DevAudit.AuditLibrary
                     .Select(f => NuGetFramework.ParseFolder(f));
             AuditEnvironment.Info("{0}", frameworks.First().Framework);
             var nugetPackages = packages.Select(p => new PackageIdentity(p.Name, NuGetVersion.Parse(p.Version)));
-            foreach (var np in nugetPackages)
+            var settings = Settings.LoadDefaultSettings(root: null);
+            var sourceRepositoryProvider = new SourceRepositoryProvider(settings, Repository.Provider.GetCoreV3());
+            var logger = NullLogger.Instance;
+            using (var cacheContext = new SourceCacheContext())
             {
-                //AuditEnvironment.Info("{0}", np.Id);
+                foreach (var np in nugetPackages)
+                {
+                    foreach (var sourceRepository in sourceRepositoryProvider.GetRepositories())
+                    {
+                        var dependencyInfoResource = await sourceRepository.GetResourceAsync<DependencyInfoResource>();
+                        var dependencyInfo = await dependencyInfoResource.ResolvePackage(
+                            np, frameworks.First(), cacheContext, logger, CancellationToken.None);
+
+                        if (dependencyInfo != null)
+                        {
+                            AuditEnvironment.Info("Dependency info: {0}.", dependencyInfo);
+                        }
+                    }
+                }
             }
-            //ProjectJsonPathUtilities.
 
         }
 
