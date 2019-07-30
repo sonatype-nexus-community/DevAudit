@@ -468,7 +468,7 @@ namespace DevAudit.AuditLibrary
                 using (Stream fs = File.OpenRead(lf.FullName))
                 {
                     ReaderFactory.Open(fs).WriteAllToDirectory(this.WorkDirectory.FullName,
-                        new ExtractionOptions()
+                        new SharpCompress.Common.ExtractionOptions()
                         {
                             Overwrite = true,
                             ExtractFullPath = true

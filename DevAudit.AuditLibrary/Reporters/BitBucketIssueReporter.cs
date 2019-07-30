@@ -4,9 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-using SharpBucket.V1;
-using SharpBucket.V1.EndPoints;
-using SharpBucket.V1.Pocos;
+using SharpBucket.V2;
+using SharpBucket.V2.EndPoints;
+using SharpBucket.V2.Pocos;
 namespace DevAudit.AuditLibrary
 {
     public class BitBucketIssueReporter : AuditReporter 
@@ -41,7 +41,7 @@ namespace DevAudit.AuditLibrary
             {
                 IssueTitle = string.Format("[DevAudit] {0} audit on {1} {2}", Source.PackageManagerLabel, DateTime.UtcNow.ToShortDateString(), DateTime.UtcNow.ToShortTimeString());
             }
-            SharpBucketV1 sharp_bucket = new SharpBucketV1();
+            SharpBucketV2 sharp_bucket = new SharpBucketV2();
             sharp_bucket.OAuth2LeggedAuthentication(consumer, secret);
             RepositoriesEndPoint repository_endpoint = sharp_bucket.RepositoriesEndPoint(account, repository);
             IssuesResource r;

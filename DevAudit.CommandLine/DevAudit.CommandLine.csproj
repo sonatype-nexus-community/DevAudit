@@ -80,7 +80,6 @@
     <Compile Include="Spinner.cs" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="app.config" />
     <None Include="chunky.flf">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>

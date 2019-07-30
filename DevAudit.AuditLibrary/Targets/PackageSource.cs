@@ -337,7 +337,7 @@ namespace DevAudit.AuditLibrary
                 {
                     this.AuditEnvironment.Error("Failed to create GitHub audit report");
                 }
-            }
+            }/*
             else if (this.AuditOptions.ContainsKey("BitBucketReportName"))
             {
                 this.AuditEnvironment.Status("Creating BitBucket report for {0} package source audit.", this.PackageManagerLabel);
@@ -350,7 +350,7 @@ namespace DevAudit.AuditLibrary
                 {
                     this.AuditEnvironment.Error("Failed to create BitBucket audit report");
                 }
-            }
+            }*/
             else if (this.AuditOptions.ContainsKey("GitLabReportName"))
             {
                 this.AuditEnvironment.Status("Creating GitLab report for {0} package source audit.", this.PackageManagerLabel);
