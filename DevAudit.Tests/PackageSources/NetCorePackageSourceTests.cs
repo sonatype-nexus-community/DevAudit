@@ -37,7 +37,6 @@ namespace DevAudit.Tests
         }
 
        
-
         [Fact]
         public override void IsDeveloperPackageSource()
         {
@@ -100,6 +99,12 @@ namespace DevAudit.Tests
             Assert.False(DPS[0].PackageVersionIsRange("6.4.2"));
             Assert.True(DPS[0].PackageVersionIsRange("~5.1"));
             Assert.False(DPS[0].PackageVersionIsRange("=7.3"));
+        }
+
+        [Fact]
+        public void CanGetBugetProperties()
+        {
+            Sources[0].GetPackages();
         }
         #endregion
     }

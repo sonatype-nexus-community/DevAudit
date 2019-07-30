@@ -9,6 +9,15 @@ using System.Xml.Linq;
 
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using NuGet;
+using NuGet.Common;
+using NuGet.Configuration;
+using NuGet.Frameworks;
+using NuGet.Packaging;
+using NuGet.Packaging.Core;
+using NuGet.Packaging.Signing;
+using NuGet.Protocol.Core.Types;
+using NuGet.Versioning;
 
 using Sprache;
 using Versatile;
@@ -65,6 +74,8 @@ namespace DevAudit.AuditLibrary
                         this.AuditEnvironment.Warning("{0} package(s) do not have a version specified and will not be audited: {1}.", skipped_packages.Count(),
                         skipped_packages.Aggregate((s1,s2) => s1 + "," + s2));
                     }
+
+                    GetDeps(root, packages);
                     return packages;
                 }
                 else
@@ -127,7 +138,7 @@ namespace DevAudit.AuditLibrary
         #region Methods
         public bool PackageVersionIsRange(string version)
         {
-            var lcs = SemanticVersion.Grammar.Range.Parse(version);
+            var lcs = Versatile.SemanticVersion.Grammar.Range.Parse(version);
             if (lcs.Count > 1) 
             {
                 return true;
@@ -149,9 +160,9 @@ namespace DevAudit.AuditLibrary
 
         public List<string> GetMinimumPackageVersions(string version)
         {
-            var lcs = SemanticVersion.Grammar.Range.Parse(version);
+            var lcs = Versatile.SemanticVersion.Grammar.Range.Parse(version);
             List<string> minVersions = new List<string>();
-            foreach(ComparatorSet<SemanticVersion> cs in lcs)
+            foreach(ComparatorSet<Versatile.SemanticVersion> cs in lcs)
             {
                 if (cs.Count == 1 && cs.Single().Operator == ExpressionType.Equal)
                 {
@@ -188,6 +199,23 @@ namespace DevAudit.AuditLibrary
                 architecture)).ToList();
         }
 
+        public void GetDeps(XElement project, List<Package> packages)
+        {
+            IEnumerable<NuGetFramework> frameworks =
+                    project.Descendants()
+                    .Where(x => x.Name.LocalName == "TargetFramework" || x.Name.LocalName == "TargetFrameworks")
+                    .SingleOrDefault()
+                    .Value.Split(';')
+                    .Select(f => NuGetFramework.ParseFolder(f));
+            AuditEnvironment.Info("{0}", frameworks.First().Framework);
+            var nugetPackages = packages.Select(p => new PackageIdentity(p.Name, NuGetVersion.Parse(p.Version)));
+            foreach (var np in nugetPackages)
+            {
+                //AuditEnvironment.Info("{0}", np.Id);
+            }
+            //ProjectJsonPathUtilities.
+
+        }
 
         #endregion
  

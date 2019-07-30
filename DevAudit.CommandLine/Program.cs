@@ -1032,7 +1032,7 @@ static void EnvironmentMessageHandler(object sender, EnvironmentEventArgs e)
 
         static void PrintMessageLine(string format, params object[] args)
         {
-            PrintMessage(format, args);
+            Console.WriteLine(format, args);
         }
 
         static void PrintMessageLine(ConsoleColor color, string format, params object[] args)
@@ -1170,11 +1170,13 @@ static void EnvironmentMessageHandler(object sender, EnvironmentEventArgs e)
 
         static void HandleHttpException(Exception e)
         {
+            /*
             if (e is HttpException)
             {
                 HttpException oe = (HttpException) e;
                 PrintErrorMessage("HTTP status: {0} {1} \nReason: {2}\nRequest:\n{3}", (int) oe.StatusCode, oe.StatusCode, oe.ReasonPhrase, oe.Request);
             }
+            */
 
         }
 
