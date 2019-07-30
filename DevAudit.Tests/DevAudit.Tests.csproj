@@ -42,7 +42,6 @@
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System.Data" />
-    <Reference Include="System.Net.Http" />
     <Reference Include="System.Xml" />
     <Reference Include="Versatile.Core, Version=0.2.6.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\Versatile.0.2.6\lib\net45\Versatile.Core.dll</HintPath>
