@@ -2,14 +2,13 @@
 using System.Reflection;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Net;
 using System.Security;
 using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
+using Newtonsoft.Json;
 
 using CL = CommandLine; //Avoid type name conflict with external CommandLine library
 using CC = Colorful; //Avoid type name conflict with System Console class
@@ -812,6 +811,13 @@ namespace DevAudit.CommandLine
                     return 0;
                 }
             }
+
+            if (!string.IsNullOrEmpty(ProgramOptions.OutputFile))
+            {
+                Console.WriteLine("In Here");
+                File.WriteAllText(ProgramOptions.OutputFile, JsonConvert.SerializeObject(Source));
+            }
+
             int total_vulnerabilities = Source.Vulnerabilities.Sum(v => v.Value != null ? v.Value.Count(pv => pv.PackageVersionIsInRange) : 0);
             PrintMessageLine(ConsoleColor.White, "\nPackage Source Audit Results\n============================");
             PrintMessageLine(ConsoleColor.White, "{0} total vulnerabilit{3} found in {1} package source audit. Total time for audit: {2} ms.\n", total_vulnerabilities, Source.PackageManagerLabel, Stopwatch.ElapsedMilliseconds, total_vulnerabilities == 0 || total_vulnerabilities > 1 ? "ies" : "y");
@@ -1015,7 +1021,7 @@ static void EnvironmentMessageHandler(object sender, EnvironmentEventArgs e)
             }
             else
             {
-                Console.Write(format, args);
+                PrintMessage(format, args);
             }
         }
 
@@ -1026,7 +1032,7 @@ static void EnvironmentMessageHandler(object sender, EnvironmentEventArgs e)
 
         static void PrintMessageLine(string format, params object[] args)
         {
-            Console.WriteLine(format, args);
+            PrintMessage(format, args);
         }
 
         static void PrintMessageLine(ConsoleColor color, string format, params object[] args)
