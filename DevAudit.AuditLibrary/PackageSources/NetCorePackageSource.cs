@@ -80,10 +80,13 @@ namespace DevAudit.AuditLibrary
                         skipped_packages.Aggregate((s1,s2) => s1 + "," + s2));
                     }
                     var helper = new NuGetApiHelper(this.AuditEnvironment);
-                    var framework = helper.GetFrameworks(root).First();
-                    var deps = helper.GetPackageDependencies(packages.Select(p => new PackageIdentity(p.Name, NuGetVersion.Parse(p.Version))), framework);
-                    //var deps =Task.WaitAll(GetDeps(root, packages));
-                    Task.WaitAll(deps);
+                    foreach (var framework in helper.GetFrameworks(root))
+                    {
+                        AuditEnvironment.Info("Scanning NuGet transitive dependencies for {0}...", framework.GetFrameworkString());
+                        var deps = helper.GetPackageDependencies(packages, framework);
+                        Task.WaitAll(deps);
+                        packages = helper.AddPackageDependencies(deps.Result, packages);
+                    }
                     return packages;
                 }
                 else

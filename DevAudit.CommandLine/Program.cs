@@ -828,7 +828,7 @@ namespace DevAudit.CommandLine
             {
                 IPackage package = pv.Key;
                 List<IVulnerability> package_vulnerabilities = pv.Value;
-                PrintMessage(ConsoleColor.White, "[{0}/{1}] {2}", ++packages_processed, packages_count, package.Name);
+                PrintMessage(ConsoleColor.White, "[{0}/{1}] {2} {3}", ++packages_processed, packages_count, package.Name, package.Version);
                 if (package_vulnerabilities.Count() == 0)
                 {
                     PrintMessageLine(" no known vulnerabilities.");

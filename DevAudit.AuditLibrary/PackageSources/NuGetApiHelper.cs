@@ -39,12 +39,12 @@ namespace DevAudit.AuditLibrary
                 .Value.Split(';')
                 .Select(f => NuGetFramework.ParseFolder(f));
 
-        public async Task<IEnumerable<Tuple<Package, SourcePackageDependencyInfo>>> GetPackageDependencies(IEnumerable<Package> packages, NuGetFramework framework)
+        public async Task<IEnumerable<Tuple<Package, PackageDependency>>> GetPackageDependencies(IEnumerable<Package> packages, NuGetFramework framework)
         {
             var settings = Settings.LoadDefaultSettings(root: null);
             var sourceRepositoryProvider = new SourceRepositoryProvider(settings, Repository.Provider.GetCoreV3());
             var logger = NullLogger.Instance;
-            var results = new List<Tuple<Package, SourcePackageDependencyInfo>>();
+            var results = new List<Tuple<Package, PackageDependency>>();
             using (var cacheContext = new SourceCacheContext())
             {
                 foreach (var p in packages)
@@ -55,9 +55,19 @@ namespace DevAudit.AuditLibrary
                         var dependencyInfoResource = await sourceRepository.GetResourceAsync<DependencyInfoResource>();
                         var dependencyInfo = await dependencyInfoResource.ResolvePackage(
                             np, framework, cacheContext, logger, CancellationToken.None);
-                        if (dependencyInfo != null)
+                        if (dependencyInfo != null && dependencyInfo.Dependencies.Count() > 0)
                         {
-                            results.Add(new Tuple<Package, SourcePackageDependencyInfo>(p, dependencyInfo));
+
+                            results.AddRange(dependencyInfo.Dependencies.Select(d => new Tuple<Package, PackageDependency>(p, d)));
+                            foreach (var d in dependencyInfo.Dependencies)
+                            {
+                                var _trdependencyInfo = await dependencyInfoResource.ResolvePackage(
+                                    new PackageIdentity(d.Id, d.VersionRange.MinVersion), framework, cacheContext, logger, CancellationToken.None);
+                                if (_trdependencyInfo != null && _trdependencyInfo.Dependencies.Count() > 0)
+                                {
+                                    results.AddRange(_trdependencyInfo.Dependencies.Select(_d => new Tuple<Package, PackageDependency>(p, _d)));
+                                }
+                            }
                         }
                     }
                 }
@@ -65,25 +75,29 @@ namespace DevAudit.AuditLibrary
             return results;
         }
 
-        public List<Package> AddPackageDependencies(IEnumerable<Tuple<Package, SourcePackageDependencyInfo>> deps, List<Package> packages)
+        public List<Package> AddPackageDependencies(IEnumerable<Tuple<Package, PackageDependency>> deps, List<Package> packages)
         {
             string pm = packages.First().PackageManager;
             string vendor = packages.First().Vendor;
             string group = packages.First().Group;
             string arch = packages.First().Architecture;
+            int added = 0;
            
             foreach (var d in deps)
             {
-                if (packages.Contains(d.Item1))
+                var dp = new Package(pm, d.Item2.Id, d.Item2.VersionRange.MinVersion.ToNormalizedString(),
+                        d.Item1.PackageManager, d.Item1.Group, d.Item1.Architecture);
+                if (packages.Any(p => p.PackageManager == dp.PackageManager && p.Name == dp.Name && p.Version == dp.Version ))
                 {
                     continue;
                 }
                 else
                 {
-                    packages.Add(new Package(pm, d.Item2.Id, d.Item2.Version.ToNormalizedString(), 
-                        d.Item1.PackageManager, d.Item1.Group, d.Item1.Architecture));
+                    packages.Add(dp);
+                    added++; ;
                 }
             }
+            Environment.Info("Added {0} NuGet transitive dependencies.", added);
             return packages;
         }
     }
