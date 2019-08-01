@@ -311,6 +311,7 @@
     <Reference Include="System.Numerics" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="PackageSources\NuGetApiHelper.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Audit\AuditProfile.cs" />
     <Compile Include="Audit\AuditProfileRule.cs" />

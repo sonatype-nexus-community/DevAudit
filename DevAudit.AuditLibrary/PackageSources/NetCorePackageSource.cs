@@ -79,8 +79,11 @@ namespace DevAudit.AuditLibrary
                         this.AuditEnvironment.Warning("{0} package(s) do not have a version specified and will not be audited: {1}.", skipped_packages.Count(),
                         skipped_packages.Aggregate((s1,s2) => s1 + "," + s2));
                     }
-
-                    Task.WaitAll(GetDeps(root, packages));
+                    var helper = new NuGetApiHelper(this.AuditEnvironment);
+                    var framework = helper.GetFrameworks(root).First();
+                    var deps = helper.GetPackageDependencies(packages.Select(p => new PackageIdentity(p.Name, NuGetVersion.Parse(p.Version))), framework);
+                    //var deps =Task.WaitAll(GetDeps(root, packages));
+                    Task.WaitAll(deps);
                     return packages;
                 }
                 else

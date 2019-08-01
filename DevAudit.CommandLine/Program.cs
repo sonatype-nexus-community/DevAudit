@@ -1175,9 +1175,7 @@ static void EnvironmentMessageHandler(object sender, EnvironmentEventArgs e)
             {
                 HttpException oe = (HttpException) e;
                 PrintErrorMessage("HTTP status: {0} {1} \nReason: {2}\nRequest:\n{3}", (int) oe.StatusCode, oe.StatusCode, oe.ReasonPhrase, oe.Request);
-            }
-            */
-
+            }*/
         }
 
         static void StartSpinner()
