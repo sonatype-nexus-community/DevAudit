@@ -692,6 +692,10 @@ namespace DevAudit.CommandLine
                     {
                         Source = new DpkgPackageSource(audit_options, EnvironmentMessageHandler);
                     }
+                    else if (verb == "msi")
+                    {
+                        Source = new MSIPackageSource(audit_options, EnvironmentMessageHandler);
+                    }
                     else if (verb == "rpm")
                     {
                         Source = new RpmPackageSource(audit_options, EnvironmentMessageHandler);

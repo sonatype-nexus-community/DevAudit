@@ -79,7 +79,7 @@ namespace DevAudit.AuditLibrary
                         this.AuditEnvironment.Warning("{0} package(s) do not have a version specified and will not be audited: {1}.", skipped_packages.Count(),
                         skipped_packages.Aggregate((s1,s2) => s1 + "," + s2));
                     }
-                    var helper = new NuGetApiHelper(this.AuditEnvironment);
+                    var helper = new NuGetApiHelper(this.AuditEnvironment, config_file.DirectoryName);
                     foreach (var framework in helper.GetFrameworks(root))
                     {
                         AuditEnvironment.Info("Scanning NuGet transitive dependencies for {0}...", framework.GetFrameworkString());

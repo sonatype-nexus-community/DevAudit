@@ -50,7 +50,7 @@ namespace DevAudit.AuditLibrary
                     throw new ArgumentException(string.Format("No file option was specified and the default {0} package source configuration file {1} was not found.", this.PackageManagerLabel, this.DefaultPackageManagerConfigurationFile));
                 }
             }
-            else
+            else if (!(this is IOperatingSystemPackageSource))
             {
                 throw new ArgumentException(string.Format("No file option was specified and the {0} package source " 
                     + "does not specify a default configuration file.", this.PackageManagerLabel));

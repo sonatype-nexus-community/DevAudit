@@ -13,7 +13,7 @@ using Microsoft.Win32;
 
 namespace DevAudit.AuditLibrary
 {
-    public class MSIPackageSource : PackageSource
+    public class MSIPackageSource : PackageSource, IOperatingSystemPackageSource
     { 
         #region Overriden members
         public override string PackageManagerId { get { return "msi"; } }

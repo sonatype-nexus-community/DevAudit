@@ -15,7 +15,8 @@ using NuGet;
 using NuGet.Common;
 using NuGet.Configuration;
 using NuGet.Frameworks;
-using NuGet.Packaging;
+using NuGet.ProjectManagement;
+using NuGet.ProjectModel;
 using NuGet.Packaging.Core;
 using NuGet.Packaging.Signing;
 using NuGet.Protocol;
@@ -27,9 +28,10 @@ namespace DevAudit.AuditLibrary
 {
     public class NuGetApiHelper
     {
-        public NuGetApiHelper(AuditEnvironment env)
+        public NuGetApiHelper(AuditEnvironment env, string projRoot)
         {
             Environment = env;
+           
         }
         public AuditEnvironment Environment { get; }
         public IEnumerable<NuGetFramework> GetFrameworks(XElement projectXml) =>

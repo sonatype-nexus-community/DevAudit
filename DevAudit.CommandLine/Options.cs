@@ -36,6 +36,10 @@ namespace DevAudit.CommandLine
         [VerbOption("rpm", HelpText = "Audit rpm packages on Linux. The packages are scanned from the system rpm repository.")]
         public Options AuditRpm { get; set; }
 
+        [VerbOption("msi", HelpText = "Audit apps installed through MSI on Windows. The packages are scanned from the system MSI repository.")]
+        public Options AuditMsi { get; set; }
+
+
         [VerbOption("yum", HelpText = "Audit yum packages on Linux. The packages are scanned from the system rpm repository.")]
         public Options AuditYum { get; set; }
 
