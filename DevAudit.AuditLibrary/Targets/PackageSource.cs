@@ -91,7 +91,7 @@ namespace DevAudit.AuditLibrary
                 this.ListPackages = true;
             }
 
-            string[] ossi_pms = { "bower", "composer", "chocolatey", "msi", "nuget", "oneget", "yarn", "netcore" };
+            string[] ossi_pms = { "bower", "composer", "chocolatey", "msi", "nuget", "oneget", "yarn", "netcore", "dpkg", "deb/ubuntu", "deb/debian"};
             if (this.DataSources.Count == 0 && ossi_pms.Contains(this.PackageManagerId))
             {
                 this.HostEnvironment.Info("Using OSS Index as default package vulnerabilities data source for {0} package source.", this.PackageManagerLabel);
