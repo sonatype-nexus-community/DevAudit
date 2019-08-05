@@ -332,6 +332,8 @@
     <Compile Include="DataSources\OSSIndex3\OSSIndexApiv3Query.cs" />
     <Compile Include="DataSources\OSSIndex3\PackageURL\MalformedPackageUrlException.cs" />
     <Compile Include="DataSources\OSSIndex3\PackageURL\PackageURL.cs" />
+    <Compile Include="Serializers\junit.cs" />
+    <Compile Include="Serializers\JUnitXmlSerializer.cs" />
     <Compile Include="Serializers\PackageSourceSerializer.cs" />
     <Compile Include="DataSources\Vulnersdotcom\Models\VulnersAuditQuery.cs" />
     <Compile Include="DataSources\Vulnersdotcom\Models\VulnersAuditResult.cs" />

@@ -14,6 +14,7 @@ using CL = CommandLine; //Avoid type name conflict with external CommandLine lib
 using CC = Colorful; //Avoid type name conflict with System Console class
 
 using DevAudit.AuditLibrary;
+using DevAudit.AuditLibrary.Serializers;
 
 namespace DevAudit.CommandLine
 {
@@ -818,8 +819,11 @@ namespace DevAudit.CommandLine
 
             if (!string.IsNullOrEmpty(ProgramOptions.OutputFile))
             {
-                Console.WriteLine("In Here");
                 File.WriteAllText(ProgramOptions.OutputFile, JsonConvert.SerializeObject(Source));
+            }
+            if (!string.IsNullOrEmpty(ProgramOptions.XmlOutputFile))
+            {
+                JUnitXmlSerializer jxs = new JUnitXmlSerializer(Source, Stopwatch.Elapsed.TotalSeconds.ToString(), ProgramOptions.XmlOutputFile);
             }
 
             int total_vulnerabilities = Source.Vulnerabilities.Sum(v => v.Value != null ? v.Value.Count(pv => pv.PackageVersionIsInRange) : 0);

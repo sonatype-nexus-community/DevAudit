@@ -133,7 +133,10 @@ namespace DevAudit.CommandLine
 
         [Option("output-file", Required = false, HelpText = "Path to the output file.")]
         public string OutputFile { get; set; }
-        
+
+        [Option("xml-output-file", Required = false, HelpText = "Path to the XML output file.")]
+        public string XmlOutputFile { get; set; }
+
         [Option("ignore-https-cert-errors", Required = false, HelpText = "Ignore certain certificate errors for HTTPS requests. This is useful for testing but is extremely insecure and should never be used in production.")]
         public bool IgnoreHttpsCertErrors { get; set; }
 
