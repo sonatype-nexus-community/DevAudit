@@ -38,7 +38,7 @@ namespace DevAudit.AuditLibrary
         #endregion
 
         #region Overriden members
-        public override string PackageManagerId { get { return "netcore"; } }
+        public override string PackageManagerId { get { return "nuget"; } }
 
         public override string PackageManagerLabel { get { return ".NET Core"; } }
 
