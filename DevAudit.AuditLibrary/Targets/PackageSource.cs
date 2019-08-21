@@ -81,7 +81,7 @@ namespace DevAudit.AuditLibrary
                     }
                     else
                     {
-                        this.AuditEnvironment.Warning("Could not find the default {0} package source lock file {0}.", lf);
+                        this.AuditEnvironment.Warning("Could not find the default {0} package manager lock file {1}.", this.PackageManagerLabel, lf);
                     } 
                 }
             }

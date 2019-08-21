@@ -141,7 +141,7 @@ namespace DevAudit.AuditLibrary
         #endregion
 
         #region Properties
-        public string DefaultPackageSourceLockFile {get; } = "packages.lock.json";
+        public string DefaultPackageSourceLockFile {get; } = "";
 
         public string PackageSourceLockFile {get; set;}
         #endregion

@@ -90,6 +90,21 @@ namespace DevAudit.Tests
             Assert.Equal(2, v.Count);
             Assert.Equal("0.0.1", v.First());
         }
+
+        [Fact]
+        public override void CanGetPackages()
+        {
+            var packages = Sources[0].GetPackages();
+            Assert.NotEmpty(packages);
+            Assert.True(packages.Count() > 10);
+        }
+
+        [Fact]
+        public override void CanGetVulnerabilities()
+        {
+            base.CanGetVulnerabilities();
+            Assert.NotEmpty(Sources[0].Vulnerabilities.SelectMany(v => v.Value));
+        }
         #endregion
 
         #region Tests
@@ -99,12 +114,6 @@ namespace DevAudit.Tests
             Assert.False(DPS[0].PackageVersionIsRange("6.4.2"));
             Assert.True(DPS[0].PackageVersionIsRange("~5.1"));
             Assert.False(DPS[0].PackageVersionIsRange("=7.3"));
-        }
-
-        [Fact]
-        public void CanGetBugetProperties()
-        {
-            Sources[0].GetPackages();
         }
         #endregion
     }
