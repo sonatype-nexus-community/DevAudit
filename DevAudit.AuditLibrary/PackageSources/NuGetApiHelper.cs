@@ -59,17 +59,18 @@ namespace DevAudit.AuditLibrary
                             np, framework, cacheContext, logger, CancellationToken.None);
                         if (dependencyInfo != null && dependencyInfo.Dependencies.Count() > 0)
                         {
-
                             results.AddRange(dependencyInfo.Dependencies.Select(d => new Tuple<Package, PackageDependency>(p, d)));
-                            foreach (var d in dependencyInfo.Dependencies)
-                            {
-                                var _trdependencyInfo = await dependencyInfoResource.ResolvePackage(
-                                    new PackageIdentity(d.Id, d.VersionRange.MinVersion), framework, cacheContext, logger, CancellationToken.None);
-                                if (_trdependencyInfo != null && _trdependencyInfo.Dependencies.Count() > 0)
+                            
+                                foreach (var d in dependencyInfo.Dependencies.Take(10))
                                 {
-                                    results.AddRange(_trdependencyInfo.Dependencies.Select(_d => new Tuple<Package, PackageDependency>(p, _d)));
+                                    var _trdependencyInfo = await dependencyInfoResource.ResolvePackage(
+                                        new PackageIdentity(d.Id, d.VersionRange.MinVersion), framework, cacheContext, logger, CancellationToken.None);
+                                    if (_trdependencyInfo != null && _trdependencyInfo.Dependencies.Count() > 0)
+                                    {
+                                        results.AddRange(_trdependencyInfo.Dependencies.Select(_d => new Tuple<Package, PackageDependency>(p, _d)));
+                                    }
                                 }
-                            }
+                            
                         }
                     }
                 }
