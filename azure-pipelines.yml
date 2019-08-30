@@ -83,7 +83,7 @@ jobs:
       publishLocation: Container
       artifactName: 'DevAudit.CLI.$(releaseVersion)-NuGet' 
   
-  - script: 'choco pack -Version $(nugetVersion)'
+  - script: 'choco pack --Version=$(nugetVersion)'
     workingDirectory: '$(Build.SourcesDirectory)'
 
   - task: CopyFiles@2
