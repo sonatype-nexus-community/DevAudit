@@ -82,6 +82,22 @@ jobs:
       pathtoPublish: '$(Build.ArtifactStagingDirectory)/DevAudit.CLI.$(nugetVersion).nupkg'
       publishLocation: Container
       artifactName: 'DevAudit.CLI.$(releaseVersion)-NuGet' 
+  
+  - script: 'choco pack -Version $(nugetVersion)'
+    workingDirectory: '$(Build.SourcesDirectory)'
+
+  - task: CopyFiles@2
+    inputs:
+      sourceFolder: '$(Build.SourcesDirectory)' 
+      contents: 'devaudit.$(nugetVersion).nupkg'
+      targetFolder: '$(Build.ArtifactStagingDirectory)'
+
+  - task: PublishBuildArtifacts@1
+    inputs:
+      pathtoPublish: '$(Build.ArtifactStagingDirectory)/devaudit.$(nugetVersion).nupkg'
+      publishLocation: Container
+      artifactName: 'devaudit.$(releaseVersion)-Chocolatey' 
+
 
 - job: Linux
   pool:
