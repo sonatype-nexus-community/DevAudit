@@ -35,6 +35,7 @@ This is a nuspec. It mostly adheres to https://docs.nuget.org/create/Nuspec-Refe
     <!-- This section is about the software itself -->
     <title>DevAudit</title>
     <authors>Ken Duck, Allister Beharry</authors>
+    <version>3.4.0</version>
     <!-- projectUrl is required for the community feed -->
     <projectUrl>https://github.com/OSSIndex/DevAudit</projectUrl>
     <!--<iconUrl>http://cdn.rawgit.com/__REPLACE_YOUR_REPO__/master/icons/devaudit.png</iconUrl>-->
