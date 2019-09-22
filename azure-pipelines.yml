@@ -4,7 +4,7 @@
 name: Dev.$(Date:yyyyMMdd).$(Rev:.r)
 
 trigger:
-- v3.x
+- master
 
 variables:
   solution: 'DevAudit.sln'
