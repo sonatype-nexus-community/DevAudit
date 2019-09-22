@@ -104,3 +104,28 @@ jobs:
     vmImage: 'ubuntu-16.04'
   steps:
   - script: $(Build.SourcesDirectory)/build.sh
+
+  - task: CopyFiles@2
+    inputs:
+      sourceFolder: $(Build.SourcesDirectory)
+      contents: 'devaudit.sh' 
+      targetFolder: '$(Build.SourcesDirectory)/DevAudit.CommandLine/bin/Debug/'
+
+  - task: ArchiveFiles@2
+    inputs:
+     rootFolderOrFile: '$(Build.SourcesDirectory)/DevAudit.CommandLine/bin/Debug/'
+     includeRootFolder: false
+     archiveType: tar
+     tarCompression: gz
+     archiveFile: '$(Build.ArtifactStagingDirectory)/DevAudit_$(releaseVersion).tar.gz'
+     verbose: true
+
+  - task: PublishBuildArtifacts@1
+    inputs:
+      pathtoPublish: '$(Build.ArtifactStagingDirectory)/DevAudit_$(releaseVersion).tar.gz'
+      publishLocation: Container
+      artifactName: 'DevAudit-$(releaseVersion)-Linux'
+
+  - script: docker build -t $DOCKERORGID/$DOCKERIMAGE:$DOCKERTAG .
+  - script: docker login -u $DOCKERUSERID -p $DOCKERUSERPASS
+  - script: docker push $DOCKERORGID/$DOCKERIMAGE:$DOCKERTAG
