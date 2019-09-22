@@ -50,7 +50,7 @@ namespace DevAudit.AuditLibrary
                     throw new ArgumentException(string.Format("No file option was specified and the default {0} package source configuration file {1} was not found.", this.PackageManagerLabel, this.DefaultPackageManagerConfigurationFile));
                 }
             }
-            else
+            else if (!(this is IOperatingSystemPackageSource))
             {
                 throw new ArgumentException(string.Format("No file option was specified and the {0} package source " 
                     + "does not specify a default configuration file.", this.PackageManagerLabel));
@@ -81,7 +81,7 @@ namespace DevAudit.AuditLibrary
                     }
                     else
                     {
-                        this.AuditEnvironment.Warning("Could not find the default {0} package source lock file {0}.", lf);
+                        this.AuditEnvironment.Warning("Could not find the default {0} package manager lock file {1}.", this.PackageManagerLabel, lf);
                     } 
                 }
             }
@@ -91,7 +91,7 @@ namespace DevAudit.AuditLibrary
                 this.ListPackages = true;
             }
 
-            string[] ossi_pms = { "bower", "composer", "chocolatey", "msi", "nuget", "oneget", "yarn", "netcore" };
+            string[] ossi_pms = { "bower", "composer", "chocolatey", "msi", "nuget", "oneget", "yarn", "nuget", "dpkg", "deb/ubuntu", "deb/debian"};
             if (this.DataSources.Count == 0 && ossi_pms.Contains(this.PackageManagerId))
             {
                 this.HostEnvironment.Info("Using OSS Index as default package vulnerabilities data source for {0} package source.", this.PackageManagerLabel);
@@ -337,7 +337,7 @@ namespace DevAudit.AuditLibrary
                 {
                     this.AuditEnvironment.Error("Failed to create GitHub audit report");
                 }
-            }
+            }/*
             else if (this.AuditOptions.ContainsKey("BitBucketReportName"))
             {
                 this.AuditEnvironment.Status("Creating BitBucket report for {0} package source audit.", this.PackageManagerLabel);
@@ -350,7 +350,7 @@ namespace DevAudit.AuditLibrary
                 {
                     this.AuditEnvironment.Error("Failed to create BitBucket audit report");
                 }
-            }
+            }*/
             else if (this.AuditOptions.ContainsKey("GitLabReportName"))
             {
                 this.AuditEnvironment.Status("Creating GitLab report for {0} package source audit.", this.PackageManagerLabel);

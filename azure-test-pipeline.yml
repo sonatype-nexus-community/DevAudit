@@ -1,0 +1,43 @@
+# .NET Desktop
+# https://docs.microsoft.com/azure/devops/pipelines/apps/windows/dot-net
+
+name: Dev.$(Date:yyyyMMdd).$(Rev:.r)
+
+trigger:
+- v3.x
+- v3.x_issue99
+- v3.x_issue107
+- v3.x_issue108
+
+variables:
+  solution: 'DevAudit.sln'
+  buildPlatform: 'Any CPU'
+  buildConfiguration: 'RuntimeDebug'
+
+jobs:
+- job: Windows
+  pool:
+    vmImage: 'VS2017-Win2016'
+  steps:
+  - task: NuGetToolInstaller@0
+  - task: NuGetCommand@2
+    inputs:
+      restoreSolution: '$(solution)'
+      feedsToUse: 'config'
+      nugetConfigPath: 'NuGet.Config'
+
+  - task: VSBuild@1
+    inputs:
+      solution: '$(solution)'
+      platform: '$(buildPlatform)'
+      configuration: '$(buildConfiguration)'
+
+  - task: VSTest@2
+    inputs:
+      testAssemblyVer2: '$(Build.SourcesDirectory)/DevAudit.Tests/bin/Debug/DevAudit.Tests.dll'
+  
+- job: Linux
+  pool:
+    vmImage: 'ubuntu-16.04'
+  steps:
+  - script: $(Build.SourcesDirectory)/build.sh 

@@ -7,7 +7,7 @@ using System.Text.RegularExpressions;
 
 namespace DevAudit.AuditLibrary
 {
-    public class DpkgPackageSource : PackageSource
+    public class DpkgPackageSource : PackageSource, IOperatingSystemPackageSource
     {
         #region Constructors
         public DpkgPackageSource(Dictionary<string, object> package_source_options, EventHandler<EnvironmentEventArgs> message_handler) : base(package_source_options, message_handler)
@@ -32,7 +32,7 @@ namespace DevAudit.AuditLibrary
         #endregion
 
         #region Overriden members
-        public override string PackageManagerId { get { return "dpkg"; } }
+        public override string PackageManagerId { get { return "deb/" + this.AuditEnvironment.OSName; } }
 
         public override string PackageManagerLabel { get { return "dpkg"; } }
 
@@ -63,7 +63,7 @@ namespace DevAudit.AuditLibrary
                     }
                     else
                     {
-                        packages.Add(new Package("dpkg", m.Groups[1].Value, m.Groups[2].Value, null, null, m.Groups[3].Value));
+                        packages.Add(new Package(this.PackageManagerId, m.Groups[1].Value, m.Groups[2].Value, null, null, m.Groups[3].Value));
                     }
 
                 }
@@ -76,6 +76,7 @@ namespace DevAudit.AuditLibrary
                 throw new Exception(string.Format("Error running {0} {1} command in audit environment: {2} {3}.", command,
                     arguments, process_error, process_output));
             }
+            
             return packages;            
         }
 
@@ -84,6 +85,10 @@ namespace DevAudit.AuditLibrary
         {
             return true; //Vulners data source version matching done on server
         }
+        #endregion
+
+        #region Fields
+        protected string packageid;
         #endregion
     }
 }

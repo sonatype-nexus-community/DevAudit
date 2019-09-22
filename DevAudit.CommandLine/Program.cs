@@ -14,6 +14,7 @@ using CL = CommandLine; //Avoid type name conflict with external CommandLine lib
 using CC = Colorful; //Avoid type name conflict with System Console class
 
 using DevAudit.AuditLibrary;
+using DevAudit.AuditLibrary.Serializers;
 
 namespace DevAudit.CommandLine
 {
@@ -692,6 +693,10 @@ namespace DevAudit.CommandLine
                     {
                         Source = new DpkgPackageSource(audit_options, EnvironmentMessageHandler);
                     }
+                    else if (verb == "msi")
+                    {
+                        Source = new MSIPackageSource(audit_options, EnvironmentMessageHandler);
+                    }
                     else if (verb == "rpm")
                     {
                         Source = new RpmPackageSource(audit_options, EnvironmentMessageHandler);
@@ -814,8 +819,11 @@ namespace DevAudit.CommandLine
 
             if (!string.IsNullOrEmpty(ProgramOptions.OutputFile))
             {
-                Console.WriteLine("In Here");
                 File.WriteAllText(ProgramOptions.OutputFile, JsonConvert.SerializeObject(Source));
+            }
+            if (!string.IsNullOrEmpty(ProgramOptions.XmlOutputFile))
+            {
+                JUnitXmlSerializer jxs = new JUnitXmlSerializer(Source, Stopwatch.Elapsed.TotalSeconds.ToString(), ProgramOptions.XmlOutputFile);
             }
 
             int total_vulnerabilities = Source.Vulnerabilities.Sum(v => v.Value != null ? v.Value.Count(pv => pv.PackageVersionIsInRange) : 0);
@@ -828,7 +836,7 @@ namespace DevAudit.CommandLine
             {
                 IPackage package = pv.Key;
                 List<IVulnerability> package_vulnerabilities = pv.Value;
-                PrintMessage(ConsoleColor.White, "[{0}/{1}] {2}", ++packages_processed, packages_count, package.Name);
+                PrintMessage(ConsoleColor.White, "[{0}/{1}] {2} {3}", ++packages_processed, packages_count, package.Name, package.Version);
                 if (package_vulnerabilities.Count() == 0)
                 {
                     PrintMessageLine(" no known vulnerabilities.");
@@ -1032,7 +1040,7 @@ static void EnvironmentMessageHandler(object sender, EnvironmentEventArgs e)
 
         static void PrintMessageLine(string format, params object[] args)
         {
-            PrintMessage(format, args);
+            Console.WriteLine(format, args);
         }
 
         static void PrintMessageLine(ConsoleColor color, string format, params object[] args)
@@ -1170,12 +1178,12 @@ static void EnvironmentMessageHandler(object sender, EnvironmentEventArgs e)
 
         static void HandleHttpException(Exception e)
         {
+            /*
             if (e is HttpException)
             {
                 HttpException oe = (HttpException) e;
                 PrintErrorMessage("HTTP status: {0} {1} \nReason: {2}\nRequest:\n{3}", (int) oe.StatusCode, oe.StatusCode, oe.ReasonPhrase, oe.Request);
-            }
-
+            }*/
         }
 
         static void StartSpinner()

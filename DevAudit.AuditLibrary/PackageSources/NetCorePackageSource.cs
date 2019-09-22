@@ -4,12 +4,26 @@ using System.IO;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
 using System.Xml;
 using System.Xml.Linq;
 
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using NuGet;
+using NuGet.Common;
+using NuGet.Configuration;
+using NuGet.Frameworks;
+using NuGet.Packaging;
+using NuGet.Packaging.Core;
+using NuGet.Packaging.Signing;
+using NuGet.Protocol;
+using NuGet.Protocol.Core.Types;
+using NuGet.DependencyResolver;
+using NuGet.Versioning;
 
+using NuGet.Repositories;
 using Sprache;
 using Versatile;
 
@@ -24,7 +38,7 @@ namespace DevAudit.AuditLibrary
         #endregion
 
         #region Overriden members
-        public override string PackageManagerId { get { return "netcore"; } }
+        public override string PackageManagerId { get { return "nuget"; } }
 
         public override string PackageManagerLabel { get { return ".NET Core"; } }
 
@@ -64,6 +78,14 @@ namespace DevAudit.AuditLibrary
                     {
                         this.AuditEnvironment.Warning("{0} package(s) do not have a version specified and will not be audited: {1}.", skipped_packages.Count(),
                         skipped_packages.Aggregate((s1,s2) => s1 + "," + s2));
+                    }
+                    var helper = new NuGetApiHelper(this.AuditEnvironment, config_file.DirectoryName);
+                    foreach (var framework in helper.GetFrameworks(root))
+                    {
+                        AuditEnvironment.Info("Scanning NuGet transitive dependencies for {0}...", framework.GetFrameworkString());
+                        var deps = helper.GetPackageDependencies(packages, framework);
+                        Task.WaitAll(deps);
+                        packages = helper.AddPackageDependencies(deps.Result, packages);
                     }
                     return packages;
                 }
@@ -119,7 +141,7 @@ namespace DevAudit.AuditLibrary
         #endregion
 
         #region Properties
-        public string DefaultPackageSourceLockFile {get; } = "packages.lock.json";
+        public string DefaultPackageSourceLockFile {get; } = "";
 
         public string PackageSourceLockFile {get; set;}
         #endregion
@@ -127,7 +149,7 @@ namespace DevAudit.AuditLibrary
         #region Methods
         public bool PackageVersionIsRange(string version)
         {
-            var lcs = SemanticVersion.Grammar.Range.Parse(version);
+            var lcs = Versatile.SemanticVersion.Grammar.Range.Parse(version);
             if (lcs.Count > 1) 
             {
                 return true;
@@ -149,9 +171,9 @@ namespace DevAudit.AuditLibrary
 
         public List<string> GetMinimumPackageVersions(string version)
         {
-            var lcs = SemanticVersion.Grammar.Range.Parse(version);
+            var lcs = Versatile.SemanticVersion.Grammar.Range.Parse(version);
             List<string> minVersions = new List<string>();
-            foreach(ComparatorSet<SemanticVersion> cs in lcs)
+            foreach(ComparatorSet<Versatile.SemanticVersion> cs in lcs)
             {
                 if (cs.Count == 1 && cs.Single().Operator == ExpressionType.Equal)
                 {
@@ -188,6 +210,38 @@ namespace DevAudit.AuditLibrary
                 architecture)).ToList();
         }
 
+        public async Task GetDeps(XElement project, List<Package> packages)
+        {
+            IEnumerable<NuGetFramework> frameworks =
+                    project.Descendants()
+                    .Where(x => x.Name.LocalName == "TargetFramework" || x.Name.LocalName == "TargetFrameworks")
+                    .SingleOrDefault()
+                    .Value.Split(';')
+                    .Select(f => NuGetFramework.ParseFolder(f));
+            AuditEnvironment.Info("{0}", frameworks.First().Framework);
+            var nugetPackages = packages.Select(p => new PackageIdentity(p.Name, NuGetVersion.Parse(p.Version)));
+            var settings = Settings.LoadDefaultSettings(root: null);
+            var sourceRepositoryProvider = new SourceRepositoryProvider(settings, Repository.Provider.GetCoreV3());
+            var logger = NullLogger.Instance;
+            using (var cacheContext = new SourceCacheContext())
+            {
+                foreach (var np in nugetPackages)
+                {
+                    foreach (var sourceRepository in sourceRepositoryProvider.GetRepositories())
+                    {
+                        var dependencyInfoResource = await sourceRepository.GetResourceAsync<DependencyInfoResource>();
+                        var dependencyInfo = await dependencyInfoResource.ResolvePackage(
+                            np, frameworks.First(), cacheContext, logger, CancellationToken.None);
+
+                        if (dependencyInfo != null)
+                        {
+                            AuditEnvironment.Info("Dependency info: {0}.", dependencyInfo);
+                        }
+                    }
+                }
+            }
+
+        }
 
         #endregion
  

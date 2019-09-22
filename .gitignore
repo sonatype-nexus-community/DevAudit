@@ -226,3 +226,4 @@ ModelManifest.xml
 /.stignore
 /omnisharp.json
 *.nupkg
+/.ionide

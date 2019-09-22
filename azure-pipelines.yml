@@ -3,6 +3,9 @@
 
 name: Dev.$(Date:yyyyMMdd).$(Rev:.r)
 
+trigger:
+- v3.x
+
 variables:
   solution: 'DevAudit.sln'
   buildPlatform: 'Any CPU'
@@ -29,10 +32,75 @@ jobs:
   - task: VSTest@2
     inputs:
       testAssemblyVer2: '$(Build.SourcesDirectory)/DevAudit.Tests/bin/Debug/DevAudit.Tests.dll'
-      
+
+  - task: CopyFiles@2
+    inputs:
+      sourceFolder: $(Build.SourcesDirectory)
+      contents: 'devaudit.cmd' 
+      targetFolder: '$(Build.SourcesDirectory)/DevAudit.CommandLine/bin/Debug/'
+
+  - task: ArchiveFiles@2
+    inputs:
+     rootFolderOrFile: '$(Build.SourcesDirectory)/DevAudit.CommandLine/bin/Debug/'
+     includeRootFolder: false
+     archiveType: zip
+     archiveFile: '$(Build.ArtifactStagingDirectory)/DevAudit_$(releaseVersion).zip'
+     verbose: true
+
+  - task: PublishBuildArtifacts@1
+    inputs:
+      pathtoPublish: '$(Build.ArtifactStagingDirectory)/DevAudit_$(releaseVersion).zip'
+      publishLocation: Container
+      artifactName: 'DevAudit-$(releaseVersion)-Windows' 
+
+  - script: '$(Build.SourcesDirectory)/.nuget/nugetv431 pack -Version $(nugetVersion) -IncludeReferencedProjects'
+    workingDirectory: '$(Build.SourcesDirectory)/DevAudit.AuditLibrary'
+    
+  - task: CopyFiles@2
+    inputs:
+      sourceFolder: '$(Build.SourcesDirectory)/DevAudit.AuditLibrary/' 
+      contents: 'DevAudit.AuditLibrary.$(nugetVersion).nupkg'
+      targetFolder: '$(Build.ArtifactStagingDirectory)'
+
+  - task: PublishBuildArtifacts@1
+    inputs:
+      pathtoPublish: '$(Build.ArtifactStagingDirectory)/DevAudit.AuditLibrary.$(nugetVersion).nupkg'
+      publishLocation: Container
+      artifactName: 'DevAudit.AuditLibrary.$(releaseVersion)-NuGet' 
+
+  - script: '$(Build.SourcesDirectory)/.nuget/nugetv431 pack -Version $(nugetVersion) -IncludeReferencedProjects'
+    workingDirectory: '$(Build.SourcesDirectory)/DevAudit.CommandLine'
+    
+  - task: CopyFiles@2
+    inputs:
+      sourceFolder: '$(Build.SourcesDirectory)/DevAudit.CommandLine/' 
+      contents: 'DevAudit.CLI.$(nugetVersion).nupkg'
+      targetFolder: '$(Build.ArtifactStagingDirectory)'
+
+  - task: PublishBuildArtifacts@1
+    inputs:
+      pathtoPublish: '$(Build.ArtifactStagingDirectory)/DevAudit.CLI.$(nugetVersion).nupkg'
+      publishLocation: Container
+      artifactName: 'DevAudit.CLI.$(releaseVersion)-NuGet' 
+  
+  - script: 'choco pack --Version=$(nugetVersion)'
+    workingDirectory: '$(Build.SourcesDirectory)'
+
+  - task: CopyFiles@2
+    inputs:
+      sourceFolder: '$(Build.SourcesDirectory)' 
+      contents: 'devaudit.$(nugetVersion).nupkg'
+      targetFolder: '$(Build.ArtifactStagingDirectory)'
+
+  - task: PublishBuildArtifacts@1
+    inputs:
+      pathtoPublish: '$(Build.ArtifactStagingDirectory)/devaudit.$(nugetVersion).nupkg'
+      publishLocation: Container
+      artifactName: 'devaudit.$(releaseVersion)-Chocolatey' 
+
+
 - job: Linux
   pool:
     vmImage: 'ubuntu-16.04'
   steps:
   - script: $(Build.SourcesDirectory)/build.sh
-  

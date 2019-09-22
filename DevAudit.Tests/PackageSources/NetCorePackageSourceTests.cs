@@ -37,7 +37,6 @@ namespace DevAudit.Tests
         }
 
        
-
         [Fact]
         public override void IsDeveloperPackageSource()
         {
@@ -90,6 +89,21 @@ namespace DevAudit.Tests
             v = DPS[0].GetMinimumPackageVersions("<2.0.0 || >3.1.4");
             Assert.Equal(2, v.Count);
             Assert.Equal("0.0.1", v.First());
+        }
+
+        [Fact]
+        public override void CanGetPackages()
+        {
+            var packages = Sources[0].GetPackages();
+            Assert.NotEmpty(packages);
+            Assert.True(packages.Count() > 10);
+        }
+
+        [Fact]
+        public override void CanGetVulnerabilities()
+        {
+            base.CanGetVulnerabilities();
+            Assert.NotEmpty(Sources[0].Vulnerabilities.SelectMany(v => v.Value));
         }
         #endregion
 
