@@ -44,12 +44,12 @@ jobs:
      rootFolderOrFile: '$(Build.SourcesDirectory)/DevAudit.CommandLine/bin/Debug/'
      includeRootFolder: false
      archiveType: zip
-     archiveFile: '$(Build.ArtifactStagingDirectory)/DevAudit_$(releaseVersion).$(BuildID).zip'
+     archiveFile: '$(Build.ArtifactStagingDirectory)/DevAudit_$(releaseVersion).$(Build.BuildId).zip'
      verbose: true
 
   - task: PublishBuildArtifacts@1
     inputs:
-      pathtoPublish: '$(Build.ArtifactStagingDirectory)/DevAudit_$(releaseVersion).$(BuildID).zip'
+      pathtoPublish: '$(Build.ArtifactStagingDirectory)/DevAudit_$(releaseVersion).$(Build.BuildId).zip'
       publishLocation: Container
       artifactName: 'DevAudit-$(releaseVersion)-Windows' 
 
@@ -117,12 +117,12 @@ jobs:
      includeRootFolder: false
      archiveType: tar
      tarCompression: gz
-     archiveFile: '$(Build.ArtifactStagingDirectory)/DevAudit_$(releaseVersion).$(BuildID).tar.gz'
+     archiveFile: '$(Build.ArtifactStagingDirectory)/DevAudit_$(releaseVersion).$(Build.BuildId).tar.gz'
      verbose: true
 
   - task: PublishBuildArtifacts@1
     inputs:
-      pathtoPublish: '$(Build.ArtifactStagingDirectory)/DevAudit_$(releaseVersion).$(BuildID).tar.gz'
+      pathtoPublish: '$(Build.ArtifactStagingDirectory)/DevAudit_$(releaseVersion).$(Build.BuildId).tar.gz'
       publishLocation: Container
       artifactName: 'DevAudit-$(releaseVersion)-Linux'
 
