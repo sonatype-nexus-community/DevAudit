@@ -117,12 +117,12 @@ jobs:
      includeRootFolder: false
      archiveType: tar
      tarCompression: gz
-     archiveFile: '$(Build.ArtifactStagingDirectory)/DevAudit_$(releaseVersion).tar.gz'
+     archiveFile: '$(Build.ArtifactStagingDirectory)/DevAudit_$(releaseVersion).$(Rev:.r).tar.gz'
      verbose: true
 
   - task: PublishBuildArtifacts@1
     inputs:
-      pathtoPublish: '$(Build.ArtifactStagingDirectory)/DevAudit_$(releaseVersion).tar.gz'
+      pathtoPublish: '$(Build.ArtifactStagingDirectory)/DevAudit_$(releaseVersion).$(Rev:.r).tar.gz'
       publishLocation: Container
       artifactName: 'DevAudit-$(releaseVersion)-Linux'
 
