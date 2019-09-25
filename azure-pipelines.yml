@@ -11,7 +11,7 @@ variables:
   buildPlatform: 'Any CPU'
   buildConfiguration: 'RuntimeDebug'
   buildno: $[counter(variables['releaseVersion'], 1)] 
-  VersionAssembly: '$releaseVersion.$buildno'
+  VersionAssembly: $(releaseVersion).$(buildno)
 
 jobs:
 - job: Windows
