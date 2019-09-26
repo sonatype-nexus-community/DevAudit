@@ -1,7 +1,7 @@
 # .NET Desktop
 # https://docs.microsoft.com/azure/devops/pipelines/apps/windows/dot-net
 
-name: Dev.$(Date:yyyyMMdd).$(Rev:.r)
+name: Devaudit.$(Date:yyyyMMdd).$(Rev:r)
 
 trigger:
 - v3.x
@@ -10,6 +10,8 @@ variables:
   solution: 'DevAudit.sln'
   buildPlatform: 'Any CPU'
   buildConfiguration: 'RuntimeDebug'
+  buildno: $[counter(variables['releaseVersion'], 1)] 
+  VersionAssembly: $(releaseVersion).$(buildno)
 
 jobs:
 - job: Windows
@@ -44,12 +46,12 @@ jobs:
      rootFolderOrFile: '$(Build.SourcesDirectory)/DevAudit.CommandLine/bin/Debug/'
      includeRootFolder: false
      archiveType: zip
-     archiveFile: '$(Build.ArtifactStagingDirectory)/DevAudit_$(releaseVersion).zip'
+     archiveFile: '$(Build.ArtifactStagingDirectory)/DevAudit_$(releaseVersion).$(buildno).zip'
      verbose: true
 
   - task: PublishBuildArtifacts@1
     inputs:
-      pathtoPublish: '$(Build.ArtifactStagingDirectory)/DevAudit_$(releaseVersion).zip'
+      pathtoPublish: '$(Build.ArtifactStagingDirectory)/DevAudit_$(releaseVersion).$(buildno).zip'
       publishLocation: Container
       artifactName: 'DevAudit-$(releaseVersion)-Windows' 
 
@@ -117,14 +119,14 @@ jobs:
      includeRootFolder: false
      archiveType: tar
      tarCompression: gz
-     archiveFile: '$(Build.ArtifactStagingDirectory)/DevAudit_$(releaseVersion).tar.gz'
+     archiveFile: '$(Build.ArtifactStagingDirectory)/DevAudit_$(releaseVersion).$(buildno).tar.gz'
      verbose: true
 
   - task: PublishBuildArtifacts@1
     inputs:
-      pathtoPublish: '$(Build.ArtifactStagingDirectory)/DevAudit_$(releaseVersion).tar.gz'
+      pathtoPublish: '$(Build.ArtifactStagingDirectory)/DevAudit_$(releaseVersion).$(buildno).tar.gz'
       publishLocation: Container
-      artifactName: 'DevAudit-$(releaseVersion)-Linux'
+      artifactName: 'DevAudit-$(releaseVersion).$(buildno)-Linux'
 
   - script: docker build -t $DOCKERORGID/$DOCKERIMAGE:$DOCKERTAG .
   - script: docker login -u $DOCKERUSERID -p $DOCKERUSERPASS
