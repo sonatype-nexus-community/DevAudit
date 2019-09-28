@@ -647,6 +647,14 @@ namespace DevAudit.CommandLine
             {
                 audit_options.Add("IgnoreHttpsCertErrors", true);
             }
+            if (!string.IsNullOrEmpty(ProgramOptions.ApiUser))
+            {
+                audit_options.Add("ApiUser", ProgramOptions.ApiUser);
+            }
+            if (!string.IsNullOrEmpty(ProgramOptions.ApiToken))
+            {
+                audit_options.Add("ApiToken", ProgramOptions.ApiToken);
+            }
             #endregion
 
             #endregion
