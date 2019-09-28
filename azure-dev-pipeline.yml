@@ -115,7 +115,7 @@ jobs:
       
   - task: CmdLine@2
     inputs:
-      script: 'cp devaudit-run-linux.sh devaudit' 
+      script: 'mv devaudit-run-linux.sh devaudit' 
       workingDirectory: '$(Build.SourcesDirectory)/DevAudit.CommandLine/bin/Debug/'
       #failOnStderr: false # Optional
   - task: ArchiveFiles@2
