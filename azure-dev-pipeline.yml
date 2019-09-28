@@ -109,10 +109,15 @@ jobs:
 
   - task: CopyFiles@2
     inputs:
-      sourceFolder: $(Build.SourcesDirectory)
-      contents: 'devaudit' 
+      sourceFolder: $(Build.SourcesDirectory)/BuildCommon
+      contents: 'devaudit-run-linux.sh' 
       targetFolder: '$(Build.SourcesDirectory)/DevAudit.CommandLine/bin/Debug/'
-
+      
+  - task: CmdLine@2
+    inputs:
+      script: 'cp devaudit-run-linux.sh devaudit' 
+      workingDirectory: '$(Build.SourcesDirectory)/DevAudit.CommandLine/bin/Debug/'
+      #failOnStderr: false # Optional
   - task: ArchiveFiles@2
     inputs:
      rootFolderOrFile: '$(Build.SourcesDirectory)/DevAudit.CommandLine/bin/Debug/'
