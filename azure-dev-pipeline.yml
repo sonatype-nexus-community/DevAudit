@@ -110,7 +110,7 @@ jobs:
   - task: CopyFiles@2
     inputs:
       sourceFolder: $(Build.SourcesDirectory)
-      contents: 'devaudit.sh' 
+      contents: 'devaudit' 
       targetFolder: '$(Build.SourcesDirectory)/DevAudit.CommandLine/bin/Debug/'
 
   - task: ArchiveFiles@2
