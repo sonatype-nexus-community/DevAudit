@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
-using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Xml;
 using System.Xml.Linq;
@@ -69,6 +69,10 @@ namespace DevAudit.AuditLibrary
             {
                 packages.AddRange(bundled_dependencies.Properties()
                     .SelectMany(d => GetDeveloperPackages(d.Name.Replace("@", ""), d.Value.ToString())));
+            }
+            if (!string.IsNullOrEmpty(this.PackageSourceLockFile))
+            {
+                this.GetPackageManagerLockFilePackages(packages);
             }
             return packages;
         }
@@ -183,6 +187,72 @@ namespace DevAudit.AuditLibrary
         {
             return GetMinimumPackageVersions(version).Select(v => new Package("npm", name, v, vendor, group, architecture)).ToList();
         }
+
+        public void GetPackageManagerLockFilePackages(List<Package> packages)
+        {
+            int origCount = packages.Count;
+            AuditFileInfo f = this.AuditEnvironment.ConstructFile(this.PackageSourceLockFile);
+            string text = f.ReadAsText();
+            string[] lines = text.Split(new[] { "\n" }, StringSplitOptions.None);
+            bool insideDeps = false;
+            List<string> deps = new List<string>();
+            for(int i = 0; i < lines.Length; i++)
+            {
+                string line = lines[i];
+                if (!insideDeps && line.Trim().StartsWith("dependencies:"))
+                {
+                    insideDeps = true;
+                    continue;
+                }
+                
+                else if(insideDeps && string.IsNullOrEmpty(line.Trim()) || line.Trim() == "optionalDependencies:")
+                {
+                    insideDeps = false;
+                    continue;
+                }
+                else if (insideDeps)
+                {
+                    deps.Add(line);
+                }
+                else
+                {
+                    continue;
+                }
+            }
+            foreach(var d in deps)
+            {
+                var m = dRegEx.Match(d);
+                if (m.Success)
+                {
+                    string n = m.Groups[1].Value.Replace("@", "").Trim();
+                    string v = m.Groups[2].Value.Trim();
+                    var depPackages = GetDeveloperPackages(n, v);
+                    foreach(var package in depPackages)
+                    {
+                        if(!packages.Any(p => p.Name == package.Name && p.Version == package.Version))
+                        {
+                            packages.Add(package);
+                        }
+                    }
+                        
+                }
+                else
+                {
+                    this.AuditEnvironment.Error("Could not parse lock file dependency line {0}. Skipping.", d.Trim());
+                }
+            }
+            //var m = l.Matches(text);
+            if (packages.Count > origCount)
+            {
+                this.AuditEnvironment.Info("Added {0} package dependencies from Yarn lock file {1}.",
+                    packages.Count - origCount, this.PackageSourceLockFile);
+            }
+        }
+        #endregion
+
+        #region Fields
+        private static Regex l = new Regex("\"@\\S+\":\\s+.+\"", RegexOptions.Compiled);
+        private static Regex dRegEx = new Regex("^\\s+\"?(\\S+?)\"?\\s+\"?(.+?)\"?$", RegexOptions.Compiled);
         #endregion
     }
 }

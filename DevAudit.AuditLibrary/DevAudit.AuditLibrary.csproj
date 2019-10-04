@@ -401,6 +401,8 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />
+    <None Include="Examples\package.json.4" />
+    <None Include="Examples\yarn.lock.4" />
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>

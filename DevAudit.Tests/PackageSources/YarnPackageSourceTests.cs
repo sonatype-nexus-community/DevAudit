@@ -25,15 +25,19 @@ namespace DevAudit.Tests
                 }, EnvironmentMessageHandler),
                 new YarnPackageSource(new Dictionary<string, object>()
                 { 
-                    {"File", @".\Examples\package.json.2" },
-                    {"LockFile", @".\Examples\yarn.lock.2"}
-            
+                    {"File", @".\Examples\package.json.2" }
                 }, EnvironmentMessageHandler),
                 new YarnPackageSource(new Dictionary<string, object>()
                 { 
                     {"File", @".\Examples\package.json.3" }
             
-                }, EnvironmentMessageHandler)
+                }, EnvironmentMessageHandler),
+                new YarnPackageSource(new Dictionary<string, object>()
+                {
+                    {"File", @".\Examples\package.json.4" },
+                    {"LockFile", @".\Examples\yarn.lock.4"}
+
+                }, EnvironmentMessageHandler),
             };
         #endregion
 
