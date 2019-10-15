@@ -55,6 +55,7 @@ namespace DevAudit.Tests
         public override void CanGetVulnerabilities()
         {
             base.CanGetVulnerabilities();
+            Assert.NotEmpty(Sources[3].Vulnerabilities.SelectMany(v => v.Value));
             Assert.NotEmpty(Sources[1].Vulnerabilities.SelectMany(v => v.Value));
             Assert.Empty(Sources[0].Vulnerabilities.SelectMany(v => v.Value));
         }
