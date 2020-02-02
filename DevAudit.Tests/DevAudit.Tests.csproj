@@ -65,7 +65,6 @@
     <Compile Include="Base\PackageSourceTests.cs" />
     <Compile Include="PackageSources\BowerPackageSourceTests.cs" />
     <Compile Include="PackageSources\NuGetv2PackageSourceTests.cs" />
-    <Compile Include="PackageSources\YarnPackageSourceTests.cs" />
     <Compile Include="PackageSources\ComposerPackageSourceTests.cs" />
     <Compile Include="PackageSources\NetCorePackageSourceTests.cs" />
     <Compile Include="Environments\GitHubEnvironmentTests.cs" />
