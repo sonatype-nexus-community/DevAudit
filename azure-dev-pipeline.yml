@@ -149,7 +149,7 @@ jobs:
     inputs:
       command: publish
       publishDirectory: '$(Build.SourcesDirectory)/DevAudit.CommandLine/bin/Debug/'
-      vstsFeedPublish: 'allisterb'
+      vstsFeedPublish: 'DevAudit/allisterb'
       vstsFeedPackagePublish: 'DevAudit-$(releaseVersion)-Linux'
       versionOption: custom
       versionPublish: '$(releaseVersion)'
