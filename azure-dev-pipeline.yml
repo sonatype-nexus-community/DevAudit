@@ -62,6 +62,8 @@ jobs:
       publishDirectory: '$(Build.SourcesDirectory)/DevAudit.CommandLine/bin/Debug/'
       vstsFeedPublish: 'allisterb'
       vstsFeedPackagePublish: 'DevAudit-$(releaseVersion)-Windows'
+      versionOption: custom
+      versionPublish: '$(releaseVersion)'
       packagePublishDescription: 'DevAudit latest build from developer allisterb.'
   
   - script: '$(Build.SourcesDirectory)/.nuget/nugetv431 pack -Version $(nugetVersion) -IncludeReferencedProjects'
@@ -141,6 +143,19 @@ jobs:
       pathtoPublish: '$(Build.ArtifactStagingDirectory)/DevAudit_$(releaseVersion).$(buildno).tar.gz'
       publishLocation: Container
       artifactName: 'DevAudit-$(releaseVersion).$(buildno)-Linux'
+
+  - task: UniversalPackages@0
+    displayName: Universal Publish
+    inputs:
+      command: publish
+      publishDirectory: '$(Build.SourcesDirectory)/DevAudit.CommandLine/bin/Debug/'
+      vstsFeedPublish: 'DevAudit/allisterb'
+      vstsFeedPackagePublish: 'DevAudit-$(releaseVersion)-Linux'
+      versionOption: custom
+      versionPublish: '$(releaseVersion)'
+      packagePublishDescription: 'DevAudit latest build from developer allisterb.'
+  
+
 
   - script: docker build -t $DOCKERORGID/$DOCKERIMAGE:$DOCKERTAG .
   - script: docker login -u $DOCKERUSERID -p $DOCKERUSERPASS
