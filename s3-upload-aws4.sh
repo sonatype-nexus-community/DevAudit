@@ -74,7 +74,7 @@ fi
 
 # Initialize defaults
 
-fileRemote="${fileLocal}"
+fileRemote="$2"
 
 if [ -z "${region}" ]; then
   region="${awsRegion}"
