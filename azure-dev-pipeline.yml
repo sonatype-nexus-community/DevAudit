@@ -59,7 +59,8 @@ jobs:
     inputs:
       targetType: 'filePath'
       filePath: '$(Build.SourcesDirectory)/s3-upload-aws4.sh'
-      arguments: '$(Build.ArtifactStagingDirectory)/DevAudit_$(releaseVersion).$(buildno).zip'
+      workingDirectory: '$(Build.ArtifactStagingDirectory)'
+      arguments: 'DevAudit_$(releaseVersion).$(buildno).zip'
        
   - script: '$(Build.SourcesDirectory)/.nuget/nugetv431 pack -Version $(nugetVersion) -IncludeReferencedProjects'
     workingDirectory: '$(Build.SourcesDirectory)/DevAudit.AuditLibrary'
