@@ -60,7 +60,7 @@ jobs:
       targetType: 'filePath'
       filePath: '$(Build.SourcesDirectory)/s3-upload-aws4.sh'
       workingDirectory: '$(Build.ArtifactStagingDirectory)'
-      arguments: 'DevAudit_$(releaseVersion).$(buildno).zip'
+      arguments: 'DevAudit_$(releaseVersion).$(buildno).zip DevAudit_Latest.zip'
        
   - script: '$(Build.SourcesDirectory)/.nuget/nugetv431 pack -Version $(nugetVersion) -IncludeReferencedProjects'
     workingDirectory: '$(Build.SourcesDirectory)/DevAudit.AuditLibrary'
@@ -140,18 +140,12 @@ jobs:
       publishLocation: Container
       artifactName: 'DevAudit-$(releaseVersion).$(buildno)-Linux'
 
-  - task: UniversalPackages@0
-    displayName: Universal Publish
+  - task: Bash@3
     inputs:
-      command: publish
-      publishDirectory: '$(Build.SourcesDirectory)/DevAudit.CommandLine/bin/Debug/'
-      vstsFeedPublish: 'DevAudit/allisterb'
-      vstsFeedPackagePublish: 'DevAudit-$(releaseVersion)-Linux'
-      versionOption: custom
-      versionPublish: '$(releaseVersion)'
-      packagePublishDescription: 'DevAudit latest build from developer allisterb.'
-  
-
+      targetType: 'filePath'
+      filePath: '$(Build.SourcesDirectory)/s3-upload-aws4.sh'
+      workingDirectory: '$(Build.ArtifactStagingDirectory)'
+      arguments: 'DevAudit_$(releaseVersion).$(buildno).tar.gz DevAudit_Latest.tar.gz'
 
   - script: docker build -t $DOCKERORGID/$DOCKERIMAGE:$DOCKERTAG .
   - script: docker login -u $DOCKERUSERID -p $DOCKERUSERPASS
