@@ -25,54 +25,18 @@ namespace DevAudit.AuditLibrary
         //Get list of installed programs from 3 registry locations.
         public override IEnumerable<Package> GetPackages(params string[] o)
         {
-            RegistryKey k = null;
-            try
+            var wmi = AuditEnvironment.Execute("wmic", "product get name,version", out var process_status, out var process_output, out var process_error);
+            if (process_status != AuditEnvironment.ProcessExecuteStatus.Completed)
             {
-                RegistryPermission perm = new RegistryPermission(RegistryPermissionAccess.Read, @"HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall");
-                perm.Demand();
-                k = Registry.LocalMachine.OpenSubKey(@"SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall");
-                IEnumerable<Package> packages_query =
-                    from sn in k.GetSubKeyNames()
-                    select new Package("msi", (string)k.OpenSubKey(sn).GetValue("DisplayName"),
-                        (string)k.OpenSubKey(sn).GetValue("DisplayVersion"),
-                        (string)k.OpenSubKey(sn).GetValue("Publisher"));
-                List<Package> packages = packages_query
-                    .Where(p => !string.IsNullOrEmpty(p.Name))
-                    .ToList<Package>();
-
-                perm = new RegistryPermission(RegistryPermissionAccess.Read, @"HKEY_LOCAL_MACHINE\SOFTWARE\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall");
-                perm.Demand();
-                k = Registry.LocalMachine.OpenSubKey(@"SOFTWARE\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall");
-                packages_query =
-                    from sn in k.GetSubKeyNames()
-                    select new Package("msi", (string)k.OpenSubKey(sn).GetValue("DisplayName"),
-                        (string)k.OpenSubKey(sn).GetValue("DisplayVersion"), (string)k.OpenSubKey(sn).GetValue("Publisher"));
-                packages.AddRange(packages_query.Where(p => !string.IsNullOrEmpty(p.Name)));
-
-                perm = new RegistryPermission(RegistryPermissionAccess.Read, @"HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall");
-                perm.Demand();
-                k = Registry.CurrentUser.OpenSubKey(@"SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall");
-                packages_query =
-                    from sn in k.GetSubKeyNames()
-                    select new Package("msi", (string)k.OpenSubKey(sn).GetValue("DisplayName"),
-                        (string)k.OpenSubKey(sn).GetValue("DisplayVersion"), (string)k.OpenSubKey(sn).GetValue("Publisher"));
-                packages.AddRange(packages_query.Where(p => !string.IsNullOrEmpty(p.Name)));
-                return packages.GroupBy(p => new { p.Name, p.Version, p.Vendor }).Select(p => p.First()).ToList();
+                throw new Exception("The wmic command did not execute successfully.");
             }
-
-            catch (SecurityException se)
+            var lines = process_output.Split(AuditEnvironment.LineTerminator.ToCharArray());
+            var regex = new Regex(@"(\S.+)\s+\d(\S+)", RegexOptions.Compiled);
+            foreach (var s in lines.Skip(1))
             {
-                throw new Exception("Security exception thrown reading registry key: " + (k == null ? "" : k.Name + "\n" + se.Message), se);
+                var m = regex.Match(s);
             }
-            catch (Exception e)
-            {
-                throw new Exception("Exception thrown reading registry key: " + (k == null ? "" : k.Name), e);
-            }
-
-            finally
-            {
-                k = null;
-            }
+            throw new NotImplementedException();
         }
 
         public override bool IsVulnerabilityVersionInPackageVersionRange(string vulnerability_version, string package_version)
