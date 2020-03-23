@@ -4,29 +4,20 @@ using System.Diagnostics;
 using System.Net.Http;
 using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
-using Newtonsoft.Json;
-using System.Threading;
-using PackageUrl;
 using System.Runtime.Caching;
 using System.Reflection;
 using System.IO;
+using System.Threading.Tasks;
+using System.Threading;
+
+using Newtonsoft.Json;
+using PackageUrl;
+
 
 namespace DevAudit.AuditLibrary
 {
     public class OSSIndexApiv3DataSource : HttpDataSource
     {
-        #region Properties
-        protected PackageSource PackageSource { get; set; }
-
-        private string HOST = "https://ossindex.sonatype.org/api/";
-
-        private FileCache cache = null;
-
-        private long cacheExpiration { get; set; } = 43200; // Seconds in 12 hours
-
-        #endregion
-
         #region Constructors
         public OSSIndexApiv3DataSource(AuditTarget target, Dictionary<string, object> options) : base(target, options)
         {
@@ -210,11 +201,14 @@ namespace DevAudit.AuditLibrary
         }
         #endregion
 
+        #region Properties
+        protected PackageSource PackageSource { get; set; }
+        #endregion
+
         #region Methods
         public async Task<List<OSSIndexApiv3Package>> SearchVulnerabilitiesAsync(IEnumerable<Package> packages,
             Func<List<OSSIndexApiv3Package>, List<OSSIndexApiv3Package>> transform)
         {
-            string server_api_version = "3";
             IEnumerable<Package> packages_for_query = packages.Select(p => new Package(p.PackageManager, p.Name, p.Version, string.Empty, p.Group));
             OSSIndexApiv3Query query = new OSSIndexApiv3Query();
 
@@ -226,6 +220,7 @@ namespace DevAudit.AuditLibrary
 
             using (HttpClient client = CreateHttpClient())
             {
+                AddApiAuthenticationIfPresent(client);
                 string url = "v" + server_api_version + "/component-report";
                 string content = JsonConvert.SerializeObject(query);
                 this.HostEnvironment.Debug("JSON query sent to OSS Index API: {0}.", content);
@@ -311,32 +306,25 @@ namespace DevAudit.AuditLibrary
             }
         }
 
+        private void AddApiAuthenticationIfPresent(HttpClient client)
+        {
+            if (!string.IsNullOrEmpty(this.ApiToken) && !string.IsNullOrEmpty(this.ApiUser))
+            {
+                AuditEnvironment.Info("Using API authentication for OSS Index user {0}.", ApiUser);
+                var byteArray = Encoding.ASCII.GetBytes($"{ApiUser}:{ApiToken}");
+                client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Basic", 
+                    Convert.ToBase64String(byteArray));
+            }
+        }
         #endregion
 
         #region Fields
         private readonly object artifacts_lock = new object(), vulnerabilities_lock = new object();
         private Dictionary<Package, List<OSSIndexApiv3Vulnerability>> _Vulnerabilities = new Dictionary<Package, List<OSSIndexApiv3Vulnerability>>();
+        private string HOST = "https://ossindex.sonatype.org/api/";
+        private FileCache cache = null;
+        private long cacheExpiration  = 43200; // Seconds in 12 hours
+        private string server_api_version = "3";
         #endregion
-
-    }
-
-    /** https://github.com/acarteas/FileCache
-     */
-    public sealed class ObjectBinder : System.Runtime.Serialization.SerializationBinder
-    {
-        public override Type BindToType(string assemblyName, string typeName)
-        {
-            Type typeToDeserialize = null;
-            String currentAssembly = Assembly.GetExecutingAssembly().FullName;
-
-            // In this case we are always using the current assembly
-            assemblyName = currentAssembly;
-
-            // Get the type using the typeName and assemblyName
-            typeToDeserialize = Type.GetType(String.Format("{0}, {1}",
-            typeName, assemblyName));
-
-            return typeToDeserialize;
-        }
     }
 }

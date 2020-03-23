@@ -146,7 +146,13 @@ namespace DevAudit.CommandLine
         [Option("ci", Required = false, HelpText = "Run in 'continuous integration' mode. Returns non-zero exist when vulnerabilities found.")]
         public bool CiMode { get; set; }
 
-        [Option("with-vulners", Required = false, HelpText = "Use vulnerability data from the vulners.com API and/or data files.")]
+        [Option("api-user", Required = false, HelpText = "Set the API user to use for data sources that require it.")]
+        public string ApiUser { get; set; }
+
+        [Option("api-token", Required = false, HelpText = "Set the API token to use for data sources that require it.")]
+        public string ApiToken { get; set; }
+
+        [Option('a', "with-vulners", Required = false, HelpText = "Use vulnerability data from the vulners.com API and/or data files.")]
         public bool WithVulners { get; set; }
 
         public static Dictionary<string, object> Parse(string o)

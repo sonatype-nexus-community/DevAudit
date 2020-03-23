@@ -1,0 +1,152 @@
+# .NET Desktop
+# https://docs.microsoft.com/azure/devops/pipelines/apps/windows/dot-net
+
+name: Devaudit.$(Date:yyyyMMdd).$(Rev:r)
+
+trigger:
+- v3.x
+
+variables:
+  solution: 'DevAudit.sln'
+  buildPlatform: 'Any CPU'
+  buildConfiguration: 'RuntimeDebug'
+  buildno: $[counter(variables['releaseVersion'], 1)] 
+  VersionAssembly: $(releaseVersion).$(buildno)
+
+jobs:
+- job: Windows
+  pool:
+    vmImage: 'VS2017-Win2016'
+  steps:
+  - task: NuGetToolInstaller@0
+  - task: NuGetCommand@2
+    inputs:
+      restoreSolution: '$(solution)'
+      feedsToUse: 'config'
+      nugetConfigPath: 'NuGet.Config'
+
+  - task: VSBuild@1
+    inputs:
+      solution: '$(solution)'
+      platform: '$(buildPlatform)'
+      configuration: '$(buildConfiguration)'
+
+  - task: VSTest@2
+    inputs:
+      testAssemblyVer2: '$(Build.SourcesDirectory)/DevAudit.Tests/bin/Debug/DevAudit.Tests.dll'
+
+  - task: CopyFiles@2
+    inputs:
+      sourceFolder: $(Build.SourcesDirectory)
+      contents: 'devaudit.cmd' 
+      targetFolder: '$(Build.SourcesDirectory)/DevAudit.CommandLine/bin/Debug/'
+
+  - task: ArchiveFiles@2
+    inputs:
+     rootFolderOrFile: '$(Build.SourcesDirectory)/DevAudit.CommandLine/bin/Debug/'
+     includeRootFolder: false
+     archiveType: zip
+     archiveFile: '$(Build.ArtifactStagingDirectory)/DevAudit_$(releaseVersion).$(buildno).zip'
+     verbose: true
+
+  - task: PublishBuildArtifacts@1
+    inputs:
+      pathtoPublish: '$(Build.ArtifactStagingDirectory)/DevAudit_$(releaseVersion).$(buildno).zip'
+      publishLocation: Container
+      artifactName: 'DevAudit-$(releaseVersion)-Windows' 
+
+  - task: Bash@3
+    inputs:
+      targetType: 'filePath'
+      filePath: '$(Build.SourcesDirectory)/s3-upload-aws4.sh'
+      workingDirectory: '$(Build.ArtifactStagingDirectory)'
+      arguments: 'DevAudit_$(releaseVersion).$(buildno).zip DevAudit_Latest.zip'
+       
+  - script: '$(Build.SourcesDirectory)/.nuget/nugetv431 pack -Version $(nugetVersion) -IncludeReferencedProjects'
+    workingDirectory: '$(Build.SourcesDirectory)/DevAudit.AuditLibrary'
+    
+  - task: CopyFiles@2
+    inputs:
+      sourceFolder: '$(Build.SourcesDirectory)/DevAudit.AuditLibrary/' 
+      contents: 'DevAudit.AuditLibrary.$(nugetVersion).nupkg'
+      targetFolder: '$(Build.ArtifactStagingDirectory)'
+
+  - task: PublishBuildArtifacts@1
+    inputs:
+      pathtoPublish: '$(Build.ArtifactStagingDirectory)/DevAudit.AuditLibrary.$(nugetVersion).nupkg'
+      publishLocation: Container
+      artifactName: 'DevAudit.AuditLibrary.$(releaseVersion)-NuGet' 
+
+  - script: '$(Build.SourcesDirectory)/.nuget/nugetv431 pack -Version $(nugetVersion) -IncludeReferencedProjects'
+    workingDirectory: '$(Build.SourcesDirectory)/DevAudit.CommandLine'
+    
+  - task: CopyFiles@2
+    inputs:
+      sourceFolder: '$(Build.SourcesDirectory)/DevAudit.CommandLine/' 
+      contents: 'DevAudit.CLI.$(nugetVersion).nupkg'
+      targetFolder: '$(Build.ArtifactStagingDirectory)'
+
+  - task: PublishBuildArtifacts@1
+    inputs:
+      pathtoPublish: '$(Build.ArtifactStagingDirectory)/DevAudit.CLI.$(nugetVersion).nupkg'
+      publishLocation: Container
+      artifactName: 'DevAudit.CLI.$(releaseVersion)-NuGet' 
+  
+  - script: 'choco pack --Version=$(nugetVersion)'
+    workingDirectory: '$(Build.SourcesDirectory)'
+
+  - task: CopyFiles@2
+    inputs:
+      sourceFolder: '$(Build.SourcesDirectory)' 
+      contents: 'devaudit.$(nugetVersion).nupkg'
+      targetFolder: '$(Build.ArtifactStagingDirectory)'
+
+  - task: PublishBuildArtifacts@1
+    inputs:
+      pathtoPublish: '$(Build.ArtifactStagingDirectory)/devaudit.$(nugetVersion).nupkg'
+      publishLocation: Container
+      artifactName: 'devaudit.$(releaseVersion)-Chocolatey' 
+
+
+- job: Linux
+  pool:
+    vmImage: 'ubuntu-16.04'
+  steps:
+  - script: $(Build.SourcesDirectory)/build.sh
+
+  - task: CopyFiles@2
+    inputs:
+      sourceFolder: $(Build.SourcesDirectory)/BuildCommon
+      contents: 'devaudit-run-linux.sh' 
+      targetFolder: '$(Build.SourcesDirectory)/DevAudit.CommandLine/bin/Debug/'
+      
+  - task: CmdLine@2
+    inputs:
+      script: 'mv devaudit-run-linux.sh devaudit' 
+      workingDirectory: '$(Build.SourcesDirectory)/DevAudit.CommandLine/bin/Debug/'
+      #failOnStderr: false # Optional
+  - task: ArchiveFiles@2
+    inputs:
+     rootFolderOrFile: '$(Build.SourcesDirectory)/DevAudit.CommandLine/bin/Debug/'
+     includeRootFolder: false
+     archiveType: tar
+     tarCompression: gz
+     archiveFile: '$(Build.ArtifactStagingDirectory)/DevAudit_$(releaseVersion).$(buildno).tar.gz'
+     verbose: true
+
+  - task: PublishBuildArtifacts@1
+    inputs:
+      pathtoPublish: '$(Build.ArtifactStagingDirectory)/DevAudit_$(releaseVersion).$(buildno).tar.gz'
+      publishLocation: Container
+      artifactName: 'DevAudit-$(releaseVersion).$(buildno)-Linux'
+
+  - task: Bash@3
+    inputs:
+      targetType: 'filePath'
+      filePath: '$(Build.SourcesDirectory)/s3-upload-aws4.sh'
+      workingDirectory: '$(Build.ArtifactStagingDirectory)'
+      arguments: 'DevAudit_$(releaseVersion).$(buildno).tar.gz DevAudit_Latest.tar.gz'
+
+  - script: docker build -t $DOCKERORGID/$DOCKERIMAGE:$DOCKERTAG .
+  - script: docker login -u $DOCKERUSERID -p $DOCKERUSERPASS
+  - script: docker push $DOCKERORGID/$DOCKERIMAGE:$DOCKERTAG

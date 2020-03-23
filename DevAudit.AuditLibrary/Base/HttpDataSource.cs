@@ -56,6 +56,14 @@ namespace DevAudit.AuditLibrary
             {
                 DeleteCache = false;
             }
+            if (this.DataSourceOptions.ContainsKey("ApiUser"))
+            {
+                ApiUser = (string)DataSourceOptions["ApiUser"];
+            }
+            if (this.DataSourceOptions.ContainsKey("ApiToken"))
+            {
+                ApiToken = (string) DataSourceOptions["ApiToken"];
+            }
         }
         #endregion
 
@@ -79,6 +87,8 @@ namespace DevAudit.AuditLibrary
         public Uri HttpsProxy { get; protected set; }
         public bool NoCache { get; protected set; }
         public bool DeleteCache { get; protected set; }
+        public string ApiUser { get; protected set; }
+        public string ApiToken { get; protected set; }
         public bool Initialised { get; protected set; }
         public DataSourceInfo Info { get; set; } = new DataSourceInfo();
         protected Version LibraryVersion { get; set; } = Assembly.GetExecutingAssembly().GetName().Version;

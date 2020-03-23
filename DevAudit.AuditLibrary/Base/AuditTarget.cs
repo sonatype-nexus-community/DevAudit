@@ -351,6 +351,24 @@ namespace DevAudit.AuditLibrary
                 this.DataSourceOptions.Add("IgnoreHttpsCertErrors", true);
             }
 
+            if (this.AuditOptions.ContainsKey("ApiUser"))
+            {
+                this.DataSourceOptions.Add("ApiUser", this.AuditOptions["ApiUser"]);
+            }
+            else if (!string.IsNullOrEmpty(Environment.GetEnvironmentVariable("API_USER")))
+            {
+                this.DataSourceOptions.Add("ApiUser", Environment.GetEnvironmentVariable("API_USER"));
+            }
+
+            if (this.AuditOptions.ContainsKey("ApiToken"))
+            {
+                this.DataSourceOptions.Add("ApiToken", this.AuditOptions["ApiToken"]);
+            }
+            else if (!string.IsNullOrEmpty(Environment.GetEnvironmentVariable("API_TOKEN")))
+            {
+                this.DataSourceOptions.Add("ApiToken", Environment.GetEnvironmentVariable("API_TOKEN"));
+            }
+
             if (this.AuditOptions.ContainsKey("WithOSSI")) 
             {
                 this.DataSources.Add(new OSSIndexApiv3DataSource(this, DataSourceOptions));

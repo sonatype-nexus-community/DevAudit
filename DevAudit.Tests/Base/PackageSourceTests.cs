@@ -28,7 +28,7 @@ namespace DevAudit.Tests
         protected abstract List<PackageSource> Sources { get; }
         #endregion
 
-        #region Abstract Tsests
+        #region Abstract Tests
         public abstract void CanTestVulnerabilityVersionInPackageVersionRange();
 
         public abstract void IsDeveloperPackageSource();

@@ -73,7 +73,11 @@ namespace DevAudit.AuditLibrary
                 }
                 else if (dpm.DefaultPackageSourceLockFile != string.Empty)
                 {
-                    string lf = dpm.DefaultPackageSourceLockFile;
+                    
+                    var dlf = this.AuditEnvironment.ConstructFile(this.PackageManagerConfigurationFile)
+                        .Directory;
+                    string lf = dlf.FullName + dlf.PathSeparator + dpm.DefaultPackageSourceLockFile;
+
                     if (this.AuditEnvironment.FileExists(lf))
                     {
                         this.AuditEnvironment.Info("Using the default {0} package manager lock file {1}.", this.PackageManagerLabel, lf);
