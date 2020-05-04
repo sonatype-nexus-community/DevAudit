@@ -368,6 +368,19 @@ namespace DevAudit.AuditLibrary
                     this.AuditEnvironment.Error("Failed to create GitLab audit report");
                 }
             }
+            else if (this.AuditOptions.ContainsKey("IQServerUrl"))
+            {
+                this.AuditEnvironment.Status("Creating IQ Server report for {0} package source audit.", this.PackageManagerLabel);
+                AuditReporter reporter = new IQServerReporter(this);
+                if (reporter.ReportPackageSourceAudit().Result)
+                {
+                    this.AuditEnvironment.Info("Created IQ Server audit report.");
+                }
+                else
+                {
+                    this.AuditEnvironment.Error("Failed to create IQ Server audit report.");
+                }
+            }
         }
         #endregion
 
