@@ -336,6 +336,7 @@
     <Compile Include="Reporters\IQServerReporter.cs" />
     <Compile Include="Reporters\Models\IQServerApplications.cs" />
     <Compile Include="Reporters\Models\IQServerBom.cs" />
+    <Compile Include="Reporters\Models\IQServerStatus.cs" />
     <Compile Include="Serializers\junit.cs" />
     <Compile Include="Serializers\JUnitXmlSerializer.cs" />
     <Compile Include="Serializers\PackageSourceSerializer.cs" />
