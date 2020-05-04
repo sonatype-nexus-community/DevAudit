@@ -683,7 +683,7 @@ namespace DevAudit.CommandLine
                 
                 if (!parsed_options.ContainsKey("Url"))
                 {
-                    PrintErrorMessage("You must specify the IQ Server Url  as Url=<url> in the IQ Server reporter options {0}.", ProgramOptions.IQServerReporter);
+                    PrintErrorMessage("You must specify the IQ Server Url as Url=<url> in the IQ Server reporter options {0}.", ProgramOptions.IQServerReporter);
                     return (int)Exit;
                 }
                 if (!parsed_options.ContainsKey("User"))
@@ -696,11 +696,17 @@ namespace DevAudit.CommandLine
                     PrintErrorMessage("You must specify the IQ Server user password as Pass=<pass> in the IQ Server reporter options {0}.", ProgramOptions.IQServerReporter);
                     return (int)Exit;
                 }
+                if (!parsed_options.ContainsKey("AppId"))
+                {
+                    PrintErrorMessage("You must specify the IQ Server app id for the project being audited as AppId=<appid> in the IQ Server reporter options {0}.", ProgramOptions.IQServerReporter);
+                    return (int)Exit;
+                }
                 if (Uri.TryCreate((string) parsed_options["Url"], UriKind.Absolute, out Uri uri))
                 {
                     audit_options.Add("IQServerUrl", uri);
                     audit_options.Add("IQServerUser", parsed_options["User"]);
                     audit_options.Add("IQServerPass", parsed_options["Pass"]);
+                    audit_options.Add("IQServerAppId", parsed_options["AppId"]);
                 }
                 else
                 {

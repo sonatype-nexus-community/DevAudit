@@ -22,23 +22,14 @@ namespace DevAudit.AuditLibrary
         #region Constructors
         public IQServerReporter(PackageSource source) : base(source) 
         {
-            if (!AuditOptions.ContainsKey("IQServerUrl") || !AuditOptions.ContainsKey("IQServerUser") || !AuditOptions.ContainsKey("IQServerPass"))
+            if (!AuditOptions.ContainsKey("IQServerUrl") || !AuditOptions.ContainsKey("IQServerUser") || !AuditOptions.ContainsKey("IQServerPass") || !AuditOptions.ContainsKey("IQServerAppId"))
             {
-                throw new ArgumentException("The IQServerUrl, IQServerUser, and IQServerPass audit options must all be present.");
+                throw new ArgumentException("The IQServerUrl, IQServerUser, IQServerPass, IQServerAppId audit options must all be present.");
             }
             IQServerUrl = (Uri)AuditOptions["IQServerUrl"];
             IQServerUser = (string)AuditOptions["IQServerUser"];
             IQServerPass = (string)AuditOptions["IQServerPass"];
-
-            if (AuditOptions.ContainsKey("IQServerAppId"))
-            {
-                IQServerAppId = (string)AuditOptions["IQServerAppId"];
-            }
-            else
-            {
-                IQServerAppId = Path.GetDirectoryName(Directory.GetCurrentDirectory()).Split(Path.DirectorySeparatorChar).First();
-                AuditEnvironment.Info("Using the current directory name {0} as the IQ Server app id.", IQServerAppId);
-            }
+            IQServerAppId = (string)AuditOptions["IQServerAppId"];
             HttpClient = CreateHttpClient();
             var byteArray = Encoding.ASCII.GetBytes($"{IQServerUser}:{IQServerPass}");
             HttpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic",
@@ -88,6 +79,7 @@ namespace DevAudit.AuditLibrary
             HttpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
             var r = await HttpClient.GetStringAsync("/api/v2/applications?publicId=" + IQServerAppId);
             var apps = JsonConvert.DeserializeObject<IQServerApplications>(r);
+            AuditEnvironment.Debug(r);
             return true;
 
         }
