@@ -34,12 +34,13 @@ namespace DevAudit.AuditLibrary
            
         }
         public AuditEnvironment Environment { get; }
+
         public IEnumerable<NuGetFramework> GetFrameworks(XElement projectXml) =>
-             projectXml.Descendants()
-                .Where(x => x.Name.LocalName == "TargetFramework" || x.Name.LocalName == "TargetFrameworks")
-                .SingleOrDefault()
-                .Value.Split(';')
-                .Select(f => NuGetFramework.ParseFolder(f));
+	        projectXml
+		        .Descendants()
+		        .SingleOrDefault(x => x.Name.LocalName == "TargetFramework" || x.Name.LocalName == "TargetFrameworks")
+		        ?.Value.Split(';')
+		        .Select(NuGetFramework.ParseFolder) ?? Enumerable.Empty<NuGetFramework>();
 
         public async Task<IEnumerable<Tuple<Package, PackageDependency>>> GetPackageDependencies(IEnumerable<Package> packages, NuGetFramework framework)
         {

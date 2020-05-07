@@ -88,7 +88,14 @@ namespace DevAudit.AuditLibrary
                         skipped_packages.Aggregate((s1,s2) => s1 + "," + s2));
                     }
                     var helper = new NuGetApiHelper(this.AuditEnvironment, config_file.DirectoryName);
-                    foreach (var framework in helper.GetFrameworks(root))
+                    var nuGetFrameworks = helper.GetFrameworks(root);
+
+                    if (!nuGetFrameworks.Any())
+                    {
+	                    AuditEnvironment.Warning("Scanning NuGet transitive dependencies failed because no target framework is found in {0}...", config_file.Name);
+					}
+
+                    foreach (var framework in nuGetFrameworks)
                     {
 	                    AuditEnvironment.Info("Scanning NuGet transitive dependencies for {0}...", framework.GetFrameworkString());
 	                    var deps = helper.GetPackageDependencies(packages, framework);
