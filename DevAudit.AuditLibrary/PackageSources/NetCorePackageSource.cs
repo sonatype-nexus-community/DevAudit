@@ -47,9 +47,15 @@ namespace DevAudit.AuditLibrary
         {
             AuditFileInfo config_file = this.AuditEnvironment.ConstructFile(this.PackageManagerConfigurationFile);
             List<Package> packages = new List<Package>();
-            if (config_file.Name.EndsWith(".csproj"))
-            {
-                this.AuditEnvironment.Info("Reading packages from .NET Core C# .csproj file.");
+
+            var isCsProj = config_file.Name.EndsWith(".csproj");
+            var isBuildTargets = config_file.Name.EndsWith(".Build.targets");
+            var isDepsJson = config_file.Name.EndsWith(".deps.json");
+
+			if (isCsProj || isBuildTargets)
+			{
+				var fileType = isCsProj ? ".csproj" : "build targets";
+				this.AuditEnvironment.Info($"Reading packages from .NET Core C# {fileType} file.");
                 string _byteOrderMarkUtf8 = Encoding.UTF8.GetString(Encoding.UTF8.GetPreamble());
                 string xml = config_file.ReadAsText();
                 if (xml.StartsWith(_byteOrderMarkUtf8, StringComparison.Ordinal))
@@ -59,20 +65,22 @@ namespace DevAudit.AuditLibrary
                 }
                 XElement root = XElement.Parse(xml);
 
+                var package = isCsProj ? "Include" : "Update";
+
                 if (root.Name.LocalName == "Project")
                 {
                     packages = 
                         root
                         .Descendants()
-                        .Where(x => x.Name.LocalName == "PackageReference" && x.Attribute("Include") != null && x.Attribute("Version") != null)
-                        .SelectMany(r => GetDeveloperPackages(r.Attribute("Include").Value, r.Attribute("Version").Value))
+                        .Where(x => x.Name.LocalName == "PackageReference" && x.Attribute(package) != null && x.Attribute("Version") != null)
+                        .SelectMany(r => GetDeveloperPackages(r.Attribute(package).Value, r.Attribute("Version").Value))
                         .ToList();
 
                     IEnumerable<string> skipped_packages = 
                         root
                         .Descendants()
-                        .Where(x => x.Name.LocalName == "PackageReference" && x.Attribute("Include") != null && x.Attribute("Version") == null)
-                        .Select(r => r.Attribute("Include").Value);
+                        .Where(x => x.Name.LocalName == "PackageReference" && x.Attribute(package) != null && x.Attribute("Version") == null)
+                        .Select(r => r.Attribute(package).Value);
                         
                     if (skipped_packages.Count() > 0)
                     {
@@ -80,14 +88,21 @@ namespace DevAudit.AuditLibrary
                         skipped_packages.Aggregate((s1,s2) => s1 + "," + s2));
                     }
                     var helper = new NuGetApiHelper(this.AuditEnvironment, config_file.DirectoryName);
-                    foreach (var framework in helper.GetFrameworks(root))
+                    var nuGetFrameworks = helper.GetFrameworks(root);
+
+                    if (!nuGetFrameworks.Any())
                     {
-                        AuditEnvironment.Info("Scanning NuGet transitive dependencies for {0}...", framework.GetFrameworkString());
-                        var deps = helper.GetPackageDependencies(packages, framework);
-                        Task.WaitAll(deps);
-                        packages = helper.AddPackageDependencies(deps.Result, packages);
+	                    AuditEnvironment.Warning("Scanning NuGet transitive dependencies failed because no target framework is found in {0}...", config_file.Name);
+					}
+
+                    foreach (var framework in nuGetFrameworks)
+                    {
+	                    AuditEnvironment.Info("Scanning NuGet transitive dependencies for {0}...", framework.GetFrameworkString());
+	                    var deps = helper.GetPackageDependencies(packages, framework);
+	                    Task.WaitAll(deps);
+	                    packages = helper.AddPackageDependencies(deps.Result, packages);
                     }
-                    return packages;
+					return packages;
                 }
                 else
                 {
@@ -95,11 +110,11 @@ namespace DevAudit.AuditLibrary
                     return packages;
                 }               
             }
-            else if (config_file.Name.EndsWith(".deps.json"))
+            if (isDepsJson)
             {
                 try
                 {
-                    this.AuditEnvironment.Info("Reading packages from .NET Core depedencies manifest..");
+                    this.AuditEnvironment.Info("Reading packages from .NET Core dependencies manifest..");
                     JObject json = (JObject)JToken.Parse(config_file.ReadAsText());
                     JObject libraries = (JObject)json["libraries"];
 
@@ -120,11 +135,9 @@ namespace DevAudit.AuditLibrary
                     return packages;
                 }
             }
-            else
-            {
-                this.AuditEnvironment.Error("Unknown .NET Core project file type: {0}.", config_file.FullName);
-                return packages;
-            }
+
+            this.AuditEnvironment.Error("Unknown .NET Core project file type: {0}.", config_file.FullName);
+            return packages;
 
         }
 
@@ -212,38 +225,38 @@ namespace DevAudit.AuditLibrary
 
         public async Task GetDeps(XElement project, List<Package> packages)
         {
-            IEnumerable<NuGetFramework> frameworks =
-                    project.Descendants()
-                    .Where(x => x.Name.LocalName == "TargetFramework" || x.Name.LocalName == "TargetFrameworks")
-                    .SingleOrDefault()
-                    .Value.Split(';')
-                    .Select(f => NuGetFramework.ParseFolder(f));
-            AuditEnvironment.Info("{0}", frameworks.First().Framework);
-            var nugetPackages = packages.Select(p => new PackageIdentity(p.Name, NuGetVersion.Parse(p.Version)));
-            var settings = Settings.LoadDefaultSettings(root: null);
-            var sourceRepositoryProvider = new SourceRepositoryProvider(settings, Repository.Provider.GetCoreV3());
-            var logger = NullLogger.Instance;
-            using (var cacheContext = new SourceCacheContext())
-            {
-                foreach (var np in nugetPackages)
-                {
-                    foreach (var sourceRepository in sourceRepositoryProvider.GetRepositories())
-                    {
-                        var dependencyInfoResource = await sourceRepository.GetResourceAsync<DependencyInfoResource>();
-                        var dependencyInfo = await dependencyInfoResource.ResolvePackage(
-                            np, frameworks.First(), cacheContext, logger, CancellationToken.None);
+	        IEnumerable<NuGetFramework> frameworks =
+		        project.Descendants()
+			        .Where(x => x.Name.LocalName == "TargetFramework" || x.Name.LocalName == "TargetFrameworks")
+			        .SingleOrDefault()
+			        .Value.Split(';')
+			        .Select(f => NuGetFramework.ParseFolder(f));
+	        AuditEnvironment.Info("{0}", frameworks.First().Framework);
+	        var nugetPackages = packages.Select(p => new PackageIdentity(p.Name, NuGetVersion.Parse(p.Version)));
+	        var settings = Settings.LoadDefaultSettings(root: null);
+	        var sourceRepositoryProvider = new SourceRepositoryProvider(settings, Repository.Provider.GetCoreV3());
+	        var logger = NullLogger.Instance;
+	        using (var cacheContext = new SourceCacheContext())
+	        {
+		        foreach (var np in nugetPackages)
+		        {
+			        foreach (var sourceRepository in sourceRepositoryProvider.GetRepositories())
+			        {
+				        var dependencyInfoResource = await sourceRepository.GetResourceAsync<DependencyInfoResource>();
+				        var dependencyInfo = await dependencyInfoResource.ResolvePackage(
+					        np, frameworks.First(), cacheContext, logger, CancellationToken.None);
 
-                        if (dependencyInfo != null)
-                        {
-                            AuditEnvironment.Info("Dependency info: {0}.", dependencyInfo);
-                        }
-                    }
-                }
-            }
+				        if (dependencyInfo != null)
+				        {
+					        AuditEnvironment.Info("Dependency info: {0}.", dependencyInfo);
+				        }
+			        }
+		        }
+	        }
 
         }
 
-        #endregion
- 
-    }
+		#endregion
+
+	}
 }
