@@ -27,23 +27,38 @@ namespace DevAudit.CommandLine
 
         public void AddHeadLine(string line, ConsoleColor consoleColor = ConsoleColor.Black)
         {
+            string tmpHeadLine = $"<h1>{line}</h1>";
+            if (consoleColor != ConsoleColor.Black)
+                tmpHeadLine = $"<font color=\"{consoleColor.ToString()}\">{tmpHeadLine}</h1>";
+
+            _Html.AppendLine(tmpHeadLine);
+        }
+
+        public void Add(string text, ConsoleColor consoleColor = ConsoleColor.Black,bool AddNewLine = false)
+        {
+            var htmlToAdd = new StringBuilder();
+
             if (consoleColor == ConsoleColor.Black)
-                _Html.AppendLine(line);
+                htmlToAdd.Append(text);
             else
-                _Html.AppendLine($"<font color=\"{consoleColor.ToString()}\"><h1>{line}<h2></font></br>");
+                htmlToAdd.Append($"<font color=\"{consoleColor.ToString()}\">{text}</font>");
+
+            if(AddNewLine)
+            {
+                htmlToAdd.AppendLine("</br>");
+            }
+
+            _Html.Append(htmlToAdd);
         }
 
         public void AddLine(string line,ConsoleColor consoleColor = ConsoleColor.Black)
         {
-            if (consoleColor == ConsoleColor.Black)
-                _Html.AppendLine(line);
-            else
-                _Html.AppendLine($"<font color=\"{consoleColor.ToString()}\">{line}</font> </br>");
+            Add(line, consoleColor, true);
         }
 
         public override string ToString()
         {
-            return _Html.ToString();
+            return "<html xmlns=\"https://www.w3.org/1999/xhtml/\">  <body> " + _Html.ToString() + "</body></html> ";
         }
     }
 }

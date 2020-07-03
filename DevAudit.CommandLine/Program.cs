@@ -958,22 +958,21 @@ namespace DevAudit.CommandLine
             {
                 IPackage package = pv.Key;
                 List<IVulnerability> package_vulnerabilities = pv.Value;
-                //PrintMessage(ConsoleColor.White, "[{0}/{1}] {2} {3}", ++packages_processed, packages_count, package.Name, package.Version);
+
+                //htmlOut.AddParagraph();
                 htmlOut.AddHeadLine($"{package.Name}");
-                htmlOut.AddParagraph();
+                
                 if (package_vulnerabilities.Count() == 0)
                 {
                     htmlOut.AddLine($"No known vulnerabilities.");
-                    //PrintMessageLine(" no known vulnerabilities.");
                 }
                 else if (package_vulnerabilities.Count(v => v.PackageVersionIsInRange) == 0)
                 {
                     htmlOut.AddLine($"No known vulnerabilities.");
-                    htmlOut.AddLine($" {package_vulnerabilities.Count()} known package_vulnerabilities, 0 affecting installed package version(s).");
+                    htmlOut.AddLine($"{package_vulnerabilities.Count()} known package_vulnerabilities, 0 affecting installed package version(s).");
                 }
                 else
                 {
-
                     htmlOut.AddLine($"{package_vulnerabilities.Count()} known vulnerabilities, ", ConsoleColor.Red);
                     htmlOut.AddLine($"{package_vulnerabilities.Count(v => v.PackageVersionIsInRange)} affecting installed package version(s): [{package_vulnerabilities.Where(v => v.PackageVersionIsInRange).Select(v => v.Package.Version).Distinct().Aggregate((s1, s2) => s1 + "," + s2)}]", ConsoleColor.Magenta);
                     var matched_vulnerabilities = package_vulnerabilities.Where(v => v.PackageVersionIsInRange).ToList();
@@ -981,9 +980,11 @@ namespace DevAudit.CommandLine
                     int c = 0;
                     matched_vulnerabilities.ForEach(v =>
                     {
-                        htmlOut.AddLine($"--[{ ++c}/{ matched_vulnerabilities_count}]");
-                        htmlOut.AddLine(v.Title.Trim(), ConsoleColor.Red);
-                        htmlOut.AddLine($"Description: {v.Description}");
+                        if(matched_vulnerabilities.Count != 1)
+                            htmlOut.AddParagraph();
+
+                        htmlOut.AddLine($"[{ ++c}/{ matched_vulnerabilities_count}] - {v.Title.Trim()}", ConsoleColor.Red);
+                        htmlOut.AddLine($"<i>{v.Description}</i>");
                         htmlOut.AddLine(string.Join(", ", v.Versions.ToArray()), ConsoleColor.Red);
                         
                         if (v.CVE != null && v.CVE.Count() > 0)
@@ -1002,7 +1003,7 @@ namespace DevAudit.CommandLine
                         {
                             htmlOut.AddLine($"Date published: {v.Published.ToShortDateString()}");
                         }
-                        if (!string.IsNullOrEmpty(v.Id))
+                        if (!string.IsNullOrEmpty(v.Id) && v.References?.Count() == 0)
                         {
                             htmlOut.AddLine($"Id: {v.Id}");
                         }
@@ -1025,8 +1026,10 @@ namespace DevAudit.CommandLine
                         {
                             htmlOut.AddLine($"  --Provided by: {v.DataSource.Name}");
                         }
+
+                        if (matched_vulnerabilities.Count != 1)
+                            htmlOut.EndParagraph();
                     });
-                    PrintMessageLine("");
                     string[] dsn = matched_vulnerabilities.Select(v => v.DataSource.Name).Distinct().ToArray();
                     foreach (string d in dsn)
                     {
@@ -1036,8 +1039,8 @@ namespace DevAudit.CommandLine
                         }
                     }
 
-                    htmlOut.EndParagraph();
-                }
+                    //htmlOut.EndParagraph();
+                }                
             }
 
             return htmlOut.ToString();
