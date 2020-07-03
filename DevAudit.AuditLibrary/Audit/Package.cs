@@ -39,6 +39,35 @@ namespace DevAudit.AuditLibrary
             if (!string.IsNullOrEmpty(architecture)) this.Architecture = architecture;
         }
 
+        public override bool Equals(object obj)
+        {
+            return Equals(obj as Package);
+        }
+
+        public bool Equals(Package other)
+        {
+            if (Name != other.Name)
+                return false;
+
+            if (PackageManager != other.PackageManager)
+                return false;
+
+            if (Version != other.Version)
+                return false;
+
+            /*
+            if (Group != other.Group)
+                return false;
+
+            if (Vendor != other.Vendor)
+                return false;
+
+            if (Architecture != other.Architecture)
+                return false;
+            */
+            return true;
+        } 
+
         public string getPurl()
         {
             if (Group != null)

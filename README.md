@@ -166,12 +166,16 @@ Audit Targets
 #### Package Sources
 - `msi`    Do a package audit of the Windows Installer MSI package source on Windows machines.
 
+- `npm`    Do a package audit of the NPM package.json.
+
 - `choco`  Do a package audit of packages installed by the Choco package manager.
 
 - `oneget` Do a package audit of the system OneGet package source on Windows.
 
 - `nuget` Do a package audit of a NuGet v2 package source. You must specify the location of the NuGet `packages.config` file you wish to audit using the `-f` or `--file` option otherwise the current directory will be searched for this file.
+
 - `bower` Do a package audit of a Bower package source. You must specify the location of the Bower `packages.json` file you wish to audit using the `-f` or `--file` option otherwise the current directory will be searched for this file.
+
 - `composer` Do a package audit of a Composer package source. You must specify the location of the Composer `composer.json` file you wish to audit using the `-f` or `--file` option otherwise the current directory will be searched for this file.
 
 - `dpkg` Do a package audit of the system dpkg package source on Debian Linux and derivatives.

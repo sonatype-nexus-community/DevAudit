@@ -15,6 +15,7 @@ using CC = Colorful; //Avoid type name conflict with System Console class
 
 using DevAudit.AuditLibrary;
 using DevAudit.AuditLibrary.Serializers;
+using DevAudit.AuditLibrary.PackageSources;
 
 namespace DevAudit.CommandLine
 {
@@ -701,6 +702,10 @@ namespace DevAudit.CommandLine
                     {
                         Source = new DpkgPackageSource(audit_options, EnvironmentMessageHandler);
                     }
+                    else if (verb == "npm")
+                    {
+                        Source = new NpmPackageSource(audit_options, EnvironmentMessageHandler);
+                    }
                     else if (verb == "msi")
                     {
                         Source = new MSIPackageSource(audit_options, EnvironmentMessageHandler);
@@ -834,6 +839,12 @@ namespace DevAudit.CommandLine
                 JUnitXmlSerializer jxs = new JUnitXmlSerializer(Source, Stopwatch.Elapsed.TotalSeconds.ToString(), ProgramOptions.XmlOutputFile);
             }
 
+            if (!string.IsNullOrEmpty(ProgramOptions.HtmlOutputFile))
+            {
+                var htmlText = GenerateHtmlReport();
+                File.WriteAllText(ProgramOptions.HtmlOutputFile, htmlText);
+            }
+
             int total_vulnerabilities = Source.Vulnerabilities.Sum(v => v.Value != null ? v.Value.Count(pv => pv.PackageVersionIsInRange) : 0);
             PrintMessageLine(ConsoleColor.White, "\nPackage Source Audit Results\n============================");
             PrintMessageLine(ConsoleColor.White, "{0} total vulnerabilit{3} found in {1} package source audit. Total time for audit: {2} ms.\n", total_vulnerabilities, Source.PackageManagerLabel, Stopwatch.ElapsedMilliseconds, total_vulnerabilities == 0 || total_vulnerabilities > 1 ? "ies" : "y");
@@ -930,12 +941,109 @@ namespace DevAudit.CommandLine
                     PrintMessage(ConsoleColor.Green, "{0} ", dsi.Url);
                     PrintMessageLine(dsi.Description);
                 }
-            }
+            }          
+
             Source.Dispose();
             return total_vulnerabilities;
         }
+
+        static string GenerateHtmlReport()
+        {
+            int total_vulnerabilities = Source.Vulnerabilities.Sum(v => v.Value != null ? v.Value.Count(pv => pv.PackageVersionIsInRange) : 0);
+            int packages_count = Source.Vulnerabilities.Count;
+            List<DataSourceInfo> vuln_ds = new List<DataSourceInfo>();
+            var htmlOut = new HtmlOutput();
+
+            foreach (var pv in Source.Vulnerabilities.OrderByDescending(sv => sv.Value.Count(v => v.PackageVersionIsInRange)))
+            {
+                IPackage package = pv.Key;
+                List<IVulnerability> package_vulnerabilities = pv.Value;
+                //PrintMessage(ConsoleColor.White, "[{0}/{1}] {2} {3}", ++packages_processed, packages_count, package.Name, package.Version);
+                htmlOut.AddHeadLine($"{package.Name}");
+                htmlOut.AddParagraph();
+                if (package_vulnerabilities.Count() == 0)
+                {
+                    htmlOut.AddLine($"No known vulnerabilities.");
+                    //PrintMessageLine(" no known vulnerabilities.");
+                }
+                else if (package_vulnerabilities.Count(v => v.PackageVersionIsInRange) == 0)
+                {
+                    htmlOut.AddLine($"No known vulnerabilities.");
+                    htmlOut.AddLine($" {package_vulnerabilities.Count()} known package_vulnerabilities, 0 affecting installed package version(s).");
+                }
+                else
+                {
+
+                    htmlOut.AddLine($"{package_vulnerabilities.Count()} known vulnerabilities, ", ConsoleColor.Red);
+                    htmlOut.AddLine($"{package_vulnerabilities.Count(v => v.PackageVersionIsInRange)} affecting installed package version(s): [{package_vulnerabilities.Where(v => v.PackageVersionIsInRange).Select(v => v.Package.Version).Distinct().Aggregate((s1, s2) => s1 + "," + s2)}]", ConsoleColor.Magenta);
+                    var matched_vulnerabilities = package_vulnerabilities.Where(v => v.PackageVersionIsInRange).ToList();
+                    int matched_vulnerabilities_count = matched_vulnerabilities.Count;
+                    int c = 0;
+                    matched_vulnerabilities.ForEach(v =>
+                    {
+                        htmlOut.AddLine($"--[{ ++c}/{ matched_vulnerabilities_count}]");
+                        htmlOut.AddLine(v.Title.Trim(), ConsoleColor.Red);
+                        htmlOut.AddLine($"Description: {v.Description}");
+                        htmlOut.AddLine(string.Join(", ", v.Versions.ToArray()), ConsoleColor.Red);
+                        
+                        if (v.CVE != null && v.CVE.Count() > 0)
+                        {
+                            htmlOut.AddLine($"CVE(s): {string.Join(", ", v.CVE.ToArray())}");
+                        }
+                        if (!string.IsNullOrEmpty(v.Reporter))
+                        {
+                            htmlOut.AddLine($"Reporter: {v.Reporter.Trim()}");
+                        }
+                        if (!string.IsNullOrEmpty(v.CVSS.Score))
+                        {
+                            htmlOut.AddLine($"CVSS Score: {v.CVSS.Score}. Vector: {v.CVSS.Vector}");
+                        }
+                        if (v.Published != DateTime.MinValue)
+                        {
+                            htmlOut.AddLine($"Date published: {v.Published.ToShortDateString()}");
+                        }
+                        if (!string.IsNullOrEmpty(v.Id))
+                        {
+                            htmlOut.AddLine($"Id: {v.Id}");
+                        }
+                        if (v.References != null && v.References.Count() > 0)
+                        {
+                            if (v.References.Count() == 1)
+                            {
+                                htmlOut.AddLine($"Reference: {v.References[0]}");
+                            }
+                            else
+                            {
+                                htmlOut.AddLine("  --References:");
+                                for (int i = 0; i < v.References.Count(); i++)
+                                {
+                                    htmlOut.AddLine($"{v.References[i]}");
+                                }
+                            }
+                        }
+                        if (!string.IsNullOrEmpty(v.DataSource.Name))
+                        {
+                            htmlOut.AddLine($"  --Provided by: {v.DataSource.Name}");
+                        }
+                    });
+                    PrintMessageLine("");
+                    string[] dsn = matched_vulnerabilities.Select(v => v.DataSource.Name).Distinct().ToArray();
+                    foreach (string d in dsn)
+                    {
+                        if (!vuln_ds.Any(ds => ds.Name == d))
+                        {
+                            vuln_ds.Add(Source.DataSources.Single(ds => ds.Info.Name == d).Info);
+                        }
+                    }
+
+                    htmlOut.EndParagraph();
+                }
+            }
+
+            return htmlOut.ToString();
+        }
   
-static void EnvironmentMessageHandler(object sender, EnvironmentEventArgs e)
+        static void EnvironmentMessageHandler(object sender, EnvironmentEventArgs e)
         {
             lock (ConsoleLock)
             {

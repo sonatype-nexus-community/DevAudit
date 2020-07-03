@@ -81,6 +81,9 @@ namespace DevAudit.AuditLibrary
 
         public List<Package> AddPackageDependencies(IEnumerable<Tuple<Package, PackageDependency>> deps, List<Package> packages)
         {
+            if (packages.Count == 0)
+                return packages;
+
             string pm = packages.First().PackageManager;
             string vendor = packages.First().Vendor;
             string group = packages.First().Group;
