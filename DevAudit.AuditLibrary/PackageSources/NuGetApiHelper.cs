@@ -23,17 +23,72 @@ using NuGet.Protocol;
 using NuGet.Protocol.Core.Types;
 using NuGet.DependencyResolver;
 using NuGet.Versioning;
+using System.Security.Cryptography;
 
 namespace DevAudit.AuditLibrary
 {
     public class NuGetApiHelper
     {
+        string _projRoot;
+
         public NuGetApiHelper(AuditEnvironment env, string projRoot)
         {
             Environment = env;
-           
+            _projRoot = projRoot;
         }
         public AuditEnvironment Environment { get; }
+
+        public IEnumerable<NuGetFramework> GetFrameworks()
+        {
+            string xmlFile = System.IO.Path.Combine(_projRoot, "packages.config");
+            if(!System.IO.File.Exists(xmlFile))
+                return new List<NuGetFramework>();
+
+            string _byteOrderMarkUtf8 = Encoding.UTF8.GetString(Encoding.UTF8.GetPreamble());
+            string xml = System.IO.File.ReadAllText(xmlFile);
+            if (xml.StartsWith(_byteOrderMarkUtf8, StringComparison.Ordinal))
+            {
+                var lastIndexOfUtf8 = _byteOrderMarkUtf8.Length;
+                xml = xml.Remove(0, lastIndexOfUtf8);
+            }
+            XElement root = XElement.Parse(xml);
+                        
+            var xmlDescandants = root.Descendants();
+            var packages = new List<NuGetFramework>(xmlDescandants.Count());
+
+            foreach(var xmlDes in xmlDescandants)
+            {
+                var attributes = xmlDes.Attributes();
+                string packageID = null;
+                string version = null;
+                string targetFrameworks;
+
+
+                foreach (var att in attributes)
+                {
+                    switch(att.Name.LocalName)
+                    {
+                        case "id":
+                            packageID = att.Value;
+                            break;
+
+                        case "version":
+                            version = att.Value;
+                            break;
+
+                        case "TargetFrameworks":
+                        case "targetFramework":
+                            targetFrameworks = att.Value;
+                            break;
+                    }
+                }
+
+                var package = new NuGetFramework(packageID, Version.Parse(version));
+                packages.Add(package);
+            }
+
+            return packages;
+        }
 
         public IEnumerable<NuGetFramework> GetFrameworks(XElement projectXml) =>
 	        projectXml

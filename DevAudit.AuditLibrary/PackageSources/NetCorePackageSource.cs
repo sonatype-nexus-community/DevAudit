@@ -165,6 +165,13 @@ namespace DevAudit.AuditLibrary
 
                 if (!nuGetFrameworks.Any())
                 {
+                    AuditEnvironment.Warning("Scanning from project file found 0 packages, checking for packages.config file. ");
+                    nuGetFrameworks = helper.GetFrameworks();
+                }
+
+                if (!nuGetFrameworks.Any())
+                {
+                    
                     AuditEnvironment.Warning("Scanning NuGet transitive dependencies failed because no target framework is found in {0}...", config_file.Name);
                 }
 
