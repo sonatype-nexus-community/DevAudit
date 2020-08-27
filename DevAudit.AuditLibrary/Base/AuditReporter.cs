@@ -34,7 +34,7 @@ namespace DevAudit.AuditLibrary
         #endregion
 
         #region Methods
-        protected void BuildPackageSourceAuditReport()
+        protected virtual void BuildPackageSourceAuditReport()
         {
             int total_vulnerabilities = Source.Vulnerabilities.Sum(v => v.Value != null ? v.Value.Count(pv => pv.PackageVersionIsInRange) : 0);
             PrintMessageLine(ConsoleColor.White, "\nPackage Source Audit Results\n============================");
