@@ -333,6 +333,10 @@
     <Compile Include="DataSources\OSSIndex3\OSSIndexApiv3Query.cs" />
     <Compile Include="DataSources\OSSIndex3\PackageURL\MalformedPackageUrlException.cs" />
     <Compile Include="DataSources\OSSIndex3\PackageURL\PackageURL.cs" />
+    <Compile Include="Reporters\IQServerReporter.cs" />
+    <Compile Include="Reporters\Models\IQServerApplications.cs" />
+    <Compile Include="Reporters\Models\IQServerBom.cs" />
+    <Compile Include="Reporters\Models\IQServerStatus.cs" />
     <Compile Include="Serializers\junit.cs" />
     <Compile Include="Serializers\JUnitXmlSerializer.cs" />
     <Compile Include="Serializers\PackageSourceSerializer.cs" />

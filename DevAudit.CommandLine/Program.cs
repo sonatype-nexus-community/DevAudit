@@ -534,50 +534,6 @@ namespace DevAudit.CommandLine
                     audit_options.Add("BitBucketKey", ProgramOptions.BitBucketKey);
                 }
             }
-            if (!string.IsNullOrEmpty(ProgramOptions.BitBucketReporter))
-            {
-                if (!audit_options.ContainsKey("BitBucketKey"))
-                {
-                    PrintErrorMessage("You must specify a BitBucket OAuth consumer key/secret with --bitbucket-key when using the BitBucket reporter.");
-                    return (int)Exit;
-                }
-                Dictionary<string, object> parsed_options = Options.Parse(ProgramOptions.BitBucketReporter);
-                if (parsed_options.Count == 0)
-                {
-                    PrintErrorMessage("There was an error parsing the BitBucket reporter options {0}.", ProgramOptions.BitBucketReporter);
-                    return (int)Exit;
-                }
-                else if (parsed_options.Where(o => o.Key == "_ERROR_").Count() > 0)
-                {
-
-                    string error_options = parsed_options.Where(o => o.Key == "_ERROR_").Select(kv => (string)kv.Value).Aggregate((s1, s2) => s1 + Environment.NewLine + s2);
-                    PrintErrorMessage("There was an error parsing the following options {0}.", error_options);
-                    parsed_options = parsed_options.Where(o => o.Key != "_ERROR_").ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
-
-                }
-                if (!parsed_options.ContainsKey("Account"))
-                {
-                    PrintErrorMessage("You must specify the account as Account=<account> in the BitBucket reporter options {0}.", ProgramOptions.BitBucketReporter);
-                    return (int)Exit;
-                }
-                if (!parsed_options.ContainsKey("Name"))
-                {
-                    PrintErrorMessage("You must specify the BitBucket repository name as Name=<name> in the BitBucket options {0}.", ProgramOptions.BitBucketReporter);
-                    return (int)Exit;
-                }
-
-                foreach (KeyValuePair<string, object> kvp in parsed_options)
-                {
-                    if (audit_options.ContainsKey("BitBucketReport" + kvp.Key))
-                    {
-                        audit_options["BitBucketReport" + kvp.Key] = kvp.Value;
-                    }
-                    else
-                    {
-                        audit_options.Add("BitBucketReport" + kvp.Key, kvp.Value);
-                    }
-                }
-            }
             #endregion
             
             #region Package source options
@@ -655,6 +611,114 @@ namespace DevAudit.CommandLine
             {
                 audit_options.Add("ApiToken", ProgramOptions.ApiToken);
             }
+            #endregion
+
+            #region Reporters
+
+            #region BitBucket
+            if (!string.IsNullOrEmpty(ProgramOptions.BitBucketReporter))
+            {
+                if (!audit_options.ContainsKey("BitBucketKey"))
+                {
+                    PrintErrorMessage("You must specify a BitBucket OAuth consumer key/secret with --bitbucket-key when using the BitBucket reporter.");
+                    return (int)Exit;
+                }
+                Dictionary<string, object> parsed_options = Options.Parse(ProgramOptions.BitBucketReporter);
+                if (parsed_options.Count == 0)
+                {
+                    PrintErrorMessage("There was an error parsing the BitBucket reporter options {0}.", ProgramOptions.BitBucketReporter);
+                    return (int)Exit;
+                }
+                else if (parsed_options.Where(o => o.Key == "_ERROR_").Count() > 0)
+                {
+
+                    string error_options = parsed_options.Where(o => o.Key == "_ERROR_").Select(kv => (string)kv.Value).Aggregate((s1, s2) => s1 + Environment.NewLine + s2);
+                    PrintErrorMessage("There was an error parsing the following options {0}.", error_options);
+                    parsed_options = parsed_options.Where(o => o.Key != "_ERROR_").ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
+
+                }
+                if (!parsed_options.ContainsKey("Account"))
+                {
+                    PrintErrorMessage("You must specify the account as Account=<account> in the BitBucket reporter options {0}.", ProgramOptions.BitBucketReporter);
+                    return (int)Exit;
+                }
+                if (!parsed_options.ContainsKey("Name"))
+                {
+                    PrintErrorMessage("You must specify the BitBucket repository name as Name=<name> in the BitBucket options {0}.", ProgramOptions.BitBucketReporter);
+                    return (int)Exit;
+                }
+
+                foreach (KeyValuePair<string, object> kvp in parsed_options)
+                {
+                    if (audit_options.ContainsKey("BitBucketReport" + kvp.Key))
+                    {
+                        audit_options["BitBucketReport" + kvp.Key] = kvp.Value;
+                    }
+                    else
+                    {
+                        audit_options.Add("BitBucketReport" + kvp.Key, kvp.Value);
+                    }
+                }
+            }
+
+            #endregion
+
+            #region IQ Server
+            if (!string.IsNullOrEmpty(ProgramOptions.IQServerReporter))
+            {
+                Dictionary<string, object> parsed_options = Options.Parse(ProgramOptions.IQServerReporter);
+                if (parsed_options.Count == 0)
+                {
+                    PrintErrorMessage("There was an error parsing the IQ Server reporter options {0}.", ProgramOptions.IQServerReporter);
+                    return (int)Exit;
+                }
+                else if (parsed_options.Where(o => o.Key == "_ERROR_").Count() > 0)
+                {
+
+                    string error_options = parsed_options.Where(o => o.Key == "_ERROR_").Select(kv => (string)kv.Value).Aggregate((s1, s2) => s1 + Environment.NewLine + s2);
+                    PrintErrorMessage("There was an error parsing the following options {0}.", error_options);
+                    parsed_options = parsed_options.Where(o => o.Key != "_ERROR_").ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
+
+                }
+                
+                if (!parsed_options.ContainsKey("Url"))
+                {
+                    PrintErrorMessage("You must specify the IQ Server Url as Url=<url> in the IQ Server reporter options {0}.", ProgramOptions.IQServerReporter);
+                    return (int)Exit;
+                }
+                if (!parsed_options.ContainsKey("User"))
+                {
+                    PrintErrorMessage("You must specify the IQ Server user name as User=<user> in the IQ Server reporter options {0}.", ProgramOptions.IQServerReporter);
+                    return (int)Exit;
+                }
+                if (!parsed_options.ContainsKey("Pass"))
+                {
+                    PrintErrorMessage("You must specify the IQ Server user password as Pass=<pass> in the IQ Server reporter options {0}.", ProgramOptions.IQServerReporter);
+                    return (int)Exit;
+                }
+                if (!parsed_options.ContainsKey("AppId"))
+                {
+                    PrintErrorMessage("You must specify the IQ Server app id for the project being audited as AppId=<appid> in the IQ Server reporter options {0}.", ProgramOptions.IQServerReporter);
+                    return (int)Exit;
+                }
+                if (Uri.TryCreate((string) parsed_options["Url"], UriKind.Absolute, out Uri uri))
+                {
+                    audit_options.Add("IQServerUrl", uri);
+                    audit_options.Add("IQServerUser", parsed_options["User"]);
+                    audit_options.Add("IQServerPass", parsed_options["Pass"]);
+                    audit_options.Add("IQServerAppId", parsed_options["AppId"]);
+                }
+                else
+                {
+                    PrintErrorMessage("The IQ Server Url specified is not valid: {0}.", parsed_options["Url"]);
+                    return (int)Exit;
+                }
+           
+
+
+            }
+            #endregion
+
             #endregion
 
             #endregion

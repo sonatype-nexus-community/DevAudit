@@ -122,8 +122,8 @@ namespace DevAudit.CommandLine
         [Option("bitbucket-report", Required = false, HelpText = "Specify a set of comma delimited, key=value options for the BitBucket audit reporter. You can specify 3 options: Account=<account>,Name=<repo>,Title=<title> for the BitBucket5th account, repository name and issue title respectively. Omitting the Title value will result in the default issue title being used.")]
         public string BitBucketReporter { get; set; }
 
-        //[Option('m', "project-name", Required = false, HelpText = "The name of the code project to audit.")]
-        public string ProjectName { get; set; }
+        [Option('q', "iqserver-report", Required = false, HelpText = "Specify a set of comma delimited options to use the Sonatype IQ Server audit reporter. You must specify 4 options: Url=<url>,User=<user>,Pass=<pass>,AppId=<appid> for the IQ Server url, user, password, and app id.")]
+        public string IQServerReporter { get; set; }
 
         [Option("list-packages", Required = false, HelpText = "Only list the local packages that will be audited.", MutuallyExclusiveSet ="audit-action")]
         public bool ListPackages { get; set; }

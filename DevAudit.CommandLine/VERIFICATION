@@ -1,0 +1,6 @@
+﻿VERIFICATION
+Verification is intended to assist the Chocolatey moderators and community
+in verifying that this package's contents are trustworthy.
+This package is published by the DevAudit Project itself. Any binaries will be
+identical to other package types published by the project, in particular
+the DevAudit*.zip and DevAudit*.tar.gz packages on GitHub.
