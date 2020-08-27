@@ -183,7 +183,7 @@ namespace DevAudit.AuditLibrary
             if (target is PackageSource)
             {
                 PackageSource source = target as PackageSource;
-                string[] eligible_sources = {"nuget", "bower", "composer", "chocolatey", "yarn", "oneget", "nuget", "dpkg", "msi", "deb/ubuntu", "deb/debian" };
+                string[] eligible_sources = {"nuget", "bower", "composer", "chocolatey", "yarn", "oneget", "nuget", "dpkg", "msi", "deb/ubuntu", "deb/debian","npm" };
                 return eligible_sources.Contains(source.PackageManagerId);
             }
 

@@ -16,7 +16,10 @@ namespace DevAudit.CommandLine
         public Options() {}
 
         [VerbOption("nuget", HelpText = "Audit NuGetv2 packages installed for .NET Framework libraries or applications. Use the --file option to specify a particular packages.config file otherwise the one in the current directory will be used.")]
-        public Options AuditNuGet { get; set; }      
+        public Options AuditNuGet { get; set; }
+
+        [VerbOption("npm", HelpText = "Audit NPM packages installed for. Use the --file option to specify a particular packages.config file otherwise the one in the current directory will be used.")]
+        public Options AuditNPM { get; set; }
 
         [VerbOption("choco", HelpText = "Audit Chocolatey packages on Windows. Packages are scanned from C:\\ProgramData\\chocolatey.")]
         public Options AuditChocolatey { get; set; }
@@ -136,6 +139,9 @@ namespace DevAudit.CommandLine
 
         [Option("xml-output-file", Required = false, HelpText = "Path to the XML output file.")]
         public string XmlOutputFile { get; set; }
+
+        [Option('h',"html-output-file", Required = false, HelpText = "Path to the html output file.")]
+        public string HtmlOutputFile { get; set; }
 
         [Option("ignore-https-cert-errors", Required = false, HelpText = "Ignore certain certificate errors for HTTPS requests. This is useful for testing but is extremely insecure and should never be used in production.")]
         public bool IgnoreHttpsCertErrors { get; set; }

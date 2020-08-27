@@ -378,6 +378,7 @@ namespace DevAudit.AuditLibrary
             {
                 this.DataSources.Add(new VulnersDataSource(this, DataSourceOptions));
             }
+
             #endregion
 
             #region Setup audit profile
