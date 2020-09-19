@@ -105,7 +105,13 @@ namespace DevAudit.AuditLibrary
                         {
     
                             string[] name = p.Name.Split('/');
-                            packages.Add(new Package("nuget", name[0], name[1]));
+							// Packages with version 0.0.0.0 can show up if the are part of .net framework.
+							// Checking this version number is quite useless and might give a false positive.
+                            if (name[1] != "0.0.0.0")
+                            {
+	                            packages.Add(new Package("nuget", name[0], name[1]));
+
+                            }
                         }
                     }
                     return packages;
