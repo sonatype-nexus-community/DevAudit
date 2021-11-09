@@ -844,7 +844,7 @@ namespace DevAudit.CommandLine
 
             if (Exit == AuditTarget.AuditResult.SUCCESS && ProgramOptions.CiMode)
             {
-                // Is execution is succesfull and we are in CI mode then exit with the number of problems found
+                // Is execution is successful and we are in CI mode then exit with the number of problems found
                 return (int)ExitApplication(vulnCount);
             }
             else
@@ -994,6 +994,13 @@ namespace DevAudit.CommandLine
                     }
                 }
             }
+            
+            var numberOfIgnoredVulnerabilities = 0;
+            if (total_vulnerabilities > 0 && !string.IsNullOrEmpty(ProgramOptions.IgnoreVulnerabilities))
+            {
+                numberOfIgnoredVulnerabilities = IgnoredVulnerabilities(Source.Vulnerabilities);
+            }
+            
             PrintMessageLine("");
             if (vuln_ds.Count > 0)
             {
@@ -1008,7 +1015,45 @@ namespace DevAudit.CommandLine
             }          
 
             Source.Dispose();
-            return total_vulnerabilities;
+            return total_vulnerabilities - numberOfIgnoredVulnerabilities;
+        }
+
+        static int IgnoredVulnerabilities(Dictionary<IPackage, List<IVulnerability>> vulnerabilities)
+        {
+            var ignoredLines = File.ReadLines(ProgramOptions.IgnoreVulnerabilities).ToList();
+
+            if (!ignoredLines.Any())
+            {
+                return 0;
+            }
+            
+            var numberIgnored = 0;
+            
+            PrintMessageLine("");
+            PrintMessageLine("The following vulnerabilities are ignored (retrieved from {0}):", ProgramOptions.IgnoreVulnerabilities);
+            foreach (var ignoredLine in ignoredLines.Select(l => l.Split('\t')))
+            {
+                var ignoredPackageName = ignoredLine[0];
+                var ignoredPackageVersion = ignoredLine[1];
+                var ignoredVulnerabilityId = ignoredLine[2];
+
+                var package = vulnerabilities.FirstOrDefault(v =>
+                    v.Key.Name == ignoredPackageName && v.Key.Version == ignoredPackageVersion);
+
+                if (package.Key == null)
+                {
+                    continue;
+                }
+                
+                foreach (var vulnerability in package.Value.Where(vulnerability => vulnerability.Id == ignoredVulnerabilityId))
+                {
+                    PrintMessageLine("{0} {1} {2} {3}", ignoredPackageName, ignoredPackageVersion, vulnerability.Id,
+                        vulnerability.Description);
+                    numberIgnored++;
+                }
+            }
+
+            return numberIgnored;
         }
 
         static string GenerateHtmlReport()

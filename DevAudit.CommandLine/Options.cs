@@ -56,7 +56,7 @@ namespace DevAudit.CommandLine
         [Option('d', "enable-debug", Required = false, HelpText = "Enable printing debug messages and other behavior useful for debugging the program.")]
         public bool EnableDebug { get; set; }
 
-        [Option('n', "non-interactive", Required = false, HelpText = "Disable any interctive console output (for redirecting console output to other devices.)")]
+        [Option('n', "non-interactive", Required = false, HelpText = "Disable any interactive console output (for redirecting console output to other devices.)")]
         public bool NonInteractive { get; set; }
 
         [Option('o', "options", Required = false, HelpText = "Specify a set of comma delimited, key=value options for an audit target. E.g for a mvc5-app audit target you can specify -o package_source=mypackages.config,config_file=myapp.config")]
@@ -160,6 +160,13 @@ namespace DevAudit.CommandLine
 
         [Option('a', "with-vulners", Required = false, HelpText = "Use vulnerability data from the vulners.com API and/or data files.")]
         public bool WithVulners { get; set; }
+
+        [Option("ignore-vulnerabilities", Required = false, HelpText = "Specify a tab separated file with vulnerabilities to ignore. Format in file is {PackageName} /t {PackageVersion} /t {VulnerabilityId} on each line. Useful i.c.w. CI mode if there are false positives or issues that cannot be resolved.")]
+        public string IgnoreVulnerabilities
+        {
+            get;
+            set;
+        }
 
         public static Dictionary<string, object> Parse(string o)
         {
